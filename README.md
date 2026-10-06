@@ -1,6 +1,6 @@
 # Stéphane Cuenat — blog
 
-Quarto website: essays (*AI, Honestly*) + working papers. Live at https://scuenat.github.io, deployed on every push to `main`.
+Quarto website: essays and papers (*AI, Honestly*). Live at https://scuenat.github.io, deployed on every push to `main`.
 
 ## One-time setup
 
@@ -25,7 +25,7 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 
 - Preview: `quarto preview`
 - New essay: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
-- New paper: create `papers/slug/index.qmd`; it renders as a web page **and** a two-column PDF
+- Paper: publish it as a post (category `paper`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
 - Math: `$inline$` and `$$display$$` (KaTeX)
 
 ## Optional
