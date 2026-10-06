@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-09-29">
+<meta name="description" content="Data is not what we need. The dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding.">
+
+<title>Show What Changed, Not the Data – Stéphane Cuenat</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-bcbbe6fc25a96ed13c36c39e6966bd51.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-5fb74b2c24255c26fe705c6947215204.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-bcbbe6fc25a96ed13c36c39e6966bd51.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Show What Changed, Not the Data – Stéphane Cuenat">
+<meta property="og:description" content="Data is not what we need. The dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig07.png">
+<meta property="og:site_name" content="Stéphane Cuenat">
+<meta property="og:image:height" content="705">
+<meta property="og:image:width" content="990">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Stéphane Cuenat</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../papers/index.html"> 
+<span class="menu-text">Papers</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/scuenat"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#part-i-data-is-not-what-we-need" id="toc-part-i-data-is-not-what-we-need" class="nav-link active" data-scroll-target="#part-i-data-is-not-what-we-need">Part I · Data is not what we need</a>
+  <ul class="collapse">
+  <li><a href="#the-dashboard-problem" id="toc-the-dashboard-problem" class="nav-link" data-scroll-target="#the-dashboard-problem">1. The dashboard problem</a></li>
+  <li><a href="#the-curve-that-fits-too-well" id="toc-the-curve-that-fits-too-well" class="nav-link" data-scroll-target="#the-curve-that-fits-too-well">2. The curve that fits too well</a></li>
+  <li><a href="#explaining-the-past-vs.-predicting-the-future" id="toc-explaining-the-past-vs.-predicting-the-future" class="nav-link" data-scroll-target="#explaining-the-past-vs.-predicting-the-future">3. Explaining the past vs.&nbsp;predicting the future</a></li>
+  </ul></li>
+  <li><a href="#part-ii-compression-gives-shape" id="toc-part-ii-compression-gives-shape" class="nav-link" data-scroll-target="#part-ii-compression-gives-shape">Part II · Compression gives shape</a>
+  <ul class="collapse">
+  <li><a href="#lots-of-data-few-numbers" id="toc-lots-of-data-few-numbers" class="nav-link" data-scroll-target="#lots-of-data-few-numbers">4. Lots of data, few numbers</a></li>
+  <li><a href="#summarising-is-discovering" id="toc-summarising-is-discovering" class="nav-link" data-scroll-target="#summarising-is-discovering">5. Summarising is discovering</a></li>
+  <li><a href="#the-shape-of-a-system" id="toc-the-shape-of-a-system" class="nav-link" data-scroll-target="#the-shape-of-a-system">6. The shape of a system</a></li>
+  </ul></li>
+  <li><a href="#part-iii-the-dashboard-is-the-difference-of-shapes" id="toc-part-iii-the-dashboard-is-the-difference-of-shapes" class="nav-link" data-scroll-target="#part-iii-the-dashboard-is-the-difference-of-shapes">Part III · The dashboard is the difference of shapes</a>
+  <ul class="collapse">
+  <li><a href="#show-what-changed-not-what-is" id="toc-show-what-changed-not-what-is" class="nav-link" data-scroll-target="#show-what-changed-not-what-is">7. Show what changed, not what is</a></li>
+  <li><a href="#five-cautions-for-taking-differences" id="toc-five-cautions-for-taking-differences" class="nav-link" data-scroll-target="#five-cautions-for-taking-differences">8. Five cautions for taking differences</a></li>
+  <li><a href="#data-becomes-evidence" id="toc-data-becomes-evidence" class="nav-link" data-scroll-target="#data-becomes-evidence">9. Data becomes evidence</a></li>
+  <li><a href="#what-replaces-the-dashboard" id="toc-what-replaces-the-dashboard" class="nav-link" data-scroll-target="#what-replaces-the-dashboard">10. What replaces the dashboard</a></li>
+  <li><a href="#a-simulated-case-copilot-telemetry" id="toc-a-simulated-case-copilot-telemetry" class="nav-link" data-scroll-target="#a-simulated-case-copilot-telemetry">11. A simulated case: copilot telemetry</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">12. Conclusion</a></li>
+  <li><a href="#further-reading" id="toc-further-reading" class="nav-link" data-scroll-target="#further-reading">Further reading</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Show What Changed, Not the Data</h1>
+<p class="subtitle lead">The dashboard as a difference of shapes</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">paper</div>
+    <div class="quarto-category">data</div>
+    <div class="quarto-category">dashboards</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Data is not what we need. The dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">September 29, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Working paper, September 2026.</strong> <a href="Cuenat_Show_What_Changed.pdf" download="Cuenat_Show_What_Changed.pdf">Download the PDF</a></p>
+</div>
+</div>
+</div>
+<p><strong>Abstract.</strong> Many organisations use AI to produce more: more metrics, more reports, more dashboards. And we end up looking at data. This paper argues that data is not what we need. A simple lesson from mathematics shows why more numbers explain the past better but guide decisions worse. The paper then argues that summarising data well and finding the rules behind it are the same task, and that the result is a shape: a small description of how a system works. Its main proposal is that the dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding. A simulated case based on the telemetry of an AI copilot shows the gain.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Data is not what we need, and producing more of it is not progress.</li>
+<li>Summarising data well and finding its rules are the same task. The result is a shape: our understanding of the system.</li>
+<li>The dashboard should show how the shape changed, not the data. Most of the time, it is empty.</li>
+<li>An empty dashboard is good news, but only if the system proves that it is still checking.</li>
+<li>Data becomes evidence: collected where things change, kept in an archive, rarely shown.</li>
+</ul>
+</div>
+</div>
+<section id="part-i-data-is-not-what-we-need" class="level1">
+<h1>Part I · Data is not what we need</h1>
+<section id="the-dashboard-problem" class="level2">
+<h2 class="anchored" data-anchor-id="the-dashboard-problem">1. The dashboard problem</h2>
+<p>AI makes it cheap to produce information, so we produce more of it: more reports, more summaries, more tiles on dashboards that already have forty. But reading still takes as long as it always did. Human attention is the real limit.</p>
+<p>And so we end up looking at data. The screen fills with numbers, and understanding is left to the reader. We measure more than ever, yet decisions do not feel better informed. This paper argues that data is not what we need, and that producing more of it is not progress. What we need is understanding and, above all, knowing when our understanding has to change.</p>
+</section>
+<section id="the-curve-that-fits-too-well" class="level2">
+<h2 class="anchored" data-anchor-id="the-curve-that-fits-too-well">2. The curve that fits too well</h2>
+<p>Imagine we have some noisy measurements and want to draw a curve through them. A common tool is a polynomial, a sum of terms:</p>
+<p><span class="math display">
+p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
+</span></p>
+<p>The more terms we add, the closer the curve gets to each point. With enough terms, it passes through all of them. That looks perfect, but it is not. Between the points, the curve swings wildly (Figure 1). It has learned the noise, not the real shape.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig01.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 1.</strong> Sixteen noisy measurements. The curve with 15 terms (red) hits every point but swings far away between them. The simple curve with 3 terms (blue) misses some points but follows the real shape. All figures in this paper use simulated data.</figcaption>
+</figure>
+</div>
+<p>A dashboard does the same thing, except that the fitting happens in people’s heads. Show someone forty indicators and they will find a story: this dip was caused by that event. With enough indicators, some story always fits the past. The reader becomes the curve with too many terms. That is why every extra number has a cost, even when it is correct.</p>
+</section>
+<section id="explaining-the-past-vs.-predicting-the-future" class="level2">
+<h2 class="anchored" data-anchor-id="explaining-the-past-vs.-predicting-the-future">3. Explaining the past vs.&nbsp;predicting the future</h2>
+<p>Figure 2 shows the trade-off. Adding terms always improves the fit to past data. But the ability to predict new cases improves only up to a point, and then gets much worse. The best result comes from a small number of terms.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig02.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 2.</strong> As terms are added, the fit to past data keeps improving (grey). Prediction of new data (blue) is best with 3 terms, then gets much worse.</figcaption>
+</figure>
+</div>
+<p>The same holds for dashboards. Three well-chosen numbers may look less complete than thirty, but they guide action better. Being complete and being accurate are not the same goal.</p>
+</section>
+</section>
+<section id="part-ii-compression-gives-shape" class="level1">
+<h1>Part II · Compression gives shape</h1>
+<section id="lots-of-data-few-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="lots-of-data-few-numbers">4. Lots of data, few numbers</h2>
+<p>This does not mean we should collect less data. To find the few right numbers, we often need many measurements. The real question is who does the summarising. In Figure 3, 120 measurements are reduced to six numbers that describe the whole surface, even where nothing was measured. Machines should handle the volume; people should receive the result.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig03.png" class="img-fluid figure-img" style="width:60.0%"></p>
+<figcaption><strong>Figure 3.</strong> 120 measurements (red) summarised by a surface described by only six numbers (blue).</figcaption>
+</figure>
+</div>
+<p>So the best use of AI here is not to produce more, but to reduce: to take large, messy data and return the few numbers that explain it, with an honest statement of how certain it is (Figure 4). Three simple tests help decide what to keep:</p>
+<ul>
+<li><strong>Decision test.</strong> Would this change what anyone does? If not, remove it.</li>
+<li><strong>Prediction test.</strong> Does it help predict what comes next, or does it only describe the past?</li>
+<li><strong>Simplicity test.</strong> Could we say the same with fewer numbers? If so, the extra ones are noise.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig04.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 4.</strong> The information funnel. Each step should be smaller than the one before, so that what reaches a person is small enough to act on.</figcaption>
+</figure>
+</div>
+</section>
+<section id="summarising-is-discovering" class="level2">
+<h2 class="anchored" data-anchor-id="summarising-is-discovering">5. Summarising is discovering</h2>
+<p>A curve shows the shape of the data, but not why it has that shape. For that, we need rules. One might think that finding rules is a separate step that comes after summarising. It is not. It is the same task.</p>
+<p>Here is why. The shortest way to describe a set of data has two parts: a rule, plus the exceptions the rule does not explain.</p>
+<p><span class="math display">
+\text{data} = \text{rule} + \text{exceptions}
+</span></p>
+<p>The best summary keeps both parts as short as possible, and the rule that achieves this is the best explanation of the data. Put simply: the raw data is a file, a summary is a compressed file, and a rule is the recipe that produces the file.</p>
+<p>History shows this well. Tycho Brahe spent decades recording the positions of the planets. Kepler summarised his tables in three short laws. Newton then discovered gravity, not from Tycho’s raw tables, but from Kepler’s three laws. The rule was found in the summary, not in the raw data.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig05.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 5.</strong> Top: from data, to summary, to rule. Bottom: the same idea as a method. Summarising and finding rules form a loop, driven by what the rule still misses. Rules are tested in practice before they are trusted.</figcaption>
+</figure>
+</div>
+<p>Modern AI can work the same way. First, a neural network learns to summarise the data into a few variables. Then a second method searches those few variables for simple equations. Researchers have used this to rediscover known laws of physics from raw measurements, even from video. So to the question “how would AI find the rules?”, the answer is: summarise first, then look for rules in the summary.</p>
+<p>Three cautions apply:</p>
+<ul>
+<li><strong>Keep what predicts, not what is big.</strong> A summary that keeps only the largest effects can throw away a small signal that holds the rule.</li>
+<li><strong>It is a loop, not a straight line.</strong> To summarise well, you need an idea of the rule; to find the rule, you need a good summary. So we go round: summarise, guess a rule, look at what it misses, summarise again.</li>
+<li><strong>A pattern is not a cause.</strong> A rule found in past data may break once people act on it. As Goodhart’s law puts it, when a measure becomes a target, it stops being a good measure. Rules must be tested in practice.</li>
+</ul>
+</section>
+<section id="the-shape-of-a-system" class="level2">
+<h2 class="anchored" data-anchor-id="the-shape-of-a-system">6. The shape of a system</h2>
+<p>We can now name what this work produces. Call it the <em>shape</em> of the system: the smallest description that explains its data. It has three layers.</p>
+<ul>
+<li><strong>Structure:</strong> what kind of system it is. One group or several? Does it repeat in cycles, or drift?</li>
+<li><strong>Rules:</strong> how it works. What drives what, and how strongly.</li>
+<li><strong>Scale:</strong> a few key numbers that say how much.</li>
+</ul>
+<p>Structure deserves a word, because averages cannot see it. In Figure 6, three datasets have exactly the same average and spread, yet one is a cloud, one is a loop and one is two loops. A process that repeats and a process that drifts are very different, even if their averages match. A branch of mathematics called topological data analysis detects such structure and describes it with a few numbers: how many groups, how many loops.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig06.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 6.</strong> Three datasets with the same average and spread. Standard statistics cannot tell them apart, but their shapes are completely different: no loop, one loop, two loops.</figcaption>
+</figure>
+</div>
+<p>In practice, a shape fits on a small card of a few dozen numbers. It is our current understanding of the system. It is far smaller than the data, and far more useful.</p>
+</section>
+</section>
+<section id="part-iii-the-dashboard-is-the-difference-of-shapes" class="level1">
+<h1>Part III · The dashboard is the difference of shapes</h1>
+<section id="show-what-changed-not-what-is" class="level2">
+<h2 class="anchored" data-anchor-id="show-what-changed-not-what-is">7. Show what changed, not what is</h2>
+<p>Here is the central idea of this paper. Data arrives all the time, so the shape is updated regularly, for example every week. Most weeks, the new shape is almost the same as the old one: the system behaves as we understand it. Occasionally the shape changes: a rule stops holding, a new group appears, a key number moves.</p>
+<p>The dashboard should show exactly that: the difference between the new shape and the previous one.</p>
+<p><span class="math display">
+\text{dashboard} = \text{shape}(\text{this week}) - \text{shape}(\text{last week})
+</span></p>
+<p>Mathematicians call this a finite difference. The dashboard then shows neither the data nor even the shape, but how our understanding has changed (Figure 7).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig07.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 7.</strong> Illustrative. Bottom: the raw data, used as evidence and never shown. Middle: the shape, our understanding, updated each week. Top: the difference between consecutive shapes. This is the dashboard, and it stays empty until the shape changes.</figcaption>
+</figure>
+</div>
+<p>This gives three layers, each with its own role. <strong>Data is evidence:</strong> it is kept, but rarely shown. <strong>The shape is understanding:</strong> anyone can consult it when they want to know how the system works. <strong>The difference is news:</strong> it is the only thing that needs attention.</p>
+<p>It also separates two kinds of surprise. A surprise <em>within</em> the shape is a single measurement that does not fit the rules: an unusual request, a bad day. The system handles those itself. A change <em>of</em> the shape means the rules themselves have moved. That is what people need to know.</p>
+<p>Most of the time, the difference is zero and the dashboard is empty. That is the goal, not a flaw. An empty dashboard means our understanding still holds.</p>
+</section>
+<section id="five-cautions-for-taking-differences" class="level2">
+<h2 class="anchored" data-anchor-id="five-cautions-for-taking-differences">8. Five cautions for taking differences</h2>
+<p>The idea is simple, but taking differences has well-known traps. Each has a simple answer.</p>
+<ul>
+<li><strong>Differences amplify noise.</strong> Subtracting two noisy numbers gives an even noisier one. If shapes are compared too often, random swings look like change. The time step must be long enough for the shape to be measured reliably. Mathematicians face the same choice when picking the step of a finite difference.</li>
+<li><strong>Subtract the change you already expect.</strong> If usage grows every week, the raw difference shows growth every week. That is not news. The dashboard should show the difference minus what the rules predicted: the change of the change.</li>
+<li><strong>Compare like with like.</strong> Two shapes can only be subtracted if they are described in the same terms. If the summary is rebuilt from scratch each time, its terms may shift meaning. Keep the frame fixed, or align the shapes before comparing.</li>
+<li><strong>Look at more than one time scale.</strong> A slow drift can be too small to notice from one week to the next and still add up to a large change. Compare the shape not only with last week, but also with a fixed reference, such as last quarter.</li>
+<li><strong>Weigh change by what it affects.</strong> A small change near a decision point can matter more than a large one elsewhere. Only changes large enough to affect a decision should appear, and the people who own the decisions, not the analysts, should decide what counts as large enough.</li>
+</ul>
+</section>
+<section id="data-becomes-evidence" class="level2">
+<h2 class="anchored" data-anchor-id="data-becomes-evidence">9. Data becomes evidence</h2>
+<p>In this view, data changes role. It is no longer something to look at. It is evidence: used to build the shape, to check it, and to show when it must change. Three ideas explain what kind of data is worth having.</p>
+<p><strong>Information is surprise.</strong> A number we already expected tells us nothing new. Only the gap between what happened and what the shape predicted carries information. A leading theory in brain science suggests the brain works in a similar way: it passes on mainly what differs from expectation.</p>
+<p><strong>Measure where things change.</strong> A rule tells us how things evolve; given a starting point, it can rebuild the rest. So data is needed mainly where the shape is unsure or changing. In Figure 8, the same 13 measurements, placed where the curve changes, give an error six times smaller. In practice we do not know in advance where things change, so we find out step by step: measure a little everywhere, then more where the surprises are.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig08.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 8.</strong> Thirteen measurements placed evenly (top) or where the curve changes (bottom). The second version follows the curve much more closely with the same number of points.</figcaption>
+</figure>
+</div>
+<p><strong>Data is worth what it changes.</strong> A measurement is valuable only if it could change a decision. When the choice is already clear, more data adds nothing (Figure 9). A good shape makes choices clearer, and so reduces how much data we need.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig09.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 9.</strong> How much a new measurement is worth, depending on how close we are to a decision. It matters most near the tipping point, and less when the model is confident.</figcaption>
+</figure>
+</div>
+<p>In practice: collect a little everywhere, and much more where the shape is changing. Keep the raw data in an archive for the day a new rule is needed. Show it only when someone asks.</p>
+</section>
+<section id="what-replaces-the-dashboard" class="level2">
+<h2 class="anchored" data-anchor-id="what-replaces-the-dashboard">10. What replaces the dashboard</h2>
+<p>What people see becomes small. The system produces three things:</p>
+<ul>
+<li><strong>A change notice,</strong> when the shape changes in a way that matters: what changed, by how much, why it matters and what to do.</li>
+<li><strong>A heartbeat,</strong> each period: “shape checked on this week’s data, no material change.” Without it, an empty dashboard is ambiguous, because a broken system is empty too.</li>
+<li><strong>The shape itself,</strong> on demand, for anyone who wants to understand the system or ask a question.</li>
+</ul>
+<p>Dashboards also serve other purposes: a shared picture for the team, accountability, audits and trust. These needs remain, and this approach serves them better. The shape is the shared picture. The history of changes is the audit trail. The heartbeat makes “nothing changed” a clear, checkable statement rather than a feeling.</p>
+<p>There are real risks. People who stop watching can lose their feel for the system, and a system cannot see a change its shape does not describe. Three safeguards help: review the shape itself regularly; let people explore the raw data from time to time, looking for what the shape misses; and keep people, not the system, responsible for the limits and the decisions.</p>
+<p>Building such a system follows a short method:</p>
+<ul>
+<li><strong>Start from decisions.</strong> List the decisions people actually make.</li>
+<li><strong>Compress into a shape that predicts.</strong> Keep what predicts, and let each rule know its own noise.</li>
+<li><strong>Fix the frame,</strong> so that shapes can be compared over time.</li>
+<li><strong>Choose the step,</strong> long enough to measure the shape reliably.</li>
+<li><strong>Compute the difference minus the expected change,</strong> against last period and against a fixed reference.</li>
+<li><strong>Keep only material changes,</strong> publish them with a heartbeat, and archive the data.</li>
+</ul>
+</section>
+<section id="a-simulated-case-copilot-telemetry" class="level2">
+<h2 class="anchored" data-anchor-id="a-simulated-case-copilot-telemetry">11. A simulated case: copilot telemetry</h2>
+<p>To make this concrete, we simulated 90 days of telemetry from an AI copilot with five agents: search, code, summarise, translate and email. Each request records its language (English, German, French or Italian), the agent, the function used, the request length and the response time. Usage grows slowly and drops at weekends, and a new export function is gradually replacing the older draft function. Response times also move up and down each day for everyone, because the servers are shared.</p>
+<p>We hid two real problems. From day 45, the translate agent starts slowing down very gradually, by 0.2% per day. On day 60, the code agent suddenly becomes 25% slower, for German requests only. In total, the simulation produces 1.6 million requests and about 10 million numbers.</p>
+<p><strong>The usual dashboard.</strong> A typical dashboard shows 24 tiles: requests per language and per agent, response time per agent, and how often each function is used (Figure 10). Each tile is flagged when it leaves its normal range. Over the last 60 days, the tiles raise 106 flags. Normal growth and the new export function look like anomalies. Each real problem is flagged just once, both on day 74 during a server spike, with nothing to set them apart from the 104 false flags. Neither cause is named. This baseline is deliberately simple. A careful analyst would adjust each tile for weekends and growth, and remove most of the false flags. But the two real problems would still be hidden in the daily server swings, and no tile would name the cause.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig10.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 10.</strong> The usual dashboard: 24 tiles over 90 days. Red dots mark days outside the normal range: 106 flags, almost all false. The dotted line marks day 60.</figcaption>
+</figure>
+</div>
+<p><strong>The shape.</strong> The system first summarises the raw requests into 7,200 small groups, one per day, agent, language and request length. From this summary it learns the rules: weekdays bring four times more requests than weekends; usage grows by about 0.3% per day; export is steadily replacing draft; and response time grows with the square root of request length (learned value 0.54, against 0.5 used to create the data). Each week, it then describes the copilot with a shape card of 33 numbers: overall volume, the language mix, the speed of each agent in each language (after removing the effect of request length and the shared server swings), and the share of each function within its agent. Twelve weeks of shapes amount to fewer than 400 numbers, instead of 10 million.</p>
+<p><strong>The dashboard.</strong> Figure 11 shows the difference between each week’s shape and the previous one. On the left is the raw difference: many cells light up week after week, because volume grows and export replaces draft. On the right is the difference minus the expected change, keeping only material changes (5% for speed and volume, two percentage points for usage). These thresholds are not technical choices; they should be set by the people who own the decisions, for example the team responsible for response times. For twelve weeks, the whole dashboard is empty except for one line: code agent, German. The notice appears at the end of week 9, two days after the problem began, and names the cause. It appears again in week 10, because the week-9 shape contained only three days of the problem. After that, the new speed is part of the shape, and the dashboard is quiet again.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig11.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 11.</strong> The dashboard as a difference of shapes, over 12 weeks. Left: the raw week-to-week difference of the 33 numbers in the shape card. Right: the difference minus the expected change, keeping only material changes. One line remains: code agent, German, weeks 9 and 10.</figcaption>
+</figure>
+</div>
+<p><strong>The slow drift.</strong> The translate slowdown never moves more than 1.7% from one week to the next, so it never appears on the weekly dashboard. Compared with a fixed reference shape (weeks 1 to 6), it crosses the 5% line in week 12 and is reported (Figure 12). This is the fourth caution at work.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig12.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 12.</strong> The slow drift of the translate agent. Week-to-week changes (bars) stay small. The change compared with a fixed reference shape (line) keeps growing and crosses the materiality line in week 12.</figcaption>
+</figure>
+</div>
+<p><strong>The time step.</strong> If shapes are compared every day instead of every week, noise alone produces 51 speed changes above 5% in the first 59 days, before anything real has happened. Weekly comparison produces none. This is the first caution at work.</p>
+<p><strong>A limit.</strong> We hid both problems along dimensions the shape card tracks: agent and language. A problem along a dimension it does not track, such as device type, would not appear at all. This is the real limit of the approach, and the reason why the shape itself must be reviewed, and the raw data explored from time to time (Section 10).</p>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> The two approaches on the same simulated data. The dashboard figures cover 90 days, the shapes 12 full weeks. The 3 notices are two for the sudden problem (weeks 9 and 10) and one for the drift.</caption>
+<colgroup>
+<col style="width: 35%">
+<col style="width: 32%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Usual dashboard</th>
+<th>Difference of shapes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>What people see</td>
+<td>24 charts, every day</td>
+<td>12 heartbeats, 3 notices</td>
+</tr>
+<tr class="even">
+<td>False alarms</td>
+<td>104</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>Sudden problem found</td>
+<td>day 74, one flag among many</td>
+<td>end of week 9 (day 62)</td>
+</tr>
+<tr class="even">
+<td>Cause named</td>
+<td>no</td>
+<td>code agent, German</td>
+</tr>
+<tr class="odd">
+<td>Slow drift found</td>
+<td>day 74, one flag among many</td>
+<td>week 12, via the reference</td>
+</tr>
+<tr class="even">
+<td>What is kept for understanding</td>
+<td>24 charts</td>
+<td>33 numbers per week</td>
+</tr>
+</tbody>
+</table>
+<p>Two lessons came from building the case itself. Our first summary dropped request length, and the length rule could not be found: the system learned 0.33 instead of 0.5. <em>A summary must keep what predicts.</em> An early version also ignored that weekends have fewer requests, which makes usage noisier on those days; it raised ten false alarms. <em>A rule must know its own noise.</em> Both are the loop of Section 5 at work: the surprises showed us what the shape was missing.</p>
+<p>The gain is clear. People no longer read data. They read, at most, a few lines about what changed in the system, and a weekly confirmation that nothing else did. The data is still there, used as evidence rather than shown as content.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">12. Conclusion</h2>
+<p>We set out from a simple observation: AI makes it easy to produce more, and we end up looking at data. Data is not what we need. What we need is understanding, and the ability to notice when it must change. Summarising data well and finding the rules behind it are one task, and its result is a shape. The dashboard, finally, should be the difference between shapes: an empty page on most days, and a few precise lines when our understanding of the world has to move. We do not need more data on more screens. We need a good shape, a careful way of measuring how it changes, and the humility to keep checking that it still holds.</p>
+</section>
+<section id="further-reading" class="level2">
+<h2 class="anchored" data-anchor-id="further-reading">Further reading</h2>
+<div class="small">
+<ul>
+<li>Akaike, H. (1974). A new look at the statistical model identification. <em>IEEE Transactions on Automatic Control</em>, 19(6), 716–723.</li>
+<li>Anscombe, F. J. (1973). Graphs in statistical analysis. <em>The American Statistician</em>, 27(1), 17–21.</li>
+<li>Bainbridge, L. (1983). Ironies of automation. <em>Automatica</em>, 19(6), 775–779.</li>
+<li>Berger, M. J., &amp; Oliger, J. (1984). Adaptive mesh refinement for hyperbolic partial differential equations. <em>Journal of Computational Physics</em>, 53(3), 484–512.</li>
+<li>Brunton, S. L., Proctor, J. L., &amp; Kutz, J. N. (2016). Discovering governing equations from data by sparse identification of nonlinear dynamical systems. <em>PNAS</em>, 113(15), 3932–3937.</li>
+<li>Carlsson, G. (2009). Topology and data. <em>Bulletin of the American Mathematical Society</em>, 46(2), 255–308.</li>
+<li>Champion, K., Lusch, B., Kutz, J. N., &amp; Brunton, S. L. (2019). Data-driven discovery of coordinates and governing equations. <em>PNAS</em>, 116(45), 22445–22451.</li>
+<li>Cranmer, M., et al.&nbsp;(2020). Discovering symbolic models from deep learning with inductive biases. <em>Advances in Neural Information Processing Systems</em>, 33.</li>
+<li>Edelsbrunner, H., Letscher, D., &amp; Zomorodian, A. (2002). Topological persistence and simplification. <em>Discrete &amp; Computational Geometry</em>, 28, 511–533.</li>
+<li>Goodhart, C. A. E. (1975). Problems of monetary management: the U.K. experience. <em>Papers in Monetary Economics</em>, Reserve Bank of Australia.</li>
+<li>Howard, R. A. (1966). Information value theory. <em>IEEE Transactions on Systems Science and Cybernetics</em>, 2(1), 22–26.</li>
+<li>Matejka, J., &amp; Fitzmaurice, G. (2017). Same stats, different graphs. <em>Proceedings of CHI 2017</em>, 1290–1294.</li>
+<li>Miller, G. A. (1956). The magical number seven, plus or minus two. <em>Psychological Review</em>, 63(2), 81–97.</li>
+<li>Rao, R. P. N., &amp; Ballard, D. H. (1999). Predictive coding in the visual cortex. <em>Nature Neuroscience</em>, 2(1), 79–87.</li>
+<li>Rissanen, J. (1978). Modeling by shortest data description. <em>Automatica</em>, 14(5), 465–471.</li>
+<li>Runge, C. (1901). Über empirische Funktionen und die Interpolation zwischen äquidistanten Ordinaten. <em>Zeitschrift für Mathematik und Physik</em>, 46, 224–243.</li>
+<li>Shannon, C. E. (1948). A mathematical theory of communication. <em>Bell System Technical Journal</em>, 27(3), 379–423.</li>
+<li>Tishby, N., Pereira, F. C., &amp; Bialek, W. (1999). The information bottleneck method. <em>Proceedings of the 37th Allerton Conference on Communication, Control and Computing</em>, 368–377.</li>
+<li>Udrescu, S.-M., &amp; Tegmark, M. (2020). AI Feynman: a physics-inspired method for symbolic regression. <em>Science Advances</em>, 6(16), eaay2631.</li>
+</ul>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 Stéphane Cuenat</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>Built with <a href="https://quarto.org">Quarto</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
