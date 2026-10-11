@@ -119,6 +119,76 @@
     "text": "Latest writing"
   },
   {
+    "objectID": "posts/2026-10-11-fast-ai/index.html",
+    "href": "posts/2026-10-11-fast-ai/index.html",
+    "title": "Fast AI",
+    "section": "",
+    "text": "Essay, October 2026. The code for the figures is here: figs.py."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#learning-is-slow-habits-are-fast",
+    "href": "posts/2026-10-11-fast-ai/index.html#learning-is-slow-habits-are-fast",
+    "title": "Fast AI",
+    "section": "1. Learning is slow, habits are fast",
+    "text": "1. Learning is slow, habits are fast\nThink of a new accountant in their first week. Every invoice is a small investigation. They read it line by line, check the contract, look up the supplier, ask a colleague which budget it belongs to. Ten years later, the same person glances at an invoice and knows. They have not become a faster thinker. They have turned years of slow learning into fast habits.\nThis is how expertise works, in people and in most living things. Learning is slow and deliberate, and it happens rarely. Acting is fast and nearly automatic, and it happens constantly. The slow part builds a structure; the fast part uses it. When something truly new appears, the expert slows down again, thinks, and if the lesson is worth keeping, it becomes a new habit.\n\n\n\nFigure 1. Schematic. The effort an expert spends on a routine case falls as slow learning turns into fast habit. When something truly new appears, the expert slows down again, and the lesson becomes the next habit.\n\n\nI call this idea Fast AI. Not fast because the hardware is quick, but fast because the thinking has already been done."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#the-agent-that-reads-the-manual-every-morning",
+    "href": "posts/2026-10-11-fast-ai/index.html#the-agent-that-reads-the-manual-every-morning",
+    "title": "Fast AI",
+    "section": "2. The agent that reads the manual every morning",
+    "text": "2. The agent that reads the manual every morning\nNow look at how we build automation with AI today.\nThe typical agent receives a task, reads the context, reasons about what to do, calls a tool, reads the result, reasons again, calls another tool, and continues until it believes the task is done. It is impressive to watch. It is also an employee who arrives every morning with no memory and reads the whole manual again before touching anything.\nFor automation processes, this has four costs.\n\nErrors compound. If each step is right 95% of the time, a 20-step loop gets everything right only about 36% of the time (0.95 to the power 20). Agents add checks and retries to compensate, which adds more steps, more time and more cost.\nIt is slow. Each step is a call to a large model that takes seconds. A process that runs ten thousand times a day pays that price ten thousand times, for reasoning that was nearly identical yesterday.\nIt is not repeatable. Give the same input twice and the agent may take a different path. In regulated work, the question is not only “is the answer right?” but “would it give the same answer tomorrow, and can you show me why?”. A loop of free-text reasoning is hard to audit and harder to certify.\nIt does not accumulate. What the agent figured out on Monday is gone on Tuesday, unless someone builds a memory around it. The intelligence is spent, not invested.\n\n\n\n\nFigure 2. Errors compound. The chance that every step of a loop is right falls quickly with the number of steps. At 95% per step, a 20-step loop is fully right only 36% of the time.\n\n\nNone of this means agents are bad. It means they are the wrong default for work that repeats."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#compile-dont-interpret",
+    "href": "posts/2026-10-11-fast-ai/index.html#compile-dont-interpret",
+    "title": "Fast AI",
+    "section": "3. Compile, don’t interpret",
+    "text": "3. Compile, don’t interpret\nProgrammers know this distinction well. An interpreter reads and executes a program line by line, every time it runs. A compiler reads the program once, works hard to understand and optimise it, and produces something that runs fast and identically, again and again.\nAn agentic loop interprets the task on every run. Fast AI compiles it.\nIn this view, the language model’s best role in automation is not to sit inside the loop. It is to work before the loop, as the compiler. It does the slow, intelligent work once: reading, extracting, structuring, connecting. Then it steps aside, and something fast and simple runs the process.\n\n\n\nFigure 3. Interpret or compile. An agentic loop puts the large model inside every run. Fast AI uses it once, before the loop, to build a memory and fast models; the runs that follow are fast, identical and explainable."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#the-slow-part-a-structured-memory",
+    "href": "posts/2026-10-11-fast-ai/index.html#the-slow-part-a-structured-memory",
+    "title": "Fast AI",
+    "section": "4. The slow part: a structured memory",
+    "text": "4. The slow part: a structured memory\nWhat does the language model compile the domain into? My answer is a knowledge graph: a structured memory of the things in a domain and how they relate.\nLanguage models are very good at the slow work this requires. Give them contracts, policies, past cases, emails and the notes experts leave behind, and they can extract the entities and relations hidden in all that text. For supplier invoices, that means suppliers, contracts, cost centres, approvers, products and the links between them: this supplier’s invoices go to this budget, amounts above this limit need a second approval, this kind of line item was disputed three times last year.\n\n\n\nFigure 4. A small piece of a knowledge graph for supplier invoices. Every fact is a node or a link that a person can inspect, correct or delete. Names and values are illustrative.\n\n\nThree things make the graph more valuable than a pile of documents or a long prompt.\n\nIt is explicit. Every fact is a node and a link that a person can inspect, correct or delete. Experts can validate it, and they should, because extraction makes mistakes.\nIt is stable. It does not change between runs unless someone changes it. The same question gets the same facts.\nIt accumulates. Every new case, correction and exception can be added. The intelligence is invested, not spent.\n\nThis is the slow learning of the expert, written down."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#the-fast-part-trees-and-networks-together",
+    "href": "posts/2026-10-11-fast-ai/index.html#the-fast-part-trees-and-networks-together",
+    "title": "Fast AI",
+    "section": "5. The fast part: trees and networks together",
+    "text": "5. The fast part: trees and networks together\nWith the memory in place, the decision itself rarely needs a large language model. It needs the right fast model, and here Fast AI has a second meaning: it is a hybrid, not deep learning everywhere.\nDeep learning is unmatched at perception: turning raw, messy inputs such as images, scanned documents, sound or free text into meaningful features. Decision trees, and especially gradient-boosted trees, are often better at deciding: taking a table of meaningful features and producing a choice. On structured, tabular data, which describes most business decisions, well-tuned tree ensembles still match or beat deep networks in careful public benchmarks, while being faster, needing less data and being far easier to explain.\nSo the natural split is:\n\nDeep networks perceive. They read the scanned invoice, the photo or the text of a request, and turn it into features.\nThe knowledge graph remembers. It supplies what is known about those features: past cases, rules, constraints.\nTrees decide. They combine both into a decision in milliseconds, and they can show which features drove it.\n\n\n\n\nFigure 5. The hybrid. A deep network turns raw input into features, the knowledge graph adds what is known about them, and a tree ensemble makes the decision and shows its reasons.\n\n\nEach part does what it is best at. None of them needs to think from scratch on every case."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#the-loop-moves-to-where-it-belongs",
+    "href": "posts/2026-10-11-fast-ai/index.html#the-loop-moves-to-where-it-belongs",
+    "title": "Fast AI",
+    "section": "6. The loop moves to where it belongs",
+    "text": "6. The loop moves to where it belongs\nFast AI does not remove deliberation. It moves it.\nThe fast path handles the common cases. But every fast model should know when it is unsure: a low confidence score, a case unlike anything in its memory, a combination the graph has never seen. Those cases, and only those, go to the slow path: a language model reasoning through the problem, an agent exploring options, or a person.\nAnd when the slow path solves a new case, the answer does not vanish. It goes back into the knowledge graph, and if it repeats, the fast models are retrained on it. Deliberation becomes habit. This is the expert again, slowing down only for the truly new, and learning from it.\n\n\n\nFigure 6. Fast path and slow path. Familiar cases are decided in milliseconds. Unfamiliar ones go to a language model, an agent or a person; their answers return to the knowledge graph, and repeated ones are used to retrain the fast models.\n\n\nSo the agentic loop does not disappear. It stops running on every case and starts running on the exceptions, where its intelligence pays off."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#an-example-routing-supplier-invoices",
+    "href": "posts/2026-10-11-fast-ai/index.html#an-example-routing-supplier-invoices",
+    "title": "Fast AI",
+    "section": "7. An example: routing supplier invoices",
+    "text": "7. An example: routing supplier invoices\nTake a common task in any finance department: deciding what to do with each incoming invoice. Approve it, send it to the right person, or flag it.\nThe agentic way. An agent receives the invoice, calls a tool to read it, reasons about the supplier, searches the contracts, reasons about the amount, looks up the approval rules, proposes a route, checks it and adjusts. It may take half a minute, cost a noticeable amount, and route slightly differently next time. Explaining why it chose this approver means reading pages of its reasoning.\nThe Fast AI way. Months earlier, a language model read the contracts, policies and past decisions, and built a graph of suppliers, budgets, limits and approvers. The finance team reviewed it. Now, for each new invoice, a network reads the document, the graph supplies the relevant contract and history, and a tree ensemble picks a route in milliseconds. It explains its choice: supplier, amount against contract, cost centre, past disputes. When an invoice is unlike anything seen before, it says so and hands it to a person or an agent. Their answer enriches the graph.\n\n\n\nFigure 7. Routing supplier invoices, two ways. The agent reasons through every invoice from scratch. Fast AI does the reading once, months earlier, and then routes each invoice in milliseconds with its reasons, handing only the unfamiliar ones to a person or an agent.\n\n\nBoth use AI. Only one of them gets faster and better every month."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#what-fast-ai-costs",
+    "href": "posts/2026-10-11-fast-ai/index.html#what-fast-ai-costs",
+    "title": "Fast AI",
+    "section": "8. What Fast AI costs",
+    "text": "8. What Fast AI costs\nThis approach has real costs, and they are worth stating.\n\nThe graph is work. Extraction errors must be caught, and someone has to own the memory. A wrong fact in the graph is repeated quickly and confidently, which is worse than a slow mistake.\nIt needs repetition. For tasks that are truly one-off or open-ended, compiling makes no sense. There is nothing to reuse, and the agent is the right tool.\nThe world drifts. New suppliers, new rules, new products: a fast system can go on confidently applying old habits. It needs a monitor that notices when its decisions stop fitting, as my last essay argued for dashboards.\nIt takes design. An agent can be set up in an afternoon. A hybrid of graph, networks and trees takes engineering. That upfront cost is precisely the slow learning, and it pays off only if the process repeats enough."
+  },
+  {
+    "objectID": "posts/2026-10-11-fast-ai/index.html#conclusion",
+    "href": "posts/2026-10-11-fast-ai/index.html#conclusion",
+    "title": "Fast AI",
+    "section": "9. Conclusion",
+    "text": "9. Conclusion\nWe are tempted to put the most powerful model in the middle of every process, thinking on every run. For open problems, that is right. For automation, it is often like asking a senior expert to reread the whole manual before every routine job.\nThe alternative is older than AI. Learn slowly, once, and write down what you learned. Act fast, with simple tools you can explain. Slow down only when something is truly new, and turn what you learn there into the next habit.\nUse the large model to build the memory, not to replace it. Let deep learning perceive and trees decide. Keep the loop for the exceptions. That is Fast AI: not less intelligence, but intelligence spent once and invested, instead of spent again on every run.\n\nThe views in this essay are my own and do not describe any product or plan of my employer."
+  },
+  {
     "objectID": "posts/2026-09-29-show-what-changed/index.html",
     "href": "posts/2026-09-29-show-what-changed/index.html",
     "title": "Show What Changed, Not the Data",
