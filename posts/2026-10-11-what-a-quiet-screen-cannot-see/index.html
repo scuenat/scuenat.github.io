@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-10-11">
+<meta name="description" content="An empty dashboard can mean two things: nothing changed, or something changed where we are not looking. A system that only watches its own picture of the world cannot tell them apart. But the part of the data it cannot explain can.">
+
+<title>What a Quiet Screen Cannot See – Stéphane Cuenat</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-2e707c18748ceb10bcfa5f94c9083d01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-ccff896f15f576d065354d3fb5699886.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-2e707c18748ceb10bcfa5f94c9083d01.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="What a Quiet Screen Cannot See – Stéphane Cuenat">
+<meta property="og:description" content="An empty dashboard can mean two things: nothing changed, or something changed where we are not looking. A system that only watches its own picture of the world cannot tell them apart. But the part of the data it cannot explain can.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png">
+<meta property="og:site_name" content="Stéphane Cuenat">
+<meta property="og:image:height" content="548">
+<meta property="og:image:width" content="908">
+<meta name="twitter:title" content="What a Quiet Screen Cannot See – Stéphane Cuenat">
+<meta name="twitter:description" content="An empty dashboard can mean two things: nothing changed, or something changed where we are not looking. A system that only watches its own picture of the world cannot tell them apart. But the part of the data it cannot explain can.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png">
+<meta name="twitter:image-height" content="548">
+<meta name="twitter:image-width" content="908">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Stéphane Cuenat</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#part-i-two-kinds-of-silence" id="toc-part-i-two-kinds-of-silence" class="nav-link active" data-scroll-target="#part-i-two-kinds-of-silence">Part I · Two kinds of silence</a>
+  <ul class="collapse">
+  <li><a href="#the-objection" id="toc-the-objection" class="nav-link" data-scroll-target="#the-objection">1. The objection</a></li>
+  <li><a href="#two-silences" id="toc-two-silences" class="nav-link" data-scroll-target="#two-silences">2. Two silences</a></li>
+  <li><a href="#the-geometry-of-a-blind-spot" id="toc-the-geometry-of-a-blind-spot" class="nav-link" data-scroll-target="#the-geometry-of-a-blind-spot">3. The geometry of a blind spot</a></li>
+  </ul></li>
+  <li><a href="#part-ii-a-problem-the-shape-cannot-see" id="toc-part-ii-a-problem-the-shape-cannot-see" class="nav-link" data-scroll-target="#part-ii-a-problem-the-shape-cannot-see">Part II · A problem the shape cannot see</a>
+  <ul class="collapse">
+  <li><a href="#the-setup" id="toc-the-setup" class="nav-link" data-scroll-target="#the-setup">4. The setup</a></li>
+  <li><a href="#why-the-shape-stays-quiet" id="toc-why-the-shape-stays-quiet" class="nav-link" data-scroll-target="#why-the-shape-stays-quiet">5. Why the shape stays quiet</a></li>
+  </ul></li>
+  <li><a href="#part-iii-watching-what-the-shape-cannot-explain" id="toc-part-iii-watching-what-the-shape-cannot-explain" class="nav-link" data-scroll-target="#part-iii-watching-what-the-shape-cannot-explain">Part III · Watching what the shape cannot explain</a>
+  <ul class="collapse">
+  <li><a href="#the-leftover-part" id="toc-the-leftover-part" class="nav-link" data-scroll-target="#the-leftover-part">6. The leftover part</a></li>
+  <li><a href="#what-the-exceptions-show" id="toc-what-the-exceptions-show" class="nav-link" data-scroll-target="#what-the-exceptions-show">7. What the exceptions show</a></li>
+  <li><a href="#the-shape-learns" id="toc-the-shape-learns" class="nav-link" data-scroll-target="#the-shape-learns">8. The shape learns</a></li>
+  </ul></li>
+  <li><a href="#part-iv-what-this-has-to-do-with-the-brain" id="toc-part-iv-what-this-has-to-do-with-the-brain" class="nav-link" data-scroll-target="#part-iv-what-this-has-to-do-with-the-brain">Part IV · What this has to do with the brain</a>
+  <ul class="collapse">
+  <li><a href="#predictive-coding-has-the-same-problem" id="toc-predictive-coding-has-the-same-problem" class="nav-link" data-scroll-target="#predictive-coding-has-the-same-problem">9. Predictive coding has the same problem</a></li>
+  </ul></li>
+  <li><a href="#part-v-the-third-silence" id="toc-part-v-the-third-silence" class="nav-link" data-scroll-target="#part-v-the-third-silence">Part V · The third silence</a>
+  <ul class="collapse">
+  <li><a href="#changes-that-leave-no-trace" id="toc-changes-that-leave-no-trace" class="nav-link" data-scroll-target="#changes-that-leave-no-trace">10. Changes that leave no trace</a></li>
+  <li><a href="#proving-that-the-system-can-still-see" id="toc-proving-that-the-system-can-still-see" class="nav-link" data-scroll-target="#proving-that-the-system-can-still-see">11. Proving that the system can still see</a></li>
+  </ul></li>
+  <li><a href="#part-vi-a-quiet-screen-that-earns-its-silence" id="toc-part-vi-a-quiet-screen-that-earns-its-silence" class="nav-link" data-scroll-target="#part-vi-a-quiet-screen-that-earns-its-silence">Part VI · A quiet screen that earns its silence</a>
+  <ul class="collapse">
+  <li><a href="#a-better-heartbeat" id="toc-a-better-heartbeat" class="nav-link" data-scroll-target="#a-better-heartbeat">12. A better heartbeat</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">13. Conclusion</a></li>
+  <li><a href="#further-reading" id="toc-further-reading" class="nav-link" data-scroll-target="#further-reading">Further reading</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">What a Quiet Screen Cannot See</h1>
+<p class="subtitle lead">When an empty dashboard means all is well, and when it means we are not looking</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essay</div>
+    <div class="quarto-category">data</div>
+    <div class="quarto-category">dashboards</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    An empty dashboard can mean two things: nothing changed, or something changed where we are not looking. A system that only watches its own picture of the world cannot tell them apart. But the part of the data it cannot explain can.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 11, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essay, October 2026.</strong> A follow-up to <a href="../../posts/2026-09-29-show-what-changed/index.html">Show What Changed, Not the Data</a>. The simulation code is here: <a href="sim.py">sim.py</a>, <a href="figs.py">figs.py</a>.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> My last essay argued that a dashboard should show only how our understanding of a system has changed, so that most weeks it is empty. A reader pointed out the weak spot: if something goes wrong in a place our understanding does not cover, the screen stays quiet while the system fails. He is right, and this essay takes the objection seriously. An empty dashboard can mean two different things, <em>nothing changed</em> or <em>something changed where we are not looking</em>, and the dashboard alone cannot tell them apart. But the data can. Every summary leaves something unexplained, and when the world changes in a direction the summary does not cover, that leftover part grows. Watching it costs very little, and it turns a silent blind spot into a warning.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>A model can only report changes it has words for. Everything else is invisible to it, however large.</li>
+<li>So silence has two meanings, and a heartbeat that says “checked” does not separate them.</li>
+<li>What the model cannot explain, its exceptions, is where unseen change shows up first. Watch how big the exceptions are, and what explains them.</li>
+<li>Some changes leave no trace in any data. For those, only people help: reviews, visits, conversations.</li>
+<li>A quiet screen must earn its silence. It should say what it checked, what it could not explain, and when it last proved that it can still see.</li>
+</ul>
+</div>
+</div>
+<section id="part-i-two-kinds-of-silence" class="level1">
+<h1>Part I · Two kinds of silence</h1>
+<section id="the-objection" class="level2">
+<h2 class="anchored" data-anchor-id="the-objection">1. The objection</h2>
+<p>After I published the first essay, a reader named Ronald wrote a comment that I have been thinking about since. He liked the idea and compared it to how the brain works: it does not process everything it receives, it predicts what should happen and reacts only to the difference. An empty dashboard, he said, is like a well-adapted organism with nothing to react to.</p>
+<p>Then he added the caveat. The dashboard has a built-in blind spot. If something goes wrong outside what the shape describes, the screen stays silent while the system fails without a sound.</p>
+<p>I had mentioned this limit at the end of the paper, in one paragraph. That was not enough. The whole proposal rests on one promise: <em>if the screen is empty, you can look away.</em> If an empty screen can also mean “something is breaking where I cannot see”, then the promise is broken, and the old crowded dashboard starts to look safer. So the question deserves a full answer: when can we trust silence?</p>
+</section>
+<section id="two-silences" class="level2">
+<h2 class="anchored" data-anchor-id="two-silences">2. Two silences</h2>
+<p>Imagine two weeks in which the dashboard shows nothing.</p>
+<p>In the first week, nothing changed. The system behaved as our shape (our compact description of how it works) said it would. Silence is good news.</p>
+<p>In the second week, something did change, but in a direction the shape does not describe. Perhaps one type of device became slow, and the shape does not track devices. The shape is recomputed, it looks the same as last week, the difference is zero, and the screen is empty. Silence is now bad news, and it looks exactly like the good news.</p>
+<p>In the first essay I added a <em>heartbeat</em>: a weekly line saying “shape checked on this week’s data, no material change.” It solves a real problem. Without it, a broken pipeline and a healthy system both produce an empty screen. But the heartbeat only proves that the system is <em>checking</em>. It does not prove that the system can <em>see</em> the change that matters. In the second week, the heartbeat is sent, it is true, and it is useless.</p>
+</section>
+<section id="the-geometry-of-a-blind-spot" class="level2">
+<h2 class="anchored" data-anchor-id="the-geometry-of-a-blind-spot">3. The geometry of a blind spot</h2>
+<p>It helps to picture this. The shape is a small set of numbers: for example the speed of each agent in each language, after removing the effect of request length and the daily ups and downs of the shared servers. Think of each number as one direction in which the system can move. Together, these directions form the space that the shape describes.</p>
+<p>Any real change in the system is an arrow. Part of that arrow points along the directions the shape describes; that part moves the shape and reaches the dashboard. The rest points elsewhere; it moves nothing the shape measures, so the difference of shapes does not see it at all (Figure 1).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig01.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 1.</strong> A change in the system splits into two parts. The part along what the shape describes moves the shape card and can reach the dashboard. The part outside it is invisible, however large. A large real change can still show only a small shadow on the dashboard, too small to report.</figcaption>
+</figure>
+</div>
+<p>Mathematicians call the visible part a <em>projection</em>. The dashboard of the first essay sees only the projection of each change onto the shape. This is not a flaw of one dashboard; it is true of every model, every summary and every set of indicators. You can only report a change in the words you have. A thermometer cannot tell you that the room is on fire if the fire has not yet warmed the air near it.</p>
+<p>The danger is not only that some changes are invisible. It is that the shape will often <em>explain them away</em>. If a change looks, from inside the shape, like something the shape already expects, such as noise or a known swing, the shape will absorb it into that category without complaint.</p>
+</section>
+</section>
+<section id="part-ii-a-problem-the-shape-cannot-see" class="level1">
+<h1>Part II · A problem the shape cannot see</h1>
+<section id="the-setup" class="level2">
+<h2 class="anchored" data-anchor-id="the-setup">4. The setup</h2>
+<p>To see how this happens, I reused the simulated AI copilot from the first essay: five agents (search, code, summarise, translate, email), four languages (English, German, French, Italian), request lengths, slow growth, quiet weekends, and response times that rise and fall each day for everyone because the servers are shared. Over 12 weeks the simulation produces about 2.2 million requests.</p>
+<p>One thing is new. Each request now also records three fields the shape card does not use: the <strong>device</strong> (web browser, desktop app or iOS app), the <strong>region</strong> and the customer’s <strong>plan</strong>. This is realistic. Telemetry usually records far more fields than any summary uses.</p>
+<p>The shape card is the same as before: the speed of each agent in each language, after removing the effect of request length and the shared daily swings. It learns the length rule correctly (exponent 0.50, the value used to create the data) and it is quiet for seven weeks, as it should be.</p>
+<p>Then, on the Wednesday of week 8, requests from the <strong>iOS app</strong> become <strong>15% slower</strong>, for every agent and every language. Perhaps an app update changed how requests are packed. iOS is 15% of all traffic.</p>
+</section>
+<section id="why-the-shape-stays-quiet" class="level2">
+<h2 class="anchored" data-anchor-id="why-the-shape-stays-quiet">5. Why the shape stays quiet</h2>
+<p>The shape card never moves. Over the twelve weeks, the largest change in any of its numbers is 2.6% from one week to the next, and 2.5% compared with the reference weeks. The materiality line is 5%. The dashboard is empty for all twelve weeks, and twelve heartbeats report “no material change” (Figure 2).</p>
+<p>The reason is instructive. The slowdown hits every agent and every language equally, because iOS users are spread evenly across them. So the relative speeds that the shape card tracks do not change at all. What does change is the overall level: on average, all requests are about 2% slower. But the shape was built to treat changes in the overall level as server swings, because the servers really do swing, by about 5% from day to day. A step of 2% inside daily swings of 5% looks like one more swing. Look at the top panel of Figure 2: the 7-day average wandered just as much in weeks 3 and 4, when nothing was wrong.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig02.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 2.</strong> Top: the shared daily level, which the shape treats as server swings. The iOS slowdown adds a step of about 2% from day 51, inside daily swings of about 5%. It is indistinguishable from earlier wandering. Bottom: the dashboard. The largest change in the shape card never comes close to the 5% line.</figcaption>
+</figure>
+</div>
+<p>This is the worst kind of blind spot. The shape does not ignore the problem. It <em>explains</em> it, with full confidence and the wrong explanation. A 15% slowdown for one in seven users becomes “the servers had a slightly slow fortnight”.</p>
+<p>The fourth caution of the first essay, comparing against a fixed reference and not only against last week, does not help here either. That caution catches slow changes along the directions the shape describes. This change is not slow; it is sideways.</p>
+</section>
+</section>
+<section id="part-iii-watching-what-the-shape-cannot-explain" class="level1">
+<h1>Part III · Watching what the shape cannot explain</h1>
+<section id="the-leftover-part" class="level2">
+<h2 class="anchored" data-anchor-id="the-leftover-part">6. The leftover part</h2>
+<p>The way out comes from an idea that was already at the centre of the first essay. The shortest description of a set of data has two parts:</p>
+<p><span class="math display">
+\text{data} = \text{rule} + \text{exceptions}
+</span></p>
+<p>The shape is the rule. The <em>exceptions</em> are everything the rule does not explain: for each small group of requests, the gap between the speed the shape predicts and the speed that was actually measured.</p>
+<p>When the shape is right, the exceptions are pure noise. They have a typical size, which we can measure in quiet weeks, and they have no structure: you cannot predict them from anything.</p>
+<p>When the world changes in a direction the shape does not describe, the change has to go somewhere. It cannot go into the shape, so it goes into the exceptions. In the language of Figure 1, the unseen part of the arrow is not lost; it lands in the leftover part. The exceptions get bigger, and they start to have a pattern.</p>
+<p>So the shape needs a second, very simple monitor next to the dashboard. It asks two questions each week.</p>
+<ul>
+<li><strong>Are the exceptions bigger than usual?</strong> If the rule still holds, the leftover part should be as large as it was in quiet weeks, no larger.</li>
+<li><strong>Can anything explain them?</strong> For each recorded field that the shape does not use, check how much of the exceptions it explains. If the shape still holds, the answer should be: almost nothing.</li>
+</ul>
+<p>The first question tells us that the shape is wearing out. The second tells us where.</p>
+</section>
+<section id="what-the-exceptions-show" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-exceptions-show">7. What the exceptions show</h2>
+<p>Figure 3 shows the first question in the simulation. The size of the exceptions is measured relative to the first six weeks, so 1 means “usual”. For seven weeks it stays within about 1% of 1. In week 8, it jumps to 1.18, then settles between 1.30 and 1.37. With a materiality line at +10%, the monitor raises a notice at the end of week 8, five days after the problem began. The shape card, for the same weeks, still says nothing has changed.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig03.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 3.</strong> The size of the exceptions, relative to the first six weeks. It stays at 1 until the iOS problem starts, then crosses the +10% line at the end of week 8. The dashed line shows what happens once the shape learns device type: the exceptions return to their usual size.</figcaption>
+</figure>
+</div>
+<p>There is something important here. This first check does not need the device field at all. It only needs to know that the rule now explains the data less well than it used to. Even if the device were never recorded, we would know that the shape no longer fits, without knowing why. That alone is worth a lot: it changes the heartbeat from “no change” to “no change in the shape, but the shape fits worse than usual”. That is a very different message, and a much more honest one.</p>
+<p>Figure 4 shows the second question. Before the problem, the device field explains only 1 to 2% of the exceptions. That small part is real: iOS requests were always about 3% slower, a constant difference the shape never learned. After week 8, the device field explains 18 to 19% of the exceptions. Region and plan stay below 1% throughout.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig04.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 4.</strong> How much of the exceptions each recorded field explains. Device type jumps from 1–2% to almost 20% when the iOS problem starts. Region and plan stay close to zero. The monitor does not only say that something is wrong; it says where to look.</figcaption>
+</figure>
+</div>
+<p>So the notice can say something precise: <em>the shape fits worse than usual, and most of what it cannot explain is linked to device type; iOS requests are about 15% slower than the shape expects.</em> That is almost the full diagnosis, found by a monitor that has no idea what an iOS app is.</p>
+</section>
+<section id="the-shape-learns" class="level2">
+<h2 class="anchored" data-anchor-id="the-shape-learns">8. The shape learns</h2>
+<p>What happens next is the loop from the first essay: summarise, look at what the rule misses, summarise again. The notice tells us the shape is missing a dimension. So we add it: the shape card gains two numbers, the speed of the desktop app and of the iOS app relative to the web.</p>
+<p>With those two numbers, the shape learns that iOS was about 3% slower than the web before week 8 and about 18% slower after, which matches the 15% slowdown we hid. The exceptions return to their usual size (the dashed line in Figure 3). The screen becomes quiet again, and this time the silence is justified.</p>
+<p>This is how a shape should grow: not by adding every field “just in case”, which brings back the crowded dashboard and the curve with too many terms, but by adding a dimension when the exceptions prove that it is needed. The leftover part is not waste. It is where the next rule comes from. Kepler gave up circular orbits because of an eight-arcminute gap in the orbit of Mars that circles could not explain.</p>
+</section>
+</section>
+<section id="part-iv-what-this-has-to-do-with-the-brain" class="level1">
+<h1>Part IV · What this has to do with the brain</h1>
+<section id="predictive-coding-has-the-same-problem" class="level2">
+<h2 class="anchored" data-anchor-id="predictive-coding-has-the-same-problem">9. Predictive coding has the same problem</h2>
+<p>Ronald’s comparison with the brain is a good one, and it goes further than he said. A well-known theory in neuroscience, <em>predictive coding</em>, proposes that the brain constantly predicts what its senses will report, and passes on mainly the difference between prediction and reality. This is exactly a dashboard of differences. And the brain has exactly the same blind spot.</p>
+<p>The most famous demonstration is an experiment by Simons and Chabris. Viewers are asked to count the passes in a video of people throwing a basketball. Halfway through, a person in a gorilla suit walks through the scene. Roughly half of the viewers do not notice the gorilla at all. They were not looking in the wrong place; the gorilla walked through the middle of the screen. Their model of the task simply had no slot for gorillas.</p>
+<p>So how does the brain survive in a world full of gorillas? One influential answer, from Yu and Dayan, is that the brain tracks two kinds of uncertainty. <em>Expected uncertainty</em> is the normal noise of a familiar situation: we know the world is a bit unpredictable and we do not react to every small surprise. <em>Unexpected uncertainty</em> is when surprises become more frequent or larger than our model says they should be. That is the signal that the model itself is wrong, and it is thought to trigger a reset: attention widens, learning speeds up, old rules are questioned.</p>
+<p>This is the exception monitor. The brain does not only watch <em>what</em> differs from its prediction. It watches <em>how much</em> it is being surprised overall, compared with how much it expects to be. When surprise rises above its usual level, the brain stops trusting its model and starts looking around. A dashboard should do the same.</p>
+</section>
+</section>
+<section id="part-v-the-third-silence" class="level1">
+<h1>Part V · The third silence</h1>
+<section id="changes-that-leave-no-trace" class="level2">
+<h2 class="anchored" data-anchor-id="changes-that-leave-no-trace">10. Changes that leave no trace</h2>
+<p>The exception monitor has a limit too, and it is better to say it plainly. It sees changes that leave a trace in the data, even in fields the shape does not use. It cannot see changes that leave no trace in any data at all.</p>
+<p>Suppose the copilot’s answers in Italian slowly get worse, less accurate and less useful, while staying exactly as fast. Speed telemetry will never show it. No shape, no exception and no field will move, because nothing we record is affected. The only places this shows up are people: a user who stops using the copilot, a colleague in Milan who mentions it over coffee, an engineer who reads twenty Italian answers one afternoon.</p>
+<p>So there are three kinds of change, and each needs a different watcher (Figure 5).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig05.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 5.</strong> Three kinds of change and who can see them. Changes in what the shape describes reach the dashboard. Changes elsewhere in the data reach the exception monitor. Changes that leave no record can only be seen by people.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>Changes inside the shape</strong> reach the dashboard. This is what the first essay was about.</li>
+<li><strong>Changes in the data but outside the shape</strong> reach the exception monitor. This is what this essay adds.</li>
+<li><strong>Changes outside the data</strong> reach no machine. They need people who regularly look at the real thing: read the answers, visit the shop floor, talk to the users.</li>
+</ul>
+<p>The third circle is not a footnote. In 1983, Lisanne Bainbridge described the “ironies of automation”: the more reliable an automatic system becomes, the less often people practise the skills they need on the day it fails. A quiet dashboard makes this worse, because it removes the daily contact with the system that used to keep people’s intuition alive. If we take away the crowded screen, we must give back that contact in a deliberate form: a regular, unhurried look at raw cases, chosen at random, by people whose job is to notice what nobody asked them to look for.</p>
+</section>
+<section id="proving-that-the-system-can-still-see" class="level2">
+<h2 class="anchored" data-anchor-id="proving-that-the-system-can-still-see">11. Proving that the system can still see</h2>
+<p>There is one more trap. Even a good exception monitor can break silently. A pipeline can stop filling a field; a threshold can be set too high after a busy month; a model can be retrained in a way that hides the exceptions inside the rule. Each of these produces a quiet screen.</p>
+<p>Engineers already know how to deal with this in other fields. Fire alarms are tested. Pilots train in simulators on failures they hope never to see. In large software systems, <em>chaos engineering</em> deliberately breaks things in production, in small and controlled ways, to check that the monitoring notices.</p>
+<p>The same idea works here. From time to time, inject a small, known, artificial change into a copy of the data: make one slice of synthetic requests slower, along a dimension the shape does not track. Then check that the exception monitor notices, and how fast. If it does not, the silence of the following weeks means nothing. If it does, we have evidence, not just hope, that the system can still see.</p>
+</section>
+</section>
+<section id="part-vi-a-quiet-screen-that-earns-its-silence" class="level1">
+<h1>Part VI · A quiet screen that earns its silence</h1>
+<section id="a-better-heartbeat" class="level2">
+<h2 class="anchored" data-anchor-id="a-better-heartbeat">12. A better heartbeat</h2>
+<p>Put together, the weekly heartbeat becomes a short, honest report of what was checked and how well:</p>
+<blockquote class="blockquote">
+<p><strong>Week 12.</strong> Shape checked on this week’s data: no material change. Exceptions: usual size; no recorded field explains them. Last drill: injected slowdown on a hidden slice, caught after 4 days. Last human review of raw cases: 3 weeks ago.</p>
+</blockquote>
+<p>Each line answers a different doubt. The first says that our understanding still holds. The second says that it still <em>fits</em>: nothing is hiding in the leftover part. The third says that the watcher can still see. The fourth says when a person last looked at the world directly, outside every model.</p>
+<p>This is still a very small amount to read: four lines a week instead of forty tiles a day. But now the silence carries information. It says not only “nothing changed”, but “nothing changed that we could have seen, here is how much we could see, and here is when we last checked the rest”.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">13. Conclusion</h2>
+<p>The objection to the first essay was right: a system that only watches its own picture of the world cannot see what lies outside that picture, and it will often explain away what it cannot see. More tiles are not the answer; a crowded screen has blind spots too, it just hides them under noise.</p>
+<p>The answer is to watch the part of the data the picture cannot explain. When the world moves sideways, away from what our model describes, the exceptions grow and take on a pattern long before anyone thinks of adding a new chart. Watching them is cheap, it needs no knowledge of what might go wrong, and it tells us both that our understanding has stopped fitting and roughly where.</p>
+<p>And for what leaves no trace in any data, there is no shortcut: people have to keep looking at the real thing. An empty dashboard is the right goal. But silence is a claim, and like any claim, it has to be earned.</p>
+</section>
+<section id="further-reading" class="level2">
+<h2 class="anchored" data-anchor-id="further-reading">Further reading</h2>
+<div class="small">
+<ul>
+<li>Bainbridge, L. (1983). Ironies of automation. <em>Automatica</em>, 19(6), 775–779.</li>
+<li>Basiri, A., et al.&nbsp;(2016). Chaos engineering. <em>IEEE Software</em>, 33(3), 35–41.</li>
+<li>Box, G. E. P. (1980). Sampling and Bayes’ inference in scientific modelling and robustness. <em>Journal of the Royal Statistical Society, Series A</em>, 143(4), 383–430.</li>
+<li>Friston, K. (2010). The free-energy principle: a unified brain theory? <em>Nature Reviews Neuroscience</em>, 11(2), 127–138.</li>
+<li>Gama, J., Žliobaitė, I., Bifet, A., Pechenizkiy, M., &amp; Bouchachia, A. (2014). A survey on concept drift adaptation. <em>ACM Computing Surveys</em>, 46(4), 1–37.</li>
+<li>Rao, R. P. N., &amp; Ballard, D. H. (1999). Predictive coding in the visual cortex. <em>Nature Neuroscience</em>, 2(1), 79–87.</li>
+<li>Rissanen, J. (1978). Modeling by shortest data description. <em>Automatica</em>, 14(5), 465–471.</li>
+<li>Simons, D. J., &amp; Chabris, C. F. (1999). Gorillas in our midst: sustained inattentional blindness for dynamic events. <em>Perception</em>, 28(9), 1059–1074.</li>
+<li>Yu, A. J., &amp; Dayan, P. (2005). Uncertainty, neuromodulation, and attention. <em>Neuron</em>, 46(4), 681–692.</li>
+</ul>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 Stéphane Cuenat · Porrentruy, Swiss Jura</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">
+      <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
