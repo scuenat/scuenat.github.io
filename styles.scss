@@ -11,10 +11,86 @@ body { line-height: 1.7; }
 
 // ---------- Navbar & footer ----------
 .navbar {
-  border-bottom: 1px solid rgba($amber, .25);
+  padding-top: .45rem;
+  padding-bottom: .45rem;
+  background-color: $navy !important;
+  border-bottom: 1px solid rgba($amber, .18);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, .18);
+
+  // Brand: photo, name, and the blog's name underneath
+  .navbar-brand-container { align-items: center; }
   .navbar-brand { font-family: $headings-font-family; font-weight: 600; letter-spacing: -.01em; }
-  .navbar-logo { border-radius: 50%; max-height: 32px; box-shadow: 0 0 0 2px $amber; }
-  .nav-link { font-weight: 500; }
+  .navbar-logo { border-radius: 50%; max-height: 36px; box-shadow: 0 0 0 2px $amber; }
+  .navbar-title {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.1;
+    font-size: 1.12rem;
+    &::after {
+      content: "AI, Honestly";
+      margin-top: .15rem;
+      font-family: $font-family-sans-serif;
+      font-size: .66rem;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: $amber;
+    }
+  }
+
+  // Section links: quiet text, amber underline for the current page
+  .navbar-nav.me-auto { margin-left: 1.25rem; }
+  .nav-link {
+    position: relative;
+    font-weight: 500;
+    font-size: .98rem;
+    color: rgba(#dfe6f1, .82) !important;
+    transition: color .15s ease;
+    &:hover, &:focus { color: #fff !important; }
+  }
+  .navbar-nav.me-auto .nav-link.active {
+    color: #fff !important;
+    &::after {
+      content: "";
+      position: absolute;
+      left: .5rem;
+      right: .5rem;
+      bottom: -.1rem;
+      height: 2px;
+      border-radius: 2px;
+      background: $amber;
+    }
+  }
+
+  // Right side: small icons, then a "Follow" call to action
+  .navbar-nav.ms-auto { align-items: center; gap: .25rem; }
+  .nav-item.compact .nav-link,
+  .quarto-navigation-tool { opacity: .8; transition: opacity .15s ease; }
+  .nav-item.compact .nav-link:hover,
+  .quarto-navigation-tool:hover { opacity: 1; }
+  .nav-link[href*="linkedin.com"] {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .3rem .85rem !important;
+    border: 1px solid rgba($amber, .7);
+    border-radius: 999px;
+    color: $amber !important;
+    font-size: .9rem;
+    font-weight: 600;
+    transition: background-color .15s ease, color .15s ease;
+    .menu-text { margin: 0; }
+    &:hover, &:focus { background: $amber; color: $navy !important; }
+  }
+  .quarto-navbar-tools { margin-left: .5rem; }
+}
+
+// Collapsed (mobile) menu: give the links some room and keep the pill compact
+@media (max-width: 991.98px) {
+  .navbar .navbar-nav.me-auto { margin-left: 0; margin-top: .5rem; }
+  .navbar .navbar-nav.me-auto .nav-link.active::after { left: 0; right: auto; width: 1.5rem; }
+  .navbar .navbar-nav.ms-auto { flex-direction: row; flex-wrap: wrap; margin: .5rem 0 .25rem; gap: .75rem; }
+  .navbar .nav-link[href*="linkedin.com"] { padding: .3rem .85rem !important; }
 }
 .nav-footer { border-top: 1px solid $rule; font-size: .9rem; }
 
