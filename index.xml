@@ -17,7 +17,265 @@
 <width>144</width>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Thu, 15 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 16 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Decided in the Bulk, Written on the Boundary</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essay, October 2026.</strong> A follow-up to <a href="../../posts/2026-10-15-a-universe-without-a-bottom/index.html">A Universe Without a Bottom</a>. Everything is open: <a href="noise-to-boundaries.zip" download="noise-to-boundaries.zip">download the code and results</a> (zip, 2 MB), <a href="https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries">browse them on GitHub</a>, or read the <a href="code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf">working paper</a> (PDF, 4 pages).</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> A physics paper about how structure appears out of complete disorder made me ask a question I could actually test: while an AI image generator turns noise into a picture, where does the picture’s information live, in the inside of a region or on its border? I ran the experiment in one evening, on two CPU cores, with an AI as lab partner. Finished images follow an <em>area law</em>: information lives on borders. But on the way, the big decisions are made across the whole image first, and only later settle onto the edges. I also found a way to measure this inside any image generator using nothing but its ability to remove noise, and checked it against exact answers. None of this is my field. The part I want to stress is how it was possible at all.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Finished handwritten digits follow an area law (β = 1.07): what a patch shares with the rest of the image grows with its border.</li>
+<li>In the noisy early phase, real structure adds up to 2.4 times more shared information than a control, and it grows more like the patch’s size. Structure is decided in the bulk and written on the boundary.</li>
+<li>The change is smooth. A “sudden transition” seen in one early run was noise, and disappeared when repeated.</li>
+<li>The same information can be read from denoising errors alone (median difference 3% from the exact values), so the method can be applied to real, trained image generators.</li>
+<li>An AI lab partner did not give me the answers. It let me ask the question properly: build, run, check, criticise, and throw away what does not hold.</li>
+</ul>
+</div>
+</div>
+<section id="part-i-from-the-cosmos-to-code" class="level1">
+<h1>Part I · From the cosmos to code</h1>
+<section id="it-must-be-simpler-than-this" class="level2">
+<h2 class="anchored" data-anchor-id="it-must-be-simpler-than-this">1. It must be simpler than this</h2>
+<p>Recently I wrote about reading a physics paper I could not follow: <em>Holograms and Standard Models</em>, by Miyashita, Sekino and Susskind. My first reaction was simple. Something is wrong here. It must be easier. I believe the universe is fundamentally simple.</p>
+<p>That essay ended in philosophy. Grains inside grains, nothing creating everything, and the idea that the meaning is in the middle.</p>
+<p>This one ends in an experiment.</p>
+<p>I am a software architect, not a physicist. But I kept coming back to one idea from that paper, and one evening I asked a different question: could I actually test something? Not about the universe. About the AI systems I work with every day.</p>
+</section>
+<section id="the-surface-knows-everything" class="level2">
+<h2 class="anchored" data-anchor-id="the-surface-knows-everything">2. The surface knows everything</h2>
+<p>The idea that stuck is the <em>holographic principle</em>. In the 1970s, Bekenstein and Hawking found that the information a black hole can hold depends on the area of its surface, not on its volume. Double its size and its information grows four times, not eight.</p>
+<p>Physicists found the same pattern elsewhere. In many systems, the information shared between a region and everything around it grows with the region’s boundary. They call it an <em>area law</em>. When it grows with the region’s size instead, it is a <em>volume law</em>.</p>
+<p>Susskind and his colleagues go further. They build a small world of particles and forces from a system at infinite temperature, the state of maximum disorder, the closest thing to “nothing” physics allows. Structure from nothing, organised on a surface.</p>
+<p>I could not check their mathematics. But their question felt general: <em>when structure appears out of complete disorder, where does its information live?</em></p>
+</section>
+<section id="a-machine-that-builds-structure-from-disorder" class="level2">
+<h2 class="anchored" data-anchor-id="a-machine-that-builds-structure-from-disorder">3. A machine that builds structure from disorder</h2>
+<p>Then I realised I already knew a machine that builds structure from disorder.</p>
+<p>Image generators like Stable Diffusion are <em>diffusion models</em>. They start from pure random noise, the same maximum-disorder state, and remove the noise step by step until an image appears. A face, a cat, a handwritten digit.</p>
+<p>The universe gives us one run, seen from inside, mostly through a horizon. A diffusion model gives us as many runs as we want, and we can stop it at any moment and look.</p>
+<p>So the question became concrete. While an image forms out of noise, does the information shared between a patch of the image and the rest of it grow with the patch’s border, or with its size? Area or volume? And does that change along the way?</p>
+</section>
+</section>
+<section id="part-ii-the-experiment" class="level1">
+<h1>Part II · The experiment</h1>
+<section id="what-i-measured" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-measured">4. What I measured</h2>
+<p>The measurement is simple to state. Take a square patch of an image. Ask how much knowing the rest of the image tells you about that patch. Physicists call this <em>mutual information</em>. Then make the patch bigger and watch how that number grows.</p>
+<p>If it grows like the border of the patch, it is an area law. If it grows like the number of pixels inside, it is a volume law. I summarise the growth with one number, β, from</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AI(L)%20%5Cpropto%20L%5E%7B%5Cbeta%7D,%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?L"> is the side of the patch in pixels: β close to 1 means area law, close to 2 means volume law.</p>
+<p>I did not use a giant neural network. I used something I could compute exactly: a statistical model of handwritten digits (the classic MNIST dataset) built from 40 simple pieces, four per digit. It learns real structure; on images it has never seen, it is far better than a simple model. And for this kind of model, every stage between noise and finished image can be calculated precisely, with no training noise and no guessing.</p>
+<p>The most important part is the comparison. For every measurement I also built a <em>control</em>: a much simpler model that has exactly the same correlations between pixels but none of the real structure. No strokes, no digits, just smooth statistical blur. Whatever the real model does that the control does not, comes from actual structure. Without that control, I would have fooled myself at least twice.</p>
+</section>
+<section id="what-i-found" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-found">5. What I found</h2>
+<p><strong>Finished digits follow an area law.</strong> At the end of generation, β is 1.07. The information a patch shares with the rest of the image grows with its border.</p>
+<p><strong>But on the way, something else happens.</strong> In the noisy early phase, the real model carries up to 2.4 times more shared information than the control, and that extra information grows more like the <em>size</em> of the patch than its border. As the image sharpens, the extra information moves toward the borders, and the two curves meet (Figure 1).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 1.</strong> Left: digits generated by the learned model. Right: the scaling exponent β along the generation path, from heavy noise (left) to finished image (right). The real model (blue) carries extra, bulk-like information in the noisy phase, well above the control with the same pixel correlations (orange). Both converge to an area law, β = 1.07 for finished digits.</figcaption>
+</figure>
+</div>
+<p>Here is how I read it. Early on, the model is deciding the big things: which digit, roughly where, which way it leans. That is a fact about the whole image, and every pixel carries a little evidence about it, so it scales with size. Later, the model draws the details: strokes, edges, where black meets white. Those are local, and they live on borders.</p>
+<p>Or, in one line: <strong>structure is decided in the bulk and written on the boundary.</strong></p>
+</section>
+<section id="what-did-not-work" class="level2">
+<h2 class="anchored" data-anchor-id="what-did-not-work">6. What did not work</h2>
+<p>I expected a sudden switch, like water turning to ice, at one precise moment. A first coarse run seemed to show one. When I repeated it with eleven noise levels and three independent runs, the jump disappeared. The change is smooth (Figure 2). The “sudden switch” was noise in a single run.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig02.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 2.</strong> The same measurement on a fine grid of noise levels, repeated three times with independent model fits and samples (bars: ±2 standard deviations). <strong>a.</strong> The total information converges smoothly to an area law; there is no sudden jump. <strong>b.</strong> The part that comes from real structure, beyond the control, starts close to a volume law and moves toward an area law as the image sharpens.</figcaption>
+</figure>
+</div>
+<p>I keep it in the story because it is exactly the kind of mistake that is easy to publish and hard to take back.</p>
+</section>
+<section id="what-it-does-not-show" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-does-not-show">7. What it does not show</h2>
+<p>I asked for a tough review of my own results, the kind a referee would write. Here is what holds up less well than I would like.</p>
+<ul>
+<li><strong>The area law alone is not surprising.</strong> Any image whose pixels mostly correlate with their neighbours gives an area law. Physicists have known this for years. The new part is not the final area law but the extra structure and how it moves from bulk to boundary.</li>
+<li><strong>It describes the data, not the network.</strong> Because I computed everything exactly, the results describe what noisy digits look like at each stage, which is the same for any perfect generator. To say how real neural networks behave, I need to test a trained one.</li>
+<li><strong>The images are tiny.</strong> At 28×28 pixels I can only compare patches from 2 to 12 pixels wide. That is less than one order of magnitude, and the blank border of each digit distorts larger patches.</li>
+<li><strong>The physics is an analogy.</strong> A black hole’s surface and the border of an image patch are not the same thing. The parallel is suggestive, and testable, but it is not a proof of anything about the universe.</li>
+</ul>
+<p>None of this makes the work worthless. It tells me exactly what to do next.</p>
+</section>
+</section>
+<section id="part-iii-pushing-past-the-limit" class="level1">
+<h1>Part III · Pushing past the limit</h1>
+<section id="seeing-inside-any-generator" class="level2">
+<h2 class="anchored" data-anchor-id="seeing-inside-any-generator">8. Seeing inside any generator</h2>
+<p>The second limitation bothered me most. My exact method only works on simple models. Real generators, the ones people actually use, are giant neural networks where nothing can be computed exactly.</p>
+<p>Then I came across a result from information theory, from 2005, by Guo, Shamai and Verdú. It links information to <em>how hard it is to remove noise</em>. Applied to my question, it says something I find beautiful:</p>
+<blockquote class="blockquote">
+<p>The information a patch shares with the rest of the image equals how much seeing the rest helps you clean up that patch, added up over all noise levels.</p>
+</blockquote>
+<p>In symbols, with <img src="https://latex.codecogs.com/png.latex?A"> the patch, <img src="https://latex.codecogs.com/png.latex?B"> the rest of the image and <img src="https://latex.codecogs.com/png.latex?%5Ctext%7Bmmse%7D"> the error of the best possible denoiser at a given signal-to-noise ratio <img src="https://latex.codecogs.com/png.latex?%5Cgamma">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AI(A;B)%20=%20%5Cfrac%7B1%7D%7B2%7D%5Cint_0%5E%7B%5Ctext%7Bsnr%7D%7D%20%5CBig%5B%5C,%20%5Ctext%7Bmmse%7D_A(%5Cgamma)%20+%20%5Ctext%7Bmmse%7D_B(%5Cgamma)%20-%20%5Ctext%7Bmmse%7D_%7BA%20%5Ccup%20B%7D(%5Cgamma)%20%5C,%5CBig%5D%5C,%20d%5Cgamma%0A"></p>
+<p>That matters because cleaning up noise is exactly what a diffusion model is trained to do. So in principle you could measure the information map of <em>any</em> generator just by asking it to denoise a patch twice: once seeing only the patch, once seeing the whole image.</p>
+<p>I tested this on my digit model, where I already knew the exact answer. The two routes agree, with a median difference of 3% across 32 comparisons (patch sizes from 2 to 12 pixels, noise levels from heavy to light). The largest difference was 14%, on one very small, very noisy patch (Figure 3).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig03.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 3.</strong> Information measured from denoising errors alone (vertical) against the exact value (horizontal), for 32 combinations of patch size and noise level. Points on the dashed line agree perfectly. The median difference is 3.1%.</figcaption>
+</figure>
+</div>
+<p>This is the part I find most valuable. The exact calculations become a <em>ground truth</em> to check a method that can scale to real models. The next step is to run it on a trained neural network. That needs a model that can denoise with part of the image hidden, which many image generators already can.</p>
+</section>
+<section id="you-dont-need-a-big-machine" class="level2">
+<h2 class="anchored" data-anchor-id="you-dont-need-a-big-machine">9. You don’t need a big machine</h2>
+<p>Everything in this essay ran on two CPU cores. No GPU, no cloud cluster, no downloaded giant model. The longest run took about seven minutes.</p>
+<p>At one point I was told the next step needed a GPU. I pushed back: why should a question need a big machine? It turned out the honest answer was that only one specific claim needs it, the one about trained neural networks. Everything else, the exact calculations, the controls, the repeated runs, fits on a laptop. Some of the best physics ever done was tabletop physics. A well-controlled small experiment beats a sloppy big one.</p>
+</section>
+</section>
+<section id="part-iv-what-the-ai-made-possible" class="level1">
+<h1>Part IV · What the AI made possible</h1>
+<section id="a-lab-partner-not-an-oracle" class="level2">
+<h2 class="anchored" data-anchor-id="a-lab-partner-not-an-oracle">10. A lab partner, not an oracle</h2>
+<p>I should be transparent about how this was done. I did it in one evening with Claude, Anthropic’s AI, as a lab partner. I brought the questions and the stubbornness; it wrote and ran the code, searched the literature, and, importantly, reviewed the results harshly when I asked it to. It also caught its own mistakes: a model that looked better than it was, a chart label that overstated a result, a “sudden transition” that was not there.</p>
+<p>Look back at the path of this essay and count the steps that would have stopped me alone:</p>
+<ul>
+<li><strong>From a feeling to a measurable question.</strong> “It must be simpler” is not a hypothesis. Turning it into “does mutual information scale with the border or the size, and does that change along the generation path?” took a conversation, not a degree.</li>
+<li><strong>From a question to code that runs.</strong> Exact mutual information for a 784-pixel mixture model, Monte Carlo estimates with error bars, a fair control. Each is a week of reading for an outsider. Here, each was a script I could read, run and question within minutes.</li>
+<li><strong>From a result to a result I trust.</strong> The control model, the three independent runs, the fine grid of noise levels: these exist because I kept asking “how would I fool myself here?”, and the answers came back as experiments, not opinions.</li>
+<li><strong>From a dead end to a way forward.</strong> The method that works on real generators comes from a 2005 information-theory paper I had never heard of. Finding it, understanding what it says about my question, and testing it against the exact values all happened in the same evening.</li>
+<li><strong>From a claim to a smaller, honest claim.</strong> The harsh review took the area law off its pedestal and left the more interesting part standing. The GPU question turned “this needs a big machine” into “only this one claim does”.</li>
+</ul>
+<p>None of these steps is new science on its own. What is new, for me, is that they can follow each other at the speed of curiosity. The distance between “I wonder whether…” and “here is the plot, here is the control, here is why it might be wrong” used to be months, and for someone outside the field it was usually infinite. That evening it was hours.</p>
+</section>
+<section id="innovation-is-in-the-asking" class="level2">
+<h2 class="anchored" data-anchor-id="innovation-is-in-the-asking">11. Innovation is in the asking</h2>
+<p>This is the part of AI I find most interesting. Not that it answers, but that it lets someone like me <em>ask properly</em>: run the experiment, check it, and throw away what does not hold.</p>
+<p>It is tempting to say that AI will produce new ideas by itself. I do not think that is what happened here. The question came from me, reading a paper I could not follow and refusing to let it go. The direction changed three times because of judgement calls: insist on a control, distrust a jump that looked too good, refuse to accept that a question needs a big machine. What the AI removed was the cost of each step in between. When trying an idea costs minutes instead of weeks, you try more of them, you kill the bad ones sooner, and the good ones get pushed further than you would ever have pushed them alone.</p>
+<p>That also changes what rigour means for an outsider. The danger of a fast partner is that you go fast in the wrong direction, and a confident AI can make a wrong result look finished. The defence is the same as in any lab: controls, repeated runs, a referee who is paid to be unkind, and everything published so that others can check. The AI can play the referee too, if you ask it to. You have to ask.</p>
+</section>
+</section>
+<section id="part-v-back-to-the-beginning" class="level1">
+<h1>Part V · Back to the beginning</h1>
+<section id="a-very-good-middle" class="level2">
+<h2 class="anchored" data-anchor-id="a-very-good-middle">12. A very good middle</h2>
+<p>I started with a feeling: the universe must be simpler than that paper. I still believe it. But I see now that simple does not mean easy, and it does not mean finished.</p>
+<p>In my last essay I wrote that “from nothing to nothing” forgets the middle, and that the middle is everything. This experiment is a small version of that idea. A machine starts from noise, from nothing. It ends with a digit, a finished thing. And in between, there is a moment where the big decisions are made everywhere at once, before they settle quietly onto the edges.</p>
+<p>I don’t know if the universe works like that. I do know that a question asked on a quiet evening can become something you can measure. That is not the end of anything. It is a very good middle.</p>
+</section>
+<section id="try-it-yourself" class="level2">
+<h2 class="anchored" data-anchor-id="try-it-yourself">13. Try it yourself</h2>
+<p>Everything is open. You can rerun every number and every figure in this essay on an ordinary laptop in about half an hour.</p>
+<ul>
+<li><strong>Code and results:</strong> <a href="noise-to-boundaries.zip" download="noise-to-boundaries.zip">download as a zip</a>, or <a href="https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries">browse on GitHub</a>. It contains all scripts, the result files, the figures, and a <code>run_all.sh</code> that reproduces everything. The only thing to download is the MNIST dataset (about 11 MB); the <a href="https://github.com/scuenat/scuenat.github.io/blob/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/README.md">README</a> gives the link. MIT licence.</li>
+<li><strong>Working paper:</strong> <a href="code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf"><em>From Noise to Boundaries: Area-Law Information Scaling Along the Diffusion Path</em></a>, a four-page technical version with the equations and references.</li>
+<li><strong>Requirements:</strong> Python with NumPy, SciPy, scikit-learn and Matplotlib. No GPU.</li>
+</ul>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Script</th>
+<th>What it does</th>
+<th>Time (2 CPU cores)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><a href="code/noise-to-boundaries/src/area_law_pilot.py"><code>area_law_pilot.py</code></a></td>
+<td>Check of the method on fields with known behaviour</td>
+<td>~15 s</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><a href="code/noise-to-boundaries/src/mixture_pilot.py"><code>mixture_pilot.py</code></a></td>
+<td>Synthetic 16-class data against its control</td>
+<td>~20 s</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><a href="code/noise-to-boundaries/src/digits_fit.py"><code>digits_fit.py</code></a>, <a href="code/noise-to-boundaries/src/digits_mi.py"><code>digits_mi.py</code></a></td>
+<td>Small 8×8 digits</td>
+<td>~30 s</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><a href="code/noise-to-boundaries/src/mnist_model.py"><code>mnist_model.py</code></a></td>
+<td>Fit the 40-piece MNIST model; check it on unseen images</td>
+<td>~40 s</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td><a href="code/noise-to-boundaries/src/mnist_mi.py"><code>mnist_mi.py</code></a></td>
+<td>MNIST along the full generation path (Figure 1)</td>
+<td>~5 min</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><a href="code/noise-to-boundaries/src/mnist_fine.py"><code>mnist_fine.py</code></a></td>
+<td>Fine noise grid, three independent runs (Figure 2)</td>
+<td>~5 min</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td><a href="code/noise-to-boundaries/src/immse_validation.py"><code>immse_validation.py</code></a>, <a href="code/noise-to-boundaries/src/immse_compare.py"><code>immse_compare.py</code></a></td>
+<td>Information from denoising errors against exact values (Figure 3)</td>
+<td>~7 min</td>
+</tr>
+</tbody>
+</table>
+<p>If you work on diffusion models, information theory or the physics of learning, I would love your critique, especially on the denoising-error method and how to test it on a trained network. And if you are, like me, someone outside the field with a question that will not leave you alone: try it. You may not need a bigger machine. You may just need a smaller experiment, and a good partner to run it with.</p>
+</section>
+<section id="further-reading" class="level2">
+<h2 class="anchored" data-anchor-id="further-reading">Further reading</h2>
+<div class="small">
+<ul>
+<li>Bekenstein, J. D. (1973). Black holes and entropy. <em>Physical Review D</em>, 7(8), 2333–2346.</li>
+<li>Biroli, G., Bonnaire, T., de Bortoli, V., &amp; Mézard, M. (2024). <a href="https://arxiv.org/abs/2402.18491">Dynamical regimes of diffusion models</a>. <em>Nature Communications</em>, 15.</li>
+<li>Guo, D., Shamai, S., &amp; Verdú, S. (2005). Mutual information and minimum mean-square error in Gaussian channels. <em>IEEE Transactions on Information Theory</em>, 51(4), 1261–1282.</li>
+<li>LeCun, Y., Bottou, L., Bengio, Y., &amp; Haffner, P. (1998). Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11), 2278–2324.</li>
+<li>Miyashita, S., Sekino, Y., &amp; Susskind, L. (2026). <a href="https://arxiv.org/abs/2607.05678">Holograms and Standard Models</a>. arXiv:2607.05678.</li>
+<li>Sclocchi, A., Favero, A., &amp; Wyart, M. (2025). <a href="https://arxiv.org/abs/2402.16991">A phase transition in diffusion models reveals the hierarchical nature of data</a>. <em>PNAS</em>.</li>
+</ul>
+</div>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>essay</category>
+  <category>AI</category>
+  <category>research</category>
+  <category>physics</category>
+  <guid>https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/</guid>
+  <pubDate>Fri, 16 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" medium="image" type="image/png" height="84" width="144"/>
+</item>
 <item>
   <title>A Universe Without a Bottom</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
