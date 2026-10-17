@@ -15,7 +15,533 @@
 <link>https://scuenat.github.io/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Fri, 16 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 17 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>An Ecosystem, Not an Oracle</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essay, October 2026.</strong> A companion to <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>. All figures are my own, drawn with the code in <a href="figs.py">figs.py</a>. Where a figure or a sentence uses numbers from someone else’s work, the source is cited next to it and listed in the references. Where numbers are my own illustrative assumptions, the caption says so.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> I believe the future of AI is, to a large extent, local. But when people talk about local AI, they usually picture one big model made small enough to fit on a laptop. I see it differently: many specialised models, a memory they share, a thin harness around them, and a careful loop that lets them keep learning from the work they do. I have four reasons. The architectures of today’s largest models already moved in this direction. Simple arithmetic about memory and bandwidth favours it on a local machine. A thin harness can help small models where it no longer helps large ones. And our own brain most likely works this way: a huge set of specialised parts, a fast memory, a slow learner, and plasticity everywhere.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>The largest models already split themselves into experts. DeepSeek-V3 uses about 5.5% of its parameters for each word <span class="citation" data-cites="deepseek2024">(DeepSeek-AI 2024)</span>. An ecosystem takes the same idea further, with parts you can load, swap, test and update one by one.</li>
+<li>On a laptop, generating text is limited by memory bandwidth, not computation. Speed is at most bandwidth divided by the bytes read per word, so small active models win.</li>
+<li>In a simple capacity model, a general model needs roughly <img src="https://latex.codecogs.com/png.latex?1/f"> times more domain capacity than a specialist, where <img src="https://latex.codecogs.com/png.latex?f"> is the share of its training devoted to that domain.</li>
+<li>Recent work suggests elaborate harnesses add little around strong frontier models <span class="citation" data-cites="brilliantov2026">(Brilliantov et al. 2026)</span>. For small local models, I argue the opposite: verifiers, tools and structure are where they gain the most.</li>
+<li>Our brain seems to combine specialised areas, a domain-general coordinating network, a fast memory, a slow learner that consolidates during sleep, and plasticity <span class="citation" data-cites="fedorenko2024 duncan2020 mcclelland1995 dehaene2007">(Fedorenko et al. 2024; Duncan et al. 2020; McClelland et al. 1995; Dehaene and Cohen 2007)</span>.</li>
+<li>Memory belongs outside the weights, where people can read, correct and delete it. Learning belongs in a slow, tested loop.</li>
+</ul>
+</div>
+</div>
+<section id="the-wrong-picture" class="level2">
+<h2 class="anchored" data-anchor-id="the-wrong-picture">1. The wrong picture</h2>
+<p>Models are getting smaller for the same capability. Xiao and colleagues measured this as <em>capability density</em>, and found that for open models it doubled roughly every three to three and a half months between 2023 and 2025 <span class="citation" data-cites="xiao2024">(<span class="nocase">Xiao et al.</span> 2024)</span>. Better training, better architectures, quantisation and better chips all push in the same direction. I am convinced a large part of AI will move closer to where the work happens: onto our laptops, phones, machines and private servers.</p>
+<p>But the picture most of us have in mind is one giant brain, waiting to be compressed into a smaller box. The question becomes “how much of the big model can I run locally?”, and the answer is always “a bit less than you would like, but wait a year.”</p>
+<p>I would rather ask a different question: <em>what would intelligence look like if it were designed for the machine in front of me from the start?</em></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig01.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 1.</strong> Two ways to organise intelligence. An oracle sends every task to one large model. An ecosystem sends each task to a small specialist, chosen by a router, and all specialists share one memory. Schematic, my own.</figcaption>
+</figure>
+</div>
+</section>
+<section id="what-i-mean-by-an-ecosystem" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-mean-by-an-ecosystem">2. What I mean by an ecosystem</h2>
+<p>By an ecosystem, I mean five parts working together on one machine:</p>
+<ol type="1">
+<li><strong>Specialists.</strong> Small models, or adapters on a shared base model, each good at one job: reading invoices, writing queries, transcribing speech, a company’s own domain.</li>
+<li><strong>A router.</strong> A small model that decides which specialist handles a task, and when to escalate.</li>
+<li><strong>A shared memory.</strong> Knowledge and episodes stored outside the weights, readable and correctable by people.</li>
+<li><strong>A thin harness.</strong> The tools, checks and permissions around the models: run the tests, validate the output, keep the data local.</li>
+<li><strong>A consolidation loop.</strong> A slow process, for example at night, that turns verified experience into small, tested updates of the specialists.</li>
+</ol>
+<p>A frontier model can stay outside, as a teacher and an occasional consultant.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 2.</strong> The local ecosystem I have in mind. A router sends each task to a specialist. Specialists read from and write to a shared memory. At night, the system consolidates what it has learned into updated specialists. A frontier model, outside the machine, teaches once and is consulted rarely. Schematic, my own.</figcaption>
+</figure>
+</div>
+</section>
+<section id="part-i-why-i-think-so" class="level1">
+<h1>Part I · Why I think so</h1>
+<section id="todays-largest-models-already-point-this-way" class="level2">
+<h2 class="anchored" data-anchor-id="todays-largest-models-already-point-this-way">3. Today’s largest models already point this way</h2>
+<p><strong>From dense to mixtures of experts.</strong> A classic language model is <em>dense</em>: to produce each word, it uses every one of its parameters. Many of today’s largest models are <em>mixtures of experts</em> instead. The idea goes back to Shazeer and colleagues <span class="citation" data-cites="shazeer2017">(Shazeer et al. 2017)</span> and was scaled up in the Switch Transformer <span class="citation" data-cites="fedus2022">(Fedus et al. 2022)</span>. Inside, the model is split into many sub-networks, and for each word a small gate chooses a few of them.</p>
+<p>Two published examples make the point:</p>
+<ul>
+<li><strong>Mixtral 8x7B</strong> has 46.7 billion parameters, but each word uses about 12.9 billion: two of its eight experts per layer <span class="citation" data-cites="jiang2024">(<span class="nocase">Jiang et al.</span> 2024)</span>.</li>
+<li><strong>DeepSeek-V3</strong> has 671 billion parameters, but each word uses about 37 billion <span class="citation" data-cites="deepseek2024">(DeepSeek-AI 2024)</span>. Its design is telling: in each expert layer, one <em>shared</em> expert is used for every word, and 8 of 256 <em>routed</em> experts are chosen for that word. A common core, plus specialists picked on demand.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig03.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 3.</strong> Three architectures. A dense model loads all its parameters and uses all of them for every word. A mixture of experts loads all of them but uses only a few experts per word. An ecosystem loads separate specialist models when they are needed. Schematic, my own.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig04.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 4.</strong> Share of parameters used for each word. Mixtral and DeepSeek-V3 values are computed from the published parameter counts <span class="citation" data-cites="jiang2024 deepseek2024">(<span class="nocase">Jiang et al.</span> 2024; DeepSeek-AI 2024)</span>. The cortex value is a rough estimate of the share of neurons that can be strongly active at the same time, from energy constraints <span class="citation" data-cites="lennie2003">(Lennie 2003)</span>; it is debated and shown hatched. Chart my own.</figcaption>
+</figure>
+</div>
+<p>The people who build the largest models have concluded that not everything should work on everything. But a mixture of experts is still one model. All its experts must be loaded in memory, even if only a few work at a time. They are trained together, so you cannot replace one without touching the others. And they are not specialists a person would recognise: an expert is a part of the network that training happened to route certain words to.</p>
+<p><strong>The other pieces already exist too.</strong> What I call an ecosystem is mostly an assembly of things that already work:</p>
+<ul>
+<li><strong>Shared base plus adapters, in production.</strong> Apple’s on-device model has about 3 billion parameters and uses small, task-specific <em>LoRA adapters</em> that are swapped in for each task; a rank-16 adapter takes tens of megabytes <span class="citation" data-cites="gunter2024 hu2021">(<span class="nocase">Gunter et al.</span> 2024; Hu et al. 2022)</span>.</li>
+<li><strong>Many adapters on one machine.</strong> S-LoRA showed how to serve thousands of adapters on top of one base model <span class="citation" data-cites="sheng2023">(<span class="nocase">Sheng et al.</span> 2023)</span>.</li>
+<li><strong>Experts trained separately.</strong> Branch-Train-MiX trains domain experts in parallel from a common starting model, then combines them <span class="citation" data-cites="sukhbaatar2024">(<span class="nocase">Sukhbaatar et al.</span> 2024)</span>.</li>
+<li><strong>Routing between models.</strong> RouteLLM learns when a query can go to a cheaper model, and reports cost reductions of more than two times on some benchmarks without a loss in quality <span class="citation" data-cites="ong2024">(<span class="nocase">Ong et al.</span> 2025)</span>. FrugalGPT reports matching the best single model with large cost savings by cascading models <span class="citation" data-cites="chen2023">(Chen et al. 2023)</span>.</li>
+<li><strong>Memory outside the weights.</strong> RETRO, with retrieval from a large text database, performs comparably to GPT-3 on the Pile benchmark with about 25 times fewer parameters <span class="citation" data-cites="borgeaud2022 lewis2020">(<span class="nocase">Borgeaud et al.</span> 2022; <span class="nocase">Lewis et al.</span> 2020)</span>.</li>
+</ul>
+<p>None of these is the whole ecosystem. Together, they show that each part is not speculation. Researchers at NVIDIA recently made a similar case for agents: most of what agents do is a small number of repetitive, specialised tasks, which small models can handle more economically, with larger models called only when needed <span class="citation" data-cites="belcak2025">(Belcak et al. 2025)</span>.</p>
+</section>
+<section id="the-arithmetic-of-a-laptop-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-a-laptop-bandwidth">4. The arithmetic of a laptop: bandwidth</h2>
+<p>This is the argument I find most convincing, because it is simple arithmetic.</p>
+<p>When a model generates text for one person, each new word requires reading all the active weights from memory once, and doing roughly two operations per weight. With weights stored at <img src="https://latex.codecogs.com/png.latex?b"> bits, a model with <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bactive%7D%7D"> active parameters reads <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bactive%7D%7D%20%5Ccdot%20b/8"> bytes per word. The speed is therefore bounded by the memory bandwidth <img src="https://latex.codecogs.com/png.latex?B">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bwords%20per%20second%7D%20%5C;%5Cle%5C;%20%5Cfrac%7BB%7D%7BN_%7B%5Ctext%7Bactive%7D%7D%20%5Ccdot%20b/8%7D.%0A"></p>
+<p>Is bandwidth really the limit, and not computation? The roofline model answers this by comparing operations per byte <span class="citation" data-cites="williams2009">(Williams et al. 2009)</span>. Decoding for one user at 4 bits does about two operations per half byte, so about 4 operations per byte read. A laptop GPU that can do tens of trillions of operations per second, with a bandwidth of about 500 GB/s, needs tens of operations per byte to be kept busy. Decoding offers far fewer, so it waits for memory.</p>
+<p>Take a laptop with 128 GB of memory and up to 546 GB/s of bandwidth, the published figures for Apple’s M4 Max <span class="citation" data-cites="apple2024m4">(Apple 2024)</span>. I use 500 GB/s and 4-bit weights:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Active parameters</th>
+<th>Read per word</th>
+<th>Upper bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>3B specialist</td>
+<td>3B</td>
+<td>1.5 GB</td>
+<td>≈ 330 words/s</td>
+</tr>
+<tr class="even">
+<td>8B specialist</td>
+<td>8B</td>
+<td>4 GB</td>
+<td>≈ 125 words/s</td>
+</tr>
+<tr class="odd">
+<td>70B dense model</td>
+<td>70B</td>
+<td>35 GB</td>
+<td>≈ 14 words/s</td>
+</tr>
+<tr class="even">
+<td>DeepSeek-V3 (MoE)</td>
+<td>37B of 671B</td>
+<td>18.5 GB</td>
+<td>≈ 27 words/s, but 335 GB does not fit in 128 GB</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig05.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 5.</strong> Upper bound on generation speed when every word requires reading all active weights once, at 500 GB/s and 4-bit weights. Open circle: does not fit in 128 GB. Real speeds are lower; computation, the conversation’s cache and software all cost something. My own calculation from the formula above; DeepSeek-V3 parameter counts from <span class="citation" data-cites="deepseek2024">(DeepSeek-AI 2024)</span>.</figcaption>
+</figure>
+</div>
+<p>Two consequences follow. The same 128 GB that cannot hold one frontier model can hold about thirty 8-billion-parameter specialists, each of them fast. And this wall is not going away soon: over two decades, peak compute of server hardware grew about 3.0 times every two years, but memory bandwidth only about 1.6 times <span class="citation" data-cites="gholami2024">(Gholami et al. 2024)</span>. Techniques such as speculative decoding <span class="citation" data-cites="leviathan2023">(Leviathan et al. 2023)</span> help, but they help small models just as much as large ones.</p>
+</section>
+<section id="the-arithmetic-of-capacity-why-specialists-can-be-small" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-capacity-why-specialists-can-be-small">5. The arithmetic of capacity: why specialists can be small</h2>
+<p>The second argument is about where a model spends its capacity.</p>
+<p>Michaud and colleagues proposed a useful way to think about scaling: knowledge comes in discrete units, which they call <em>quanta</em>, used with very different frequencies, and a model learns them roughly in order of how often they are needed <span class="citation" data-cites="michaud2023">(Michaud et al. 2023)</span>. Here is a simple consequence, in my own words and with my own simplifications.</p>
+<p>Suppose a task needs two kinds of quanta: a shared core (language, basic reasoning), which takes <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bshared%7D%7D"> parameters, and domain knowledge, which takes <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bdomain%7D%7D">. A specialist needs both:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AN_%7B%5Ctext%7Bspecialist%7D%7D%20%5Capprox%20N_%7B%5Ctext%7Bshared%7D%7D%20+%20N_%7B%5Ctext%7Bdomain%7D%7D.%0A"></p>
+<p>A general model is trained on everything, and the domain is only a share <img src="https://latex.codecogs.com/png.latex?f"> of what it sees. In the simplest symmetric case, where many domains each have a share <img src="https://latex.codecogs.com/png.latex?f"> and similar structure, the general model reaches the same depth in this domain only when it has learned as deep into every other domain too:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AN_%7B%5Ctext%7Bgeneral%7D%7D%20%5Capprox%20N_%7B%5Ctext%7Bshared%7D%7D%20+%20%5Cfrac%7BN_%7B%5Ctext%7Bdomain%7D%7D%7D%7Bf%7D.%0A"></p>
+<p>With illustrative values of 2 billion for the core and 1 billion for the domain, a domain that is 1% of the general model’s training needs about 102 billion parameters for the same depth, against 3 billion for the specialist.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig06.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 6.</strong> A simple capacity model. Parameters needed for the same depth in one domain, for a general model and for a specialist, as a function of the domain’s share <img src="https://latex.codecogs.com/png.latex?f"> of the general model’s training. Illustrative values, my own: <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bshared%7D%7D"> = 2B, <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bdomain%7D%7D"> = 1B, no transfer between domains beyond the shared core. Model inspired by the quanta view of scaling <span class="citation" data-cites="michaud2023">(Michaud et al. 2023)</span>.</figcaption>
+</figure>
+</div>
+<p>The model is crude, and its main assumption, that domains do not help each other beyond the shared core, is not fully true. Knowledge does transfer between domains, and a general model like GPT-4, carefully prompted, has outperformed specialist medical models on medical benchmarks <span class="citation" data-cites="nori2023">(<span class="nocase">Nori et al.</span> 2023)</span>. That is exactly why the formula keeps <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bshared%7D%7D">: a good specialist is not trained from scratch, it starts from a strong shared core.</p>
+<p>The published evidence is consistent with the direction of the argument. A 770-million-parameter model trained with explanations from a much larger model outperformed few-shot prompted 540-billion-parameter PaLM on a benchmark, using only 80% of the training data <span class="citation" data-cites="hsieh2023">(<span class="nocase">Hsieh et al.</span> 2023)</span>. A 1.3-billion-parameter model trained on carefully chosen data reached 50.6% on the HumanEval coding benchmark <span class="citation" data-cites="gunasekar2023">(<span class="nocase">Gunasekar et al.</span> 2023)</span>. Narrow, well-taught models can be very small.</p>
+</section>
+<section id="the-arithmetic-of-many-specialists-adapters" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-many-specialists-adapters">6. The arithmetic of many specialists: adapters</h2>
+<p>If every specialist were a separate model, memory would fill up quickly. Adapters solve much of this.</p>
+<p>A LoRA adapter replaces the update of a weight matrix of size <img src="https://latex.codecogs.com/png.latex?d_%7B%5Ctext%7Bin%7D%7D%20%5Ctimes%20d_%7B%5Ctext%7Bout%7D%7D"> by two thin matrices of rank <img src="https://latex.codecogs.com/png.latex?r"> <span class="citation" data-cites="hu2021">(Hu et al. 2022)</span>. Its size relative to the matrix is</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cfrac%7Br%5C,(d_%7B%5Ctext%7Bin%7D%7D%20+%20d_%7B%5Ctext%7Bout%7D%7D)%7D%7Bd_%7B%5Ctext%7Bin%7D%7D%5C,d_%7B%5Ctext%7Bout%7D%7D%7D%20%5C;%5Capprox%5C;%20%5Cfrac%7B2r%7D%7Bd%7D%20%5Cquad%20%5Ctext%7Bfor%20a%20square%20matrix%7D.%0A"></p>
+<p>With <img src="https://latex.codecogs.com/png.latex?r%20=%2016"> and <img src="https://latex.codecogs.com/png.latex?d%20=%203072">, that is about 1%. Applied to a 3-billion-parameter base model, an adapter has roughly 30 million parameters, about 60 MB at 16 bits, consistent with the “tens of megabytes” Apple reports for its rank-16 adapters <span class="citation" data-cites="gunter2024">(<span class="nocase">Gunter et al.</span> 2024)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig07.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 7.</strong> Memory needed for <img src="https://latex.codecogs.com/png.latex?k"> specialists, as separate 3B models at 4 bits, or as one 3B base at 4 bits plus rank-16 adapters at 16 bits (about 60 MB each). My own calculation from the formula above.</figcaption>
+</figure>
+</div>
+<p>One hundred specialists as adapters take about 7.5 GB; as separate models, 150 GB. There is a trade-off, and it is worth knowing: adapters learn less than full fine-tuning, but they also forget less of what the base model knew <span class="citation" data-cites="biderman2024">(<span class="nocase">Biderman et al.</span> 2024)</span>. For a system that must keep learning without breaking, forgetting less is a feature.</p>
+</section>
+<section id="the-arithmetic-of-routing" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-routing">7. The arithmetic of routing</h2>
+<p>An ecosystem is only as good as its router. A simple model makes this precise.</p>
+<p>Let <img src="https://latex.codecogs.com/png.latex?a"> be the router’s accuracy, <img src="https://latex.codecogs.com/png.latex?q_s"> the quality when a task reaches the right specialist, and <img src="https://latex.codecogs.com/png.latex?q_w"> the quality when it reaches the wrong one. The expected quality is</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Aq%20=%20a%5C,q_s%20+%20(1-a)%5C,q_w.%0A"></p>
+<p>The ecosystem beats one general model of quality <img src="https://latex.codecogs.com/png.latex?q_g"> that runs at a similar speed only if</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Aa%20%5C;%3E%5C;%20a%5E%7B*%7D%20=%20%5Cfrac%7Bq_g%20-%20q_w%7D%7Bq_s%20-%20q_w%7D.%0A"></p>
+<p>With illustrative values <img src="https://latex.codecogs.com/png.latex?q_s%20=%200.90">, <img src="https://latex.codecogs.com/png.latex?q_w%20=%200.30"> and <img src="https://latex.codecogs.com/png.latex?q_g%20=%200.80">, the router must be right more than 83% of the time. If the router also knows when it is unsure, and sends half of its mistakes to a larger model with quality <img src="https://latex.codecogs.com/png.latex?q_L%20=%200.95">, the threshold drops to about 64%.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig08.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 8.</strong> Expected quality of an ecosystem as a function of router accuracy, with and without escalation of uncertain cases, compared to one general model that runs at a similar speed. Illustrative values, my own.</figcaption>
+</figure>
+</div>
+<p>The lesson is not the exact numbers, which are mine. It is the shape: a router that knows its own uncertainty is worth more than a slightly better specialist. This is also what makes published routing work encouraging <span class="citation" data-cites="ong2024 chen2023">(<span class="nocase">Ong et al.</span> 2025; Chen et al. 2023)</span>.</p>
+</section>
+<section id="the-harness-thin-around-strong-models-essential-around-small-ones" class="level2">
+<h2 class="anchored" data-anchor-id="the-harness-thin-around-strong-models-essential-around-small-ones">8. The harness: thin around strong models, essential around small ones</h2>
+<p>A recent study from EPFL and Apple asks how much of a <em>harness</em> (the orchestrators, sub-agents and retrieval layers built around a model) a strong agent needs for machine-learning engineering tasks. Under an equal time budget and the same frontier model, the elaborate open-source harnesses they tested gave no advantage over a single session of a minimal coding agent with direct access to read, write and run commands <span class="citation" data-cites="brilliantov2026">(Brilliantov et al. 2026)</span>. Their conclusion is that the model is the main driver of performance, and that elaborate harnesses around strong models give poor returns on current benchmarks.</p>
+<p>At first sight, this goes against an ecosystem. If structure around a model does not help, why build an ecosystem at all? I read it differently, for three reasons.</p>
+<p><strong>First, it is a result about strong models.</strong> The study holds the frontier model fixed. It says that a strong model has absorbed much of what the scaffolding was doing. That fits Sutton’s “bitter lesson”: general methods that use more computation tend to beat hand-built structure in the long run <span class="citation" data-cites="sutton2019">(Sutton 2019)</span>. It says much less about a 3-billion-parameter model on a laptop.</p>
+<p><strong>Second, small models gain the most from the right kind of harness.</strong> Several results point that way:</p>
+<ul>
+<li>The design of the interface matters: SWE-agent showed that giving a model well-designed commands to view, edit and test code improved results on software tasks, without changing the model <span class="citation" data-cites="yang2024">(<span class="nocase">Yang et al.</span> 2024)</span>.</li>
+<li>A verifier turns attempts into results: with repeated attempts checked by the project’s own tests, an open model went from solving 15.9% of SWE-bench Lite issues in one attempt to 56% in 250 attempts, above the best single attempt reported at the time, 43% <span class="citation" data-cites="brown2024">(<span class="nocase">Brown et al.</span> 2024)</span>.</li>
+<li>Extra computation at the time of answering, used well, allowed a smaller model to outperform a 14 times larger one, on problems where the smaller model already had a reasonable success rate <span class="citation" data-cites="snell2024">(Snell et al. 2025)</span>.</li>
+<li>Apple’s framework for its on-device model offers guided generation and constrained tool calling, which keep a small model’s output within a valid structure <span class="citation" data-cites="apple2025">(Apple 2025)</span>.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig09.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 9.</strong> Repeated attempts with a verifier. The two points are results reported by Brown et al.&nbsp;for SWE-bench Lite <span class="citation" data-cites="brown2024">(<span class="nocase">Brown et al.</span> 2024)</span>. The dashed line is my own calculation of what would happen if attempts were independent, <img src="https://latex.codecogs.com/png.latex?1-(1-p)%5Ek"> with <img src="https://latex.codecogs.com/png.latex?p%20=%200.159">; the gap shows that attempts are strongly correlated. Chart my own.</figcaption>
+</figure>
+</div>
+<p>The arithmetic is worth a sentence. If a single attempt succeeds with probability <img src="https://latex.codecogs.com/png.latex?p"> and attempts were independent, <img src="https://latex.codecogs.com/png.latex?k"> attempts would succeed with probability <img src="https://latex.codecogs.com/png.latex?1-(1-p)%5Ek">. In practice attempts are correlated, so the real gain is smaller, as the figure shows. But on a local machine, where a small specialist is fast and a test can check each answer, a few extra attempts cost very little.</p>
+<p><strong>Third, some of the harness can never be absorbed into a model.</strong> A persistent memory that lasts beyond one conversation. Permissions over what may leave the machine. Tests that decide whether an output or an update is accepted. The local data itself. However strong models become, these stay outside.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig10.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 10.</strong> My own view of the harness, as a schematic. Scaffolding for reasoning (orchestrators, sub-agents, retries) adds much to small models and little to strong ones. Structure no model can absorb (memory, permissions, tests, local data) keeps its value. The right end is consistent with the finding of <span class="citation" data-cites="brilliantov2026">(Brilliantov et al. 2026)</span>; the rest of the curve is my hypothesis, not data.</figcaption>
+</figure>
+</div>
+<p>So my conclusion is a design rule: <strong>keep the harness thin, and keep only what earns its place.</strong> Scaffolding that compensates for weak reasoning should be removable, and removed as specialists get better. Structure that gives memory, verification and control should stay.</p>
+</section>
+<section id="our-own-brain" class="level2">
+<h2 class="anchored" data-anchor-id="our-own-brain">9. Our own brain</h2>
+<p>The last reason is closer to home. When I look at how our brain seems to be organised, it does not look like one dense model. It looks much more like an ecosystem. I want to be careful here, because biology does not prove anything about software, and the brain is not a set of neat boxes.</p>
+<p><strong>Many specialised parts.</strong> Neuroscience has found areas that respond to specific things. A classic example is an area of the visual cortex that responds much more strongly to faces than to other objects <span class="citation" data-cites="kanwisher1997">(Kanwisher et al. 1997)</span>. Damage to such areas can remove one ability and leave others almost intact. At the same time, representations are also distributed and overlapping across areas <span class="citation" data-cites="haxby2001">(<span class="nocase">Haxby et al.</span> 2001)</span>. Specialised, but heavily connected.</p>
+<p><strong>Language and thinking are handled by different networks.</strong> One of the most striking recent results for my argument comes from the study of language. Brain imaging reliably finds a network that is engaged when we read or listen to sentences, and it is largely not engaged when we solve problems or reason; people who lose language through brain damage can still reason <span class="citation" data-cites="fedorenko2024">(Fedorenko et al. 2024)</span>. Mahowald and colleagues drew the consequence for AI: large language models are very good at the <em>form</em> of language, but their ability to reason and use it in the world is uneven, and models that work like humans may need separate mechanisms for the two <span class="citation" data-cites="mahowald2024">(Mahowald et al. 2024)</span>.</p>
+<p><strong>And a general-purpose network, too.</strong> The brain is not only specialists. A <em>multiple-demand</em> network, spread over frontal and parietal areas, is engaged by many different demanding tasks and seems to help assemble the right parts for the problem at hand <span class="citation" data-cites="duncan2020">(Duncan et al. 2020)</span>. In the ecosystem, that is the role of the shared core and the router: one general part that coordinates many specialised ones.</p>
+<p><strong>Specialisation may simply be efficient.</strong> A recent experiment makes this more than an analogy. Dobs and colleagues trained artificial neural networks to recognise both faces and objects. Without being told to, the networks split themselves into separate systems for faces and for objects, much as the brain does <span class="citation" data-cites="dobs2022">(Dobs et al. 2022)</span>. Their interpretation is that specialisation is what good optimisation tends to produce when tasks are different enough.</p>
+<p><strong>Probably a very large number of units.</strong> Mountcastle proposed that the cortex is built from a repeated basic unit, the cortical column <span class="citation" data-cites="mountcastle1997">(Mountcastle 1997)</span>. Hawkins goes further and suggests that each column builds its own model of the world, and that they reach decisions together <span class="citation" data-cites="hawkins2021">(Hawkins 2021)</span>; his team has since started an open project that builds AI from many such repeated <em>learning modules</em> <span class="citation" data-cites="clay2024">(Clay et al. 2024)</span>. This is a theory, and it is debated. But the picture of a large number of similar units, each specialised by what it receives, is widely shared.</p>
+<p><strong>A fast memory and a slow learner.</strong> The theory of <em>complementary learning systems</em> proposes that the hippocampus learns new episodes quickly, while the neocortex learns slowly, by replaying those episodes over time <span class="citation" data-cites="mcclelland1995 kumaran2016">(McClelland et al. 1995; Kumaran et al. 2016)</span>. Replay during sleep was first observed in the hippocampus of rats <span class="citation" data-cites="wilson1994">(Wilson and McNaughton 1994)</span>, and it has since been measured in humans as well, during rest <span class="citation" data-cites="liu2019 schuck2019">(Liu et al. 2019; Schuck and Niv 2019)</span>. Sleep seems to play an active role in moving memories from the fast system to the slow one <span class="citation" data-cites="klinzing2019">(Klinzing et al. 2019)</span>. One reason for two systems is precisely to avoid what AI researchers call catastrophic forgetting <span class="citation" data-cites="mccloskey1989">(McCloskey and Cohen 1989)</span>.</p>
+<p><strong>Plasticity.</strong> Connections change with use. And when we learn to read, a region of the visual cortex becomes specialised for written words, a process Dehaene and Cohen call <em>neuronal recycling</em> <span class="citation" data-cites="dehaene2007">(Dehaene and Cohen 2007)</span>. New specialists are not only present from birth; they are formed during life.</p>
+<p><strong>Sparse and frugal.</strong> The human brain has about 86 billion neurons <span class="citation" data-cites="herculano2009">(Herculano-Houzel 2009)</span> and runs on roughly 20 watts <span class="citation" data-cites="balasubramanian2021">(Balasubramanian 2021)</span>. Energy budgets suggest that only a small share of cortical neurons can be strongly active at the same time, perhaps around one percent, although the exact figure is debated <span class="citation" data-cites="lennie2003 attwell2001">(Lennie 2003; Attwell and Laughlin 2001)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig11.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 11.</strong> How the brain seems to be organised, and the part of the ecosystem each idea corresponds to. An analogy, my own, not a claim that the brain is built like software. Sources for each brain property are given in section 9.</figcaption>
+</figure>
+</div>
+<p>Researchers who work on lifelong learning in machines draw the same lesson from biology: memory systems that learn at different speeds, replay, and modular, adaptable parts are among the mechanisms they consider most promising <span class="citation" data-cites="kudithipudi2022">(<span class="nocase">Kudithipudi et al.</span> 2022)</span>. If our best example of general intelligence is most likely a huge set of specialised, plastic sub-models, with a general coordinator, a fast memory and a slow learner, then I find it hard to believe that the best local AI will be one frozen, dense block.</p>
+</section>
+</section>
+<section id="part-ii-the-ecosystem-in-practice" class="level1">
+<h1>Part II · The ecosystem in practice</h1>
+<section id="a-memory-outside-the-weights" class="level2">
+<h2 class="anchored" data-anchor-id="a-memory-outside-the-weights">10. A memory outside the weights</h2>
+<p>Specialists need a memory they share. In <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> I argued that a large model should be used to build a structured memory, such as a knowledge graph experts can inspect and correct. In a local ecosystem, that memory becomes the common ground, and plays the role of the fast memory in section 9. Two kinds matter:</p>
+<ul>
+<li><strong>Knowledge</strong>: facts, rules, relations. “This customer always pays within 30 days.”</li>
+<li><strong>Episodes</strong>: what happened. “Last Tuesday this invoice was rejected because the supplier’s VAT number did not match.”</li>
+</ul>
+<p>Keeping this memory outside the weights is what makes the system trustworthy. You can read it. You can correct a fact in one place, and every specialist benefits. You can delete something and know it is gone, which is very hard to guarantee once data has been used to train a model; removing its influence afterwards is an open research problem <span class="citation" data-cites="bourtoule2021">(<span class="nocase">Bourtoule et al.</span> 2021)</span>. Retrieval also lets small models know far more than their weights hold <span class="citation" data-cites="borgeaud2022 lewis2020">(<span class="nocase">Borgeaud et al.</span> 2022; <span class="nocase">Lewis et al.</span> 2020)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig12.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 12.</strong> Where knowledge lives matters. My own summary of the properties described in this section; on deletion, see <span class="citation" data-cites="bourtoule2021">(<span class="nocase">Bourtoule et al.</span> 2021)</span>.</figcaption>
+</figure>
+</div>
+<p>This is, for me, the strongest reason for running it locally. Privacy is not only protection. It is the condition for memory. People and companies will only let a system remember everything useful if they control where that memory lives.</p>
+</section>
+<section id="a-way-to-keep-learning" class="level2">
+<h2 class="anchored" data-anchor-id="a-way-to-keep-learning">11. A way to keep learning</h2>
+<p>A memory lets a system <em>look things up</em>. It does not let it <em>get better</em>. Today’s models are trained once, frozen, and shipped. A local ecosystem can do better, because it sees the same kind of work every day, and because its specialists are small enough to update. I imagine a loop with two speeds, inspired by section 9:</p>
+<ol type="1">
+<li><strong>Fast, during the day.</strong> The specialists work. Successes, corrections and failures are written to the memory as episodes. Nothing in the models changes.</li>
+<li><strong>Slow, at night.</strong> The system selects verified episodes, mixes them with examples of what the specialist already does well, updates the adapter, and tests the result against everything it was already good at. If it is better and has not forgotten anything, it is kept. If not, it is rolled back.</li>
+</ol>
+<p>Each step has support in existing work. Mixing old examples with new ones, <em>replay</em>, is one of the most reliable ways to limit forgetting <span class="citation" data-cites="rolnick2019">(Rolnick et al. 2019)</span>; brain-inspired versions of replay go further and replay internal representations instead of stored examples <span class="citation" data-cites="vandeven2020">(Ven et al. 2020)</span>. Other methods protect the weights that matter most for old tasks <span class="citation" data-cites="kirkpatrick2017">(<span class="nocase">Kirkpatrick et al.</span> 2017)</span>. Adapters forget less than full fine-tuning <span class="citation" data-cites="biderman2024">(<span class="nocase">Biderman et al.</span> 2024)</span>. And using a machine’s idle time is starting to be studied as a resource in itself: <em>sleep-time compute</em> lets a model think about its context before questions arrive, reducing the work needed when they do <span class="citation" data-cites="lin2025">(<span class="nocase">Lin et al.</span> 2025)</span>. A broad review of continual learning describes the trade-offs between these approaches <span class="citation" data-cites="wang2024">(Wang et al. 2024)</span>.</p>
+<p>The test step deserves a little arithmetic, because it is where narrow specialists have a real advantage. If a specialist is right with probability <img src="https://latex.codecogs.com/png.latex?p"> on a test set of <img src="https://latex.codecogs.com/png.latex?n"> examples, the standard error of the measured accuracy is</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Csigma%20=%20%5Csqrt%7B%5Cfrac%7Bp(1-p)%7D%7Bn%7D%7D.%0A"></p>
+<p>With <img src="https://latex.codecogs.com/png.latex?p%20=%200.9"> and <img src="https://latex.codecogs.com/png.latex?n%20=%202000">, <img src="https://latex.codecogs.com/png.latex?%5Csigma%20%5Capprox%200.7"> percentage points, so a drop of 2 points stands out at about three standard errors. Building 2000 good test cases for one narrow job is realistic. Building them for every ability of a general model is not.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig13.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 13.</strong> Schematic, my own, not measured. A frozen model stays as good as the day it was shipped. A specialist that consolidates every night improves in small, tested steps. When an update makes it forget something, the test catches it and the update is rolled back.</figcaption>
+</figure>
+</div>
+<p>The risks are real. A model trained repeatedly on its own outputs can degrade, a problem known as <em>model collapse</em> <span class="citation" data-cites="shumailov2024">(Shumailov et al. 2024)</span>. The risk is much lower when real data are kept and accumulated alongside generated data, instead of being replaced by it <span class="citation" data-cites="gerstgrasser2024">(<span class="nocase">Gerstgrasser et al.</span> 2024)</span>. This is one more reason for a memory that keeps the real episodes, and for a loop that learns only from episodes verified by a test, a person or the real world, never from its own unchecked answers. And a model that changes every night is harder to certify. Small updates, strict tests, a memory that keeps the evidence, and the ability to roll back are not optional.</p>
+</section>
+<section id="where-the-big-models-fit" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-big-models-fit">12. Where the big models fit</h2>
+<p>None of this makes frontier models useless. It changes their role.</p>
+<p>They become <em>teachers</em>: their knowledge can be passed to small models by distillation <span class="citation" data-cites="hinton2015">(Hinton et al. 2015)</span>, including their step-by-step explanations <span class="citation" data-cites="hsieh2023">(<span class="nocase">Hsieh et al.</span> 2023)</span>. The DeepSeek-R1 team, for example, released a family of small models, from 1.5 to 70 billion parameters, trained on the reasoning of its large model <span class="citation" data-cites="deepseekr1">(DeepSeek-AI 2025)</span>. They become <em>architects of memory</em>: they read the documents and build the first version of the knowledge graph. And they become <em>consultants</em>: when the router meets something new, or a problem that needs broad reasoning across many domains, it can ask, with the user’s permission, and the verified answer becomes an episode the local system can learn from.</p>
+</section>
+<section id="what-would-prove-me-wrong" class="level2">
+<h2 class="anchored" data-anchor-id="what-would-prove-me-wrong">13. What would prove me wrong</h2>
+<p>An essay that argues for a future should say what would change the author’s mind. Mine would change if:</p>
+<ul>
+<li>general small models kept beating ecosystems of specialists using the same memory, even with good routing;</li>
+<li>routers could not reach the accuracy that the arithmetic in section 7 requires on real, messy work;</li>
+<li>nightly updates could not pass strict regression tests without forgetting, even with replay and adapters;</li>
+<li>memory bandwidth on consumer devices grew fast enough that a single large model ran comfortably everywhere.</li>
+</ul>
+<p>I do not think these will happen, but they are measurable, and I intend to keep watching.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">14. Conclusion</h2>
+<p>I do not think we should wait for the big brain to come to us. The future I believe in is already within reach, and it is organised differently: specialists that are excellent at one thing, a router that knows who does what and when it does not know, a memory you own, a harness that is thin but keeps the essentials, and a careful loop that turns yesterday’s verified work into tomorrow’s skill.</p>
+<p>The question will not only be “how much intelligence can I run locally?” It will be “how well is my local intelligence organised, what does it remember, and how does it learn?” Our own brain, most likely, already answers it that way.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-apple2024m4" class="csl-entry">
+Apple. 2024. <em>Apple Introduces <span>M4 Pro</span> and <span>M4 Max</span></em>. Apple Newsroom. <a href="https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/">https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/</a>.
+</div>
+<div id="ref-apple2025" class="csl-entry">
+Apple. 2025. <span>“Apple Intelligence Foundation Language Models: Tech Report 2025.”</span> <em>arXiv Preprint arXiv:2507.13575</em>. <a href="https://arxiv.org/abs/2507.13575">https://arxiv.org/abs/2507.13575</a>.
+</div>
+<div id="ref-attwell2001" class="csl-entry">
+Attwell, David, and Simon B. Laughlin. 2001. <span>“An Energy Budget for Signaling in the Grey Matter of the Brain.”</span> <em>Journal of Cerebral Blood Flow and Metabolism</em> 21 (10): 1133–45.
+</div>
+<div id="ref-balasubramanian2021" class="csl-entry">
+Balasubramanian, Vijay. 2021. <span>“Brain Power.”</span> <em>Proceedings of the National Academy of Sciences</em> 118 (32): e2107022118.
+</div>
+<div id="ref-belcak2025" class="csl-entry">
+Belcak, Peter, Greg Heinrich, Shizhe Diao, et al. 2025. <span>“Small Language Models Are the Future of Agentic <span>AI</span>.”</span> <em>arXiv Preprint arXiv:2506.02153</em>. <a href="https://arxiv.org/abs/2506.02153">https://arxiv.org/abs/2506.02153</a>.
+</div>
+<div id="ref-biderman2024" class="csl-entry">
+<span class="nocase">Biderman, Dan et al.</span> 2024. <span>“<span>LoRA</span> Learns Less and Forgets Less.”</span> <em>Transactions on Machine Learning Research</em>. <a href="https://arxiv.org/abs/2405.09673">https://arxiv.org/abs/2405.09673</a>.
+</div>
+<div id="ref-borgeaud2022" class="csl-entry">
+<span class="nocase">Borgeaud, Sebastian et al.</span> 2022. <span>“Improving Language Models by Retrieving from Trillions of Tokens.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://proceedings.mlr.press/v162/borgeaud22a.html">https://proceedings.mlr.press/v162/borgeaud22a.html</a>.
+</div>
+<div id="ref-bourtoule2021" class="csl-entry">
+<span class="nocase">Bourtoule, Lucas et al.</span> 2021. <span>“Machine Unlearning.”</span> <em>IEEE Symposium on Security and Privacy</em>. <a href="https://arxiv.org/abs/1912.03817">https://arxiv.org/abs/1912.03817</a>.
+</div>
+<div id="ref-brilliantov2026" class="csl-entry">
+Brilliantov, Kirill, Alejandro Hernández-Cano, and Emmanuel Abbé. 2026. <span>“How Much of a Harness Does a Strong Agent Need for Autonomous <span>ML</span> Engineering?”</span> <em>arXiv Preprint arXiv:2609.40303</em>. <a href="https://arxiv.org/abs/2609.40303">https://arxiv.org/abs/2609.40303</a>.
+</div>
+<div id="ref-brown2024" class="csl-entry">
+<span class="nocase">Brown, Bradley et al.</span> 2024. <span>“Large Language Monkeys: Scaling Inference Compute with Repeated Sampling.”</span> <em>arXiv Preprint arXiv:2407.21787</em>. <a href="https://arxiv.org/abs/2407.21787">https://arxiv.org/abs/2407.21787</a>.
+</div>
+<div id="ref-chen2023" class="csl-entry">
+Chen, Lingjiao, Matei Zaharia, and James Zou. 2023. <span>“<span>FrugalGPT</span>: How to Use Large Language Models While Reducing Cost and Improving Performance.”</span> <em>arXiv Preprint arXiv:2305.05176</em>. <a href="https://arxiv.org/abs/2305.05176">https://arxiv.org/abs/2305.05176</a>.
+</div>
+<div id="ref-clay2024" class="csl-entry">
+Clay, Viviane, Niels Leadholm, and Jeff Hawkins. 2024. <span>“The Thousand Brains Project: A New Paradigm for Sensorimotor Intelligence.”</span> <em>arXiv Preprint arXiv:2412.18354</em>. <a href="https://arxiv.org/abs/2412.18354">https://arxiv.org/abs/2412.18354</a>.
+</div>
+<div id="ref-deepseek2024" class="csl-entry">
+DeepSeek-AI. 2024. <span>“<span>DeepSeek-V3</span> Technical Report.”</span> <em>arXiv Preprint arXiv:2412.19437</em>. <a href="https://arxiv.org/abs/2412.19437">https://arxiv.org/abs/2412.19437</a>.
+</div>
+<div id="ref-deepseekr1" class="csl-entry">
+DeepSeek-AI. 2025. <span>“<span>DeepSeek-R1</span>: Incentivizing Reasoning Capability in <span>LLMs</span> via Reinforcement Learning.”</span> <em>arXiv Preprint arXiv:2501.12948</em>. <a href="https://arxiv.org/abs/2501.12948">https://arxiv.org/abs/2501.12948</a>.
+</div>
+<div id="ref-dehaene2007" class="csl-entry">
+Dehaene, Stanislas, and Laurent Cohen. 2007. <span>“Cultural Recycling of Cortical Maps.”</span> <em>Neuron</em> 56 (2): 384–98.
+</div>
+<div id="ref-dobs2022" class="csl-entry">
+Dobs, Katharina, Julio Martinez, Alexander J. E. Kell, and Nancy Kanwisher. 2022. <span>“Brain-Like Functional Specialization Emerges Spontaneously in Deep Neural Networks.”</span> <em>Science Advances</em> 8 (11): eabl8913. <a href="https://doi.org/10.1126/sciadv.abl8913">https://doi.org/10.1126/sciadv.abl8913</a>.
+</div>
+<div id="ref-duncan2020" class="csl-entry">
+Duncan, John, Moataz Assem, and Sneha Shashidhara. 2020. <span>“Integrated Intelligence from Distributed Brain Activity.”</span> <em>Trends in Cognitive Sciences</em> 24 (10): 838–52.
+</div>
+<div id="ref-fedorenko2024" class="csl-entry">
+Fedorenko, Evelina, Steven T. Piantadosi, and Edward A. F. Gibson. 2024. <span>“Language Is Primarily a Tool for Communication Rather Than Thought.”</span> <em>Nature</em> 630: 575–86. <a href="https://doi.org/10.1038/s41586-024-07522-w">https://doi.org/10.1038/s41586-024-07522-w</a>.
+</div>
+<div id="ref-fedus2022" class="csl-entry">
+Fedus, William, Barret Zoph, and Noam Shazeer. 2022. <span>“Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity.”</span> <em>Journal of Machine Learning Research</em> 23 (120): 1–39. <a href="https://jmlr.org/papers/v23/21-0998.html">https://jmlr.org/papers/v23/21-0998.html</a>.
+</div>
+<div id="ref-gerstgrasser2024" class="csl-entry">
+<span class="nocase">Gerstgrasser, Matthias et al.</span> 2024. <span>“Is Model Collapse Inevitable? Breaking the Curse of Recursion by Accumulating Real and Synthetic Data.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2404.01413">https://arxiv.org/abs/2404.01413</a>.
+</div>
+<div id="ref-gholami2024" class="csl-entry">
+Gholami, Amir, Zhewei Yao, Sehoon Kim, Coleman Hooper, Michael W. Mahoney, and Kurt Keutzer. 2024. <span>“<span>AI</span> and Memory Wall.”</span> <em>IEEE Micro</em>. <a href="https://arxiv.org/abs/2403.14123">https://arxiv.org/abs/2403.14123</a>.
+</div>
+<div id="ref-gunasekar2023" class="csl-entry">
+<span class="nocase">Gunasekar, Suriya et al.</span> 2023. <span>“Textbooks Are All You Need.”</span> <em>arXiv Preprint arXiv:2306.11644</em>. <a href="https://arxiv.org/abs/2306.11644">https://arxiv.org/abs/2306.11644</a>.
+</div>
+<div id="ref-gunter2024" class="csl-entry">
+<span class="nocase">Gunter, Tom et al.</span> 2024. <span>“Apple Intelligence Foundation Language Models.”</span> <em>arXiv Preprint arXiv:2407.21075</em>. <a href="https://arxiv.org/abs/2407.21075">https://arxiv.org/abs/2407.21075</a>.
+</div>
+<div id="ref-hawkins2021" class="csl-entry">
+Hawkins, Jeff. 2021. <em>A Thousand Brains: A New Theory of Intelligence</em>. Basic Books.
+</div>
+<div id="ref-haxby2001" class="csl-entry">
+<span class="nocase">Haxby, James V. et al.</span> 2001. <span>“Distributed and Overlapping Representations of Faces and Objects in Ventral Temporal Cortex.”</span> <em>Science</em> 293 (5539): 2425–30.
+</div>
+<div id="ref-herculano2009" class="csl-entry">
+Herculano-Houzel, Suzana. 2009. <span>“The Human Brain in Numbers: A Linearly Scaled-up Primate Brain.”</span> <em>Frontiers in Human Neuroscience</em> 3: 31.
+</div>
+<div id="ref-hinton2015" class="csl-entry">
+Hinton, Geoffrey, Oriol Vinyals, and Jeff Dean. 2015. <span>“Distilling the Knowledge in a Neural Network.”</span> <em>arXiv Preprint arXiv:1503.02531</em>. <a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
+</div>
+<div id="ref-hsieh2023" class="csl-entry">
+<span class="nocase">Hsieh, Cheng-Yu et al.</span> 2023. <span>“Distilling Step-by-Step! Outperforming Larger Language Models with Less Training Data and Smaller Model Sizes.”</span> <em>Findings of the Association for Computational Linguistics: ACL 2023</em>, 8003–17. <a href="https://arxiv.org/abs/2305.02301">https://arxiv.org/abs/2305.02301</a>.
+</div>
+<div id="ref-hu2021" class="csl-entry">
+Hu, Edward J., Yelong Shen, Phillip Wallis, et al. 2022. <span>“<span>LoRA</span>: Low-Rank Adaptation of Large Language Models.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2106.09685">https://arxiv.org/abs/2106.09685</a>.
+</div>
+<div id="ref-jiang2024" class="csl-entry">
+<span class="nocase">Jiang, Albert Q. et al.</span> 2024. <span>“Mixtral of Experts.”</span> <em>arXiv Preprint arXiv:2401.04088</em>. <a href="https://arxiv.org/abs/2401.04088">https://arxiv.org/abs/2401.04088</a>.
+</div>
+<div id="ref-kanwisher1997" class="csl-entry">
+Kanwisher, Nancy, Josh McDermott, and Marvin M. Chun. 1997. <span>“The Fusiform Face Area: A Module in Human Extrastriate Cortex Specialized for Face Perception.”</span> <em>Journal of Neuroscience</em> 17 (11): 4302–11.
+</div>
+<div id="ref-kirkpatrick2017" class="csl-entry">
+<span class="nocase">Kirkpatrick, James et al.</span> 2017. <span>“Overcoming Catastrophic Forgetting in Neural Networks.”</span> <em>Proceedings of the National Academy of Sciences</em> 114 (13): 3521–26.
+</div>
+<div id="ref-klinzing2019" class="csl-entry">
+Klinzing, Jens G., Niels Niethard, and Jan Born. 2019. <span>“Mechanisms of Systems Memory Consolidation During Sleep.”</span> <em>Nature Neuroscience</em> 22: 1598–610.
+</div>
+<div id="ref-kudithipudi2022" class="csl-entry">
+<span class="nocase">Kudithipudi, Dhireesha et al.</span> 2022. <span>“Biological Underpinnings for Lifelong Learning Machines.”</span> <em>Nature Machine Intelligence</em> 4: 196–210. <a href="https://doi.org/10.1038/s42256-022-00452-0">https://doi.org/10.1038/s42256-022-00452-0</a>.
+</div>
+<div id="ref-kumaran2016" class="csl-entry">
+Kumaran, Dharshan, Demis Hassabis, and James L. McClelland. 2016. <span>“What Learning Systems Do Intelligent Agents Need? Complementary Learning Systems Theory Updated.”</span> <em>Trends in Cognitive Sciences</em> 20 (7): 512–34.
+</div>
+<div id="ref-lennie2003" class="csl-entry">
+Lennie, Peter. 2003. <span>“The Cost of Cortical Computation.”</span> <em>Current Biology</em> 13 (6): 493–97.
+</div>
+<div id="ref-leviathan2023" class="csl-entry">
+Leviathan, Yaniv, Matan Kalman, and Yossi Matias. 2023. <span>“Fast Inference from Transformers via Speculative Decoding.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.17192">https://arxiv.org/abs/2211.17192</a>.
+</div>
+<div id="ref-lewis2020" class="csl-entry">
+<span class="nocase">Lewis, Patrick et al.</span> 2020. <span>“Retrieval-Augmented Generation for Knowledge-Intensive <span>NLP</span> Tasks.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
+</div>
+<div id="ref-lin2025" class="csl-entry">
+<span class="nocase">Lin, Kevin, Charlie Snell, et al.</span> 2025. <span>“Sleep-Time Compute: Beyond Inference Scaling at Test-Time.”</span> <em>arXiv Preprint arXiv:2504.13171</em>. <a href="https://arxiv.org/abs/2504.13171">https://arxiv.org/abs/2504.13171</a>.
+</div>
+<div id="ref-liu2019" class="csl-entry">
+Liu, Yunzhe, Raymond J. Dolan, Zeb Kurth-Nelson, and Timothy E. J. Behrens. 2019. <span>“Human Replay Spontaneously Reorganizes Experience.”</span> <em>Cell</em> 178 (3): 640–52.
+</div>
+<div id="ref-mahowald2024" class="csl-entry">
+Mahowald, Kyle, Anna A. Ivanova, Idan A. Blank, Nancy Kanwisher, Joshua B. Tenenbaum, and Evelina Fedorenko. 2024. <span>“Dissociating Language and Thought in Large Language Models.”</span> <em>Trends in Cognitive Sciences</em> 28 (6): 517–40. <a href="https://doi.org/10.1016/j.tics.2024.01.011">https://doi.org/10.1016/j.tics.2024.01.011</a>.
+</div>
+<div id="ref-mcclelland1995" class="csl-entry">
+McClelland, James L., Bruce L. McNaughton, and Randall C. O’Reilly. 1995. <span>“Why There Are Complementary Learning Systems in the Hippocampus and Neocortex.”</span> <em>Psychological Review</em> 102 (3): 419–57.
+</div>
+<div id="ref-mccloskey1989" class="csl-entry">
+McCloskey, Michael, and Neal J. Cohen. 1989. <span>“Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem.”</span> In <em>Psychology of Learning and Motivation</em>, vol. 24. Academic Press.
+</div>
+<div id="ref-michaud2023" class="csl-entry">
+Michaud, Eric J., Ziming Liu, Uzay Girit, and Max Tegmark. 2023. <span>“The Quantization Model of Neural Scaling.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2303.13506">https://arxiv.org/abs/2303.13506</a>.
+</div>
+<div id="ref-mountcastle1997" class="csl-entry">
+Mountcastle, Vernon B. 1997. <span>“The Columnar Organization of the Neocortex.”</span> <em>Brain</em> 120 (4): 701–22.
+</div>
+<div id="ref-nori2023" class="csl-entry">
+<span class="nocase">Nori, Harsha et al.</span> 2023. <span>“Can Generalist Foundation Models Outcompete Special-Purpose Tuning? Case Study in Medicine.”</span> <em>arXiv Preprint arXiv:2311.16452</em>. <a href="https://arxiv.org/abs/2311.16452">https://arxiv.org/abs/2311.16452</a>.
+</div>
+<div id="ref-ong2024" class="csl-entry">
+<span class="nocase">Ong, Isaac et al.</span> 2025. <span>“<span>RouteLLM</span>: Learning to Route <span>LLMs</span> with Preference Data.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2406.18665">https://arxiv.org/abs/2406.18665</a>.
+</div>
+<div id="ref-rolnick2019" class="csl-entry">
+Rolnick, David, Arun Ahuja, Jonathan Schwarz, Timothy Lillicrap, and Gregory Wayne. 2019. <span>“Experience Replay for Continual Learning.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/1811.11682">https://arxiv.org/abs/1811.11682</a>.
+</div>
+<div id="ref-schuck2019" class="csl-entry">
+Schuck, Nicolas W., and Yael Niv. 2019. <span>“Sequential Replay of Nonspatial Task States in the Human Hippocampus.”</span> <em>Science</em> 364 (6447): eaaw5181.
+</div>
+<div id="ref-shazeer2017" class="csl-entry">
+Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, et al. 2017. <span>“Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1701.06538">https://arxiv.org/abs/1701.06538</a>.
+</div>
+<div id="ref-sheng2023" class="csl-entry">
+<span class="nocase">Sheng, Ying et al.</span> 2023. <span>“<span>S-LoRA</span>: Serving Thousands of Concurrent <span>LoRA</span> Adapters.”</span> <em>arXiv Preprint arXiv:2311.03285</em>. <a href="https://arxiv.org/abs/2311.03285">https://arxiv.org/abs/2311.03285</a>.
+</div>
+<div id="ref-shumailov2024" class="csl-entry">
+Shumailov, Ilia, Zakhar Shumaylov, Yiren Zhao, Nicolas Papernot, Ross Anderson, and Yarin Gal. 2024. <span>“<span>AI</span> Models Collapse When Trained on Recursively Generated Data.”</span> <em>Nature</em> 631: 755–59.
+</div>
+<div id="ref-snell2024" class="csl-entry">
+Snell, Charlie, Jaehoon Lee, Kelvin Xu, and Aviral Kumar. 2025. <span>“Scaling <span>LLM</span> Test-Time Compute Optimally Can Be More Effective Than Scaling Parameters for Reasoning.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2408.03314">https://arxiv.org/abs/2408.03314</a>.
+</div>
+<div id="ref-sukhbaatar2024" class="csl-entry">
+<span class="nocase">Sukhbaatar, Sainbayar et al.</span> 2024. <span>“Branch-Train-MiX: Mixing Expert <span>LLMs</span> into a Mixture-of-Experts <span>LLM</span>.”</span> <em>arXiv Preprint arXiv:2403.07816</em>. <a href="https://arxiv.org/abs/2403.07816">https://arxiv.org/abs/2403.07816</a>.
+</div>
+<div id="ref-sutton2019" class="csl-entry">
+Sutton, Richard. 2019. <em>The Bitter Lesson</em>. <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">http://www.incompleteideas.net/IncIdeas/BitterLesson.html</a>.
+</div>
+<div id="ref-vandeven2020" class="csl-entry">
+Ven, Gido M. van de, Hava T. Siegelmann, and Andreas S. Tolias. 2020. <span>“Brain-Inspired Replay for Continual Learning with Artificial Neural Networks.”</span> <em>Nature Communications</em> 11: 4069. <a href="https://doi.org/10.1038/s41467-020-17866-2">https://doi.org/10.1038/s41467-020-17866-2</a>.
+</div>
+<div id="ref-wang2024" class="csl-entry">
+Wang, Liyuan, Xingxing Zhang, Hang Su, and Jun Zhu. 2024. <span>“A Comprehensive Survey of Continual Learning: Theory, Method and Application.”</span> <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em> 46 (8): 5362–83.
+</div>
+<div id="ref-williams2009" class="csl-entry">
+Williams, Samuel, Andrew Waterman, and David Patterson. 2009. <span>“Roofline: An Insightful Visual Performance Model for Multicore Architectures.”</span> <em>Communications of the ACM</em> 52 (4): 65–76. <a href="https://doi.org/10.1145/1498765.1498785">https://doi.org/10.1145/1498765.1498785</a>.
+</div>
+<div id="ref-wilson1994" class="csl-entry">
+Wilson, Matthew A., and Bruce L. McNaughton. 1994. <span>“Reactivation of Hippocampal Ensemble Memories During Sleep.”</span> <em>Science</em> 265 (5172): 676–79.
+</div>
+<div id="ref-xiao2024" class="csl-entry">
+<span class="nocase">Xiao, Chaojun et al.</span> 2024. <span>“Densing Law of <span>LLMs</span>.”</span> <em>arXiv Preprint arXiv:2412.04315</em>. <a href="https://arxiv.org/abs/2412.04315">https://arxiv.org/abs/2412.04315</a>.
+</div>
+<div id="ref-yang2024" class="csl-entry">
+<span class="nocase">Yang, John et al.</span> 2024. <span>“<span class="nocase">SWE-agent</span>: Agent-Computer Interfaces Enable Automated Software Engineering.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2405.15793">https://arxiv.org/abs/2405.15793</a>.
+</div>
+</div>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {An {Ecosystem,} {Not} an {Oracle}},
+  date = {2026-10-17},
+  url = {https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/},
+  langid = {en}
+}
+</code></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“An Ecosystem, Not an Oracle.”</span>
+October 17. <a href="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/">https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/</a>.
+</div></div></section></div> ]]></description>
+  <category>essay</category>
+  <category>ai</category>
+  <category>local-ai</category>
+  <category>architecture</category>
+  <guid>https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/</guid>
+  <pubDate>Sat, 17 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png" medium="image" type="image/png" height="85" width="144"/>
+</item>
 <item>
   <title>Decided in the Bulk, Written on the Boundary</title>
   <dc:creator>Stéphane Cuenat</dc:creator>

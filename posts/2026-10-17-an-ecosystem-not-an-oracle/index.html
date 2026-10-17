@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-10-17">
+<meta name="description" content="When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.">
+
+<title>An Ecosystem, Not an Oracle – Stéphane Cuenat</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-0d9e3b6402f43ac10db2ca3bad395da4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-3f194aa7d49fd687a19338d5e60402bd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-0d9e3b6402f43ac10db2ca3bad395da4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="An Ecosystem, Not an Oracle – Stéphane Cuenat">
+<meta property="og:description" content="When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png">
+<meta property="og:site_name" content="Stéphane Cuenat">
+<meta property="og:image:height" content="717">
+<meta property="og:image:width" content="1218">
+<meta name="twitter:title" content="An Ecosystem, Not an Oracle – Stéphane Cuenat">
+<meta name="twitter:description" content="When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png">
+<meta name="twitter:image-height" content="717">
+<meta name="twitter:image-width" content="1218">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Stéphane Cuenat</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-wrong-picture" id="toc-the-wrong-picture" class="nav-link active" data-scroll-target="#the-wrong-picture">1. The wrong picture</a></li>
+  <li><a href="#what-i-mean-by-an-ecosystem" id="toc-what-i-mean-by-an-ecosystem" class="nav-link" data-scroll-target="#what-i-mean-by-an-ecosystem">2. What I mean by an ecosystem</a></li>
+  <li><a href="#part-i-why-i-think-so" id="toc-part-i-why-i-think-so" class="nav-link" data-scroll-target="#part-i-why-i-think-so">Part I · Why I think so</a>
+  <ul class="collapse">
+  <li><a href="#todays-largest-models-already-point-this-way" id="toc-todays-largest-models-already-point-this-way" class="nav-link" data-scroll-target="#todays-largest-models-already-point-this-way">3. Today’s largest models already point this way</a></li>
+  <li><a href="#the-arithmetic-of-a-laptop-bandwidth" id="toc-the-arithmetic-of-a-laptop-bandwidth" class="nav-link" data-scroll-target="#the-arithmetic-of-a-laptop-bandwidth">4. The arithmetic of a laptop: bandwidth</a></li>
+  <li><a href="#the-arithmetic-of-capacity-why-specialists-can-be-small" id="toc-the-arithmetic-of-capacity-why-specialists-can-be-small" class="nav-link" data-scroll-target="#the-arithmetic-of-capacity-why-specialists-can-be-small">5. The arithmetic of capacity: why specialists can be small</a></li>
+  <li><a href="#the-arithmetic-of-many-specialists-adapters" id="toc-the-arithmetic-of-many-specialists-adapters" class="nav-link" data-scroll-target="#the-arithmetic-of-many-specialists-adapters">6. The arithmetic of many specialists: adapters</a></li>
+  <li><a href="#the-arithmetic-of-routing" id="toc-the-arithmetic-of-routing" class="nav-link" data-scroll-target="#the-arithmetic-of-routing">7. The arithmetic of routing</a></li>
+  <li><a href="#the-harness-thin-around-strong-models-essential-around-small-ones" id="toc-the-harness-thin-around-strong-models-essential-around-small-ones" class="nav-link" data-scroll-target="#the-harness-thin-around-strong-models-essential-around-small-ones">8. The harness: thin around strong models, essential around small ones</a></li>
+  <li><a href="#our-own-brain" id="toc-our-own-brain" class="nav-link" data-scroll-target="#our-own-brain">9. Our own brain</a></li>
+  </ul></li>
+  <li><a href="#part-ii-the-ecosystem-in-practice" id="toc-part-ii-the-ecosystem-in-practice" class="nav-link" data-scroll-target="#part-ii-the-ecosystem-in-practice">Part II · The ecosystem in practice</a>
+  <ul class="collapse">
+  <li><a href="#a-memory-outside-the-weights" id="toc-a-memory-outside-the-weights" class="nav-link" data-scroll-target="#a-memory-outside-the-weights">10. A memory outside the weights</a></li>
+  <li><a href="#a-way-to-keep-learning" id="toc-a-way-to-keep-learning" class="nav-link" data-scroll-target="#a-way-to-keep-learning">11. A way to keep learning</a></li>
+  <li><a href="#where-the-big-models-fit" id="toc-where-the-big-models-fit" class="nav-link" data-scroll-target="#where-the-big-models-fit">12. Where the big models fit</a></li>
+  <li><a href="#what-would-prove-me-wrong" id="toc-what-would-prove-me-wrong" class="nav-link" data-scroll-target="#what-would-prove-me-wrong">13. What would prove me wrong</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">14. Conclusion</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">An Ecosystem, Not an Oracle</h1>
+<p class="subtitle lead">Why I believe local AI will be many small specialists, a shared memory, a thin harness, and a way to keep learning</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essay</div>
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">local-ai</div>
+    <div class="quarto-category">architecture</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 17, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essay, October 2026.</strong> A companion to <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>. All figures are my own, drawn with the code in <a href="figs.py">figs.py</a>. Where a figure or a sentence uses numbers from someone else’s work, the source is cited next to it and listed in the references. Where numbers are my own illustrative assumptions, the caption says so.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> I believe the future of AI is, to a large extent, local. But when people talk about local AI, they usually picture one big model made small enough to fit on a laptop. I see it differently: many specialised models, a memory they share, a thin harness around them, and a careful loop that lets them keep learning from the work they do. I have four reasons. The architectures of today’s largest models already moved in this direction. Simple arithmetic about memory and bandwidth favours it on a local machine. A thin harness can help small models where it no longer helps large ones. And our own brain most likely works this way: a huge set of specialised parts, a fast memory, a slow learner, and plasticity everywhere.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>The largest models already split themselves into experts. DeepSeek-V3 uses about 5.5% of its parameters for each word <span class="citation" data-cites="deepseek2024">(<a href="#ref-deepseek2024" role="doc-biblioref">DeepSeek-AI 2024</a>)</span>. An ecosystem takes the same idea further, with parts you can load, swap, test and update one by one.</li>
+<li>On a laptop, generating text is limited by memory bandwidth, not computation. Speed is at most bandwidth divided by the bytes read per word, so small active models win.</li>
+<li>In a simple capacity model, a general model needs roughly <span class="math inline">1/f</span> times more domain capacity than a specialist, where <span class="math inline">f</span> is the share of its training devoted to that domain.</li>
+<li>Recent work suggests elaborate harnesses add little around strong frontier models <span class="citation" data-cites="brilliantov2026">(<a href="#ref-brilliantov2026" role="doc-biblioref">Brilliantov et al. 2026</a>)</span>. For small local models, I argue the opposite: verifiers, tools and structure are where they gain the most.</li>
+<li>Our brain seems to combine specialised areas, a domain-general coordinating network, a fast memory, a slow learner that consolidates during sleep, and plasticity <span class="citation" data-cites="fedorenko2024 duncan2020 mcclelland1995 dehaene2007">(<a href="#ref-fedorenko2024" role="doc-biblioref">Fedorenko et al. 2024</a>; <a href="#ref-duncan2020" role="doc-biblioref">Duncan et al. 2020</a>; <a href="#ref-mcclelland1995" role="doc-biblioref">McClelland et al. 1995</a>; <a href="#ref-dehaene2007" role="doc-biblioref">Dehaene and Cohen 2007</a>)</span>.</li>
+<li>Memory belongs outside the weights, where people can read, correct and delete it. Learning belongs in a slow, tested loop.</li>
+</ul>
+</div>
+</div>
+<section id="the-wrong-picture" class="level2">
+<h2 class="anchored" data-anchor-id="the-wrong-picture">1. The wrong picture</h2>
+<p>Models are getting smaller for the same capability. Xiao and colleagues measured this as <em>capability density</em>, and found that for open models it doubled roughly every three to three and a half months between 2023 and 2025 <span class="citation" data-cites="xiao2024">(<a href="#ref-xiao2024" role="doc-biblioref"><span class="nocase">Xiao et al.</span> 2024</a>)</span>. Better training, better architectures, quantisation and better chips all push in the same direction. I am convinced a large part of AI will move closer to where the work happens: onto our laptops, phones, machines and private servers.</p>
+<p>But the picture most of us have in mind is one giant brain, waiting to be compressed into a smaller box. The question becomes “how much of the big model can I run locally?”, and the answer is always “a bit less than you would like, but wait a year.”</p>
+<p>I would rather ask a different question: <em>what would intelligence look like if it were designed for the machine in front of me from the start?</em></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig01.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 1.</strong> Two ways to organise intelligence. An oracle sends every task to one large model. An ecosystem sends each task to a small specialist, chosen by a router, and all specialists share one memory. Schematic, my own.</figcaption>
+</figure>
+</div>
+</section>
+<section id="what-i-mean-by-an-ecosystem" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-mean-by-an-ecosystem">2. What I mean by an ecosystem</h2>
+<p>By an ecosystem, I mean five parts working together on one machine:</p>
+<ol type="1">
+<li><strong>Specialists.</strong> Small models, or adapters on a shared base model, each good at one job: reading invoices, writing queries, transcribing speech, a company’s own domain.</li>
+<li><strong>A router.</strong> A small model that decides which specialist handles a task, and when to escalate.</li>
+<li><strong>A shared memory.</strong> Knowledge and episodes stored outside the weights, readable and correctable by people.</li>
+<li><strong>A thin harness.</strong> The tools, checks and permissions around the models: run the tests, validate the output, keep the data local.</li>
+<li><strong>A consolidation loop.</strong> A slow process, for example at night, that turns verified experience into small, tested updates of the specialists.</li>
+</ol>
+<p>A frontier model can stay outside, as a teacher and an occasional consultant.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig02.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 2.</strong> The local ecosystem I have in mind. A router sends each task to a specialist. Specialists read from and write to a shared memory. At night, the system consolidates what it has learned into updated specialists. A frontier model, outside the machine, teaches once and is consulted rarely. Schematic, my own.</figcaption>
+</figure>
+</div>
+</section>
+<section id="part-i-why-i-think-so" class="level1">
+<h1>Part I · Why I think so</h1>
+<section id="todays-largest-models-already-point-this-way" class="level2">
+<h2 class="anchored" data-anchor-id="todays-largest-models-already-point-this-way">3. Today’s largest models already point this way</h2>
+<p><strong>From dense to mixtures of experts.</strong> A classic language model is <em>dense</em>: to produce each word, it uses every one of its parameters. Many of today’s largest models are <em>mixtures of experts</em> instead. The idea goes back to Shazeer and colleagues <span class="citation" data-cites="shazeer2017">(<a href="#ref-shazeer2017" role="doc-biblioref">Shazeer et al. 2017</a>)</span> and was scaled up in the Switch Transformer <span class="citation" data-cites="fedus2022">(<a href="#ref-fedus2022" role="doc-biblioref">Fedus et al. 2022</a>)</span>. Inside, the model is split into many sub-networks, and for each word a small gate chooses a few of them.</p>
+<p>Two published examples make the point:</p>
+<ul>
+<li><strong>Mixtral 8x7B</strong> has 46.7 billion parameters, but each word uses about 12.9 billion: two of its eight experts per layer <span class="citation" data-cites="jiang2024">(<a href="#ref-jiang2024" role="doc-biblioref"><span class="nocase">Jiang et al.</span> 2024</a>)</span>.</li>
+<li><strong>DeepSeek-V3</strong> has 671 billion parameters, but each word uses about 37 billion <span class="citation" data-cites="deepseek2024">(<a href="#ref-deepseek2024" role="doc-biblioref">DeepSeek-AI 2024</a>)</span>. Its design is telling: in each expert layer, one <em>shared</em> expert is used for every word, and 8 of 256 <em>routed</em> experts are chosen for that word. A common core, plus specialists picked on demand.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig03.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 3.</strong> Three architectures. A dense model loads all its parameters and uses all of them for every word. A mixture of experts loads all of them but uses only a few experts per word. An ecosystem loads separate specialist models when they are needed. Schematic, my own.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig04.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 4.</strong> Share of parameters used for each word. Mixtral and DeepSeek-V3 values are computed from the published parameter counts <span class="citation" data-cites="jiang2024 deepseek2024">(<a href="#ref-jiang2024" role="doc-biblioref"><span class="nocase">Jiang et al.</span> 2024</a>; <a href="#ref-deepseek2024" role="doc-biblioref">DeepSeek-AI 2024</a>)</span>. The cortex value is a rough estimate of the share of neurons that can be strongly active at the same time, from energy constraints <span class="citation" data-cites="lennie2003">(<a href="#ref-lennie2003" role="doc-biblioref">Lennie 2003</a>)</span>; it is debated and shown hatched. Chart my own.</figcaption>
+</figure>
+</div>
+<p>The people who build the largest models have concluded that not everything should work on everything. But a mixture of experts is still one model. All its experts must be loaded in memory, even if only a few work at a time. They are trained together, so you cannot replace one without touching the others. And they are not specialists a person would recognise: an expert is a part of the network that training happened to route certain words to.</p>
+<p><strong>The other pieces already exist too.</strong> What I call an ecosystem is mostly an assembly of things that already work:</p>
+<ul>
+<li><strong>Shared base plus adapters, in production.</strong> Apple’s on-device model has about 3 billion parameters and uses small, task-specific <em>LoRA adapters</em> that are swapped in for each task; a rank-16 adapter takes tens of megabytes <span class="citation" data-cites="gunter2024 hu2021">(<a href="#ref-gunter2024" role="doc-biblioref"><span class="nocase">Gunter et al.</span> 2024</a>; <a href="#ref-hu2021" role="doc-biblioref">Hu et al. 2022</a>)</span>.</li>
+<li><strong>Many adapters on one machine.</strong> S-LoRA showed how to serve thousands of adapters on top of one base model <span class="citation" data-cites="sheng2023">(<a href="#ref-sheng2023" role="doc-biblioref"><span class="nocase">Sheng et al.</span> 2023</a>)</span>.</li>
+<li><strong>Experts trained separately.</strong> Branch-Train-MiX trains domain experts in parallel from a common starting model, then combines them <span class="citation" data-cites="sukhbaatar2024">(<a href="#ref-sukhbaatar2024" role="doc-biblioref"><span class="nocase">Sukhbaatar et al.</span> 2024</a>)</span>.</li>
+<li><strong>Routing between models.</strong> RouteLLM learns when a query can go to a cheaper model, and reports cost reductions of more than two times on some benchmarks without a loss in quality <span class="citation" data-cites="ong2024">(<a href="#ref-ong2024" role="doc-biblioref"><span class="nocase">Ong et al.</span> 2025</a>)</span>. FrugalGPT reports matching the best single model with large cost savings by cascading models <span class="citation" data-cites="chen2023">(<a href="#ref-chen2023" role="doc-biblioref">Chen et al. 2023</a>)</span>.</li>
+<li><strong>Memory outside the weights.</strong> RETRO, with retrieval from a large text database, performs comparably to GPT-3 on the Pile benchmark with about 25 times fewer parameters <span class="citation" data-cites="borgeaud2022 lewis2020">(<a href="#ref-borgeaud2022" role="doc-biblioref"><span class="nocase">Borgeaud et al.</span> 2022</a>; <a href="#ref-lewis2020" role="doc-biblioref"><span class="nocase">Lewis et al.</span> 2020</a>)</span>.</li>
+</ul>
+<p>None of these is the whole ecosystem. Together, they show that each part is not speculation. Researchers at NVIDIA recently made a similar case for agents: most of what agents do is a small number of repetitive, specialised tasks, which small models can handle more economically, with larger models called only when needed <span class="citation" data-cites="belcak2025">(<a href="#ref-belcak2025" role="doc-biblioref">Belcak et al. 2025</a>)</span>.</p>
+</section>
+<section id="the-arithmetic-of-a-laptop-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-a-laptop-bandwidth">4. The arithmetic of a laptop: bandwidth</h2>
+<p>This is the argument I find most convincing, because it is simple arithmetic.</p>
+<p>When a model generates text for one person, each new word requires reading all the active weights from memory once, and doing roughly two operations per weight. With weights stored at <span class="math inline">b</span> bits, a model with <span class="math inline">N_{\text{active}}</span> active parameters reads <span class="math inline">N_{\text{active}} \cdot b/8</span> bytes per word. The speed is therefore bounded by the memory bandwidth <span class="math inline">B</span>:</p>
+<p><span class="math display">
+\text{words per second} \;\le\; \frac{B}{N_{\text{active}} \cdot b/8}.
+</span></p>
+<p>Is bandwidth really the limit, and not computation? The roofline model answers this by comparing operations per byte <span class="citation" data-cites="williams2009">(<a href="#ref-williams2009" role="doc-biblioref">Williams et al. 2009</a>)</span>. Decoding for one user at 4 bits does about two operations per half byte, so about 4 operations per byte read. A laptop GPU that can do tens of trillions of operations per second, with a bandwidth of about 500 GB/s, needs tens of operations per byte to be kept busy. Decoding offers far fewer, so it waits for memory.</p>
+<p>Take a laptop with 128 GB of memory and up to 546 GB/s of bandwidth, the published figures for Apple’s M4 Max <span class="citation" data-cites="apple2024m4">(<a href="#ref-apple2024m4" role="doc-biblioref">Apple 2024</a>)</span>. I use 500 GB/s and 4-bit weights:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Active parameters</th>
+<th>Read per word</th>
+<th>Upper bound</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>3B specialist</td>
+<td>3B</td>
+<td>1.5 GB</td>
+<td>≈ 330 words/s</td>
+</tr>
+<tr class="even">
+<td>8B specialist</td>
+<td>8B</td>
+<td>4 GB</td>
+<td>≈ 125 words/s</td>
+</tr>
+<tr class="odd">
+<td>70B dense model</td>
+<td>70B</td>
+<td>35 GB</td>
+<td>≈ 14 words/s</td>
+</tr>
+<tr class="even">
+<td>DeepSeek-V3 (MoE)</td>
+<td>37B of 671B</td>
+<td>18.5 GB</td>
+<td>≈ 27 words/s, but 335 GB does not fit in 128 GB</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig05.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 5.</strong> Upper bound on generation speed when every word requires reading all active weights once, at 500 GB/s and 4-bit weights. Open circle: does not fit in 128 GB. Real speeds are lower; computation, the conversation’s cache and software all cost something. My own calculation from the formula above; DeepSeek-V3 parameter counts from <span class="citation" data-cites="deepseek2024">(<a href="#ref-deepseek2024" role="doc-biblioref">DeepSeek-AI 2024</a>)</span>.</figcaption>
+</figure>
+</div>
+<p>Two consequences follow. The same 128 GB that cannot hold one frontier model can hold about thirty 8-billion-parameter specialists, each of them fast. And this wall is not going away soon: over two decades, peak compute of server hardware grew about 3.0 times every two years, but memory bandwidth only about 1.6 times <span class="citation" data-cites="gholami2024">(<a href="#ref-gholami2024" role="doc-biblioref">Gholami et al. 2024</a>)</span>. Techniques such as speculative decoding <span class="citation" data-cites="leviathan2023">(<a href="#ref-leviathan2023" role="doc-biblioref">Leviathan et al. 2023</a>)</span> help, but they help small models just as much as large ones.</p>
+</section>
+<section id="the-arithmetic-of-capacity-why-specialists-can-be-small" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-capacity-why-specialists-can-be-small">5. The arithmetic of capacity: why specialists can be small</h2>
+<p>The second argument is about where a model spends its capacity.</p>
+<p>Michaud and colleagues proposed a useful way to think about scaling: knowledge comes in discrete units, which they call <em>quanta</em>, used with very different frequencies, and a model learns them roughly in order of how often they are needed <span class="citation" data-cites="michaud2023">(<a href="#ref-michaud2023" role="doc-biblioref">Michaud et al. 2023</a>)</span>. Here is a simple consequence, in my own words and with my own simplifications.</p>
+<p>Suppose a task needs two kinds of quanta: a shared core (language, basic reasoning), which takes <span class="math inline">N_{\text{shared}}</span> parameters, and domain knowledge, which takes <span class="math inline">N_{\text{domain}}</span>. A specialist needs both:</p>
+<p><span class="math display">
+N_{\text{specialist}} \approx N_{\text{shared}} + N_{\text{domain}}.
+</span></p>
+<p>A general model is trained on everything, and the domain is only a share <span class="math inline">f</span> of what it sees. In the simplest symmetric case, where many domains each have a share <span class="math inline">f</span> and similar structure, the general model reaches the same depth in this domain only when it has learned as deep into every other domain too:</p>
+<p><span class="math display">
+N_{\text{general}} \approx N_{\text{shared}} + \frac{N_{\text{domain}}}{f}.
+</span></p>
+<p>With illustrative values of 2 billion for the core and 1 billion for the domain, a domain that is 1% of the general model’s training needs about 102 billion parameters for the same depth, against 3 billion for the specialist.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig06.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 6.</strong> A simple capacity model. Parameters needed for the same depth in one domain, for a general model and for a specialist, as a function of the domain’s share <span class="math inline">f</span> of the general model’s training. Illustrative values, my own: <span class="math inline">N_{\text{shared}}</span> = 2B, <span class="math inline">N_{\text{domain}}</span> = 1B, no transfer between domains beyond the shared core. Model inspired by the quanta view of scaling <span class="citation" data-cites="michaud2023">(<a href="#ref-michaud2023" role="doc-biblioref">Michaud et al. 2023</a>)</span>.</figcaption>
+</figure>
+</div>
+<p>The model is crude, and its main assumption, that domains do not help each other beyond the shared core, is not fully true. Knowledge does transfer between domains, and a general model like GPT-4, carefully prompted, has outperformed specialist medical models on medical benchmarks <span class="citation" data-cites="nori2023">(<a href="#ref-nori2023" role="doc-biblioref"><span class="nocase">Nori et al.</span> 2023</a>)</span>. That is exactly why the formula keeps <span class="math inline">N_{\text{shared}}</span>: a good specialist is not trained from scratch, it starts from a strong shared core.</p>
+<p>The published evidence is consistent with the direction of the argument. A 770-million-parameter model trained with explanations from a much larger model outperformed few-shot prompted 540-billion-parameter PaLM on a benchmark, using only 80% of the training data <span class="citation" data-cites="hsieh2023">(<a href="#ref-hsieh2023" role="doc-biblioref"><span class="nocase">Hsieh et al.</span> 2023</a>)</span>. A 1.3-billion-parameter model trained on carefully chosen data reached 50.6% on the HumanEval coding benchmark <span class="citation" data-cites="gunasekar2023">(<a href="#ref-gunasekar2023" role="doc-biblioref"><span class="nocase">Gunasekar et al.</span> 2023</a>)</span>. Narrow, well-taught models can be very small.</p>
+</section>
+<section id="the-arithmetic-of-many-specialists-adapters" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-many-specialists-adapters">6. The arithmetic of many specialists: adapters</h2>
+<p>If every specialist were a separate model, memory would fill up quickly. Adapters solve much of this.</p>
+<p>A LoRA adapter replaces the update of a weight matrix of size <span class="math inline">d_{\text{in}} \times d_{\text{out}}</span> by two thin matrices of rank <span class="math inline">r</span> <span class="citation" data-cites="hu2021">(<a href="#ref-hu2021" role="doc-biblioref">Hu et al. 2022</a>)</span>. Its size relative to the matrix is</p>
+<p><span class="math display">
+\frac{r\,(d_{\text{in}} + d_{\text{out}})}{d_{\text{in}}\,d_{\text{out}}} \;\approx\; \frac{2r}{d} \quad \text{for a square matrix}.
+</span></p>
+<p>With <span class="math inline">r = 16</span> and <span class="math inline">d = 3072</span>, that is about 1%. Applied to a 3-billion-parameter base model, an adapter has roughly 30 million parameters, about 60 MB at 16 bits, consistent with the “tens of megabytes” Apple reports for its rank-16 adapters <span class="citation" data-cites="gunter2024">(<a href="#ref-gunter2024" role="doc-biblioref"><span class="nocase">Gunter et al.</span> 2024</a>)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig07.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 7.</strong> Memory needed for <span class="math inline">k</span> specialists, as separate 3B models at 4 bits, or as one 3B base at 4 bits plus rank-16 adapters at 16 bits (about 60 MB each). My own calculation from the formula above.</figcaption>
+</figure>
+</div>
+<p>One hundred specialists as adapters take about 7.5 GB; as separate models, 150 GB. There is a trade-off, and it is worth knowing: adapters learn less than full fine-tuning, but they also forget less of what the base model knew <span class="citation" data-cites="biderman2024">(<a href="#ref-biderman2024" role="doc-biblioref"><span class="nocase">Biderman et al.</span> 2024</a>)</span>. For a system that must keep learning without breaking, forgetting less is a feature.</p>
+</section>
+<section id="the-arithmetic-of-routing" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-routing">7. The arithmetic of routing</h2>
+<p>An ecosystem is only as good as its router. A simple model makes this precise.</p>
+<p>Let <span class="math inline">a</span> be the router’s accuracy, <span class="math inline">q_s</span> the quality when a task reaches the right specialist, and <span class="math inline">q_w</span> the quality when it reaches the wrong one. The expected quality is</p>
+<p><span class="math display">
+q = a\,q_s + (1-a)\,q_w.
+</span></p>
+<p>The ecosystem beats one general model of quality <span class="math inline">q_g</span> that runs at a similar speed only if</p>
+<p><span class="math display">
+a \;&gt;\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
+</span></p>
+<p>With illustrative values <span class="math inline">q_s = 0.90</span>, <span class="math inline">q_w = 0.30</span> and <span class="math inline">q_g = 0.80</span>, the router must be right more than 83% of the time. If the router also knows when it is unsure, and sends half of its mistakes to a larger model with quality <span class="math inline">q_L = 0.95</span>, the threshold drops to about 64%.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig08.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 8.</strong> Expected quality of an ecosystem as a function of router accuracy, with and without escalation of uncertain cases, compared to one general model that runs at a similar speed. Illustrative values, my own.</figcaption>
+</figure>
+</div>
+<p>The lesson is not the exact numbers, which are mine. It is the shape: a router that knows its own uncertainty is worth more than a slightly better specialist. This is also what makes published routing work encouraging <span class="citation" data-cites="ong2024 chen2023">(<a href="#ref-ong2024" role="doc-biblioref"><span class="nocase">Ong et al.</span> 2025</a>; <a href="#ref-chen2023" role="doc-biblioref">Chen et al. 2023</a>)</span>.</p>
+</section>
+<section id="the-harness-thin-around-strong-models-essential-around-small-ones" class="level2">
+<h2 class="anchored" data-anchor-id="the-harness-thin-around-strong-models-essential-around-small-ones">8. The harness: thin around strong models, essential around small ones</h2>
+<p>A recent study from EPFL and Apple asks how much of a <em>harness</em> (the orchestrators, sub-agents and retrieval layers built around a model) a strong agent needs for machine-learning engineering tasks. Under an equal time budget and the same frontier model, the elaborate open-source harnesses they tested gave no advantage over a single session of a minimal coding agent with direct access to read, write and run commands <span class="citation" data-cites="brilliantov2026">(<a href="#ref-brilliantov2026" role="doc-biblioref">Brilliantov et al. 2026</a>)</span>. Their conclusion is that the model is the main driver of performance, and that elaborate harnesses around strong models give poor returns on current benchmarks.</p>
+<p>At first sight, this goes against an ecosystem. If structure around a model does not help, why build an ecosystem at all? I read it differently, for three reasons.</p>
+<p><strong>First, it is a result about strong models.</strong> The study holds the frontier model fixed. It says that a strong model has absorbed much of what the scaffolding was doing. That fits Sutton’s “bitter lesson”: general methods that use more computation tend to beat hand-built structure in the long run <span class="citation" data-cites="sutton2019">(<a href="#ref-sutton2019" role="doc-biblioref">Sutton 2019</a>)</span>. It says much less about a 3-billion-parameter model on a laptop.</p>
+<p><strong>Second, small models gain the most from the right kind of harness.</strong> Several results point that way:</p>
+<ul>
+<li>The design of the interface matters: SWE-agent showed that giving a model well-designed commands to view, edit and test code improved results on software tasks, without changing the model <span class="citation" data-cites="yang2024">(<a href="#ref-yang2024" role="doc-biblioref"><span class="nocase">Yang et al.</span> 2024</a>)</span>.</li>
+<li>A verifier turns attempts into results: with repeated attempts checked by the project’s own tests, an open model went from solving 15.9% of SWE-bench Lite issues in one attempt to 56% in 250 attempts, above the best single attempt reported at the time, 43% <span class="citation" data-cites="brown2024">(<a href="#ref-brown2024" role="doc-biblioref"><span class="nocase">Brown et al.</span> 2024</a>)</span>.</li>
+<li>Extra computation at the time of answering, used well, allowed a smaller model to outperform a 14 times larger one, on problems where the smaller model already had a reasonable success rate <span class="citation" data-cites="snell2024">(<a href="#ref-snell2024" role="doc-biblioref">Snell et al. 2025</a>)</span>.</li>
+<li>Apple’s framework for its on-device model offers guided generation and constrained tool calling, which keep a small model’s output within a valid structure <span class="citation" data-cites="apple2025">(<a href="#ref-apple2025" role="doc-biblioref">Apple 2025</a>)</span>.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig09.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 9.</strong> Repeated attempts with a verifier. The two points are results reported by Brown et al.&nbsp;for SWE-bench Lite <span class="citation" data-cites="brown2024">(<a href="#ref-brown2024" role="doc-biblioref"><span class="nocase">Brown et al.</span> 2024</a>)</span>. The dashed line is my own calculation of what would happen if attempts were independent, <span class="math inline">1-(1-p)^k</span> with <span class="math inline">p = 0.159</span>; the gap shows that attempts are strongly correlated. Chart my own.</figcaption>
+</figure>
+</div>
+<p>The arithmetic is worth a sentence. If a single attempt succeeds with probability <span class="math inline">p</span> and attempts were independent, <span class="math inline">k</span> attempts would succeed with probability <span class="math inline">1-(1-p)^k</span>. In practice attempts are correlated, so the real gain is smaller, as the figure shows. But on a local machine, where a small specialist is fast and a test can check each answer, a few extra attempts cost very little.</p>
+<p><strong>Third, some of the harness can never be absorbed into a model.</strong> A persistent memory that lasts beyond one conversation. Permissions over what may leave the machine. Tests that decide whether an output or an update is accepted. The local data itself. However strong models become, these stay outside.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig10.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 10.</strong> My own view of the harness, as a schematic. Scaffolding for reasoning (orchestrators, sub-agents, retries) adds much to small models and little to strong ones. Structure no model can absorb (memory, permissions, tests, local data) keeps its value. The right end is consistent with the finding of <span class="citation" data-cites="brilliantov2026">(<a href="#ref-brilliantov2026" role="doc-biblioref">Brilliantov et al. 2026</a>)</span>; the rest of the curve is my hypothesis, not data.</figcaption>
+</figure>
+</div>
+<p>So my conclusion is a design rule: <strong>keep the harness thin, and keep only what earns its place.</strong> Scaffolding that compensates for weak reasoning should be removable, and removed as specialists get better. Structure that gives memory, verification and control should stay.</p>
+</section>
+<section id="our-own-brain" class="level2">
+<h2 class="anchored" data-anchor-id="our-own-brain">9. Our own brain</h2>
+<p>The last reason is closer to home. When I look at how our brain seems to be organised, it does not look like one dense model. It looks much more like an ecosystem. I want to be careful here, because biology does not prove anything about software, and the brain is not a set of neat boxes.</p>
+<p><strong>Many specialised parts.</strong> Neuroscience has found areas that respond to specific things. A classic example is an area of the visual cortex that responds much more strongly to faces than to other objects <span class="citation" data-cites="kanwisher1997">(<a href="#ref-kanwisher1997" role="doc-biblioref">Kanwisher et al. 1997</a>)</span>. Damage to such areas can remove one ability and leave others almost intact. At the same time, representations are also distributed and overlapping across areas <span class="citation" data-cites="haxby2001">(<a href="#ref-haxby2001" role="doc-biblioref"><span class="nocase">Haxby et al.</span> 2001</a>)</span>. Specialised, but heavily connected.</p>
+<p><strong>Language and thinking are handled by different networks.</strong> One of the most striking recent results for my argument comes from the study of language. Brain imaging reliably finds a network that is engaged when we read or listen to sentences, and it is largely not engaged when we solve problems or reason; people who lose language through brain damage can still reason <span class="citation" data-cites="fedorenko2024">(<a href="#ref-fedorenko2024" role="doc-biblioref">Fedorenko et al. 2024</a>)</span>. Mahowald and colleagues drew the consequence for AI: large language models are very good at the <em>form</em> of language, but their ability to reason and use it in the world is uneven, and models that work like humans may need separate mechanisms for the two <span class="citation" data-cites="mahowald2024">(<a href="#ref-mahowald2024" role="doc-biblioref">Mahowald et al. 2024</a>)</span>.</p>
+<p><strong>And a general-purpose network, too.</strong> The brain is not only specialists. A <em>multiple-demand</em> network, spread over frontal and parietal areas, is engaged by many different demanding tasks and seems to help assemble the right parts for the problem at hand <span class="citation" data-cites="duncan2020">(<a href="#ref-duncan2020" role="doc-biblioref">Duncan et al. 2020</a>)</span>. In the ecosystem, that is the role of the shared core and the router: one general part that coordinates many specialised ones.</p>
+<p><strong>Specialisation may simply be efficient.</strong> A recent experiment makes this more than an analogy. Dobs and colleagues trained artificial neural networks to recognise both faces and objects. Without being told to, the networks split themselves into separate systems for faces and for objects, much as the brain does <span class="citation" data-cites="dobs2022">(<a href="#ref-dobs2022" role="doc-biblioref">Dobs et al. 2022</a>)</span>. Their interpretation is that specialisation is what good optimisation tends to produce when tasks are different enough.</p>
+<p><strong>Probably a very large number of units.</strong> Mountcastle proposed that the cortex is built from a repeated basic unit, the cortical column <span class="citation" data-cites="mountcastle1997">(<a href="#ref-mountcastle1997" role="doc-biblioref">Mountcastle 1997</a>)</span>. Hawkins goes further and suggests that each column builds its own model of the world, and that they reach decisions together <span class="citation" data-cites="hawkins2021">(<a href="#ref-hawkins2021" role="doc-biblioref">Hawkins 2021</a>)</span>; his team has since started an open project that builds AI from many such repeated <em>learning modules</em> <span class="citation" data-cites="clay2024">(<a href="#ref-clay2024" role="doc-biblioref">Clay et al. 2024</a>)</span>. This is a theory, and it is debated. But the picture of a large number of similar units, each specialised by what it receives, is widely shared.</p>
+<p><strong>A fast memory and a slow learner.</strong> The theory of <em>complementary learning systems</em> proposes that the hippocampus learns new episodes quickly, while the neocortex learns slowly, by replaying those episodes over time <span class="citation" data-cites="mcclelland1995 kumaran2016">(<a href="#ref-mcclelland1995" role="doc-biblioref">McClelland et al. 1995</a>; <a href="#ref-kumaran2016" role="doc-biblioref">Kumaran et al. 2016</a>)</span>. Replay during sleep was first observed in the hippocampus of rats <span class="citation" data-cites="wilson1994">(<a href="#ref-wilson1994" role="doc-biblioref">Wilson and McNaughton 1994</a>)</span>, and it has since been measured in humans as well, during rest <span class="citation" data-cites="liu2019 schuck2019">(<a href="#ref-liu2019" role="doc-biblioref">Liu et al. 2019</a>; <a href="#ref-schuck2019" role="doc-biblioref">Schuck and Niv 2019</a>)</span>. Sleep seems to play an active role in moving memories from the fast system to the slow one <span class="citation" data-cites="klinzing2019">(<a href="#ref-klinzing2019" role="doc-biblioref">Klinzing et al. 2019</a>)</span>. One reason for two systems is precisely to avoid what AI researchers call catastrophic forgetting <span class="citation" data-cites="mccloskey1989">(<a href="#ref-mccloskey1989" role="doc-biblioref">McCloskey and Cohen 1989</a>)</span>.</p>
+<p><strong>Plasticity.</strong> Connections change with use. And when we learn to read, a region of the visual cortex becomes specialised for written words, a process Dehaene and Cohen call <em>neuronal recycling</em> <span class="citation" data-cites="dehaene2007">(<a href="#ref-dehaene2007" role="doc-biblioref">Dehaene and Cohen 2007</a>)</span>. New specialists are not only present from birth; they are formed during life.</p>
+<p><strong>Sparse and frugal.</strong> The human brain has about 86 billion neurons <span class="citation" data-cites="herculano2009">(<a href="#ref-herculano2009" role="doc-biblioref">Herculano-Houzel 2009</a>)</span> and runs on roughly 20 watts <span class="citation" data-cites="balasubramanian2021">(<a href="#ref-balasubramanian2021" role="doc-biblioref">Balasubramanian 2021</a>)</span>. Energy budgets suggest that only a small share of cortical neurons can be strongly active at the same time, perhaps around one percent, although the exact figure is debated <span class="citation" data-cites="lennie2003 attwell2001">(<a href="#ref-lennie2003" role="doc-biblioref">Lennie 2003</a>; <a href="#ref-attwell2001" role="doc-biblioref">Attwell and Laughlin 2001</a>)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig11.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 11.</strong> How the brain seems to be organised, and the part of the ecosystem each idea corresponds to. An analogy, my own, not a claim that the brain is built like software. Sources for each brain property are given in section 9.</figcaption>
+</figure>
+</div>
+<p>Researchers who work on lifelong learning in machines draw the same lesson from biology: memory systems that learn at different speeds, replay, and modular, adaptable parts are among the mechanisms they consider most promising <span class="citation" data-cites="kudithipudi2022">(<a href="#ref-kudithipudi2022" role="doc-biblioref"><span class="nocase">Kudithipudi et al.</span> 2022</a>)</span>. If our best example of general intelligence is most likely a huge set of specialised, plastic sub-models, with a general coordinator, a fast memory and a slow learner, then I find it hard to believe that the best local AI will be one frozen, dense block.</p>
+</section>
+</section>
+<section id="part-ii-the-ecosystem-in-practice" class="level1">
+<h1>Part II · The ecosystem in practice</h1>
+<section id="a-memory-outside-the-weights" class="level2">
+<h2 class="anchored" data-anchor-id="a-memory-outside-the-weights">10. A memory outside the weights</h2>
+<p>Specialists need a memory they share. In <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> I argued that a large model should be used to build a structured memory, such as a knowledge graph experts can inspect and correct. In a local ecosystem, that memory becomes the common ground, and plays the role of the fast memory in section 9. Two kinds matter:</p>
+<ul>
+<li><strong>Knowledge</strong>: facts, rules, relations. “This customer always pays within 30 days.”</li>
+<li><strong>Episodes</strong>: what happened. “Last Tuesday this invoice was rejected because the supplier’s VAT number did not match.”</li>
+</ul>
+<p>Keeping this memory outside the weights is what makes the system trustworthy. You can read it. You can correct a fact in one place, and every specialist benefits. You can delete something and know it is gone, which is very hard to guarantee once data has been used to train a model; removing its influence afterwards is an open research problem <span class="citation" data-cites="bourtoule2021">(<a href="#ref-bourtoule2021" role="doc-biblioref"><span class="nocase">Bourtoule et al.</span> 2021</a>)</span>. Retrieval also lets small models know far more than their weights hold <span class="citation" data-cites="borgeaud2022 lewis2020">(<a href="#ref-borgeaud2022" role="doc-biblioref"><span class="nocase">Borgeaud et al.</span> 2022</a>; <a href="#ref-lewis2020" role="doc-biblioref"><span class="nocase">Lewis et al.</span> 2020</a>)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig12.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 12.</strong> Where knowledge lives matters. My own summary of the properties described in this section; on deletion, see <span class="citation" data-cites="bourtoule2021">(<a href="#ref-bourtoule2021" role="doc-biblioref"><span class="nocase">Bourtoule et al.</span> 2021</a>)</span>.</figcaption>
+</figure>
+</div>
+<p>This is, for me, the strongest reason for running it locally. Privacy is not only protection. It is the condition for memory. People and companies will only let a system remember everything useful if they control where that memory lives.</p>
+</section>
+<section id="a-way-to-keep-learning" class="level2">
+<h2 class="anchored" data-anchor-id="a-way-to-keep-learning">11. A way to keep learning</h2>
+<p>A memory lets a system <em>look things up</em>. It does not let it <em>get better</em>. Today’s models are trained once, frozen, and shipped. A local ecosystem can do better, because it sees the same kind of work every day, and because its specialists are small enough to update. I imagine a loop with two speeds, inspired by section 9:</p>
+<ol type="1">
+<li><strong>Fast, during the day.</strong> The specialists work. Successes, corrections and failures are written to the memory as episodes. Nothing in the models changes.</li>
+<li><strong>Slow, at night.</strong> The system selects verified episodes, mixes them with examples of what the specialist already does well, updates the adapter, and tests the result against everything it was already good at. If it is better and has not forgotten anything, it is kept. If not, it is rolled back.</li>
+</ol>
+<p>Each step has support in existing work. Mixing old examples with new ones, <em>replay</em>, is one of the most reliable ways to limit forgetting <span class="citation" data-cites="rolnick2019">(<a href="#ref-rolnick2019" role="doc-biblioref">Rolnick et al. 2019</a>)</span>; brain-inspired versions of replay go further and replay internal representations instead of stored examples <span class="citation" data-cites="vandeven2020">(<a href="#ref-vandeven2020" role="doc-biblioref">Ven et al. 2020</a>)</span>. Other methods protect the weights that matter most for old tasks <span class="citation" data-cites="kirkpatrick2017">(<a href="#ref-kirkpatrick2017" role="doc-biblioref"><span class="nocase">Kirkpatrick et al.</span> 2017</a>)</span>. Adapters forget less than full fine-tuning <span class="citation" data-cites="biderman2024">(<a href="#ref-biderman2024" role="doc-biblioref"><span class="nocase">Biderman et al.</span> 2024</a>)</span>. And using a machine’s idle time is starting to be studied as a resource in itself: <em>sleep-time compute</em> lets a model think about its context before questions arrive, reducing the work needed when they do <span class="citation" data-cites="lin2025">(<a href="#ref-lin2025" role="doc-biblioref"><span class="nocase">Lin et al.</span> 2025</a>)</span>. A broad review of continual learning describes the trade-offs between these approaches <span class="citation" data-cites="wang2024">(<a href="#ref-wang2024" role="doc-biblioref">Wang et al. 2024</a>)</span>.</p>
+<p>The test step deserves a little arithmetic, because it is where narrow specialists have a real advantage. If a specialist is right with probability <span class="math inline">p</span> on a test set of <span class="math inline">n</span> examples, the standard error of the measured accuracy is</p>
+<p><span class="math display">
+\sigma = \sqrt{\frac{p(1-p)}{n}}.
+</span></p>
+<p>With <span class="math inline">p = 0.9</span> and <span class="math inline">n = 2000</span>, <span class="math inline">\sigma \approx 0.7</span> percentage points, so a drop of 2 points stands out at about three standard errors. Building 2000 good test cases for one narrow job is realistic. Building them for every ability of a general model is not.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig13.png" class="img-fluid figure-img"></p>
+<figcaption><strong>Figure 13.</strong> Schematic, my own, not measured. A frozen model stays as good as the day it was shipped. A specialist that consolidates every night improves in small, tested steps. When an update makes it forget something, the test catches it and the update is rolled back.</figcaption>
+</figure>
+</div>
+<p>The risks are real. A model trained repeatedly on its own outputs can degrade, a problem known as <em>model collapse</em> <span class="citation" data-cites="shumailov2024">(<a href="#ref-shumailov2024" role="doc-biblioref">Shumailov et al. 2024</a>)</span>. The risk is much lower when real data are kept and accumulated alongside generated data, instead of being replaced by it <span class="citation" data-cites="gerstgrasser2024">(<a href="#ref-gerstgrasser2024" role="doc-biblioref"><span class="nocase">Gerstgrasser et al.</span> 2024</a>)</span>. This is one more reason for a memory that keeps the real episodes, and for a loop that learns only from episodes verified by a test, a person or the real world, never from its own unchecked answers. And a model that changes every night is harder to certify. Small updates, strict tests, a memory that keeps the evidence, and the ability to roll back are not optional.</p>
+</section>
+<section id="where-the-big-models-fit" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-big-models-fit">12. Where the big models fit</h2>
+<p>None of this makes frontier models useless. It changes their role.</p>
+<p>They become <em>teachers</em>: their knowledge can be passed to small models by distillation <span class="citation" data-cites="hinton2015">(<a href="#ref-hinton2015" role="doc-biblioref">Hinton et al. 2015</a>)</span>, including their step-by-step explanations <span class="citation" data-cites="hsieh2023">(<a href="#ref-hsieh2023" role="doc-biblioref"><span class="nocase">Hsieh et al.</span> 2023</a>)</span>. The DeepSeek-R1 team, for example, released a family of small models, from 1.5 to 70 billion parameters, trained on the reasoning of its large model <span class="citation" data-cites="deepseekr1">(<a href="#ref-deepseekr1" role="doc-biblioref">DeepSeek-AI 2025</a>)</span>. They become <em>architects of memory</em>: they read the documents and build the first version of the knowledge graph. And they become <em>consultants</em>: when the router meets something new, or a problem that needs broad reasoning across many domains, it can ask, with the user’s permission, and the verified answer becomes an episode the local system can learn from.</p>
+</section>
+<section id="what-would-prove-me-wrong" class="level2">
+<h2 class="anchored" data-anchor-id="what-would-prove-me-wrong">13. What would prove me wrong</h2>
+<p>An essay that argues for a future should say what would change the author’s mind. Mine would change if:</p>
+<ul>
+<li>general small models kept beating ecosystems of specialists using the same memory, even with good routing;</li>
+<li>routers could not reach the accuracy that the arithmetic in section 7 requires on real, messy work;</li>
+<li>nightly updates could not pass strict regression tests without forgetting, even with replay and adapters;</li>
+<li>memory bandwidth on consumer devices grew fast enough that a single large model ran comfortably everywhere.</li>
+</ul>
+<p>I do not think these will happen, but they are measurable, and I intend to keep watching.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">14. Conclusion</h2>
+<p>I do not think we should wait for the big brain to come to us. The future I believe in is already within reach, and it is organised differently: specialists that are excellent at one thing, a router that knows who does what and when it does not know, a memory you own, a harness that is thin but keeps the essentials, and a careful loop that turns yesterday’s verified work into tomorrow’s skill.</p>
+<p>The question will not only be “how much intelligence can I run locally?” It will be “how well is my local intelligence organised, what does it remember, and how does it learn?” Our own brain, most likely, already answers it that way.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-apple2024m4" class="csl-entry" role="listitem">
+Apple. 2024. <em>Apple Introduces <span>M4 Pro</span> and <span>M4 Max</span></em>. Apple Newsroom. <a href="https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/">https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/</a>.
+</div>
+<div id="ref-apple2025" class="csl-entry" role="listitem">
+Apple. 2025. <span>“Apple Intelligence Foundation Language Models: Tech Report 2025.”</span> <em>arXiv Preprint arXiv:2507.13575</em>. <a href="https://arxiv.org/abs/2507.13575">https://arxiv.org/abs/2507.13575</a>.
+</div>
+<div id="ref-attwell2001" class="csl-entry" role="listitem">
+Attwell, David, and Simon B. Laughlin. 2001. <span>“An Energy Budget for Signaling in the Grey Matter of the Brain.”</span> <em>Journal of Cerebral Blood Flow and Metabolism</em> 21 (10): 1133–45.
+</div>
+<div id="ref-balasubramanian2021" class="csl-entry" role="listitem">
+Balasubramanian, Vijay. 2021. <span>“Brain Power.”</span> <em>Proceedings of the National Academy of Sciences</em> 118 (32): e2107022118.
+</div>
+<div id="ref-belcak2025" class="csl-entry" role="listitem">
+Belcak, Peter, Greg Heinrich, Shizhe Diao, et al. 2025. <span>“Small Language Models Are the Future of Agentic <span>AI</span>.”</span> <em>arXiv Preprint arXiv:2506.02153</em>. <a href="https://arxiv.org/abs/2506.02153">https://arxiv.org/abs/2506.02153</a>.
+</div>
+<div id="ref-biderman2024" class="csl-entry" role="listitem">
+<span class="nocase">Biderman, Dan et al.</span> 2024. <span>“<span>LoRA</span> Learns Less and Forgets Less.”</span> <em>Transactions on Machine Learning Research</em>. <a href="https://arxiv.org/abs/2405.09673">https://arxiv.org/abs/2405.09673</a>.
+</div>
+<div id="ref-borgeaud2022" class="csl-entry" role="listitem">
+<span class="nocase">Borgeaud, Sebastian et al.</span> 2022. <span>“Improving Language Models by Retrieving from Trillions of Tokens.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://proceedings.mlr.press/v162/borgeaud22a.html">https://proceedings.mlr.press/v162/borgeaud22a.html</a>.
+</div>
+<div id="ref-bourtoule2021" class="csl-entry" role="listitem">
+<span class="nocase">Bourtoule, Lucas et al.</span> 2021. <span>“Machine Unlearning.”</span> <em>IEEE Symposium on Security and Privacy</em>. <a href="https://arxiv.org/abs/1912.03817">https://arxiv.org/abs/1912.03817</a>.
+</div>
+<div id="ref-brilliantov2026" class="csl-entry" role="listitem">
+Brilliantov, Kirill, Alejandro Hernández-Cano, and Emmanuel Abbé. 2026. <span>“How Much of a Harness Does a Strong Agent Need for Autonomous <span>ML</span> Engineering?”</span> <em>arXiv Preprint arXiv:2609.40303</em>. <a href="https://arxiv.org/abs/2609.40303">https://arxiv.org/abs/2609.40303</a>.
+</div>
+<div id="ref-brown2024" class="csl-entry" role="listitem">
+<span class="nocase">Brown, Bradley et al.</span> 2024. <span>“Large Language Monkeys: Scaling Inference Compute with Repeated Sampling.”</span> <em>arXiv Preprint arXiv:2407.21787</em>. <a href="https://arxiv.org/abs/2407.21787">https://arxiv.org/abs/2407.21787</a>.
+</div>
+<div id="ref-chen2023" class="csl-entry" role="listitem">
+Chen, Lingjiao, Matei Zaharia, and James Zou. 2023. <span>“<span>FrugalGPT</span>: How to Use Large Language Models While Reducing Cost and Improving Performance.”</span> <em>arXiv Preprint arXiv:2305.05176</em>. <a href="https://arxiv.org/abs/2305.05176">https://arxiv.org/abs/2305.05176</a>.
+</div>
+<div id="ref-clay2024" class="csl-entry" role="listitem">
+Clay, Viviane, Niels Leadholm, and Jeff Hawkins. 2024. <span>“The Thousand Brains Project: A New Paradigm for Sensorimotor Intelligence.”</span> <em>arXiv Preprint arXiv:2412.18354</em>. <a href="https://arxiv.org/abs/2412.18354">https://arxiv.org/abs/2412.18354</a>.
+</div>
+<div id="ref-deepseek2024" class="csl-entry" role="listitem">
+DeepSeek-AI. 2024. <span>“<span>DeepSeek-V3</span> Technical Report.”</span> <em>arXiv Preprint arXiv:2412.19437</em>. <a href="https://arxiv.org/abs/2412.19437">https://arxiv.org/abs/2412.19437</a>.
+</div>
+<div id="ref-deepseekr1" class="csl-entry" role="listitem">
+DeepSeek-AI. 2025. <span>“<span>DeepSeek-R1</span>: Incentivizing Reasoning Capability in <span>LLMs</span> via Reinforcement Learning.”</span> <em>arXiv Preprint arXiv:2501.12948</em>. <a href="https://arxiv.org/abs/2501.12948">https://arxiv.org/abs/2501.12948</a>.
+</div>
+<div id="ref-dehaene2007" class="csl-entry" role="listitem">
+Dehaene, Stanislas, and Laurent Cohen. 2007. <span>“Cultural Recycling of Cortical Maps.”</span> <em>Neuron</em> 56 (2): 384–98.
+</div>
+<div id="ref-dobs2022" class="csl-entry" role="listitem">
+Dobs, Katharina, Julio Martinez, Alexander J. E. Kell, and Nancy Kanwisher. 2022. <span>“Brain-Like Functional Specialization Emerges Spontaneously in Deep Neural Networks.”</span> <em>Science Advances</em> 8 (11): eabl8913. <a href="https://doi.org/10.1126/sciadv.abl8913">https://doi.org/10.1126/sciadv.abl8913</a>.
+</div>
+<div id="ref-duncan2020" class="csl-entry" role="listitem">
+Duncan, John, Moataz Assem, and Sneha Shashidhara. 2020. <span>“Integrated Intelligence from Distributed Brain Activity.”</span> <em>Trends in Cognitive Sciences</em> 24 (10): 838–52.
+</div>
+<div id="ref-fedorenko2024" class="csl-entry" role="listitem">
+Fedorenko, Evelina, Steven T. Piantadosi, and Edward A. F. Gibson. 2024. <span>“Language Is Primarily a Tool for Communication Rather Than Thought.”</span> <em>Nature</em> 630: 575–86. <a href="https://doi.org/10.1038/s41586-024-07522-w">https://doi.org/10.1038/s41586-024-07522-w</a>.
+</div>
+<div id="ref-fedus2022" class="csl-entry" role="listitem">
+Fedus, William, Barret Zoph, and Noam Shazeer. 2022. <span>“Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity.”</span> <em>Journal of Machine Learning Research</em> 23 (120): 1–39. <a href="https://jmlr.org/papers/v23/21-0998.html">https://jmlr.org/papers/v23/21-0998.html</a>.
+</div>
+<div id="ref-gerstgrasser2024" class="csl-entry" role="listitem">
+<span class="nocase">Gerstgrasser, Matthias et al.</span> 2024. <span>“Is Model Collapse Inevitable? Breaking the Curse of Recursion by Accumulating Real and Synthetic Data.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2404.01413">https://arxiv.org/abs/2404.01413</a>.
+</div>
+<div id="ref-gholami2024" class="csl-entry" role="listitem">
+Gholami, Amir, Zhewei Yao, Sehoon Kim, Coleman Hooper, Michael W. Mahoney, and Kurt Keutzer. 2024. <span>“<span>AI</span> and Memory Wall.”</span> <em>IEEE Micro</em>. <a href="https://arxiv.org/abs/2403.14123">https://arxiv.org/abs/2403.14123</a>.
+</div>
+<div id="ref-gunasekar2023" class="csl-entry" role="listitem">
+<span class="nocase">Gunasekar, Suriya et al.</span> 2023. <span>“Textbooks Are All You Need.”</span> <em>arXiv Preprint arXiv:2306.11644</em>. <a href="https://arxiv.org/abs/2306.11644">https://arxiv.org/abs/2306.11644</a>.
+</div>
+<div id="ref-gunter2024" class="csl-entry" role="listitem">
+<span class="nocase">Gunter, Tom et al.</span> 2024. <span>“Apple Intelligence Foundation Language Models.”</span> <em>arXiv Preprint arXiv:2407.21075</em>. <a href="https://arxiv.org/abs/2407.21075">https://arxiv.org/abs/2407.21075</a>.
+</div>
+<div id="ref-hawkins2021" class="csl-entry" role="listitem">
+Hawkins, Jeff. 2021. <em>A Thousand Brains: A New Theory of Intelligence</em>. Basic Books.
+</div>
+<div id="ref-haxby2001" class="csl-entry" role="listitem">
+<span class="nocase">Haxby, James V. et al.</span> 2001. <span>“Distributed and Overlapping Representations of Faces and Objects in Ventral Temporal Cortex.”</span> <em>Science</em> 293 (5539): 2425–30.
+</div>
+<div id="ref-herculano2009" class="csl-entry" role="listitem">
+Herculano-Houzel, Suzana. 2009. <span>“The Human Brain in Numbers: A Linearly Scaled-up Primate Brain.”</span> <em>Frontiers in Human Neuroscience</em> 3: 31.
+</div>
+<div id="ref-hinton2015" class="csl-entry" role="listitem">
+Hinton, Geoffrey, Oriol Vinyals, and Jeff Dean. 2015. <span>“Distilling the Knowledge in a Neural Network.”</span> <em>arXiv Preprint arXiv:1503.02531</em>. <a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
+</div>
+<div id="ref-hsieh2023" class="csl-entry" role="listitem">
+<span class="nocase">Hsieh, Cheng-Yu et al.</span> 2023. <span>“Distilling Step-by-Step! Outperforming Larger Language Models with Less Training Data and Smaller Model Sizes.”</span> <em>Findings of the Association for Computational Linguistics: ACL 2023</em>, 8003–17. <a href="https://arxiv.org/abs/2305.02301">https://arxiv.org/abs/2305.02301</a>.
+</div>
+<div id="ref-hu2021" class="csl-entry" role="listitem">
+Hu, Edward J., Yelong Shen, Phillip Wallis, et al. 2022. <span>“<span>LoRA</span>: Low-Rank Adaptation of Large Language Models.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2106.09685">https://arxiv.org/abs/2106.09685</a>.
+</div>
+<div id="ref-jiang2024" class="csl-entry" role="listitem">
+<span class="nocase">Jiang, Albert Q. et al.</span> 2024. <span>“Mixtral of Experts.”</span> <em>arXiv Preprint arXiv:2401.04088</em>. <a href="https://arxiv.org/abs/2401.04088">https://arxiv.org/abs/2401.04088</a>.
+</div>
+<div id="ref-kanwisher1997" class="csl-entry" role="listitem">
+Kanwisher, Nancy, Josh McDermott, and Marvin M. Chun. 1997. <span>“The Fusiform Face Area: A Module in Human Extrastriate Cortex Specialized for Face Perception.”</span> <em>Journal of Neuroscience</em> 17 (11): 4302–11.
+</div>
+<div id="ref-kirkpatrick2017" class="csl-entry" role="listitem">
+<span class="nocase">Kirkpatrick, James et al.</span> 2017. <span>“Overcoming Catastrophic Forgetting in Neural Networks.”</span> <em>Proceedings of the National Academy of Sciences</em> 114 (13): 3521–26.
+</div>
+<div id="ref-klinzing2019" class="csl-entry" role="listitem">
+Klinzing, Jens G., Niels Niethard, and Jan Born. 2019. <span>“Mechanisms of Systems Memory Consolidation During Sleep.”</span> <em>Nature Neuroscience</em> 22: 1598–610.
+</div>
+<div id="ref-kudithipudi2022" class="csl-entry" role="listitem">
+<span class="nocase">Kudithipudi, Dhireesha et al.</span> 2022. <span>“Biological Underpinnings for Lifelong Learning Machines.”</span> <em>Nature Machine Intelligence</em> 4: 196–210. <a href="https://doi.org/10.1038/s42256-022-00452-0">https://doi.org/10.1038/s42256-022-00452-0</a>.
+</div>
+<div id="ref-kumaran2016" class="csl-entry" role="listitem">
+Kumaran, Dharshan, Demis Hassabis, and James L. McClelland. 2016. <span>“What Learning Systems Do Intelligent Agents Need? Complementary Learning Systems Theory Updated.”</span> <em>Trends in Cognitive Sciences</em> 20 (7): 512–34.
+</div>
+<div id="ref-lennie2003" class="csl-entry" role="listitem">
+Lennie, Peter. 2003. <span>“The Cost of Cortical Computation.”</span> <em>Current Biology</em> 13 (6): 493–97.
+</div>
+<div id="ref-leviathan2023" class="csl-entry" role="listitem">
+Leviathan, Yaniv, Matan Kalman, and Yossi Matias. 2023. <span>“Fast Inference from Transformers via Speculative Decoding.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.17192">https://arxiv.org/abs/2211.17192</a>.
+</div>
+<div id="ref-lewis2020" class="csl-entry" role="listitem">
+<span class="nocase">Lewis, Patrick et al.</span> 2020. <span>“Retrieval-Augmented Generation for Knowledge-Intensive <span>NLP</span> Tasks.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
+</div>
+<div id="ref-lin2025" class="csl-entry" role="listitem">
+<span class="nocase">Lin, Kevin, Charlie Snell, et al.</span> 2025. <span>“Sleep-Time Compute: Beyond Inference Scaling at Test-Time.”</span> <em>arXiv Preprint arXiv:2504.13171</em>. <a href="https://arxiv.org/abs/2504.13171">https://arxiv.org/abs/2504.13171</a>.
+</div>
+<div id="ref-liu2019" class="csl-entry" role="listitem">
+Liu, Yunzhe, Raymond J. Dolan, Zeb Kurth-Nelson, and Timothy E. J. Behrens. 2019. <span>“Human Replay Spontaneously Reorganizes Experience.”</span> <em>Cell</em> 178 (3): 640–52.
+</div>
+<div id="ref-mahowald2024" class="csl-entry" role="listitem">
+Mahowald, Kyle, Anna A. Ivanova, Idan A. Blank, Nancy Kanwisher, Joshua B. Tenenbaum, and Evelina Fedorenko. 2024. <span>“Dissociating Language and Thought in Large Language Models.”</span> <em>Trends in Cognitive Sciences</em> 28 (6): 517–40. <a href="https://doi.org/10.1016/j.tics.2024.01.011">https://doi.org/10.1016/j.tics.2024.01.011</a>.
+</div>
+<div id="ref-mcclelland1995" class="csl-entry" role="listitem">
+McClelland, James L., Bruce L. McNaughton, and Randall C. O’Reilly. 1995. <span>“Why There Are Complementary Learning Systems in the Hippocampus and Neocortex.”</span> <em>Psychological Review</em> 102 (3): 419–57.
+</div>
+<div id="ref-mccloskey1989" class="csl-entry" role="listitem">
+McCloskey, Michael, and Neal J. Cohen. 1989. <span>“Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem.”</span> In <em>Psychology of Learning and Motivation</em>, vol. 24. Academic Press.
+</div>
+<div id="ref-michaud2023" class="csl-entry" role="listitem">
+Michaud, Eric J., Ziming Liu, Uzay Girit, and Max Tegmark. 2023. <span>“The Quantization Model of Neural Scaling.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2303.13506">https://arxiv.org/abs/2303.13506</a>.
+</div>
+<div id="ref-mountcastle1997" class="csl-entry" role="listitem">
+Mountcastle, Vernon B. 1997. <span>“The Columnar Organization of the Neocortex.”</span> <em>Brain</em> 120 (4): 701–22.
+</div>
+<div id="ref-nori2023" class="csl-entry" role="listitem">
+<span class="nocase">Nori, Harsha et al.</span> 2023. <span>“Can Generalist Foundation Models Outcompete Special-Purpose Tuning? Case Study in Medicine.”</span> <em>arXiv Preprint arXiv:2311.16452</em>. <a href="https://arxiv.org/abs/2311.16452">https://arxiv.org/abs/2311.16452</a>.
+</div>
+<div id="ref-ong2024" class="csl-entry" role="listitem">
+<span class="nocase">Ong, Isaac et al.</span> 2025. <span>“<span>RouteLLM</span>: Learning to Route <span>LLMs</span> with Preference Data.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2406.18665">https://arxiv.org/abs/2406.18665</a>.
+</div>
+<div id="ref-rolnick2019" class="csl-entry" role="listitem">
+Rolnick, David, Arun Ahuja, Jonathan Schwarz, Timothy Lillicrap, and Gregory Wayne. 2019. <span>“Experience Replay for Continual Learning.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/1811.11682">https://arxiv.org/abs/1811.11682</a>.
+</div>
+<div id="ref-schuck2019" class="csl-entry" role="listitem">
+Schuck, Nicolas W., and Yael Niv. 2019. <span>“Sequential Replay of Nonspatial Task States in the Human Hippocampus.”</span> <em>Science</em> 364 (6447): eaaw5181.
+</div>
+<div id="ref-shazeer2017" class="csl-entry" role="listitem">
+Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, et al. 2017. <span>“Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1701.06538">https://arxiv.org/abs/1701.06538</a>.
+</div>
+<div id="ref-sheng2023" class="csl-entry" role="listitem">
+<span class="nocase">Sheng, Ying et al.</span> 2023. <span>“<span>S-LoRA</span>: Serving Thousands of Concurrent <span>LoRA</span> Adapters.”</span> <em>arXiv Preprint arXiv:2311.03285</em>. <a href="https://arxiv.org/abs/2311.03285">https://arxiv.org/abs/2311.03285</a>.
+</div>
+<div id="ref-shumailov2024" class="csl-entry" role="listitem">
+Shumailov, Ilia, Zakhar Shumaylov, Yiren Zhao, Nicolas Papernot, Ross Anderson, and Yarin Gal. 2024. <span>“<span>AI</span> Models Collapse When Trained on Recursively Generated Data.”</span> <em>Nature</em> 631: 755–59.
+</div>
+<div id="ref-snell2024" class="csl-entry" role="listitem">
+Snell, Charlie, Jaehoon Lee, Kelvin Xu, and Aviral Kumar. 2025. <span>“Scaling <span>LLM</span> Test-Time Compute Optimally Can Be More Effective Than Scaling Parameters for Reasoning.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2408.03314">https://arxiv.org/abs/2408.03314</a>.
+</div>
+<div id="ref-sukhbaatar2024" class="csl-entry" role="listitem">
+<span class="nocase">Sukhbaatar, Sainbayar et al.</span> 2024. <span>“Branch-Train-MiX: Mixing Expert <span>LLMs</span> into a Mixture-of-Experts <span>LLM</span>.”</span> <em>arXiv Preprint arXiv:2403.07816</em>. <a href="https://arxiv.org/abs/2403.07816">https://arxiv.org/abs/2403.07816</a>.
+</div>
+<div id="ref-sutton2019" class="csl-entry" role="listitem">
+Sutton, Richard. 2019. <em>The Bitter Lesson</em>. <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">http://www.incompleteideas.net/IncIdeas/BitterLesson.html</a>.
+</div>
+<div id="ref-vandeven2020" class="csl-entry" role="listitem">
+Ven, Gido M. van de, Hava T. Siegelmann, and Andreas S. Tolias. 2020. <span>“Brain-Inspired Replay for Continual Learning with Artificial Neural Networks.”</span> <em>Nature Communications</em> 11: 4069. <a href="https://doi.org/10.1038/s41467-020-17866-2">https://doi.org/10.1038/s41467-020-17866-2</a>.
+</div>
+<div id="ref-wang2024" class="csl-entry" role="listitem">
+Wang, Liyuan, Xingxing Zhang, Hang Su, and Jun Zhu. 2024. <span>“A Comprehensive Survey of Continual Learning: Theory, Method and Application.”</span> <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em> 46 (8): 5362–83.
+</div>
+<div id="ref-williams2009" class="csl-entry" role="listitem">
+Williams, Samuel, Andrew Waterman, and David Patterson. 2009. <span>“Roofline: An Insightful Visual Performance Model for Multicore Architectures.”</span> <em>Communications of the ACM</em> 52 (4): 65–76. <a href="https://doi.org/10.1145/1498765.1498785">https://doi.org/10.1145/1498765.1498785</a>.
+</div>
+<div id="ref-wilson1994" class="csl-entry" role="listitem">
+Wilson, Matthew A., and Bruce L. McNaughton. 1994. <span>“Reactivation of Hippocampal Ensemble Memories During Sleep.”</span> <em>Science</em> 265 (5172): 676–79.
+</div>
+<div id="ref-xiao2024" class="csl-entry" role="listitem">
+<span class="nocase">Xiao, Chaojun et al.</span> 2024. <span>“Densing Law of <span>LLMs</span>.”</span> <em>arXiv Preprint arXiv:2412.04315</em>. <a href="https://arxiv.org/abs/2412.04315">https://arxiv.org/abs/2412.04315</a>.
+</div>
+<div id="ref-yang2024" class="csl-entry" role="listitem">
+<span class="nocase">Yang, John et al.</span> 2024. <span>“<span class="nocase">SWE-agent</span>: Agent-Computer Interfaces Enable Automated Software Engineering.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2405.15793">https://arxiv.org/abs/2405.15793</a>.
+</div>
+</div>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {An {Ecosystem,} {Not} an {Oracle}},
+  date = {2026-10-17},
+  url = {https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“An Ecosystem, Not an Oracle.”</span>
+October 17. <a href="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/">https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 Stéphane Cuenat · Porrentruy, Swiss Jura</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">
+      <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
