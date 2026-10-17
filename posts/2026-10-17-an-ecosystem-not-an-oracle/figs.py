@@ -38,7 +38,7 @@ def fig_oracle_ecosystem():
     """One general model for every task, or a router and small specialists."""
     fig, ax = plt.subplots(figsize=(7.0, 3.4))
     ax.set_xlim(0, 14.2); ax.set_ylim(0, 6.6); ax.axis("off")
-    tasks = ["read a drawing", "write code", "answer an email", "check a contract"]
+    tasks = ["read an invoice", "write code", "answer an email", "check a contract"]
     ax.text(0.1, 6.45, "An oracle", weight="bold", fontsize=10, color=INK, va="top")
     ax.text(7.5, 6.45, "An ecosystem", weight="bold", fontsize=10, color=INK, va="top")
     # oracle
@@ -51,7 +51,7 @@ def fig_oracle_ecosystem():
             fontsize=8, color=RED, style="italic")
     # workshop
     box(ax, 7.6, 2.35, 1.7, 1.1, "Router", None, fc=NAVY, fs=9)
-    specs = ["drawings", "code", "email", "contracts"]
+    specs = ["invoices", "code", "email", "contracts"]
     for i, (t, s) in enumerate(zip(tasks, specs)):
         y = 4.9 - i * 1.25
         arrow(ax, (9.35, 2.9), (10.35, y + 0.42), color=NAVY)
@@ -186,10 +186,10 @@ def fig_three_architectures():
                 ax.add_patch(FancyBboxPatch((x0 + 0.25 + c * 0.47, 1.85 + r * 0.6), 0.36, 0.45,
                                             boxstyle="round,pad=0.01,rounding_size=0.06", fc=fc, ec="none"))
         else:
-            labels = ["drawings", "code", "email", "contracts", "speech", "vision"]
+            labels = ["invoices", "code", "email", "contracts", "speech", "vision"]
             for i, lab in enumerate(labels):
                 r, c = divmod(i, 2)
-                fc = NAVY if lab == "drawings" else (LIGHT if i < 4 else PALE)
+                fc = NAVY if lab == "invoices" else (LIGHT if i < 4 else PALE)
                 box(ax, x0 + 0.1 + c * 2.15, 4.35 - r * 1.35, 1.95, 0.95, lab, None, fc=fc, fs=8)
     fig.savefig(OUT + "fig03.png"); plt.close(fig)
 

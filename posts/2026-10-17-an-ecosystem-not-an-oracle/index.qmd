@@ -3,8 +3,8 @@ title: "An Ecosystem, Not an Oracle"
 subtitle: "Why I believe local AI will be many small specialists, a shared memory, a thin harness, and a way to keep learning"
 description: "When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits."
 date: 2026-10-17
-draft: true
 citation: true
+toc-depth: 3
 bibliography: references.bib
 categories: [essay, ai, local-ai, architecture]
 image: figures/fig02.png
@@ -43,7 +43,7 @@ I would rather ask a different question: *what would intelligence look like if i
 
 By an ecosystem, I mean five parts working together on one machine:
 
-1. **Specialists.** Small models, or adapters on a shared base model, each good at one job: reading drawings, writing queries, transcribing speech, a company's own domain.
+1. **Specialists.** Small models, or adapters on a shared base model, each good at one job: reading invoices, writing queries, transcribing speech, a company's own domain.
 2. **A router.** A small model that decides which specialist handles a task, and when to escalate.
 3. **A shared memory.** Knowledge and episodes stored outside the weights, readable and correctable by people.
 4. **A thin harness.** The tools, checks and permissions around the models: run the tests, validate the output, keep the data local.
@@ -224,8 +224,8 @@ Researchers who work on lifelong learning in machines draw the same lesson from 
 
 Specialists need a memory they share. In [Fast AI](../2026-10-11-fast-ai/index.qmd) I argued that a large model should be used to build a structured memory, such as a knowledge graph experts can inspect and correct. In a local ecosystem, that memory becomes the common ground, and plays the role of the fast memory in section 9. Two kinds matter:
 
-- **Knowledge**: facts, rules, relations. "This customer always uses this material."
-- **Episodes**: what happened. "Last Tuesday this toolpath was rejected because of a collision near the clamp."
+- **Knowledge**: facts, rules, relations. "This customer always pays within 30 days."
+- **Episodes**: what happened. "Last Tuesday this invoice was rejected because the supplier's VAT number did not match."
 
 Keeping this memory outside the weights is what makes the system trustworthy. You can read it. You can correct a fact in one place, and every specialist benefits. You can delete something and know it is gone, which is very hard to guarantee once data has been used to train a model; removing its influence afterwards is an open research problem [@bourtoule2021]. Retrieval also lets small models know far more than their weights hold [@borgeaud2022; @lewis2020].
 
