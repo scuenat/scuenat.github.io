@@ -221,9 +221,9 @@ def fig_bandwidth():
 
 def fig_brain():
     """How the brain seems to be organised, and the part of the ecosystem each idea maps to."""
-    rows = [("Many specialised areas", "faces, motion, language, movement", "Specialists"),
-            ("Areas talk to each other", "attention decides what gets through", "Router"),
-            ("Hippocampus: learns fast", "keeps the episodes of the day", "Shared memory"),
+    rows = [("Many specialised areas", "faces, language, motion, movement", "Specialists"),
+            ("A domain-general network", "engaged by many demanding tasks", "Shared core + router"),
+            ("Hippocampus: learns fast", "records new episodes quickly", "Shared memory"),
             ("Cortex: learns slowly", "replays and consolidates during sleep", "Nightly consolidation"),
             ("Plasticity", "connections change with use, areas are reused", "Specialists that adapt"),
             ("About 20 watts", "only a small part strongly active at once", "Small, sparse, local")]
@@ -310,7 +310,7 @@ def fig_router():
     fig, ax = plt.subplots(figsize=(5.6, 3.0))
     ax.plot(a * 100, plain, color=GREY, lw=2.0, ls="--", label="router alone")
     ax.plot(a * 100, esc, color=NAVY, lw=2.4, label="router that escalates half its mistakes")
-    ax.axhline(qg, color=AMBER, lw=1.8, label="one general model, same memory")
+    ax.axhline(qg, color=AMBER, lw=1.8, label="one general model, similar speed")
     for q, c in [(plain, GREY), (esc, NAVY)]:
         i = np.argmin(abs(q - qg))
         ax.plot([a[i] * 100], [qg], "o", color=c, ms=6, zorder=5)
