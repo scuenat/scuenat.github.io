@@ -5,7 +5,7 @@ Quarto website: essays and papers (*AI, Honestly*). Live at https://scuenat.gith
 ## One-time setup
 
 1. Install Quarto: https://quarto.org/docs/get-started/
-2. In `about.qmd`: set your email and add `profile.jpg`.
+2. Edit `about.qmd` and replace `profile.png` (round photo, transparent corners).
 3. Create a **public** GitHub repo named `scuenat.github.io` (empty, no README), then:
    ```bash
    git init && git add . && git commit -m "Initial blog"
@@ -25,7 +25,11 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 
 - Preview: `quarto preview`
 - New essay: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
-- Paper: publish it as a post (category `paper`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
+- Paper: publish it as a post (category `paper`, `citation: true`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
+- Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `blog-card.jpg`
+- Categories are lowercase (`ai`, `data`, `physics`, ...)
+- Series: link both ways ("A follow-up to…" / "Continued in…")
+- Analytics: GoatCounter (https://scuenat.goatcounter.com)
 - Math: `$inline$` and `$$display$$` (KaTeX)
 
 ## Optional
