@@ -1,4 +1,4 @@
-"""Figures for "A Workshop, Not an Oracle". Style matches the earlier essays."""
+"""Figures for "An Ecosystem, Not an Oracle". Style matches the earlier essays."""
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -34,13 +34,13 @@ def arrow(ax, p, q, color=GREY, rad=0.0, lw=1.4, ls="-"):
                                  ls=ls, connectionstyle=f"arc3,rad={rad}", shrinkA=2, shrinkB=2))
 
 
-def fig_oracle_workshop():
+def fig_oracle_ecosystem():
     """One general model for every task, or a router and small specialists."""
     fig, ax = plt.subplots(figsize=(7.0, 3.4))
     ax.set_xlim(0, 14.2); ax.set_ylim(0, 6.6); ax.axis("off")
     tasks = ["read a drawing", "write code", "answer an email", "check a contract"]
     ax.text(0.1, 6.45, "An oracle", weight="bold", fontsize=10, color=INK, va="top")
-    ax.text(7.5, 6.45, "A workshop", weight="bold", fontsize=10, color=INK, va="top")
+    ax.text(7.5, 6.45, "An ecosystem", weight="bold", fontsize=10, color=INK, va="top")
     # oracle
     for i, t in enumerate(tasks):
         y = 4.9 - i * 1.25
@@ -104,7 +104,7 @@ def fig_ecosystem():
             style="italic")
     arrow(ax, (12.35, 6.0), (9.0, 5.15), color=GREY, ls="--", lw=1.1, rad=0.15)
     ax.text(11.1, 6.2, "distils", fontsize=7.5, color=GREY, style="italic", ha="center")
-    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+    fig.savefig(OUT + "fig02.png"); plt.close(fig)
 
 
 def fig_memory():
@@ -130,7 +130,7 @@ def fig_memory():
                 ax.text(x, y, "hardly", ha="center", va="center", color=RED, fontsize=9)
             else:
                 ax.text(x, y, "if local", ha="center", va="center", color=GREY, fontsize=9)
-    fig.savefig(OUT + "fig05.png"); plt.close(fig)
+    fig.savefig(OUT + "fig12.png"); plt.close(fig)
 
 
 def fig_day_night():
@@ -159,7 +159,7 @@ def fig_day_night():
     ax.set_yticks([])
     ax.set_xlabel("days in use (shaded: nights)")
     ax.set_ylabel("quality on its job")
-    fig.savefig(OUT + "fig07.png"); plt.close(fig)
+    fig.savefig(OUT + "fig13.png"); plt.close(fig)
 
 
 def fig_three_architectures():
@@ -191,7 +191,7 @@ def fig_three_architectures():
                 r, c = divmod(i, 2)
                 fc = NAVY if lab == "drawings" else (LIGHT if i < 4 else PALE)
                 box(ax, x0 + 0.1 + c * 2.15, 4.35 - r * 1.35, 1.95, 0.95, lab, None, fc=fc, fs=8)
-    fig.savefig(OUT + "fig02.png"); plt.close(fig)
+    fig.savefig(OUT + "fig03.png"); plt.close(fig)
 
 
 def fig_bandwidth():
@@ -216,7 +216,7 @@ def fig_bandwidth():
     ax.set_ylabel("tokens per second\n(upper bound)")
     ax.text(780, 1.3, "open circle: does not fit in 128 GB\nbandwidth 500 GB/s; ignores compute and cache",
             ha="right", va="bottom", fontsize=7.2, color=GREY, style="italic")
-    fig.savefig(OUT + "fig03.png"); plt.close(fig)
+    fig.savefig(OUT + "fig05.png"); plt.close(fig)
 
 
 def fig_brain():
@@ -239,14 +239,147 @@ def fig_brain():
         arrow(ax, (8.25, y + 0.5), (9.85, y + 0.5), color=GREY, lw=1.1)
         box(ax, 10.0, y + 0.13, 3.9, 0.74, c, None, fc=AMBER if "Nightly" in c else NAVY,
             fs=8.3)
+    fig.savefig(OUT + "fig11.png"); plt.close(fig)
+
+
+
+def fig_active_fraction():
+    """Share of parameters (or neurons) that work on each word, from published figures."""
+    items = [("Dense model", 100.0, INK, ""),
+             ("Mixtral 8x7B\n12.9B of 46.7B", 12.9 / 46.7 * 100, NAVY, ""),
+             ("DeepSeek-V3\n37B of 671B", 37 / 671 * 100, NAVY, ""),
+             ("Cortex, estimate\n(Lennie 2003)", 1.0, AMBER, "//")]
+    fig, ax = plt.subplots(figsize=(5.6, 2.7))
+    for i, (lab, v, c, h) in enumerate(items):
+        y = len(items) - 1 - i
+        ax.barh(y, v, color=c if not h else "white", edgecolor=c, hatch=h, height=0.6, lw=1.2)
+        ax.text(v + 1.5, y, f"~{v:.0f}%" if h else f"{v:.1f}%".replace(".0%", "%"), va="center",
+                fontsize=8.5, color=c)
+    ax.set_yticks(range(len(items))); ax.set_yticklabels([it[0] for it in items][::-1], fontsize=8.3)
+    ax.set_xlim(0, 112); ax.set_xlabel("share active for each word or moment (%)")
+    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+
+
+def fig_capacity():
+    """Simple capacity model: parameters a general model needs to match a specialist on one domain."""
+    n_shared, n_dom = 2.0, 1.0           # billions, illustrative
+    f = np.logspace(-3, 0, 300)
+    gen = n_shared + n_dom / f
+    fig, ax = plt.subplots(figsize=(5.6, 3.0))
+    ax.plot(f * 100, gen, color=NAVY, lw=2.2, label="general model: $N_{shared} + N_{domain}/f$")
+    ax.axhline(n_shared + n_dom, color=AMBER, lw=2.0, label="specialist: $N_{shared} + N_{domain}$")
+    ax.plot([1], [n_shared + n_dom / 0.01], "o", color=RED, ms=6, zorder=5)
+    ax.annotate("domain is 1% of its training mix:\n~102B vs 3B", xy=(1, 102), xytext=(0.13, 12),
+                fontsize=8, color=RED, arrowprops=dict(arrowstyle="-", color=RED, lw=0.9))
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xlim(0.1, 100); ax.set_ylim(1, 2000)
+    ax.set_xlabel("share $f$ of the general model's training devoted to the domain (%)")
+    ax.set_ylabel("parameters needed\n(billions)")
+    ax.legend(loc="upper right", bbox_to_anchor=(1.0, 0.72))
+    ax.text(0.11, 1.15, "illustrative: $N_{shared}$ = 2B, $N_{domain}$ = 1B, no transfer beyond the shared core",
+            fontsize=7, color=GREY, style="italic")
     fig.savefig(OUT + "fig06.png"); plt.close(fig)
 
 
+def fig_adapters():
+    """Storage for k specialists: separate small models versus one shared base plus adapters."""
+    k = np.arange(1, 101)
+    base = 3e9 * 0.5 / 1e9                 # 3B parameters at 4 bits, GB
+    adapter = 30e6 * 2 / 1e9               # ~1% of 3B at 16 bits, GB
+    fig, ax = plt.subplots(figsize=(5.6, 2.9))
+    ax.plot(k, k * base, color=GREY, lw=2.0, ls="--", label="separate 3B models (4-bit)")
+    ax.plot(k, base + k * adapter, color=NAVY, lw=2.4, label="one 3B base + rank-16 adapters")
+    ax.axhline(128, color=RED, lw=1.0, ls=":")
+    ax.text(99, 131, "128 GB", ha="right", fontsize=8, color=RED)
+    ax.annotate(f"100 specialists: {base + 100 * adapter:.1f} GB", xy=(100, base + 100 * adapter),
+                xytext=(48, 40), fontsize=8, color=NAVY,
+                arrowprops=dict(arrowstyle="-", color=NAVY, lw=0.9))
+    ax.set_xlim(1, 100); ax.set_ylim(0, 160)
+    ax.set_xlabel("number of specialists $k$")
+    ax.set_ylabel("memory (GB)")
+    ax.legend(loc="upper left")
+    fig.savefig(OUT + "fig07.png"); plt.close(fig)
+
+
+def fig_router():
+    """Expected quality of an ecosystem as a function of router accuracy (illustrative values)."""
+    a = np.linspace(0.5, 1.0, 200)
+    qs, qw, qg, ql = 0.90, 0.30, 0.80, 0.95
+    plain = a * qs + (1 - a) * qw
+    esc = a * qs + (1 - a) * (0.5 * ql + 0.5 * qw)
+    fig, ax = plt.subplots(figsize=(5.6, 3.0))
+    ax.plot(a * 100, plain, color=GREY, lw=2.0, ls="--", label="router alone")
+    ax.plot(a * 100, esc, color=NAVY, lw=2.4, label="router that escalates half its mistakes")
+    ax.axhline(qg, color=AMBER, lw=1.8, label="one general model, same memory")
+    for q, c in [(plain, GREY), (esc, NAVY)]:
+        i = np.argmin(abs(q - qg))
+        ax.plot([a[i] * 100], [qg], "o", color=c, ms=6, zorder=5)
+        ax.text(a[i] * 100, qg - 0.035, f"{a[i] * 100:.0f}%", ha="center", va="top", fontsize=8, color=c)
+    ax.set_xlim(50, 100); ax.set_ylim(0.55, 0.95)
+    ax.set_xlabel("router accuracy $a$ (%)")
+    ax.set_ylabel("expected quality")
+    ax.legend(loc="lower right")
+    ax.text(51, 0.92, "illustrative: $q_s$ = 0.90, $q_w$ = 0.30, $q_g$ = 0.80, $q_L$ = 0.95",
+            fontsize=7, color=GREY, style="italic")
+    fig.savefig(OUT + "fig08.png"); plt.close(fig)
+
+
+def fig_sampling():
+    """Repeated sampling with a verifier: independent-attempt formula versus a published result."""
+    p = 0.159
+    k = np.logspace(0, np.log10(250), 300)
+    fig, ax = plt.subplots(figsize=(5.6, 2.9))
+    ax.plot(k, 100 * (1 - (1 - p) ** k), color=GREY, lw=1.8, ls="--",
+            label="if attempts were independent: $1-(1-p)^k$")
+    ax.plot([1, 250], [15.9, 56.0], "o", color=NAVY, ms=7, zorder=5,
+            label="reported (Brown et al. 2024)")
+    ax.annotate("15.9% with one attempt", xy=(1, 15.9), xytext=(1.4, 4), fontsize=8, color=NAVY)
+    ax.annotate("56% with 250 attempts,\nchecked by the tests", xy=(250, 56), xytext=(22, 63),
+                fontsize=8, color=NAVY, arrowprops=dict(arrowstyle="-", color=NAVY, lw=0.9))
+    ax.axhline(43, color=AMBER, lw=1.2, ls=":")
+    ax.text(290, 38.5, "best single attempt reported at the time: 43%", fontsize=7.5, color=AMBER, ha="right")
+    ax.set_xscale("log"); ax.set_xlim(1, 300); ax.set_ylim(0, 105)
+    ax.set_xlabel("attempts $k$")
+    ax.set_ylabel("issues solved (%)")
+    ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.93))
+    fig.savefig(OUT + "fig09.png"); plt.close(fig)
+
+
+def fig_harness():
+    """Schematic hypothesis: the value of a harness falls as the model gets stronger, except the parts
+    no model can absorb."""
+    x = np.linspace(0, 10, 300)
+    scaffold = 8.5 * np.exp(-x / 2.6)
+    structural = np.full_like(x, 2.2)
+    fig, ax = plt.subplots(figsize=(5.6, 2.9))
+    ax.plot(x, scaffold, color=NAVY, lw=2.2, label="scaffolding for reasoning\n(orchestrators, sub-agents, retries)")
+    ax.plot(x, structural, color=AMBER, lw=2.2,
+            label="structure no model can absorb\n(memory, permissions, tests, local data)")
+    ax.axvspan(8.3, 10, color=PALE, lw=0)
+    ax.text(9.15, 7.6, "frontier\nmodels", ha="center", fontsize=8, color=INK)
+    ax.text(9.15, 5.4, "scaffolding\nadds little", ha="center", fontsize=7.5, color=RED)
+    ax.text(1.5, 7.2, "scaffolding\nstill helps", ha="center", fontsize=7.5, color=NAVY)
+    ax.axvspan(0, 3.0, color=PALE, lw=0)
+    ax.text(1.5, 9.4, "small local\nspecialists", ha="center", fontsize=8, color=INK, va="top")
+    ax.set_xlim(0, 10); ax.set_ylim(0, 10)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.set_xlabel("strength of the model")
+    ax.set_ylabel("what the harness adds")
+    ax.legend(loc="center", bbox_to_anchor=(0.52, 0.62), fontsize=7.8)
+    fig.savefig(OUT + "fig10.png"); plt.close(fig)
+
+
 if __name__ == "__main__":
-    fig_oracle_workshop()
-    fig_three_architectures()
-    fig_bandwidth()
+    fig_oracle_ecosystem()
     fig_ecosystem()
-    fig_memory()
+    fig_three_architectures()
+    fig_active_fraction()
+    fig_bandwidth()
+    fig_capacity()
+    fig_adapters()
+    fig_router()
+    fig_sampling()
+    fig_harness()
     fig_brain()
+    fig_memory()
     fig_day_night()
