@@ -104,7 +104,7 @@ def fig_ecosystem():
             style="italic")
     arrow(ax, (12.35, 6.0), (9.0, 5.15), color=GREY, ls="--", lw=1.1, rad=0.15)
     ax.text(11.1, 6.2, "distils", fontsize=7.5, color=GREY, style="italic", ha="center")
-    fig.savefig(OUT + "fig02.png"); plt.close(fig)
+    fig.savefig(OUT + "fig04.png"); plt.close(fig)
 
 
 def fig_memory():
@@ -130,7 +130,7 @@ def fig_memory():
                 ax.text(x, y, "hardly", ha="center", va="center", color=RED, fontsize=9)
             else:
                 ax.text(x, y, "if local", ha="center", va="center", color=GREY, fontsize=9)
-    fig.savefig(OUT + "fig03.png"); plt.close(fig)
+    fig.savefig(OUT + "fig05.png"); plt.close(fig)
 
 
 def fig_day_night():
@@ -159,11 +159,94 @@ def fig_day_night():
     ax.set_yticks([])
     ax.set_xlabel("days in use (shaded: nights)")
     ax.set_ylabel("quality on its job")
-    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+    fig.savefig(OUT + "fig07.png"); plt.close(fig)
+
+
+def fig_three_architectures():
+    """Dense, mixture of experts, ecosystem: what must be loaded, and what works on each request."""
+    fig, ax = plt.subplots(figsize=(7.2, 3.3))
+    ax.set_xlim(0, 15); ax.set_ylim(0, 6.6); ax.axis("off")
+    titles = [("Dense model", "everything loaded,\neverything works"),
+              ("Mixture of experts", "everything loaded,\na few experts work"),
+              ("Ecosystem", "separate models, loaded when needed,\none specialist works")]
+    rng = np.random.default_rng(7)
+    for k, (t, sub) in enumerate(titles):
+        x0 = 0.3 + k * 5.0
+        ax.text(x0 + 2.1, 6.35, t, ha="center", va="top", weight="bold", fontsize=9.5, color=INK)
+        ax.text(x0 + 2.1, 0.55, sub, ha="center", va="center", fontsize=8, color=GREY, style="italic")
+        if k < 2:
+            ax.add_patch(FancyBboxPatch((x0, 1.3), 4.2, 4.4, boxstyle="round,pad=0.02,rounding_size=0.2",
+                                        fc="none", ec=GREY, lw=1.0, ls="--"))
+            ax.text(x0 + 4.1, 1.45, "one model", ha="right", fontsize=7, color=GREY, style="italic")
+        active = set(range(48)) if k == 0 else set(rng.choice(48, 6, replace=False))
+        if k < 2:
+            for i in range(48):
+                r, c = divmod(i, 8)
+                fc = NAVY if i in active else LIGHT
+                ax.add_patch(FancyBboxPatch((x0 + 0.25 + c * 0.47, 1.85 + r * 0.6), 0.36, 0.45,
+                                            boxstyle="round,pad=0.01,rounding_size=0.06", fc=fc, ec="none"))
+        else:
+            labels = ["drawings", "code", "email", "contracts", "speech", "vision"]
+            for i, lab in enumerate(labels):
+                r, c = divmod(i, 2)
+                fc = NAVY if lab == "drawings" else (LIGHT if i < 4 else PALE)
+                box(ax, x0 + 0.1 + c * 2.15, 4.35 - r * 1.35, 1.95, 0.95, lab, None, fc=fc, fs=8)
+    fig.savefig(OUT + "fig02.png"); plt.close(fig)
+
+
+def fig_bandwidth():
+    """Upper bound on generation speed when memory bandwidth is the limit, at 4-bit weights."""
+    bw = 500.0          # GB/s, a high-end laptop with unified memory
+    ram = 128.0         # GB
+    n = np.logspace(np.log10(1), np.log10(800), 300)    # billions of parameters read per token
+    tps = bw / (0.5 * n)
+    fig, ax = plt.subplots(figsize=(5.8, 3.2))
+    ax.plot(n, tps, color=GREY, lw=1.6)
+    pts = [("3B specialist", 3, 3, NAVY), ("8B specialist", 8, 8, NAVY),
+           ("70B dense", 70, 70, INK), ("MoE: 37B active,\n671B total", 37, 671, RED)]
+    for lab, active, total, c in pts:
+        y = bw / (0.5 * active)
+        fits = total * 0.5 <= ram
+        ax.plot([active], [y], "o", color=c, ms=7, mfc=c if fits else "white", mew=1.8, zorder=5)
+        dx, ha = (1.25, "left")
+        ax.text(active * dx, y * 1.12, lab, fontsize=8, color=c, ha=ha, va="bottom")
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xlim(1, 800); ax.set_ylim(1, 600)
+    ax.set_xlabel("billions of parameters read per token (4-bit)")
+    ax.set_ylabel("tokens per second\n(upper bound)")
+    ax.text(780, 1.3, "open circle: does not fit in 128 GB\nbandwidth 500 GB/s; ignores compute and cache",
+            ha="right", va="bottom", fontsize=7.2, color=GREY, style="italic")
+    fig.savefig(OUT + "fig03.png"); plt.close(fig)
+
+
+def fig_brain():
+    """How the brain seems to be organised, and the part of the ecosystem each idea maps to."""
+    rows = [("Many specialised areas", "faces, motion, language, movement", "Specialists"),
+            ("Areas talk to each other", "attention decides what gets through", "Router"),
+            ("Hippocampus: learns fast", "keeps the episodes of the day", "Shared memory"),
+            ("Cortex: learns slowly", "replays and consolidates during sleep", "Nightly consolidation"),
+            ("Plasticity", "connections change with use, areas are reused", "Specialists that adapt"),
+            ("About 20 watts", "only a small part strongly active at once", "Small, sparse, local")]
+    fig, ax = plt.subplots(figsize=(7.0, 3.6))
+    ax.set_xlim(0, 14); ax.set_ylim(-0.3, len(rows) * 1.0 + 0.8); ax.axis("off")
+    ax.text(0.2, len(rows) + 0.45, "In the brain", weight="bold", fontsize=9.5, color=INK)
+    ax.text(10.1, len(rows) + 0.45, "In the ecosystem", weight="bold", fontsize=9.5, color=NAVY)
+    for i, (a, b, c) in enumerate(rows):
+        y = len(rows) - 1 - i
+        box(ax, 0.1, y + 0.08, 8.0, 0.84, "", None, fc=PALE)
+        ax.text(0.35, y + 0.62, a, fontsize=8.6, weight="bold", color=INK, va="center")
+        ax.text(0.35, y + 0.3, b, fontsize=7.6, style="italic", color=INK, va="center")
+        arrow(ax, (8.25, y + 0.5), (9.85, y + 0.5), color=GREY, lw=1.1)
+        box(ax, 10.0, y + 0.13, 3.9, 0.74, c, None, fc=AMBER if "Nightly" in c else NAVY,
+            fs=8.3)
+    fig.savefig(OUT + "fig06.png"); plt.close(fig)
 
 
 if __name__ == "__main__":
     fig_oracle_workshop()
+    fig_three_architectures()
+    fig_bandwidth()
     fig_ecosystem()
     fig_memory()
+    fig_brain()
     fig_day_night()

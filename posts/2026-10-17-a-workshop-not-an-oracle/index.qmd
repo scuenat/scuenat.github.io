@@ -1,29 +1,30 @@
 ---
 title: "A Workshop, Not an Oracle"
 subtitle: "Why I believe local AI will be many small specialists, a shared memory, and a way to keep learning"
-description: "When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of small specialised models, a memory they share, and a loop that lets them keep learning from the work they do."
+description: "When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of small specialised models, a memory they share, and a loop that lets them keep learning, closer to how our own brain seems to work."
 date: 2026-10-17
 draft: true
 categories: [essay, ai, local-ai, architecture]
-image: figures/fig02.png
+image: figures/fig04.png
 resources:
   - figs.py
 ---
 
 ::: {.callout-note appearance="simple"}
-**Essay, October 2026.** A companion to [Fast AI](../2026-10-11-fast-ai/index.qmd), which argued that the large model should build the memory rather than replace it. The figures are schematics, not measurements; the code is here: [figs.py](figs.py).
+**Essay, October 2026.** A companion to [Fast AI](../2026-10-11-fast-ai/index.qmd), which argued that the large model should build the memory rather than replace it. Figure 3 is a simple calculation; the other figures are schematics, not measurements. The code is here: [figs.py](figs.py).
 :::
 
-**In short.** I believe the future of AI is, to a large extent, local. But when people talk about local AI, they usually picture one big model made small enough to fit on a laptop. I see it differently. I think local AI will look like a workshop: several small models, each very good at one thing, connected to a memory they share, and able to keep learning from the work they do. Size is not the right unit. What matters is how the parts are organised, what they remember, and how they improve.
+**In short.** I believe the future of AI is, to a large extent, local. But when people talk about local AI, they usually picture one big model made small enough to fit on a laptop. I see it differently. I think local AI will look like a workshop: many small models, each very good at one thing, connected to a memory they share, and able to keep learning from the work they do. I have two reasons. The first is architecture: on a local machine, memory and bandwidth are the limits, and an ecosystem of small models uses them far better than one large model. The second is our own brain, which most likely works this way too: a huge set of specialised parts, a fast memory, a slow learner, and connections that keep changing with use.
 
 ::: {.callout-tip appearance="simple" icon="false"}
 ## Key takeaways
 
 - Local AI should not be one big model made small. It should be designed for the machine in front of you from the start.
-- A small model that does one job well runs on hardware you already own, and can be tested precisely on that job.
-- Specialists need a shared memory, outside the weights, that people can read, correct and delete.
-- Memory is not learning. A local system should also turn what it has seen into skill, slowly and safely, the way we turn experience into habit.
-- Frontier models do not disappear. They become teachers and occasional consultants, not the place where every thought happens.
+- On a laptop, speed is limited by how many bytes must be read for each word. A small specialist reads a few gigabytes; a large model reads tens or hundreds.
+- Large models already moved toward specialists inside: mixture of experts. An ecosystem takes the same idea further, with parts you can load, swap, test and update one by one.
+- Our brain seems to work this way: many specialised areas, a fast memory and a slow learner that consolidates during sleep, and plasticity everywhere.
+- Specialists need a shared memory, outside the weights, that people can read, correct and delete. And memory is not learning: the system should also turn what it has seen into skill, slowly and safely.
+- Frontier models do not disappear. They become teachers and occasional consultants.
 :::
 
 ## 1. The wrong picture
@@ -36,7 +37,7 @@ I would rather ask a different question: *what would intelligence look like if i
 
 ## 2. How the Jura built watches
 
-Where I live, in the Swiss Jura, watches were not made by one master in one room. For two centuries the region worked by *établissage*. One family made springs, another cut wheels, another finished cases, another set the jewels. Each workshop was small and very good at one thing. An *établisseur* knew who did what, sent out the work and assembled the result.
+Where I live, in the Swiss Jura, watches were not made by one master in one room. For a long time the region worked by *établissage*. One family made springs, another cut wheels, another finished cases, another set the jewels. Each workshop was small and very good at one thing. An *établisseur* knew who did what, sent out the work and assembled the result.
 
 Nobody in that system needed to know everything. It worked because of three things: specialists who were excellent at their part, someone who knew how to route the work, and a shared body of knowledge, written and unwritten, about standards, tolerances and what had gone wrong before.
 
@@ -44,29 +45,97 @@ That is how I picture local AI. Not an oracle in a box. A workshop.
 
 ![**Figure 1.** Two ways to organise intelligence. An oracle sends every task to one large model. A workshop sends each task to a small specialist, chosen by a router, and all specialists share one memory.](figures/fig01.png)
 
-## 3. Many small specialists
+# Part I · Why I think so
 
-Today, a general model is asked to do everything: read a drawing, write code, answer an email, check a contract. It is impressive that one model can do all of this. It is also wasteful. Every request pays for all the knowledge it does not use.
+## 3. The architecture argument
+
+An analogy is not a reason. So here is the first reason, and it comes from how these models actually run.
+
+**A dense model uses all of itself, all the time.** A classic large language model is *dense*: to produce each word, it reads every one of its parameters. A model that knows contract law, Python, French poetry and organic chemistry uses all of that knowledge to write the next word of your email.
+
+**The big labs have already started to move away from this.** Many of today's largest models are *mixtures of experts*. Inside, the model is split into many smaller sub-networks, and for each word a small gate chooses a few of them. DeepSeek-V3, for example, has 671 billion parameters, but only about 37 billion work on each word. This is a strong signal: the people who build the largest models have concluded that not everything should work on everything.
+
+But a mixture of experts is still one model. All experts must be loaded in memory, even if only a few work at a time. They are trained together, so you cannot replace or improve one without touching the others. And they are not specialists in a sense a person would recognise: an expert inside such a model is not "the contracts expert", it is a part of the network that the training happened to route certain words to.
+
+An ecosystem takes the same idea one step further. The specialists are separate models. Each one is loaded only when it is needed, can be tested on its own job, and can be replaced or improved without touching the rest.
+
+![**Figure 2.** Three architectures. A dense model loads all its parameters and uses all of them for every word. A mixture of experts loads all of them but uses only a few experts per word. An ecosystem loads separate specialist models when they are needed, and only one works on a given task.](figures/fig02.png)
+
+**On a local machine, bandwidth is the wall.** This is where the argument becomes concrete. When a model generates text on a laptop, the limit is usually not computation. It is how fast the weights can be read from memory, because every word requires reading all the active parameters once. The speed is, at best, the memory bandwidth divided by the number of bytes read per word.
+
+Take a high-end laptop with 128 GB of memory and about 500 GB/s of bandwidth, and weights stored at 4 bits, half a byte per parameter:
+
+- a **3-billion-parameter specialist** reads 1.5 GB per word: at most about 330 words per second;
+- an **8-billion-parameter specialist** reads 4 GB per word: at most about 125 words per second;
+- a **70-billion-parameter dense model** reads 35 GB per word: at most about 14 words per second;
+- the **671-billion-parameter mixture of experts** would be fast enough per word, but its 335 GB of weights do not fit in 128 GB at all.
+
+![**Figure 3.** The bandwidth wall. Upper bound on generation speed when every word requires reading all active weights once, for a laptop with 500 GB/s of memory bandwidth and weights at 4 bits. Real speeds are lower: computation, the conversation's cache and software overheads all cost something. The mixture of experts is fast per word but does not fit in 128 GB.](figures/fig03.png)
+
+The same 128 GB that cannot hold one frontier model can hold about thirty 8-billion-parameter specialists at once, each of them fast. That changes the question. Instead of "which big model can I squeeze in?", it becomes "which team of specialists do I want on this machine?"
+
+**What one large model is still better at.** I do not want to pretend the ecosystem wins everywhere. Here is how I see the comparison:
+
+| | One large model | An ecosystem of small ones |
+|---|---|---|
+| Memory needed | all of it, always | only the specialists in use |
+| Speed on a laptop | limited by its size | fast, each specialist is small |
+| Updating | retrain or fine-tune the whole | replace or improve one part |
+| Testing | hard, its job is everything | precise, each job is narrow |
+| When it fails | hard to tell where | you can see which part failed |
+| Learning after delivery | rarely | can be designed in (section 9) |
+| Open-ended reasoning across domains | **strong** | weaker, needs a good router |
+| Simplicity of operation | **one thing to run** | many parts to coordinate |
+
+The last two rows are real costs. A router can send a task to the wrong specialist. Some problems need knowledge from many domains at once, and a large general model is better at that. This is why I do not think the large models disappear. I come back to their role in section 10.
+
+## 4. Our own brain
+
+The second reason is closer to home. When I look at how our own brain seems to be organised, it does not look like one dense model. It looks much more like an ecosystem.
+
+**Many specialised parts.** For more than a century, neuroscience has found areas that do something specific. Some parts of the visual cortex respond to motion, others to faces. Some areas are essential for producing language, others for understanding it. The cerebellum takes care of the fine timing of movement. Damage to one of these areas can take away one ability and leave the others almost intact, which is exactly what you would expect from a system made of specialists.
+
+**Probably a huge number of them.** Inside the cortex, the same basic circuit seems to be repeated over and over. The neuroscientist Vernon Mountcastle proposed in the 1970s that the cortical column is its basic unit, and Jeff Hawkins goes further with his *Thousand Brains* theory: on the order of 150,000 columns, each building its own small model of the world, and reaching a decision together, like a vote. This is still a theory and it is debated. But the general picture, a very large number of similar units each specialised by what it receives, fits almost everything we know.
+
+**A fast memory and a slow learner.** In 1995, McClelland, McNaughton and O'Reilly published an influential idea called *complementary learning systems*. The hippocampus learns fast: it records the episodes of the day, often after a single exposure. The cortex learns slowly: during rest and sleep, the day's episodes are replayed, and only what keeps coming back is gradually built into the cortex. The reason for two systems is precisely to avoid what AI researchers call catastrophic forgetting. A slow learner that is fed carefully selected replays does not overwrite what it already knows.
+
+**Plasticity everywhere.** Connections between neurons strengthen or weaken with use. After a stroke, other areas can, with training, take over part of a lost function. And when we learn to read, an area of the visual cortex that was not made for letters becomes specialised for written words; the neuroscientist Stanislas Dehaene calls this *neuronal recycling*. In other words, new specialists are not only present from birth. They are formed, adapted and reused throughout life.
+
+**And all of it on about 20 watts.** Roughly 86 billion neurons, and only a small part of them strongly active at any moment. The brain cannot afford to use everything for everything. Neither can a laptop.
+
+![**Figure 4.** How the brain seems to be organised, and the part of the ecosystem each idea corresponds to. This is an analogy, not a claim that the brain is built like software.](figures/fig06.png)
+
+I want to be careful here. The brain is not a set of neat boxes. Its areas are heavily interconnected, and most abilities involve many of them at once. Biology does not prove anything about software. But if our best example of general intelligence is most likely a huge set of specialised, plastic sub-models, with a fast memory and a slow learner, then I find it hard to believe that the best local AI will be one frozen, dense block.
+
+# Part II · The workshop
+
+## 5. Many small specialists
+
+Here is what I think a local ecosystem looks like in practice.
 
 A specialist pays only for what it needs. A model that only reads technical drawings, or only writes queries against one database, or only sorts support tickets for one product, can be small. It needs far less training data. It can be evaluated precisely, because its job is narrow. And it can run on a laptop, a phone, or the industrial PC next to a machine tool, today, not in some future generation of hardware.
 
 I have seen this in my own research. The transformer networks I used to measure position in digital holograms were small enough to run on a CPU, and they were built for one narrow task and nothing else. Narrow is not a weakness. It is a design choice.
 
-An ecosystem of specialists also has practical advantages that one large model cannot offer:
+An ecosystem of specialists also has practical advantages:
 
 - **Replace one part at a time.** When a better speech model appears, you swap the speech model. The rest stays as it was, already tested.
 - **Fail visibly.** When something goes wrong, you can see which specialist produced the wrong output, instead of searching inside one opaque model.
 - **Spend where it matters.** Most requests are routine. A small router can send them to small models, and keep the expensive reasoning for the rare case that needs it.
 
+## 6. The router
+
 The router matters as much as the specialists. Like the *établisseur*, it does not need to be the smartest part of the system. It needs to know who is good at what, and when to say "this one is new, ask someone bigger."
 
-![**Figure 2.** The local ecosystem I have in mind. A router sends each task to a specialist. Specialists read from and write to a shared memory. At night, the system consolidates what it has learned into updated specialists. A frontier model, outside the machine, teaches once and is consulted rarely, only for what is truly new.](figures/fig02.png)
+This is also where the ecosystem is most fragile, as I said in section 3. A good router knows its own uncertainty. When no specialist is clearly right, it should combine several, ask a larger model, or ask the person. A router that guesses confidently is worse than no router at all.
 
-## 4. A memory they share
+![**Figure 5.** The local ecosystem I have in mind. A router sends each task to a specialist. Specialists read from and write to a shared memory. At night, the system consolidates what it has learned into updated specialists. A frontier model, outside the machine, teaches once and is consulted rarely, only for what is truly new.](figures/fig04.png)
+
+## 7. A memory they share
 
 Specialists alone are not enough. A workshop without a logbook repeats its mistakes.
 
-In [Fast AI](../2026-10-11-fast-ai/index.qmd) I argued that the large model should be used to build a structured memory, such as a knowledge graph that experts can inspect and correct, instead of reasoning from scratch on every run. In a local ecosystem, that memory becomes the common ground. The drawing reader writes what it found. The planner reads it. The assistant that talks to you knows what the others already decided, and why.
+In [Fast AI](../2026-10-11-fast-ai/index.qmd) I argued that the large model should be used to build a structured memory, such as a knowledge graph that experts can inspect and correct, instead of reasoning from scratch on every run. In a local ecosystem, that memory becomes the common ground. The drawing reader writes what it found. The planner reads it. The assistant that talks to you knows what the others already decided, and why. It plays the role the hippocampus plays in the brain: it keeps the episodes, quickly, so they are not lost.
 
 Two kinds of memory matter here:
 
@@ -75,39 +144,52 @@ Two kinds of memory matter here:
 
 Keeping this memory outside the weights is not a technical detail. It is what makes the system trustworthy. You can read it. You can correct a wrong fact in one place and every specialist benefits. You can delete something, and it is really gone, which is very hard to promise for anything a model has absorbed into its parameters. And because it lives on your machine, it never has to leave it.
 
-![**Figure 3.** Where knowledge lives matters. What a model has absorbed into its weights is hard to read, correct or delete. A shared memory beside the models can be read, corrected and deleted in one place, and shared by every specialist.](figures/fig03.png)
+![**Figure 6.** Where knowledge lives matters. What a model has absorbed into its weights is hard to read, correct or delete. A shared memory beside the models can be read, corrected and deleted in one place, and shared by every specialist.](figures/fig05.png)
 
-For me, this is the strongest argument for local AI. Privacy is not only protection. It is the condition for memory. People and companies will only let a system remember everything useful if they control where that memory lives.
+## 8. Why local matters for memory
 
-## 5. A way to keep learning
+For me, this is the strongest argument for running the ecosystem locally. Privacy is not only protection. It is the condition for memory. People and companies will only let a system remember everything useful, their drawings, their customers, their mistakes, if they control where that memory lives.
+
+## 9. A way to keep learning
 
 This is the part I find most interesting, and the hardest.
 
 A memory lets a system *look things up*. It does not let it *get better*. An expert does not consult a notebook for every decision; over time, what was in the notebook becomes instinct. Today's models mostly do not work like this. They are trained once, frozen, and shipped. Whatever they pick up afterwards stays in the conversation and is forgotten when it ends.
 
-A local ecosystem can do better, because it sees the same kind of work every day, and because its specialists are small enough to retrain. I imagine a loop with two speeds:
+A local ecosystem can do better, because it sees the same kind of work every day, and because its specialists are small enough to retrain. I imagine a loop with two speeds, directly inspired by the fast memory and slow learner of section 4:
 
 1. **Fast, during the day.** The specialists work. Successes, corrections and failures are written to the memory as episodes. Nothing in the models changes yet.
-2. **Slow, at night.** When the machine is idle, the system consolidates. It selects the episodes worth learning from, updates the affected specialist with a small, cheap adjustment, and tests it against everything it was already good at. If the new version is better and has not forgotten anything, it is kept. If not, it is thrown away.
+2. **Slow, at night.** When the machine is idle, the system consolidates. It selects the episodes worth learning from, mixes them with examples of what the specialist already does well, updates the specialist with a small, cheap adjustment, and tests it against everything it was already good at. If the new version is better and has not forgotten anything, it is kept. If not, it is thrown away.
 
-This is not a new idea. It is roughly what sleep seems to do for us: replay the day, keep what matters, strengthen it, and let the rest go. What is new is that small local models make it practical. Retraining a giant model every night is absurd. Adjusting a small specialist with a few hundred examples is not.
+Mixing new episodes with old examples is not a detail. It is what the brain seems to do with replay, and it is one of the most reliable ways we know to limit forgetting. What is new is that small local models make all this practical. Retraining a giant model every night is absurd. Adjusting a small specialist with a few hundred examples is not.
 
-![**Figure 4.** Schematic. A frozen model stays as good as the day it was shipped. A specialist that consolidates every night improves in small, tested steps. When an update makes it forget something it used to do well, the test catches it and the update is rolled back.](figures/fig04.png)
+And over time, plasticity can go further than adjusting existing specialists. When the memory shows the same kind of new task again and again, with no specialist that handles it well, that is the signal to train a new one, the way the brain recycles an area to learn to read.
 
-The difficulties are real, and I do not want to hide them. Models that keep learning tend to forget what they knew before; researchers call it *catastrophic forgetting*. A system that learns from its own outputs can drift, slowly, in the wrong direction. And a model that changes every night is harder to certify than one that never changes. These are exactly the reasons the slow loop has to be careful: small updates, strict tests, a memory that keeps the evidence, and the ability to roll back. Narrow specialists help here too. It is much easier to check that a ticket sorter still works than to check that a general model still knows everything.
+![**Figure 7.** Schematic. A frozen model stays as good as the day it was shipped. A specialist that consolidates every night improves in small, tested steps. When an update makes it forget something it used to do well, the test catches it and the update is rolled back.](figures/fig07.png)
 
-## 6. Where the big models fit
+The difficulties are real, and I do not want to hide them. Even with replay, models that keep learning can forget. A system that learns from its own outputs can drift, slowly, in the wrong direction. And a model that changes every night is harder to certify than one that never changes. These are exactly the reasons the slow loop has to be careful: small updates, strict tests, a memory that keeps the evidence, and the ability to roll back. Narrow specialists help here too. It is much easier to check that a ticket sorter still works than to check that a general model still knows everything.
+
+## 10. Where the big models fit
 
 None of this makes the frontier models useless. It changes their role.
 
-They become *teachers*: they generate training data and pass their skills on to the specialists, once, before the specialists go to work. They become *architects of memory*: they read the documents and build the first version of the knowledge graph. And they become *consultants*: when the router meets something truly new, it can ask, with the user's permission, and the answer becomes an episode the local system can learn from.
+They become *teachers*: they generate training data and pass their skills on to the specialists, once, before the specialists go to work. They become *architects of memory*: they read the documents and build the first version of the knowledge graph. And they become *consultants*: when the router meets something truly new, or something that needs broad reasoning across many domains, it can ask, with the user's permission, and the answer becomes an episode the local system can learn from.
 
 The big model is called rarely, for the hard and the new. The local workshop handles the rest, every day, and gets a little better each night.
 
-## 7. Not one brain, a well-run workshop
+## 11. Not one brain, a well-run workshop
 
-I do not think we should wait for the big brain to come to us. The future I believe in is already within reach, and it is organised differently. Small specialists that are excellent at one thing. A router that knows who does what. A memory you own, can read and can correct. And a careful, slow loop that turns yesterday's work into tomorrow's skill.
+I do not think we should wait for the big brain to come to us. The future I believe in is already within reach, and it is organised differently. Small specialists that are excellent at one thing. A router that knows who does what, and knows when it does not know. A memory you own, can read and can correct. And a careful, slow loop that turns yesterday's work into tomorrow's skill.
 
 The question will not only be "how much intelligence can I run locally?" It will be "how well is my local intelligence organised, what does it remember, and how does it learn?"
 
-The Jura did not build some of the world's best watches with one genius. It built them with many small workshops, a clear way of sending work between them, and knowledge that grew over generations. I believe local AI will work the same way.
+Our own brain is most likely not one dense block, but a huge set of specialised, plastic parts that learn fast during the day and consolidate at night. The Jura did not build some of the world's best watches with one genius, but with many small workshops, a clear way of sending work between them, and knowledge that grew over generations. I believe local AI will work the same way.
+
+## References
+
+- DeepSeek-AI (2024). *DeepSeek-V3 Technical Report.* arXiv:2412.19437.
+- McClelland, J. L., McNaughton, B. L. & O'Reilly, R. C. (1995). Why there are complementary learning systems in the hippocampus and neocortex. *Psychological Review*, 102(3), 419–457.
+- Mountcastle, V. B. (1978). An organizing principle for cerebral function: the unit module and the distributed system. In *The Mindful Brain*. MIT Press.
+- Hawkins, J. (2021). *A Thousand Brains: A New Theory of Intelligence.* Basic Books.
+- Dehaene, S. (2009). *Reading in the Brain.* Viking.
+- Cuenat, S. (2026). [Fast AI: Learn slowly, once. Act fast, every time.](../2026-10-11-fast-ai/index.qmd)
