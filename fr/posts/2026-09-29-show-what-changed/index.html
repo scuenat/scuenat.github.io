@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Un tableau de bord ne devrait montrer ni les données ni la forme, mais en quoi la forme d’aujourd’hui diffère de la précédente&nbsp;: ce qui a changé dans notre compréhension.">
+
+<title>Montrer ce qui a changé, pas les données – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-b497a19662ddfac661280c4bfffa9026.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-dc22e646ba8b2619a4b195486188dba6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-b497a19662ddfac661280c4bfffa9026.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-09-29-show-what-changed/index.html">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-09-29-show-what-changed/index.html">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-09-29-show-what-changed/index.html">
+<meta name="alt-lang-url" content="/posts/2026-09-29-show-what-changed/index.html">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Montrer ce qui a changé, pas les données – AI, Honestly">
+<meta property="og:description" content="Un tableau de bord ne devrait montrer ni les données ni la forme, mais en quoi la forme d’aujourd’hui diffère de la précédente&nbsp;: ce qui a changé dans notre compréhension.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig07.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="705">
+<meta property="og:image:width" content="990">
+<meta name="twitter:title" content="Montrer ce qui a changé, pas les données – AI, Honestly">
+<meta name="twitter:description" content="Un tableau de bord ne devrait montrer ni les données ni la forme, mais en quoi la forme d’aujourd’hui diffère de la précédente&nbsp;: ce qui a changé dans notre compréhension.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig07.png">
+<meta name="twitter:image-height" content="705">
+<meta name="twitter:image-width" content="990">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul>
+  <li><a href="#partie-i-les-données-ne-sont-pas-ce-dont-nous-avons-besoin" id="toc-partie-i-les-données-ne-sont-pas-ce-dont-nous-avons-besoin" class="nav-link active" data-scroll-target="#partie-i-les-données-ne-sont-pas-ce-dont-nous-avons-besoin">Partie I · Les données ne sont pas ce dont nous avons besoin</a>
+  <ul class="collapse">
+  <li><a href="#le-problème-du-tableau-de-bord" id="toc-le-problème-du-tableau-de-bord" class="nav-link" data-scroll-target="#le-problème-du-tableau-de-bord">1. Le problème du tableau de bord</a></li>
+  <li><a href="#la-courbe-qui-colle-trop-bien" id="toc-la-courbe-qui-colle-trop-bien" class="nav-link" data-scroll-target="#la-courbe-qui-colle-trop-bien">2. La courbe qui colle trop bien</a></li>
+  <li><a href="#expliquer-le-passé-ou-prédire-lavenir" id="toc-expliquer-le-passé-ou-prédire-lavenir" class="nav-link" data-scroll-target="#expliquer-le-passé-ou-prédire-lavenir">3. Expliquer le passé ou prédire l’avenir</a></li>
+  </ul></li>
+  <li><a href="#partie-ii-la-compression-donne-une-forme" id="toc-partie-ii-la-compression-donne-une-forme" class="nav-link" data-scroll-target="#partie-ii-la-compression-donne-une-forme">Partie II · La compression donne une forme</a>
+  <ul class="collapse">
+  <li><a href="#beaucoup-de-données-peu-de-chiffres" id="toc-beaucoup-de-données-peu-de-chiffres" class="nav-link" data-scroll-target="#beaucoup-de-données-peu-de-chiffres">4. Beaucoup de données, peu de chiffres</a></li>
+  <li><a href="#résumer-cest-découvrir" id="toc-résumer-cest-découvrir" class="nav-link" data-scroll-target="#résumer-cest-découvrir">5. Résumer, c’est découvrir</a></li>
+  <li><a href="#la-forme-dun-système" id="toc-la-forme-dun-système" class="nav-link" data-scroll-target="#la-forme-dun-système">6. La forme d’un système</a></li>
+  </ul></li>
+  <li><a href="#partie-iii-le-tableau-de-bord-est-la-différence-des-formes" id="toc-partie-iii-le-tableau-de-bord-est-la-différence-des-formes" class="nav-link" data-scroll-target="#partie-iii-le-tableau-de-bord-est-la-différence-des-formes">Partie III · Le tableau de bord est la différence des formes</a>
+  <ul class="collapse">
+  <li><a href="#montrer-ce-qui-a-changé-pas-ce-qui-est" id="toc-montrer-ce-qui-a-changé-pas-ce-qui-est" class="nav-link" data-scroll-target="#montrer-ce-qui-a-changé-pas-ce-qui-est">7. Montrer ce qui a changé, pas ce qui est</a></li>
+  <li><a href="#cinq-précautions-pour-calculer-des-différences" id="toc-cinq-précautions-pour-calculer-des-différences" class="nav-link" data-scroll-target="#cinq-précautions-pour-calculer-des-différences">8. Cinq précautions pour calculer des différences</a></li>
+  <li><a href="#les-données-deviennent-des-preuves" id="toc-les-données-deviennent-des-preuves" class="nav-link" data-scroll-target="#les-données-deviennent-des-preuves">9. Les données deviennent des preuves</a></li>
+  <li><a href="#ce-qui-remplace-le-tableau-de-bord" id="toc-ce-qui-remplace-le-tableau-de-bord" class="nav-link" data-scroll-target="#ce-qui-remplace-le-tableau-de-bord">10. Ce qui remplace le tableau de bord</a></li>
+  <li><a href="#un-cas-simulé-la-télémétrie-dun-copilote" id="toc-un-cas-simulé-la-télémétrie-dun-copilote" class="nav-link" data-scroll-target="#un-cas-simulé-la-télémétrie-dun-copilote">11. Un cas simulé&nbsp;: la télémétrie d’un copilote</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">12. Conclusion</a></li>
+  <li><a href="#pour-aller-plus-loin" id="toc-pour-aller-plus-loin" class="nav-link" data-scroll-target="#pour-aller-plus-loin">Pour aller plus loin</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Montrer ce qui a changé, pas les données</h1>
+<p class="subtitle lead">Le tableau de bord comme différence de formes</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">article</div>
+    <div class="quarto-category">données</div>
+    <div class="quarto-category">tableaux de bord</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Un tableau de bord ne devrait montrer ni les données ni la forme, mais en quoi la forme d’aujourd’hui diffère de la précédente&nbsp;: ce qui a changé dans notre compréhension.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">29 septembre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Document de travail, septembre 2026.</strong> <a href="../../../posts/2026-09-29-show-what-changed/Cuenat_Show_What_Changed.pdf" download="Cuenat_Show_What_Changed.pdf">Télécharger le PDF</a> (en anglais). Suite dans <a href="../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">What a Quiet Screen Cannot See</a> (en anglais), qui répond à l’objection d’un lecteur. Les figures sont en anglais. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-09-29-show-what-changed/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>Résumé.</strong> Beaucoup d’organisations utilisent l’IA pour produire davantage&nbsp;: plus d’indicateurs, plus de rapports, plus de tableaux de bord. Et nous finissons par regarder des données. Ce document soutient que les données ne sont pas ce dont nous avons besoin. Une leçon simple des mathématiques montre pourquoi plus de chiffres expliquent mieux le passé mais guident moins bien les décisions. Le document soutient ensuite que bien résumer des données et trouver les règles qui les sous-tendent sont une seule et même tâche, et que le résultat est une forme&nbsp;: une petite description du fonctionnement d’un système. Sa proposition principale est que le tableau de bord ne devrait montrer ni les données ni la forme, mais la différence entre la forme d’aujourd’hui et la précédente&nbsp;: ce qui a changé dans notre compréhension. Un cas simulé, fondé sur la télémétrie d’un copilote IA, montre le gain.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Les données ne sont pas ce dont nous avons besoin, et en produire davantage n’est pas un progrès.</li>
+<li>Bien résumer des données et trouver leurs règles sont une seule et même tâche. Le résultat est une forme&nbsp;: notre compréhension du système.</li>
+<li>Le tableau de bord devrait montrer comment la forme a changé, pas les données. La plupart du temps, il est vide.</li>
+<li>Un tableau de bord vide est une bonne nouvelle, mais seulement si le système prouve qu’il continue de vérifier.</li>
+<li>Les données deviennent des preuves&nbsp;: collectées là où les choses changent, conservées dans une archive, rarement montrées.</li>
+</ul>
+</div>
+</div>
+<section id="partie-i-les-données-ne-sont-pas-ce-dont-nous-avons-besoin" class="level1">
+<h1>Partie I · Les données ne sont pas ce dont nous avons besoin</h1>
+<section id="le-problème-du-tableau-de-bord" class="level2">
+<h2 class="anchored" data-anchor-id="le-problème-du-tableau-de-bord">1. Le problème du tableau de bord</h2>
+<p>L’IA rend la production d’information bon marché, alors nous en produisons davantage&nbsp;: plus de rapports, plus de résumés, plus de tuiles sur des tableaux de bord qui en ont déjà quarante. Mais lire prend toujours autant de temps qu’avant. L’attention humaine est la vraie limite.</p>
+<p>Et nous finissons ainsi par regarder des données. L’écran se remplit de chiffres, et la compréhension est laissée au lecteur. Nous mesurons plus que jamais, et pourtant les décisions ne semblent pas mieux éclairées. Ce document soutient que les données ne sont pas ce dont nous avons besoin, et qu’en produire davantage n’est pas un progrès. Ce dont nous avons besoin, c’est de compréhension et, surtout, de savoir quand notre compréhension doit changer.</p>
+</section>
+<section id="la-courbe-qui-colle-trop-bien" class="level2">
+<h2 class="anchored" data-anchor-id="la-courbe-qui-colle-trop-bien">2. La courbe qui colle trop bien</h2>
+<p>Imaginons que nous ayons quelques mesures bruitées et que nous voulions faire passer une courbe à travers elles. Un outil courant est le polynôme, une somme de termes&nbsp;:</p>
+<p><span class="math display">
+p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
+</span></p>
+<p>Plus nous ajoutons de termes, plus la courbe se rapproche de chaque point. Avec assez de termes, elle passe par tous. Cela semble parfait, mais ce ne l’est pas. Entre les points, la courbe oscille violemment (Figure 1). Elle a appris le bruit, pas la vraie forme.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig01.png" class="img-fluid figure-img" alt="Graphique de 16 points noirs. Une courbe rouge de degré 15 passe par chaque point mais oscille violemment entre eux ; une courbe bleue de degré 3 suit de près la réalité sous-jacente, en pointillés gris."></p>
+<figcaption><strong>Figure 1.</strong> Seize mesures bruitées. La courbe à 15 termes (rouge) touche chaque point mais s’en écarte fortement entre eux. La courbe simple à 3 termes (bleu) manque quelques points mais suit la vraie forme. Toutes les figures de ce document utilisent des données simulées.</figcaption>
+</figure>
+</div>
+<p>Un tableau de bord fait la même chose, sauf que l’ajustement se fait dans la tête des gens. Montrez quarante indicateurs à quelqu’un, et il trouvera une histoire&nbsp;: cette baisse a été causée par cet événement. Avec assez d’indicateurs, une histoire finit toujours par coller au passé. Le lecteur devient la courbe qui a trop de termes. C’est pourquoi chaque chiffre de plus a un coût, même quand il est juste.</p>
+</section>
+<section id="expliquer-le-passé-ou-prédire-lavenir" class="level2">
+<h2 class="anchored" data-anchor-id="expliquer-le-passé-ou-prédire-lavenir">3. Expliquer le passé ou prédire l’avenir</h2>
+<p>La Figure 2 montre le compromis. Ajouter des termes améliore toujours l’ajustement aux données passées. Mais la capacité à prédire de nouveaux cas ne s’améliore que jusqu’à un certain point, puis se dégrade fortement. Le meilleur résultat vient d’un petit nombre de termes.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig02.png" class="img-fluid figure-img" alt="Graphique à échelle logarithmique de l'erreur en fonction de la complexité, de 0 à 15. La ligne grise de l'ajustement au passé ne cesse de baisser ; la ligne bleue de l'erreur de prédiction est au plus bas à 3, marquée sweet spot, puis monte en flèche."></p>
+<figcaption><strong>Figure 2.</strong> À mesure que l’on ajoute des termes, l’ajustement aux données passées continue de s’améliorer (gris). La prédiction de nouvelles données (bleu) est la meilleure avec 3 termes, puis se dégrade fortement.</figcaption>
+</figure>
+</div>
+<p>Il en va de même pour les tableaux de bord. Trois chiffres bien choisis peuvent sembler moins complets que trente, mais ils guident mieux l’action. Être complet et être juste ne sont pas le même objectif.</p>
+</section>
+</section>
+<section id="partie-ii-la-compression-donne-une-forme" class="level1">
+<h1>Partie II · La compression donne une forme</h1>
+<section id="beaucoup-de-données-peu-de-chiffres" class="level2">
+<h2 class="anchored" data-anchor-id="beaucoup-de-données-peu-de-chiffres">4. Beaucoup de données, peu de chiffres</h2>
+<p>Cela ne veut pas dire que nous devrions collecter moins de données. Pour trouver les quelques bons chiffres, il faut souvent beaucoup de mesures. La vraie question est&nbsp;: qui fait le résumé ? Dans la Figure 3, 120 mesures sont réduites à six chiffres qui décrivent toute la surface, même là où rien n’a été mesuré. Les machines devraient traiter le volume ; les personnes devraient recevoir le résultat.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig03.png" class="img-fluid figure-img" style="width:60.0%" alt="Graphique en 3D de points rouges dispersés autour d'une surface bleue courbe et lisse."></p>
+<figcaption><strong>Figure 3.</strong> 120 mesures (rouge) résumées par une surface décrite par seulement six chiffres (bleu).</figcaption>
+</figure>
+</div>
+<p>Le meilleur usage de l’IA ici n’est donc pas de produire davantage, mais de réduire&nbsp;: prendre des données volumineuses et désordonnées et rendre les quelques chiffres qui les expliquent, avec une indication honnête de leur degré de certitude (Figure 4). Trois tests simples aident à décider quoi garder&nbsp;:</p>
+<ul>
+<li><strong>Test de la décision.</strong> Cela changerait-il ce que quelqu’un fait ? Sinon, supprimez-le.</li>
+<li><strong>Test de la prédiction.</strong> Cela aide-t-il à prédire ce qui vient, ou cela ne fait-il que décrire le passé ?</li>
+<li><strong>Test de la simplicité.</strong> Pourrions-nous dire la même chose avec moins de chiffres ? Si oui, les chiffres en trop sont du bruit.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig04.png" class="img-fluid figure-img" alt="Entonnoir de quatre boîtes, chacune plus étroite que la précédente&nbsp;: observations brutes (des millions d'événements), modèle ou compression (quelques termes), signal (3 choses ont bougé, 1 compte), décision (agir ou non)."></p>
+<figcaption><strong>Figure 4.</strong> L’entonnoir de l’information. Chaque étape devrait être plus petite que la précédente, pour que ce qui arrive à une personne soit assez petit pour agir.</figcaption>
+</figure>
+</div>
+</section>
+<section id="résumer-cest-découvrir" class="level2">
+<h2 class="anchored" data-anchor-id="résumer-cest-découvrir">5. Résumer, c’est découvrir</h2>
+<p>Une courbe montre la forme des données, mais pas pourquoi elles ont cette forme. Pour cela, il faut des règles. On pourrait penser que trouver des règles est une étape distincte, qui vient après le résumé. Ce n’est pas le cas. C’est la même tâche.</p>
+<p>Voici pourquoi. La façon la plus courte de décrire un ensemble de données a deux parties&nbsp;: une règle, plus les exceptions que la règle n’explique pas.</p>
+<p><span class="math display">
+\text{données} = \text{règle} + \text{exceptions}
+</span></p>
+<p>Le meilleur résumé garde les deux parties aussi courtes que possible, et la règle qui y parvient est la meilleure explication des données. Pour le dire simplement&nbsp;: les données brutes sont un fichier, un résumé est un fichier compressé, et une règle est la recette qui produit le fichier.</p>
+<p>L’histoire le montre bien. Tycho Brahe a passé des décennies à noter la position des planètes. Kepler a résumé ses tables en trois lois courtes. Newton a ensuite découvert la gravitation, non pas à partir des tables brutes de Tycho, mais à partir des trois lois de Kepler. La règle a été trouvée dans le résumé, pas dans les données brutes.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig05.png" class="img-fluid figure-img" alt="Deux schémas. En haut&nbsp;: Tycho (données), puis Kepler (3 lois, compression), puis Newton (1 règle). En bas&nbsp;: une boucle des données vers compresser, puis extraire la règle, puis les résidus, qui reviennent vers la compression."></p>
+<figcaption><strong>Figure 5.</strong> En haut&nbsp;: des données au résumé, puis à la règle. En bas&nbsp;: la même idée sous forme de méthode. Résumer et trouver des règles forment une boucle, entraînée par ce que la règle manque encore. Les règles sont testées en pratique avant qu’on leur fasse confiance.</figcaption>
+</figure>
+</div>
+<p>L’IA moderne peut fonctionner de la même manière. D’abord, un réseau de neurones apprend à résumer les données en quelques variables. Ensuite, une seconde méthode cherche des équations simples dans ces quelques variables. Des chercheurs s’en sont servis pour redécouvrir des lois connues de la physique à partir de mesures brutes, et même de vidéos. À la question «&nbsp;comment l’IA trouverait-elle les règles ?&nbsp;», la réponse est donc&nbsp;: résumer d’abord, puis chercher des règles dans le résumé.</p>
+<p>Trois précautions s’appliquent&nbsp;:</p>
+<ul>
+<li><strong>Garder ce qui prédit, pas ce qui est gros.</strong> Un résumé qui ne garde que les effets les plus importants peut jeter un petit signal qui contient la règle.</li>
+<li><strong>C’est une boucle, pas une ligne droite.</strong> Pour bien résumer, il faut une idée de la règle ; pour trouver la règle, il faut un bon résumé. Alors on tourne&nbsp;: résumer, deviner une règle, regarder ce qu’elle manque, résumer à nouveau.</li>
+<li><strong>Une régularité n’est pas une cause.</strong> Une règle trouvée dans des données passées peut se briser dès que les gens agissent en fonction d’elle. Comme le dit la loi de Goodhart, quand une mesure devient un objectif, elle cesse d’être une bonne mesure. Les règles doivent être testées en pratique.</li>
+</ul>
+</section>
+<section id="la-forme-dun-système" class="level2">
+<h2 class="anchored" data-anchor-id="la-forme-dun-système">6. La forme d’un système</h2>
+<p>Nous pouvons maintenant nommer ce que produit ce travail. Appelons-le la <em>forme</em> du système&nbsp;: la plus petite description qui explique ses données. Elle a trois couches.</p>
+<ul>
+<li><strong>La structure&nbsp;:</strong> de quel type de système s’agit-il ? Un groupe ou plusieurs ? Se répète-t-il en cycles, ou dérive-t-il ?</li>
+<li><strong>Les règles&nbsp;:</strong> comment il fonctionne. Qu’est-ce qui entraîne quoi, et avec quelle force.</li>
+<li><strong>L’échelle&nbsp;:</strong> quelques chiffres clés qui disent combien.</li>
+</ul>
+<p>La structure mérite un mot, car les moyennes ne la voient pas. Dans la Figure 6, trois jeux de données ont exactement la même moyenne et la même dispersion, et pourtant l’un est un nuage, l’autre une boucle, le troisième deux boucles. Un processus qui se répète et un processus qui dérive sont très différents, même si leurs moyennes sont égales. Une branche des mathématiques, l’analyse topologique des données, détecte ce genre de structure et la décrit avec quelques chiffres&nbsp;: combien de groupes, combien de boucles.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig06.png" class="img-fluid figure-img" alt="Trois nuages de points avec la même moyenne 0 et le même écart type 1&nbsp;: un nuage sans forme, un anneau unique, et deux anneaux côte à côte."></p>
+<figcaption><strong>Figure 6.</strong> Trois jeux de données avec la même moyenne et la même dispersion. Les statistiques habituelles ne peuvent pas les distinguer, mais leurs formes sont complètement différentes&nbsp;: aucune boucle, une boucle, deux boucles.</figcaption>
+</figure>
+</div>
+<p>En pratique, une forme tient sur une petite fiche de quelques dizaines de chiffres. C’est notre compréhension actuelle du système. Elle est bien plus petite que les données, et bien plus utile.</p>
+</section>
+</section>
+<section id="partie-iii-le-tableau-de-bord-est-la-différence-des-formes" class="level1">
+<h1>Partie III · Le tableau de bord est la différence des formes</h1>
+<section id="montrer-ce-qui-a-changé-pas-ce-qui-est" class="level2">
+<h2 class="anchored" data-anchor-id="montrer-ce-qui-a-changé-pas-ce-qui-est">7. Montrer ce qui a changé, pas ce qui est</h2>
+<p>Voici l’idée centrale de ce document. Les données arrivent en permanence, donc la forme est mise à jour régulièrement, par exemple chaque semaine. La plupart des semaines, la nouvelle forme est presque identique à l’ancienne&nbsp;: le système se comporte comme nous le comprenons. De temps en temps, la forme change&nbsp;: une règle cesse de tenir, un nouveau groupe apparaît, un chiffre clé bouge.</p>
+<p>Le tableau de bord devrait montrer exactement cela&nbsp;: la différence entre la nouvelle forme et la précédente.</p>
+<p><span class="math display">
+\text{tableau de bord} = \text{forme}(\text{cette semaine}) - \text{forme}(\text{semaine dernière})
+</span></p>
+<p>Les mathématiciens appellent cela une différence finie. Le tableau de bord ne montre alors ni les données ni même la forme, mais comment notre compréhension a changé (Figure 7).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig07.png" class="img-fluid figure-img" alt="Trois rangées sur cinq semaines. En bas&nbsp;: des points de données dispersés. Au milieu&nbsp;: la forme, une ellipse les semaines 1 à 3, deux ellipses à partir de la semaine 4. En haut&nbsp;: le tableau de bord, vide sauf une case rouge new loop en semaine 4."></p>
+<figcaption><strong>Figure 7.</strong> Illustration. En bas&nbsp;: les données brutes, utilisées comme preuves et jamais montrées. Au milieu&nbsp;: la forme, notre compréhension, mise à jour chaque semaine. En haut&nbsp;: la différence entre formes successives. C’est le tableau de bord, et il reste vide tant que la forme ne change pas.</figcaption>
+</figure>
+</div>
+<p>Cela donne trois couches, chacune avec son rôle. <strong>Les données sont des preuves&nbsp;:</strong> elles sont conservées, mais rarement montrées. <strong>La forme est la compréhension&nbsp;:</strong> chacun peut la consulter pour savoir comment le système fonctionne. <strong>La différence est l’information nouvelle&nbsp;:</strong> c’est la seule chose qui demande de l’attention.</p>
+<p>Cela sépare aussi deux sortes de surprise. Une surprise <em>dans</em> la forme est une mesure isolée qui ne colle pas aux règles&nbsp;: une demande inhabituelle, une mauvaise journée. Le système les gère lui-même. Un changement <em>de</em> forme veut dire que les règles elles-mêmes ont bougé. C’est cela que les gens ont besoin de savoir.</p>
+<p>La plupart du temps, la différence est nulle et le tableau de bord est vide. C’est le but, pas un défaut. Un tableau de bord vide veut dire que notre compréhension tient toujours.</p>
+</section>
+<section id="cinq-précautions-pour-calculer-des-différences" class="level2">
+<h2 class="anchored" data-anchor-id="cinq-précautions-pour-calculer-des-différences">8. Cinq précautions pour calculer des différences</h2>
+<p>L’idée est simple, mais calculer des différences comporte des pièges bien connus. Chacun a une réponse simple.</p>
+<ul>
+<li><strong>Les différences amplifient le bruit.</strong> Soustraire deux nombres bruités donne un nombre encore plus bruité. Si l’on compare les formes trop souvent, des variations aléatoires ressemblent à des changements. Le pas de temps doit être assez long pour que la forme soit mesurée de façon fiable. Les mathématiciens font le même choix quand ils choisissent le pas d’une différence finie.</li>
+<li><strong>Soustraire le changement déjà attendu.</strong> Si l’usage croît chaque semaine, la différence brute montre de la croissance chaque semaine. Ce n’est pas une nouvelle. Le tableau de bord devrait montrer la différence moins ce que les règles prévoyaient&nbsp;: le changement du changement.</li>
+<li><strong>Comparer ce qui est comparable.</strong> Deux formes ne peuvent être soustraites que si elles sont décrites dans les mêmes termes. Si le résumé est reconstruit de zéro à chaque fois, ses termes peuvent changer de sens. Garder le cadre fixe, ou aligner les formes avant de les comparer.</li>
+<li><strong>Regarder plus d’une échelle de temps.</strong> Une dérive lente peut être trop faible pour être remarquée d’une semaine à l’autre et pourtant s’additionner en un grand changement. Comparer la forme non seulement avec la semaine précédente, mais aussi avec une référence fixe, comme le trimestre précédent.</li>
+<li><strong>Pondérer le changement par ce qu’il touche.</strong> Un petit changement près d’un point de décision peut compter plus qu’un grand changement ailleurs. Seuls les changements assez grands pour affecter une décision devraient apparaître, et ce sont les responsables des décisions, et non les analystes, qui devraient décider de ce qui est assez grand.</li>
+</ul>
+</section>
+<section id="les-données-deviennent-des-preuves" class="level2">
+<h2 class="anchored" data-anchor-id="les-données-deviennent-des-preuves">9. Les données deviennent des preuves</h2>
+<p>Dans cette vision, les données changent de rôle. Elles ne sont plus quelque chose à regarder. Ce sont des preuves&nbsp;: elles servent à construire la forme, à la vérifier, et à montrer quand elle doit changer. Trois idées expliquent quelles données valent la peine d’être collectées.</p>
+<p><strong>L’information est la surprise.</strong> Un chiffre que nous attendions déjà ne nous apprend rien. Seul l’écart entre ce qui s’est passé et ce que la forme prévoyait porte de l’information. Une théorie importante en neurosciences suggère que le cerveau fonctionne de façon semblable&nbsp;: il transmet surtout ce qui diffère de l’attente.</p>
+<p><strong>Mesurer là où les choses changent.</strong> Une règle nous dit comment les choses évoluent ; à partir d’un point de départ, elle peut reconstruire le reste. Les données sont donc surtout nécessaires là où la forme est incertaine ou en train de changer. Dans la Figure 8, les mêmes 13 mesures, placées là où la courbe change, donnent une erreur six fois plus petite. En pratique, nous ne savons pas à l’avance où les choses changent, alors nous le découvrons pas à pas&nbsp;: mesurer un peu partout, puis davantage là où sont les surprises.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig08.png" class="img-fluid figure-img" alt="Deux graphiques de la même courbe échantillonnée en 13 points. Des points régulièrement espacés ratent la montée brusque (erreur max 0,38) ; des points regroupés là où la courbe change la suivent de près (erreur max 0,06)."></p>
+<figcaption><strong>Figure 8.</strong> Treize mesures placées régulièrement (en haut) ou là où la courbe change (en bas). La seconde version suit la courbe de bien plus près avec le même nombre de points.</figcaption>
+</figure>
+</div>
+<p><strong>Une donnée vaut ce qu’elle change.</strong> Une mesure n’a de valeur que si elle pourrait changer une décision. Quand le choix est déjà clair, plus de données n’apportent rien (Figure 9). Une bonne forme rend les choix plus clairs, et réduit donc la quantité de données nécessaire.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig09.png" class="img-fluid figure-img" alt="Courbes culminant au seuil de décision et tombant à zéro des deux côtés. Le modèle incertain (trait plein) culmine plus haut que le modèle confiant (pointillés). Loin du seuil, mesurer ne vaut rien."></p>
+<figcaption><strong>Figure 9.</strong> Ce que vaut une nouvelle mesure, selon la proximité d’une décision. Elle compte le plus près du point de bascule, et moins quand le modèle est sûr de lui.</figcaption>
+</figure>
+</div>
+<p>En pratique&nbsp;: collecter un peu partout, et beaucoup plus là où la forme change. Garder les données brutes dans une archive pour le jour où une nouvelle règle sera nécessaire. Ne les montrer que quand quelqu’un le demande.</p>
+</section>
+<section id="ce-qui-remplace-le-tableau-de-bord" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-remplace-le-tableau-de-bord">10. Ce qui remplace le tableau de bord</h2>
+<p>Ce que les gens voient devient petit. Le système produit trois choses&nbsp;:</p>
+<ul>
+<li><strong>Un avis de changement,</strong> quand la forme change d’une façon qui compte&nbsp;: ce qui a changé, de combien, pourquoi cela compte et quoi faire.</li>
+<li><strong>Un battement de cœur,</strong> à chaque période&nbsp;: «&nbsp;forme vérifiée sur les données de cette semaine, aucun changement significatif&nbsp;». Sans lui, un tableau de bord vide est ambigu, car un système en panne est vide lui aussi.</li>
+<li><strong>La forme elle-même,</strong> à la demande, pour qui veut comprendre le système ou poser une question.</li>
+</ul>
+<p>Les tableaux de bord servent aussi à d’autres choses&nbsp;: une image partagée par l’équipe, la redevabilité, les audits et la confiance. Ces besoins demeurent, et cette approche les sert mieux. La forme est l’image partagée. L’historique des changements est la piste d’audit. Le battement de cœur fait de «&nbsp;rien n’a changé&nbsp;» une affirmation claire et vérifiable plutôt qu’une impression.</p>
+<p>Il y a de vrais risques. Les gens qui cessent de regarder peuvent perdre leur sens du système, et un système ne peut pas voir un changement que sa forme ne décrit pas. Trois garde-fous aident&nbsp;: réexaminer régulièrement la forme elle-même ; laisser les gens explorer de temps en temps les données brutes, à la recherche de ce que la forme manque ; et laisser aux personnes, et non au système, la responsabilité des seuils et des décisions.</p>
+<p>Construire un tel système suit une méthode courte&nbsp;:</p>
+<ul>
+<li><strong>Partir des décisions.</strong> Lister les décisions que les gens prennent réellement.</li>
+<li><strong>Compresser en une forme qui prédit.</strong> Garder ce qui prédit, et faire en sorte que chaque règle connaisse son propre bruit.</li>
+<li><strong>Fixer le cadre,</strong> pour que les formes puissent être comparées dans le temps.</li>
+<li><strong>Choisir le pas,</strong> assez long pour mesurer la forme de façon fiable.</li>
+<li><strong>Calculer la différence moins le changement attendu,</strong> par rapport à la période précédente et à une référence fixe.</li>
+<li><strong>Ne garder que les changements significatifs,</strong> les publier avec un battement de cœur, et archiver les données.</li>
+</ul>
+</section>
+<section id="un-cas-simulé-la-télémétrie-dun-copilote" class="level2">
+<h2 class="anchored" data-anchor-id="un-cas-simulé-la-télémétrie-dun-copilote">11. Un cas simulé&nbsp;: la télémétrie d’un copilote</h2>
+<p>Pour rendre cela concret, nous avons simulé 90 jours de télémétrie d’un copilote IA à cinq agents&nbsp;: recherche, code, résumé, traduction et e-mail. Chaque requête enregistre sa langue (anglais, allemand, français ou italien), l’agent, la fonction utilisée, la longueur de la requête et le temps de réponse. L’usage croît lentement et baisse le week-end, et une nouvelle fonction d’export remplace peu à peu l’ancienne fonction de brouillon. Les temps de réponse montent et descendent aussi chaque jour pour tout le monde, parce que les serveurs sont partagés.</p>
+<p>Nous avons caché deux vrais problèmes. À partir du jour 45, l’agent de traduction commence à ralentir très progressivement, de 0,2 % par jour. Le jour 60, l’agent de code devient soudain 25 % plus lent, pour les requêtes en allemand seulement. Au total, la simulation produit 1,6 million de requêtes et environ 10 millions de chiffres.</p>
+<p><strong>Le tableau de bord habituel.</strong> Un tableau de bord typique montre 24 tuiles&nbsp;: les requêtes par langue et par agent, le temps de réponse par agent, et la fréquence d’utilisation de chaque fonction (Figure 10). Chaque tuile est signalée quand elle sort de sa plage normale. Sur les 60 derniers jours, les tuiles lèvent 106 alertes. La croissance normale et la nouvelle fonction d’export ressemblent à des anomalies. Chaque vrai problème n’est signalé qu’une fois, les deux le jour 74 pendant un pic des serveurs, sans rien pour les distinguer des 104 fausses alertes. Aucune cause n’est nommée. Cette référence est volontairement simple. Un analyste soigneux ajusterait chaque tuile pour les week-ends et la croissance, et supprimerait la plupart des fausses alertes. Mais les deux vrais problèmes resteraient cachés dans les variations quotidiennes des serveurs, et aucune tuile ne nommerait la cause.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig10.png" class="img-fluid figure-img" alt="Grille de 24 petites séries temporelles (requêtes, latence et fonctions) sur 90 jours, avec de nombreux points rouges qui signalent des jours hors plage, et une ligne pointillée au jour 60."></p>
+<figcaption><strong>Figure 10.</strong> Le tableau de bord habituel&nbsp;: 24 tuiles sur 90 jours. Les points rouges marquent les jours hors de la plage normale&nbsp;: 106 alertes, presque toutes fausses. La ligne pointillée marque le jour 60.</figcaption>
+</figure>
+</div>
+<p><strong>La forme.</strong> Le système résume d’abord les requêtes brutes en 7 200 petits groupes, un par jour, agent, langue et longueur de requête. À partir de ce résumé, il apprend les règles&nbsp;: les jours de semaine apportent quatre fois plus de requêtes que le week-end ; l’usage croît d’environ 0,3 % par jour ; l’export remplace régulièrement le brouillon ; et le temps de réponse croît comme la racine carrée de la longueur de la requête (valeur apprise 0,54, contre 0,5 utilisé pour créer les données). Chaque semaine, il décrit ensuite le copilote avec une fiche de forme de 33 chiffres&nbsp;: le volume global, la répartition des langues, la vitesse de chaque agent dans chaque langue (après avoir retiré l’effet de la longueur des requêtes et les variations communes des serveurs), et la part de chaque fonction dans son agent. Douze semaines de formes font moins de 400 chiffres, au lieu de 10 millions.</p>
+<p><strong>Le tableau de bord.</strong> La Figure 11 montre la différence entre la forme de chaque semaine et la précédente. À gauche, la différence brute&nbsp;: de nombreuses cases s’allument semaine après semaine, parce que le volume croît et que l’export remplace le brouillon. À droite, la différence moins le changement attendu, en ne gardant que les changements significatifs (5 % pour la vitesse et le volume, deux points de pourcentage pour l’usage). Ces seuils ne sont pas des choix techniques ; ils devraient être fixés par les responsables des décisions, par exemple l’équipe chargée des temps de réponse. Pendant douze semaines, tout le tableau de bord est vide, sauf une ligne&nbsp;: agent de code, allemand. L’avis apparaît à la fin de la semaine 9, deux jours après le début du problème, et nomme la cause. Il réapparaît en semaine 10, parce que la forme de la semaine 9 ne contenait que trois jours du problème. Ensuite, la nouvelle vitesse fait partie de la forme, et le tableau de bord redevient silencieux.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig11.png" class="img-fluid figure-img" alt="Deux cartes de chaleur des 33 chiffres de la fiche de forme sur 12 semaines. À gauche, les différences brutes montrent beaucoup de cases pâles. À droite, après soustraction du changement attendu, tout est vide sauf speed code DE en semaines 9 et 10."></p>
+<figcaption><strong>Figure 11.</strong> Le tableau de bord comme différence de formes, sur 12 semaines. À gauche&nbsp;: la différence brute, d’une semaine à l’autre, des 33 chiffres de la fiche de forme. À droite&nbsp;: la différence moins le changement attendu, en ne gardant que les changements significatifs. Il reste une ligne&nbsp;: agent de code, allemand, semaines 9 et 10.</figcaption>
+</figure>
+</div>
+<p><strong>La dérive lente.</strong> Le ralentissement de la traduction ne bouge jamais de plus de 1,7 % d’une semaine à l’autre, donc il n’apparaît jamais sur le tableau de bord hebdomadaire. Comparé à une forme de référence fixe (semaines 1 à 6), il franchit la ligne des 5 % en semaine 12 et il est signalé (Figure 12). C’est la quatrième précaution à l’œuvre.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig12.png" class="img-fluid figure-img" alt="Graphique sur 12 semaines. Les barres grises du changement d'une semaine à l'autre restent petites. Une ligne bleue du changement par rapport à une forme de référence monte après le début de la dérive en semaine 7 et franchit la ligne des 5 % en semaine 12."></p>
+<figcaption><strong>Figure 12.</strong> La dérive lente de l’agent de traduction. Les changements d’une semaine à l’autre (barres) restent petits. Le changement par rapport à une forme de référence fixe (ligne) ne cesse de croître et franchit le seuil de significativité en semaine 12.</figcaption>
+</figure>
+</div>
+<p><strong>Le pas de temps.</strong> Si l’on compare les formes chaque jour au lieu de chaque semaine, le bruit seul produit 51 changements de vitesse supérieurs à 5 % pendant les 59 premiers jours, avant que rien de réel ne se soit produit. La comparaison hebdomadaire n’en produit aucun. C’est la première précaution à l’œuvre.</p>
+<p><strong>Une limite.</strong> Nous avons caché les deux problèmes le long de dimensions que suit la fiche de forme&nbsp;: l’agent et la langue. Un problème le long d’une dimension qu’elle ne suit pas, comme le type d’appareil, n’apparaîtrait pas du tout. C’est la vraie limite de l’approche, et la raison pour laquelle la forme elle-même doit être réexaminée, et les données brutes explorées de temps en temps (section 10).</p>
+<table class="caption-top table">
+<caption><strong>Tableau 1.</strong> Les deux approches sur les mêmes données simulées. Les chiffres du tableau de bord couvrent 90 jours, les formes 12 semaines complètes. Les 3 avis sont deux pour le problème soudain (semaines 9 et 10) et un pour la dérive.</caption>
+<colgroup>
+<col style="width: 36%">
+<col style="width: 31%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Tableau de bord habituel</th>
+<th>Différence de formes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ce que les gens voient</td>
+<td>24 graphiques, chaque jour</td>
+<td>12 battements de cœur, 3 avis</td>
+</tr>
+<tr class="even">
+<td>Fausses alertes</td>
+<td>104</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>Problème soudain détecté</td>
+<td>jour 74, une alerte parmi d’autres</td>
+<td>fin de semaine 9 (jour 62)</td>
+</tr>
+<tr class="even">
+<td>Cause nommée</td>
+<td>non</td>
+<td>agent de code, allemand</td>
+</tr>
+<tr class="odd">
+<td>Dérive lente détectée</td>
+<td>jour 74, une alerte parmi d’autres</td>
+<td>semaine 12, via la référence</td>
+</tr>
+<tr class="even">
+<td>Ce qui est gardé pour comprendre</td>
+<td>24 graphiques</td>
+<td>33 chiffres par semaine</td>
+</tr>
+</tbody>
+</table>
+<p>Deux leçons sont venues de la construction du cas lui-même. Notre premier résumé avait laissé de côté la longueur des requêtes, et la règle de longueur ne pouvait pas être trouvée&nbsp;: le système apprenait 0,33 au lieu de 0,5. <em>Un résumé doit garder ce qui prédit.</em> Une première version ignorait aussi que les week-ends ont moins de requêtes, ce qui rend l’usage plus bruité ces jours-là ; elle levait dix fausses alertes. <em>Une règle doit connaître son propre bruit.</em> Les deux sont la boucle de la section 5 à l’œuvre&nbsp;: les surprises nous ont montré ce qui manquait à la forme.</p>
+<p>Le gain est clair. Les gens ne lisent plus des données. Ils lisent, au plus, quelques lignes sur ce qui a changé dans le système, et une confirmation hebdomadaire que rien d’autre n’a changé. Les données sont toujours là, utilisées comme preuves plutôt que montrées comme contenu.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">12. Conclusion</h2>
+<p>Nous sommes partis d’une observation simple&nbsp;: l’IA rend facile de produire davantage, et nous finissons par regarder des données. Les données ne sont pas ce dont nous avons besoin. Ce dont nous avons besoin, c’est de compréhension, et de la capacité à remarquer quand elle doit changer. Bien résumer des données et trouver les règles qui les sous-tendent sont une seule tâche, et son résultat est une forme. Le tableau de bord, enfin, devrait être la différence entre les formes&nbsp;: une page vide la plupart des jours, et quelques lignes précises quand notre compréhension du monde doit bouger. Nous n’avons pas besoin de plus de données sur plus d’écrans. Nous avons besoin d’une bonne forme, d’une façon soigneuse de mesurer comment elle change, et de l’humilité de continuer à vérifier qu’elle tient toujours.</p>
+</section>
+<section id="pour-aller-plus-loin" class="level2">
+<h2 class="anchored" data-anchor-id="pour-aller-plus-loin">Pour aller plus loin</h2>
+<div class="small">
+<ul>
+<li>Akaike, H. (1974). A new look at the statistical model identification. <em>IEEE Transactions on Automatic Control</em>, 19(6), 716–723.</li>
+<li>Anscombe, F. J. (1973). Graphs in statistical analysis. <em>The American Statistician</em>, 27(1), 17–21.</li>
+<li>Bainbridge, L. (1983). Ironies of automation. <em>Automatica</em>, 19(6), 775–779.</li>
+<li>Berger, M. J., &amp; Oliger, J. (1984). Adaptive mesh refinement for hyperbolic partial differential equations. <em>Journal of Computational Physics</em>, 53(3), 484–512.</li>
+<li>Brunton, S. L., Proctor, J. L., &amp; Kutz, J. N. (2016). Discovering governing equations from data by sparse identification of nonlinear dynamical systems. <em>PNAS</em>, 113(15), 3932–3937.</li>
+<li>Carlsson, G. (2009). Topology and data. <em>Bulletin of the American Mathematical Society</em>, 46(2), 255–308.</li>
+<li>Champion, K., Lusch, B., Kutz, J. N., &amp; Brunton, S. L. (2019). Data-driven discovery of coordinates and governing equations. <em>PNAS</em>, 116(45), 22445–22451.</li>
+<li>Cranmer, M., et al.&nbsp;(2020). Discovering symbolic models from deep learning with inductive biases. <em>Advances in Neural Information Processing Systems</em>, 33.</li>
+<li>Edelsbrunner, H., Letscher, D., &amp; Zomorodian, A. (2002). Topological persistence and simplification. <em>Discrete &amp; Computational Geometry</em>, 28, 511–533.</li>
+<li>Goodhart, C. A. E. (1975). Problems of monetary management: the U.K. experience. <em>Papers in Monetary Economics</em>, Reserve Bank of Australia.</li>
+<li>Howard, R. A. (1966). Information value theory. <em>IEEE Transactions on Systems Science and Cybernetics</em>, 2(1), 22–26.</li>
+<li>Matejka, J., &amp; Fitzmaurice, G. (2017). Same stats, different graphs. <em>Proceedings of CHI 2017</em>, 1290–1294.</li>
+<li>Miller, G. A. (1956). The magical number seven, plus or minus two. <em>Psychological Review</em>, 63(2), 81–97.</li>
+<li>Rao, R. P. N., &amp; Ballard, D. H. (1999). Predictive coding in the visual cortex. <em>Nature Neuroscience</em>, 2(1), 79–87.</li>
+<li>Rissanen, J. (1978). Modeling by shortest data description. <em>Automatica</em>, 14(5), 465–471.</li>
+<li>Runge, C. (1901). Über empirische Funktionen und die Interpolation zwischen äquidistanten Ordinaten. <em>Zeitschrift für Mathematik und Physik</em>, 46, 224–243.</li>
+<li>Shannon, C. E. (1948). A mathematical theory of communication. <em>Bell System Technical Journal</em>, 27(3), 379–423.</li>
+<li>Tishby, N., Pereira, F. C., &amp; Bialek, W. (1999). The information bottleneck method. <em>Proceedings of the 37th Allerton Conference on Communication, Control and Computing</em>, 368–377.</li>
+<li>Udrescu, S.-M., &amp; Tegmark, M. (2020). AI Feynman: a physics-inspired method for symbolic regression. <em>Science Advances</em>, 6(16), eaay2631.</li>
+</ul>
+</div>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Montrer ce qui a changé, pas les données},
+  date = {2026-09-29},
+  url = {https://scuenat.github.io/fr/posts/2026-09-29-show-what-changed/},
+  langid = {fr}
+}
+</code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Montrer ce qui a changé, pas les
+données.”</span> September 29. <a href="https://scuenat.github.io/fr/posts/2026-09-29-show-what-changed/">https://scuenat.github.io/fr/posts/2026-09-29-show-what-changed/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "About": ["À propos", "/fr/about.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+})();
+</script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
