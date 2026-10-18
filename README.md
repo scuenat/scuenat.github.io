@@ -25,7 +25,7 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 - Preview: `quarto preview`
 - New essay: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
 - Paper: publish it as a post (category `paper`, `citation: true`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
-- Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `blog-card.jpg`
+- Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `social-card.jpg`
 - Categories are lowercase (`ai`, `data`, `physics`, ...)
 - Series: link both ways ("A follow-up to…" / "Continued in…")
 - Analytics: GoatCounter (https://scuenat.goatcounter.com)
