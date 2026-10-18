@@ -5,16 +5,15 @@ Quarto website: essays and papers (*AI, Honestly*). Live at https://scuenat.gith
 ## One-time setup
 
 1. Install Quarto: https://quarto.org/docs/get-started/
-2. Edit `about.qmd` and replace `profile.png` (round photo, transparent corners).
-3. Create a **public** GitHub repo named `scuenat.github.io` (empty, no README), then:
+2. Create a **public** GitHub repo named `scuenat.github.io` (empty, no README), then:
    ```bash
    git init && git add . && git commit -m "Initial blog"
    git branch -M main
    git remote add origin https://github.com/scuenat/scuenat.github.io.git
    git push -u origin main
    ```
-4. Run once locally to create the `gh-pages` branch: `quarto publish gh-pages`
-5. Repo → Settings → Pages: source = branch `gh-pages`, folder `/ (root)`.
+3. Run once locally to create the `gh-pages` branch: `quarto publish gh-pages`
+4. Repo → Settings → Pages: source = branch `gh-pages`, folder `/ (root)`.
 
 ### Later: your own domain
 Add a file `CNAME` containing the domain, add `- CNAME` under `project: resources:` in `_quarto.yml`, update `site-url`, and at your registrar point `www` → CNAME → `scuenat.github.io` (root domain: A records `185.199.108.153`, `.109.153`, `.110.153`, `.111.153`). Then set the domain in Settings → Pages and tick **Enforce HTTPS**.
