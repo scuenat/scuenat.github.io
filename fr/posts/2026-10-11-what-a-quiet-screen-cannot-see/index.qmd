@@ -1,0 +1,205 @@
+---
+title: "Ce qu'un écran silencieux ne peut pas voir"
+subtitle: "Quand un tableau de bord vide veut dire que tout va bien, et quand il veut dire que nous ne regardons pas"
+description: "Un tableau de bord vide peut vouloir dire que rien n'a changé, ou que quelque chose a changé là où nous ne regardons pas. La part des données qu'un modèle n'explique pas permet de les distinguer."
+date: 2026-10-11T10:00
+categories: [essai, données, tableaux de bord]
+image: ../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essai, octobre 2026.** La suite de [Montrer ce qui a changé, pas les données](../2026-09-29-show-what-changed/index.qmd). Le code de la simulation est ici : [sim.py](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/sim.py), [figs.py](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figs.py). Les figures sont en anglais. *Traduit de l'anglais : [version originale](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.qmd).*
+:::
+
+**En bref.** Mon dernier essai soutenait qu'un tableau de bord ne devrait montrer que la façon dont notre compréhension d'un système a changé, si bien que la plupart des semaines il est vide. Un lecteur a mis le doigt sur le point faible : si quelque chose se dérègle là où notre compréhension ne va pas, l'écran reste silencieux pendant que le système tombe en panne. Il a raison, et cet essai prend l'objection au sérieux. Un tableau de bord vide peut vouloir dire deux choses différentes, *rien n'a changé* ou *quelque chose a changé là où nous ne regardons pas*, et le tableau de bord seul ne peut pas les distinguer. Mais les données le peuvent. Tout résumé laisse quelque chose d'inexpliqué, et quand le monde change dans une direction que le résumé ne couvre pas, cette part restante grandit. La surveiller ne coûte presque rien, et cela transforme un angle mort silencieux en avertissement.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## À retenir
+
+- Un modèle ne peut signaler que les changements pour lesquels il a des mots. Tout le reste lui est invisible, aussi grand soit-il.
+- Le silence a donc deux sens, et un battement de cœur qui dit « vérifié » ne les sépare pas.
+- Ce que le modèle n'explique pas, ses exceptions, est l'endroit où le changement invisible apparaît en premier. Surveillez la taille des exceptions, et ce qui les explique.
+- Certains changements ne laissent aucune trace dans les données. Pour ceux-là, seules les personnes aident : revues, visites, conversations.
+- Un écran silencieux doit mériter son silence. Il devrait dire ce qu'il a vérifié, ce qu'il n'a pas pu expliquer, et quand il a prouvé pour la dernière fois qu'il voit encore.
+:::
+
+# Partie I · Deux sortes de silence
+
+## 1. L'objection
+
+Après la publication du premier essai, un lecteur nommé Ronald a écrit un commentaire auquel je pense depuis. Il aimait l'idée et la comparait au fonctionnement du cerveau : celui-ci ne traite pas tout ce qu'il reçoit, il prédit ce qui devrait se passer et ne réagit qu'à la différence. Un tableau de bord vide, disait-il, est comme un organisme bien adapté qui n'a rien à quoi réagir.
+
+Puis il a ajouté la réserve. Le tableau de bord a un angle mort intégré. Si quelque chose se dérègle en dehors de ce que décrit la forme, l'écran reste silencieux pendant que le système tombe en panne sans un bruit.
+
+J'avais mentionné cette limite à la fin du document, en un paragraphe. Ce n'était pas assez. Toute la proposition repose sur une promesse : *si l'écran est vide, vous pouvez regarder ailleurs.* Si un écran vide peut aussi vouloir dire « quelque chose casse là où je ne vois pas », la promesse est rompue, et l'ancien tableau de bord encombré commence à paraître plus sûr. La question mérite donc une réponse complète : quand peut-on faire confiance au silence ?
+
+## 2. Deux silences
+
+Imaginez deux semaines pendant lesquelles le tableau de bord n'affiche rien.
+
+La première semaine, rien n'a changé. Le système s'est comporté comme notre forme (notre description compacte de son fonctionnement) le prévoyait. Le silence est une bonne nouvelle.
+
+La seconde semaine, quelque chose a bien changé, mais dans une direction que la forme ne décrit pas. Peut-être qu'un type d'appareil est devenu lent, et la forme ne suit pas les appareils. La forme est recalculée, elle ressemble à celle de la semaine précédente, la différence est nulle, et l'écran est vide. Le silence est maintenant une mauvaise nouvelle, et il ressemble exactement à la bonne.
+
+Dans le premier essai, j'avais ajouté un *battement de cœur* : une ligne hebdomadaire qui dit « forme vérifiée sur les données de cette semaine, aucun changement significatif ». Il résout un vrai problème. Sans lui, une chaîne de traitement en panne et un système en bonne santé produisent tous deux un écran vide. Mais le battement de cœur prouve seulement que le système *vérifie*. Il ne prouve pas que le système peut *voir* le changement qui compte. La seconde semaine, le battement de cœur est envoyé, il est vrai, et il est inutile.
+
+## 3. La géométrie d'un angle mort
+
+Une image aide. La forme est un petit ensemble de chiffres : par exemple la vitesse de chaque agent dans chaque langue, après avoir retiré l'effet de la longueur des requêtes et les hauts et les bas quotidiens des serveurs partagés. Pensez à chaque chiffre comme à une direction dans laquelle le système peut bouger. Ensemble, ces directions forment l'espace que décrit la forme.
+
+Tout changement réel du système est une flèche. Une partie de cette flèche pointe le long des directions que décrit la forme ; cette partie fait bouger la forme et atteint le tableau de bord. Le reste pointe ailleurs ; il ne fait bouger rien de ce que mesure la forme, si bien que la différence des formes ne le voit pas du tout (Figure 1).
+
+![**Figure 1.** Un changement du système se divise en deux parties. La partie le long de ce que décrit la forme fait bouger la fiche de forme et peut atteindre le tableau de bord. La partie en dehors est invisible, aussi grande soit-elle. Un grand changement réel peut n'apparaître sur le tableau de bord que comme une petite ombre, trop petite pour être signalée.](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig01.png){fig-alt="Schéma de vecteurs. Un grand changement réel pointe surtout vers le haut, en dehors de ce que décrit la forme ; seule sa courte ombre horizontale est vue, trop petite pour être signalée."}
+
+Les mathématiciens appellent la partie visible une *projection*. Le tableau de bord du premier essai ne voit que la projection de chaque changement sur la forme. Ce n'est pas un défaut d'un tableau de bord en particulier ; c'est vrai de tout modèle, de tout résumé et de tout ensemble d'indicateurs. On ne peut signaler un changement qu'avec les mots que l'on a. Un thermomètre ne peut pas vous dire que la pièce est en feu si le feu n'a pas encore réchauffé l'air autour de lui.
+
+Le danger n'est pas seulement que certains changements soient invisibles. C'est que la forme les *expliquera* souvent à tort. Si un changement ressemble, vu de l'intérieur de la forme, à quelque chose que la forme attend déjà, comme du bruit ou une variation connue, la forme l'absorbera dans cette catégorie sans protester.
+
+# Partie II · Un problème que la forme ne peut pas voir
+
+## 4. Le dispositif
+
+Pour voir comment cela arrive, j'ai réutilisé le copilote IA simulé du premier essai : cinq agents (recherche, code, résumé, traduction, e-mail), quatre langues (anglais, allemand, français, italien), des longueurs de requêtes, une croissance lente, des week-ends calmes, et des temps de réponse qui montent et descendent chaque jour pour tout le monde parce que les serveurs sont partagés. Sur 12 semaines, la simulation produit environ 2,2 millions de requêtes.
+
+Une chose est nouvelle. Chaque requête enregistre maintenant aussi trois champs que la fiche de forme n'utilise pas : l'**appareil** (navigateur web, application de bureau ou application iOS), la **région** et l'**abonnement** du client. C'est réaliste. La télémétrie enregistre généralement bien plus de champs que n'en utilise un résumé.
+
+La fiche de forme est la même qu'avant : la vitesse de chaque agent dans chaque langue, après avoir retiré l'effet de la longueur des requêtes et les variations quotidiennes communes. Elle apprend correctement la règle de longueur (exposant 0,50, la valeur utilisée pour créer les données) et reste silencieuse pendant sept semaines, comme il se doit.
+
+Puis, le mercredi de la semaine 8, les requêtes venant de l'**application iOS** deviennent **15 % plus lentes**, pour tous les agents et toutes les langues. Peut-être qu'une mise à jour de l'application a changé la façon dont les requêtes sont assemblées. iOS représente 15 % de tout le trafic.
+
+## 5. Pourquoi la forme reste silencieuse
+
+La fiche de forme ne bouge jamais. Sur les douze semaines, le plus grand changement de l'un de ses chiffres est de 2,6 % d'une semaine à l'autre, et de 2,5 % par rapport aux semaines de référence. Le seuil de significativité est de 5 %. Le tableau de bord est vide pendant les douze semaines, et douze battements de cœur annoncent « aucun changement significatif » (Figure 2).
+
+La raison est instructive. Le ralentissement touche tous les agents et toutes les langues de la même façon, parce que les utilisateurs iOS sont répartis uniformément entre eux. Les vitesses relatives que suit la fiche de forme ne changent donc pas du tout. Ce qui change, c'est le niveau global : en moyenne, toutes les requêtes sont environ 2 % plus lentes. Mais la forme a été construite pour traiter les changements de niveau global comme des variations des serveurs, parce que les serveurs varient vraiment, d'environ 5 % d'un jour à l'autre. Une marche de 2 % au milieu de variations quotidiennes de 5 % ressemble à une variation de plus. Regardez le panneau du haut de la Figure 2 : la moyenne sur 7 jours a tout autant erré pendant les semaines 3 et 4, alors que tout allait bien.
+
+![**Figure 2.** En haut : le niveau quotidien commun, que la forme traite comme des variations des serveurs. Le ralentissement iOS ajoute une marche d'environ 2 % à partir du jour 51, au milieu de variations quotidiennes d'environ 5 %. On ne peut pas la distinguer des errances précédentes. En bas : le tableau de bord. Le plus grand changement de la fiche de forme n'approche jamais la ligne des 5 %.](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig02.png){fig-alt="En haut : un niveau quotidien bruité sur 80 jours avec une moyenne sur 7 jours ; le problème iOS commence au jour 51 sans saut visible. En bas : des barres hebdomadaires du plus grand changement de la fiche de forme, toutes sous la ligne des 5 %."}
+
+C'est la pire sorte d'angle mort. La forme n'ignore pas le problème. Elle l'*explique*, avec une totale assurance et la mauvaise explication. Un ralentissement de 15 % pour un utilisateur sur sept devient « les serveurs ont eu une quinzaine un peu lente ».
+
+La quatrième précaution du premier essai, comparer à une référence fixe et pas seulement à la semaine précédente, n'aide pas non plus ici. Cette précaution attrape les changements lents le long des directions que décrit la forme. Ce changement n'est pas lent ; il est de côté.
+
+# Partie III · Surveiller ce que la forme n'explique pas
+
+## 6. La part restante
+
+La solution vient d'une idée qui était déjà au centre du premier essai. La description la plus courte d'un ensemble de données a deux parties :
+
+$$
+\text{données} = \text{règle} + \text{exceptions}
+$$
+
+La forme est la règle. Les *exceptions* sont tout ce que la règle n'explique pas : pour chaque petit groupe de requêtes, l'écart entre la vitesse que prédit la forme et la vitesse réellement mesurée.
+
+Quand la forme est juste, les exceptions sont du pur bruit. Elles ont une taille typique, que l'on peut mesurer pendant les semaines calmes, et elles n'ont pas de structure : on ne peut les prédire à partir de rien.
+
+Quand le monde change dans une direction que la forme ne décrit pas, le changement doit aller quelque part. Il ne peut pas aller dans la forme, alors il va dans les exceptions. Dans le langage de la Figure 1, la partie invisible de la flèche n'est pas perdue ; elle atterrit dans la part restante. Les exceptions grossissent, et elles commencent à avoir un motif.
+
+La forme a donc besoin d'un second moniteur, très simple, à côté du tableau de bord. Il pose deux questions chaque semaine.
+
+- **Les exceptions sont-elles plus grandes que d'habitude ?** Si la règle tient toujours, la part restante devrait être aussi grande que pendant les semaines calmes, pas plus.
+- **Quelque chose peut-il les expliquer ?** Pour chaque champ enregistré que la forme n'utilise pas, vérifier quelle part des exceptions il explique. Si la forme tient toujours, la réponse devrait être : presque rien.
+
+La première question nous dit que la forme s'use. La seconde nous dit où.
+
+## 7. Ce que montrent les exceptions
+
+La Figure 3 montre la première question dans la simulation. La taille des exceptions est mesurée par rapport aux six premières semaines, donc 1 veut dire « habituel ». Pendant sept semaines, elle reste à environ 1 % de 1. En semaine 8, elle saute à 1,18, puis se stabilise entre 1,30 et 1,37. Avec un seuil de significativité à +10 %, le moniteur émet un avis à la fin de la semaine 8, cinq jours après le début du problème. La fiche de forme, pour les mêmes semaines, dit toujours que rien n'a changé.
+
+![**Figure 3.** La taille des exceptions, par rapport aux six premières semaines. Elle reste à 1 jusqu'au début du problème iOS, puis franchit la ligne des +10 % à la fin de la semaine 8. La ligne pointillée montre ce qui se passe une fois que la forme apprend le type d'appareil : les exceptions reviennent à leur taille habituelle.](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig03.png){fig-alt="Graphique sur 12 semaines de la taille des exceptions. Elle reste à 1 jusqu'à la semaine 7, puis monte au-dessus de la ligne des +10 % jusqu'à environ 1,37. Une ligne pointillée après la semaine 8, une fois le type d'appareil appris, reste près de 1."}
+
+Il y a ici quelque chose d'important. Cette première vérification n'a pas du tout besoin du champ appareil. Elle a seulement besoin de savoir que la règle explique maintenant les données moins bien qu'avant. Même si l'appareil n'était jamais enregistré, nous saurions que la forme ne colle plus, sans savoir pourquoi. Cela seul vaut beaucoup : le battement de cœur passe de « aucun changement » à « aucun changement de la forme, mais la forme colle moins bien que d'habitude ». C'est un message très différent, et beaucoup plus honnête.
+
+La Figure 4 montre la seconde question. Avant le problème, le champ appareil n'explique que 1 à 2 % des exceptions. Cette petite part est réelle : les requêtes iOS ont toujours été environ 3 % plus lentes, une différence constante que la forme n'a jamais apprise. Après la semaine 8, le champ appareil explique 18 à 19 % des exceptions. La région et l'abonnement restent sous 1 % tout du long.
+
+![**Figure 4.** Quelle part des exceptions chaque champ enregistré explique. Le type d'appareil passe de 1–2 % à presque 20 % quand le problème iOS commence. La région et l'abonnement restent proches de zéro. Le moniteur ne dit pas seulement que quelque chose ne va pas ; il dit où regarder.](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig04.png){fig-alt="Graphique sur 12 semaines de la part des exceptions expliquée par chaque champ. L'appareil passe d'environ 2 % à près de 20 % après la semaine 7 ; la région et l'abonnement restent près de zéro."}
+
+L'avis peut donc dire quelque chose de précis : *la forme colle moins bien que d'habitude, et l'essentiel de ce qu'elle n'explique pas est lié au type d'appareil ; les requêtes iOS sont environ 15 % plus lentes que ce qu'attend la forme.* C'est presque le diagnostic complet, trouvé par un moniteur qui n'a aucune idée de ce qu'est une application iOS.
+
+## 8. La forme apprend
+
+Ce qui suit est la boucle du premier essai : résumer, regarder ce que la règle manque, résumer à nouveau. L'avis nous dit qu'il manque une dimension à la forme. Alors nous l'ajoutons : la fiche de forme gagne deux chiffres, la vitesse de l'application de bureau et celle de l'application iOS par rapport au web.
+
+Avec ces deux chiffres, la forme apprend qu'iOS était environ 3 % plus lent que le web avant la semaine 8 et environ 18 % plus lent après, ce qui correspond au ralentissement de 15 % que nous avions caché. Les exceptions reviennent à leur taille habituelle (la ligne pointillée de la Figure 3). L'écran redevient silencieux, et cette fois le silence est justifié.
+
+C'est ainsi qu'une forme devrait grandir : non pas en ajoutant chaque champ « au cas où », ce qui ramène le tableau de bord encombré et la courbe qui a trop de termes, mais en ajoutant une dimension quand les exceptions prouvent qu'elle est nécessaire. La part restante n'est pas un déchet. C'est de là que vient la prochaine règle. Kepler a abandonné les orbites circulaires à cause d'un écart de huit minutes d'arc dans l'orbite de Mars que les cercles ne pouvaient pas expliquer.
+
+# Partie IV · Ce que cela a à voir avec le cerveau
+
+## 9. Le codage prédictif a le même problème
+
+La comparaison de Ronald avec le cerveau est bonne, et elle va plus loin qu'il ne l'a dit. Une théorie bien connue en neurosciences, le *codage prédictif*, propose que le cerveau prédit en permanence ce que ses sens vont rapporter, et transmet surtout la différence entre la prédiction et la réalité. C'est exactement un tableau de bord des différences. Et le cerveau a exactement le même angle mort.
+
+La démonstration la plus célèbre est une expérience de Simons et Chabris. On demande à des spectateurs de compter les passes dans une vidéo où des gens se lancent un ballon de basket. À mi-parcours, une personne déguisée en gorille traverse la scène. Environ la moitié des spectateurs ne remarquent pas du tout le gorille. Ils ne regardaient pas au mauvais endroit ; le gorille est passé au milieu de l'écran. Leur modèle de la tâche n'avait tout simplement pas de case pour les gorilles.
+
+Alors comment le cerveau survit-il dans un monde plein de gorilles ? Une réponse influente, de Yu et Dayan, est que le cerveau suit deux sortes d'incertitude. L'*incertitude attendue* est le bruit normal d'une situation familière : nous savons que le monde est un peu imprévisible et nous ne réagissons pas à chaque petite surprise. L'*incertitude inattendue*, c'est quand les surprises deviennent plus fréquentes ou plus grandes que ce que notre modèle prévoit. C'est le signal que le modèle lui-même est faux, et on pense qu'il déclenche une remise à zéro : l'attention s'élargit, l'apprentissage s'accélère, les anciennes règles sont remises en question.
+
+C'est le moniteur des exceptions. Le cerveau ne surveille pas seulement *ce qui* diffère de sa prédiction. Il surveille *à quel point* il est surpris dans l'ensemble, par rapport à ce qu'il attend. Quand la surprise monte au-dessus de son niveau habituel, le cerveau cesse de faire confiance à son modèle et se met à regarder autour de lui. Un tableau de bord devrait faire de même.
+
+# Partie V · Le troisième silence
+
+## 10. Des changements qui ne laissent pas de trace
+
+Le moniteur des exceptions a lui aussi une limite, et mieux vaut la dire clairement. Il voit les changements qui laissent une trace dans les données, même dans des champs que la forme n'utilise pas. Il ne peut pas voir les changements qui ne laissent de trace dans aucune donnée.
+
+Supposons que les réponses du copilote en italien se dégradent lentement, moins exactes et moins utiles, tout en restant exactement aussi rapides. La télémétrie de vitesse ne le montrera jamais. Aucune forme, aucune exception et aucun champ ne bougera, parce que rien de ce que nous enregistrons n'est touché. Les seuls endroits où cela apparaît sont des personnes : un utilisateur qui cesse d'utiliser le copilote, une collègue à Milan qui en parle à la pause café, un ingénieur qui lit vingt réponses en italien un après-midi.
+
+Il y a donc trois sortes de changement, et chacune demande un observateur différent (Figure 5).
+
+![**Figure 5.** Trois sortes de changement et qui peut les voir. Les changements dans ce que décrit la forme atteignent le tableau de bord. Les changements ailleurs dans les données atteignent le moniteur des exceptions. Les changements qui ne laissent aucune trace ne peuvent être vus que par des personnes.](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png){fig-alt="Trois boîtes imbriquées. Le monde, vu par les personnes, où les changements ne laissent aucune trace. À l'intérieur, les données, vues par le moniteur des exceptions. À l'intérieur encore, la forme, vue par le tableau de bord."}
+
+- **Les changements dans la forme** atteignent le tableau de bord. C'était le sujet du premier essai.
+- **Les changements dans les données mais hors de la forme** atteignent le moniteur des exceptions. C'est ce qu'ajoute cet essai.
+- **Les changements hors des données** n'atteignent aucune machine. Ils demandent des personnes qui regardent régulièrement la chose réelle : lire les réponses, aller dans l'atelier, parler aux utilisateurs.
+
+Le troisième cercle n'est pas une note de bas de page. En 1983, Lisanne Bainbridge a décrit les « ironies de l'automatisation » : plus un système automatique devient fiable, moins les gens pratiquent les compétences dont ils auront besoin le jour où il tombe en panne. Un tableau de bord silencieux aggrave cela, parce qu'il supprime le contact quotidien avec le système qui entretenait l'intuition des gens. Si nous retirons l'écran encombré, nous devons rendre ce contact sous une forme délibérée : un regard régulier et sans hâte sur des cas bruts, choisis au hasard, par des personnes dont le travail est de remarquer ce que personne ne leur a demandé de chercher.
+
+## 11. Prouver que le système voit encore
+
+Il y a un piège de plus. Même un bon moniteur des exceptions peut tomber en panne en silence. Une chaîne de traitement peut cesser de remplir un champ ; un seuil peut être réglé trop haut après un mois chargé ; un modèle peut être réentraîné d'une façon qui cache les exceptions dans la règle. Chacun de ces cas produit un écran silencieux.
+
+Les ingénieurs savent déjà traiter cela dans d'autres domaines. On teste les alarmes incendie. Les pilotes s'entraînent sur simulateur à des pannes qu'ils espèrent ne jamais voir. Dans les grands systèmes logiciels, l'*ingénierie du chaos* casse délibérément des choses en production, de façon petite et contrôlée, pour vérifier que la surveillance le remarque.
+
+La même idée fonctionne ici. De temps en temps, injectez un petit changement artificiel et connu dans une copie des données : rendez plus lente une tranche de requêtes synthétiques, le long d'une dimension que la forme ne suit pas. Puis vérifiez que le moniteur des exceptions le remarque, et en combien de temps. S'il ne le remarque pas, le silence des semaines suivantes ne veut rien dire. S'il le remarque, nous avons une preuve, et pas seulement un espoir, que le système voit encore.
+
+# Partie VI · Un écran silencieux qui mérite son silence
+
+## 12. Un meilleur battement de cœur
+
+Mis ensemble, le battement de cœur hebdomadaire devient un rapport court et honnête de ce qui a été vérifié, et à quel point :
+
+> **Semaine 12.** Forme vérifiée sur les données de cette semaine : aucun changement significatif.
+> Exceptions : taille habituelle ; aucun champ enregistré ne les explique.
+> Dernier exercice : ralentissement injecté sur une tranche cachée, détecté après 4 jours.
+> Dernière revue humaine de cas bruts : il y a 3 semaines.
+
+Chaque ligne répond à un doute différent. La première dit que notre compréhension tient toujours. La deuxième dit qu'elle *colle* toujours : rien ne se cache dans la part restante. La troisième dit que l'observateur voit encore. La quatrième dit quand une personne a regardé le monde directement pour la dernière fois, en dehors de tout modèle.
+
+Cela reste très peu à lire : quatre lignes par semaine au lieu de quarante tuiles par jour. Mais maintenant, le silence porte de l'information. Il ne dit pas seulement « rien n'a changé », mais « rien n'a changé que nous aurions pu voir, voici ce que nous pouvions voir, et voici quand nous avons vérifié le reste pour la dernière fois ».
+
+## 13. Conclusion
+
+L'objection au premier essai était juste : un système qui ne surveille que sa propre image du monde ne peut pas voir ce qui se trouve en dehors de cette image, et il expliquera souvent à tort ce qu'il ne peut pas voir. Plus de tuiles n'est pas la réponse ; un écran encombré a aussi des angles morts, il les cache simplement sous le bruit.
+
+La réponse est de surveiller la part des données que l'image ne peut pas expliquer. Quand le monde bouge de côté, loin de ce que décrit notre modèle, les exceptions grossissent et prennent un motif bien avant que quiconque pense à ajouter un nouveau graphique. Les surveiller ne coûte pas cher, ne demande aucune connaissance de ce qui pourrait mal tourner, et nous dit à la fois que notre compréhension ne colle plus et à peu près où.
+
+Et pour ce qui ne laisse de trace dans aucune donnée, il n'y a pas de raccourci : les personnes doivent continuer à regarder la chose réelle. Un tableau de bord vide est le bon objectif. Mais le silence est une affirmation, et comme toute affirmation, il doit être mérité.
+
+::: {.read-next}
+**À lire ensuite** · [Montrer ce qui a changé, pas les données](../2026-09-29-show-what-changed/index.qmd)  
+Le document de travail auquel cet essai répond : le tableau de bord comme différence de formes.
+:::
+
+## Pour aller plus loin
+
+::: {.small}
+- Bainbridge, L. (1983). Ironies of automation. *Automatica*, 19(6), 775–779.
+- Basiri, A., et al. (2016). Chaos engineering. *IEEE Software*, 33(3), 35–41.
+- Box, G. E. P. (1980). Sampling and Bayes' inference in scientific modelling and robustness. *Journal of the Royal Statistical Society, Series A*, 143(4), 383–430.
+- Friston, K. (2010). The free-energy principle: a unified brain theory? *Nature Reviews Neuroscience*, 11(2), 127–138.
+- Gama, J., Žliobaitė, I., Bifet, A., Pechenizkiy, M., & Bouchachia, A. (2014). A survey on concept drift adaptation. *ACM Computing Surveys*, 46(4), 1–37.
+- Rao, R. P. N., & Ballard, D. H. (1999). Predictive coding in the visual cortex. *Nature Neuroscience*, 2(1), 79–87.
+- Rissanen, J. (1978). Modeling by shortest data description. *Automatica*, 14(5), 465–471.
+- Simons, D. J., & Chabris, C. F. (1999). Gorillas in our midst: sustained inattentional blindness for dynamic events. *Perception*, 28(9), 1059–1074.
+- Yu, A. J., & Dayan, P. (2005). Uncertainty, neuromodulation, and attention. *Neuron*, 46(4), 681–692.
+:::

@@ -1,0 +1,286 @@
+---
+title: "Un écosystème, pas un oracle"
+subtitle: "Pourquoi je crois que l'IA locale sera faite de nombreux petits spécialistes, d'une mémoire partagée, d'un harnais léger et d'une façon de continuer à apprendre"
+description: "L'IA locale ne sera pas un grand modèle rendu petit. J'y vois un écosystème : des modèles spécialisés, une mémoire partagée, un harnais léger et une boucle qui continue d'apprendre."
+date: 2026-10-17
+citation: true
+toc-depth: 3
+bibliography: ../../../posts/2026-10-17-an-ecosystem-not-an-oracle/references.bib
+categories: [essai, ia, ia-locale, architecture]
+image: ../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essai, octobre 2026.** Le pendant de [Fast AI](../2026-10-11-fast-ai/index.qmd). Toutes les figures sont de moi, dessinées avec le code de [figs.py](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figs.py), et leurs libellés sont en anglais. Quand une figure ou une phrase utilise des chiffres tirés du travail de quelqu'un d'autre, la source est citée à côté et reprise dans les références. Quand les chiffres sont mes propres hypothèses d'illustration, la légende le dit. *Traduit de l'anglais : [version originale](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.qmd).*
+:::
+
+**En bref.** Je crois que l'avenir de l'IA est, dans une large mesure, local. Mais quand on parle d'IA locale, on imagine en général un grand modèle rendu assez petit pour tenir sur un ordinateur portable. Je le vois autrement : de nombreux modèles spécialisés, une mémoire qu'ils partagent, un harnais léger autour d'eux, et une boucle prudente qui leur permet de continuer à apprendre du travail qu'ils font. J'ai quatre raisons. Les architectures des plus grands modèles actuels sont déjà allées dans cette direction. Une arithmétique simple de la mémoire et de la bande passante la favorise sur une machine locale. Un harnais léger peut aider les petits modèles là où il n'aide plus les grands. Et notre propre cerveau fonctionne très probablement ainsi : un immense ensemble de parties spécialisées, une mémoire rapide, un apprenant lent, et de la plasticité partout.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## À retenir
+
+- Les plus grands modèles se divisent déjà en experts. DeepSeek-V3 utilise environ 5,5 % de ses paramètres pour chaque mot [@deepseek2024]. Un écosystème pousse la même idée plus loin, avec des parties que l'on peut charger, échanger, tester et mettre à jour une par une.
+- Sur un ordinateur portable, la génération de texte est limitée par la bande passante mémoire, pas par le calcul. La vitesse est au plus la bande passante divisée par les octets lus par mot, donc les petits modèles actifs gagnent.
+- Dans un modèle de capacité simple, un modèle général a besoin d'environ $1/f$ fois plus de capacité de domaine qu'un spécialiste, où $f$ est la part de son entraînement consacrée à ce domaine.
+- Des travaux récents suggèrent que des harnais élaborés apportent peu autour des modèles de pointe puissants [@brilliantov2026]. Pour les petits modèles locaux, je soutiens l'inverse : vérificateurs, outils et structure sont là où ils gagnent le plus.
+- Notre cerveau semble combiner des aires spécialisées, un réseau de coordination généraliste, une mémoire rapide, un apprenant lent qui consolide pendant le sommeil, et de la plasticité [@fedorenko2024; @duncan2020; @mcclelland1995; @dehaene2007].
+- La mémoire a sa place hors des poids, là où les gens peuvent la lire, la corriger et l'effacer. L'apprentissage a sa place dans une boucle lente et testée.
+:::
+
+## 1. La mauvaise image
+
+Les modèles deviennent plus petits pour une même capacité. Xiao et ses collègues ont mesuré cela sous le nom de *densité de capacité*, et ont trouvé que, pour les modèles ouverts, elle doublait à peu près tous les trois mois à trois mois et demi entre 2023 et 2025 [@xiao2024]. Un meilleur entraînement, de meilleures architectures, la quantification et de meilleures puces poussent tous dans la même direction. Je suis convaincu qu'une grande partie de l'IA va se rapprocher de là où se fait le travail : sur nos ordinateurs portables, nos téléphones, nos machines et nos serveurs privés.
+
+Mais l'image que la plupart d'entre nous ont en tête est celle d'un cerveau géant, qui attend d'être compressé dans une boîte plus petite. La question devient « quelle part du grand modèle puis-je faire tourner en local ? », et la réponse est toujours « un peu moins que vous ne voudriez, mais attendez un an ».
+
+Je préfère poser une autre question : *à quoi ressemblerait l'intelligence si elle était conçue dès le départ pour la machine que j'ai devant moi ?*
+
+![**Figure 1.** Deux façons d'organiser l'intelligence. Un oracle envoie chaque tâche à un seul grand modèle. Un écosystème envoie chaque tâche à un petit spécialiste, choisi par un routeur, et tous les spécialistes partagent une mémoire. Schéma personnel.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig01.png){fig-alt="Deux schémas. Un oracle : quatre tâches vont toutes à un seul grand modèle. Un écosystème : un routeur envoie chaque tâche à un petit spécialiste (factures, code, e-mail, contrats), tous reliés à une mémoire partagée."}
+
+## 2. Ce que j'entends par écosystème
+
+Par écosystème, j'entends cinq parties qui travaillent ensemble sur une machine :
+
+1. **Des spécialistes.** De petits modèles, ou des adaptateurs sur un modèle de base partagé, chacun bon dans une tâche : lire des factures, écrire des requêtes, transcrire la parole, le domaine propre d'une entreprise.
+2. **Un routeur.** Un petit modèle qui décide quel spécialiste traite une tâche, et quand faire appel à plus grand.
+3. **Une mémoire partagée.** Des connaissances et des épisodes stockés hors des poids, lisibles et corrigeables par des personnes.
+4. **Un harnais léger.** Les outils, les vérifications et les permissions autour des modèles : lancer les tests, valider le résultat, garder les données en local.
+5. **Une boucle de consolidation.** Un processus lent, par exemple la nuit, qui transforme l'expérience vérifiée en petites mises à jour testées des spécialistes.
+
+Un modèle de pointe peut rester à l'extérieur, comme enseignant et consultant occasionnel.
+
+![**Figure 2.** L'écosystème local que j'ai en tête. Un routeur envoie chaque tâche à un spécialiste. Les spécialistes lisent et écrivent dans une mémoire partagée. La nuit, le système consolide ce qu'il a appris dans des spécialistes mis à jour. Un modèle de pointe, hors de la machine, enseigne une fois et n'est consulté que rarement. Schéma personnel.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png){fig-alt="Schéma d'une machine locale : vous envoyez une tâche à un routeur, qui choisit un spécialiste vision, langage, planification ou domaine ; tous partagent une mémoire ; une consolidation nocturne les met à jour. À l'extérieur, un modèle de pointe distille ses connaissances et n'est consulté que rarement."}
+
+# Partie I · Pourquoi je le pense
+
+## 3. Les plus grands modèles actuels montrent déjà cette direction
+
+**Du dense aux mélanges d'experts.** Un modèle de langage classique est *dense* : pour produire chaque mot, il utilise chacun de ses paramètres. Beaucoup des plus grands modèles actuels sont plutôt des *mélanges d'experts*. L'idée remonte à Shazeer et ses collègues [@shazeer2017] et a été portée à grande échelle dans le Switch Transformer [@fedus2022]. À l'intérieur, le modèle est divisé en de nombreux sous-réseaux, et pour chaque mot une petite porte en choisit quelques-uns.
+
+Deux exemples publiés illustrent le propos :
+
+- **Mixtral 8x7B** a 46,7 milliards de paramètres, mais chaque mot en utilise environ 12,9 milliards : deux de ses huit experts par couche [@jiang2024].
+- **DeepSeek-V3** a 671 milliards de paramètres, mais chaque mot en utilise environ 37 milliards [@deepseek2024]. Sa conception est parlante : dans chaque couche d'experts, un expert *partagé* est utilisé pour chaque mot, et 8 experts *routés* sur 256 sont choisis pour ce mot. Un noyau commun, plus des spécialistes choisis à la demande.
+
+![**Figure 3.** Trois architectures. Un modèle dense charge tous ses paramètres et les utilise tous pour chaque mot. Un mélange d'experts les charge tous mais n'utilise que quelques experts par mot. Un écosystème charge des modèles spécialistes séparés quand on en a besoin. Schéma personnel.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig03.png){fig-alt="Trois grilles. Modèle dense : toutes les cases remplies. Mélange d'experts : tout est chargé mais seules quelques cases sont actives. Écosystème : des boîtes de spécialistes séparées, une seule active."}
+
+![**Figure 4.** Part des paramètres utilisés pour chaque mot. Les valeurs de Mixtral et DeepSeek-V3 sont calculées à partir des nombres de paramètres publiés [@jiang2024; @deepseek2024]. La valeur du cortex est une estimation grossière de la part des neurones qui peuvent être fortement actifs en même temps, d'après les contraintes énergétiques [@lennie2003] ; elle est débattue et figure en hachures. Graphique personnel.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig04.png){fig-alt="Diagramme en barres de la part active par mot : modèle dense 100 %, Mixtral 8x7B 27,6 %, DeepSeek-V3 5,5 %, estimation pour le cortex environ 1 % (en hachures)."}
+
+Ceux qui construisent les plus grands modèles en ont conclu que tout ne devait pas travailler sur tout. Mais un mélange d'experts reste un seul modèle. Tous ses experts doivent être chargés en mémoire, même si seuls quelques-uns travaillent à la fois. Ils sont entraînés ensemble, donc on ne peut pas en remplacer un sans toucher aux autres. Et ce ne sont pas des spécialistes qu'une personne reconnaîtrait : un expert est une partie du réseau vers laquelle l'entraînement a fini par diriger certains mots.
+
+**Les autres pièces existent déjà, elles aussi.** Ce que j'appelle un écosystème est surtout un assemblage de choses qui fonctionnent déjà :
+
+- **Base partagée et adaptateurs, en production.** Le modèle embarqué d'Apple a environ 3 milliards de paramètres et utilise de petits *adaptateurs LoRA* propres à chaque tâche, échangés selon la tâche ; un adaptateur de rang 16 occupe quelques dizaines de mégaoctets [@gunter2024; @hu2021].
+- **Beaucoup d'adaptateurs sur une machine.** S-LoRA a montré comment servir des milliers d'adaptateurs au-dessus d'un seul modèle de base [@sheng2023].
+- **Des experts entraînés séparément.** Branch-Train-MiX entraîne des experts de domaine en parallèle à partir d'un modèle de départ commun, puis les combine [@sukhbaatar2024].
+- **Le routage entre modèles.** RouteLLM apprend quand une requête peut aller à un modèle moins cher, et rapporte des réductions de coût de plus de deux fois sur certains bancs d'essai, sans perte de qualité [@ong2024]. FrugalGPT rapporte égaler le meilleur modèle seul avec de fortes économies en enchaînant des modèles en cascade [@chen2023].
+- **La mémoire hors des poids.** RETRO, avec une recherche dans une grande base de textes, obtient des résultats comparables à GPT-3 sur le banc d'essai Pile avec environ 25 fois moins de paramètres [@borgeaud2022; @lewis2020].
+
+Aucun de ces travaux n'est l'écosystème complet. Ensemble, ils montrent qu'aucune des parties n'est de la spéculation. Des chercheurs de NVIDIA ont récemment défendu une idée semblable pour les agents : l'essentiel de ce que font les agents est un petit nombre de tâches répétitives et spécialisées, que de petits modèles peuvent traiter plus économiquement, les grands modèles n'étant appelés que si nécessaire [@belcak2025].
+
+## 4. L'arithmétique d'un ordinateur portable : la bande passante
+
+C'est l'argument que je trouve le plus convaincant, parce que c'est de l'arithmétique simple.
+
+Quand un modèle génère du texte pour une personne, chaque nouveau mot demande de lire une fois tous les poids actifs en mémoire, et de faire à peu près deux opérations par poids. Avec des poids stockés sur $b$ bits, un modèle à $N_{\text{actif}}$ paramètres actifs lit $N_{\text{actif}} \cdot b/8$ octets par mot. La vitesse est donc bornée par la bande passante mémoire $B$ :
+
+$$
+\text{mots par seconde} \;\le\; \frac{B}{N_{\text{actif}} \cdot b/8}.
+$$
+
+La bande passante est-elle vraiment la limite, et pas le calcul ? Le modèle *roofline* répond à cette question en comparant les opérations par octet [@williams2009]. Le décodage pour un utilisateur à 4 bits fait environ deux opérations par demi-octet, soit environ 4 opérations par octet lu. Un GPU d'ordinateur portable capable de dizaines de milliers de milliards d'opérations par seconde, avec une bande passante d'environ 500 Go/s, a besoin de dizaines d'opérations par octet pour être occupé. Le décodage en offre bien moins, donc il attend la mémoire.
+
+Prenons un ordinateur portable avec 128 Go de mémoire et jusqu'à 546 Go/s de bande passante, les chiffres publiés pour l'Apple M4 Max [@apple2024m4]. J'utilise 500 Go/s et des poids sur 4 bits :
+
+| Modèle | Paramètres actifs | Lu par mot | Borne supérieure |
+|---|---|---|---|
+| Spécialiste 3B | 3B | 1,5 Go | ≈ 330 mots/s |
+| Spécialiste 8B | 8B | 4 Go | ≈ 125 mots/s |
+| Modèle dense 70B | 70B | 35 Go | ≈ 14 mots/s |
+| DeepSeek-V3 (MoE) | 37B sur 671B | 18,5 Go | ≈ 27 mots/s, mais 335 Go ne tiennent pas dans 128 Go |
+
+![**Figure 5.** Borne supérieure de la vitesse de génération quand chaque mot demande de lire une fois tous les poids actifs, à 500 Go/s et avec des poids sur 4 bits. Cercle vide : ne tient pas dans 128 Go. Les vitesses réelles sont plus basses ; le calcul, le cache de la conversation et le logiciel coûtent tous quelque chose. Mon propre calcul à partir de la formule ci-dessus ; nombres de paramètres de DeepSeek-V3 tirés de [@deepseek2024].](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig05.png){fig-alt="Droite en échelle log-log des tokens par seconde en fonction des milliards de paramètres lus par token : les spécialistes 3B et 8B au-dessus de 100 tokens par seconde, le dense 70B vers 14, et un MoE à 37B actifs marqué comme ne tenant pas dans 128 Go."}
+
+Deux conséquences en découlent. Les mêmes 128 Go qui ne peuvent pas contenir un modèle de pointe peuvent contenir une trentaine de spécialistes à 8 milliards de paramètres, chacun rapide. Et ce mur ne va pas disparaître bientôt : en deux décennies, la puissance de calcul de pointe du matériel serveur a été multipliée par environ 3,0 tous les deux ans, mais la bande passante mémoire seulement par environ 1,6 [@gholami2024]. Des techniques comme le décodage spéculatif [@leviathan2023] aident, mais elles aident autant les petits modèles que les grands.
+
+## 5. L'arithmétique de la capacité : pourquoi les spécialistes peuvent être petits
+
+Le deuxième argument porte sur la façon dont un modèle dépense sa capacité.
+
+Michaud et ses collègues ont proposé une façon utile de penser la mise à l'échelle : la connaissance se présente en unités discrètes, qu'ils appellent *quanta*, utilisées à des fréquences très différentes, et un modèle les apprend à peu près dans l'ordre de leur fréquence d'utilisation [@michaud2023]. En voici une conséquence simple, avec mes mots et mes simplifications.
+
+Supposons qu'une tâche demande deux sortes de quanta : un noyau partagé (le langage, le raisonnement de base), qui prend $N_{\text{partagé}}$ paramètres, et la connaissance du domaine, qui prend $N_{\text{domaine}}$. Un spécialiste a besoin des deux :
+
+$$
+N_{\text{spécialiste}} \approx N_{\text{partagé}} + N_{\text{domaine}}.
+$$
+
+Un modèle général est entraîné sur tout, et le domaine n'est qu'une part $f$ de ce qu'il voit. Dans le cas symétrique le plus simple, où de nombreux domaines ont chacun une part $f$ et une structure semblable, le modèle général n'atteint la même profondeur dans ce domaine que s'il a appris aussi profondément tous les autres domaines :
+
+$$
+N_{\text{général}} \approx N_{\text{partagé}} + \frac{N_{\text{domaine}}}{f}.
+$$
+
+Avec des valeurs d'illustration de 2 milliards pour le noyau et 1 milliard pour le domaine, un domaine qui représente 1 % de l'entraînement du modèle général demande environ 102 milliards de paramètres pour la même profondeur, contre 3 milliards pour le spécialiste.
+
+![**Figure 6.** Un modèle de capacité simple. Paramètres nécessaires pour la même profondeur dans un domaine, pour un modèle général et pour un spécialiste, en fonction de la part $f$ du domaine dans l'entraînement du modèle général. Valeurs d'illustration personnelles : $N_{\text{partagé}}$ = 2B, $N_{\text{domaine}}$ = 1B, aucun transfert entre domaines au-delà du noyau partagé. Modèle inspiré de la vision de la mise à l'échelle par quanta [@michaud2023].](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig06.png){fig-alt="Graphique log-log des paramètres nécessaires en fonction de la part du domaine dans l'entraînement. La courbe du modèle général descend de 1000B à 0,1 % jusqu'à 3B à 100 % ; le spécialiste reste plat à 3B. À 1 % : environ 102B contre 3B."}
+
+Le modèle est grossier, et son hypothèse principale, que les domaines ne s'aident pas les uns les autres au-delà du noyau partagé, n'est pas entièrement vraie. La connaissance se transfère entre domaines, et un modèle général comme GPT-4, soigneusement guidé, a dépassé des modèles médicaux spécialisés sur des bancs d'essai médicaux [@nori2023]. C'est exactement pourquoi la formule garde $N_{\text{partagé}}$ : un bon spécialiste n'est pas entraîné à partir de zéro, il part d'un solide noyau partagé.
+
+Les résultats publiés vont dans le sens de l'argument. Un modèle de 770 millions de paramètres, entraîné avec les explications d'un modèle bien plus grand, a dépassé PaLM à 540 milliards de paramètres, guidé par quelques exemples, sur un banc d'essai, en n'utilisant que 80 % des données d'entraînement [@hsieh2023]. Un modèle de 1,3 milliard de paramètres entraîné sur des données soigneusement choisies a atteint 50,6 % sur le banc d'essai de programmation HumanEval [@gunasekar2023]. Des modèles étroits et bien enseignés peuvent être très petits.
+
+## 6. L'arithmétique de nombreux spécialistes : les adaptateurs
+
+Si chaque spécialiste était un modèle séparé, la mémoire se remplirait vite. Les adaptateurs règlent une grande partie du problème.
+
+Un adaptateur LoRA remplace la mise à jour d'une matrice de poids de taille $d_{\text{in}} \times d_{\text{out}}$ par deux matrices fines de rang $r$ [@hu2021]. Sa taille par rapport à la matrice est
+
+$$
+\frac{r\,(d_{\text{in}} + d_{\text{out}})}{d_{\text{in}}\,d_{\text{out}}} \;\approx\; \frac{2r}{d} \quad \text{pour une matrice carrée}.
+$$
+
+Avec $r = 16$ et $d = 3072$, cela fait environ 1 %. Appliqué à un modèle de base de 3 milliards de paramètres, un adaptateur a à peu près 30 millions de paramètres, environ 60 Mo sur 16 bits, ce qui correspond aux « dizaines de mégaoctets » qu'Apple annonce pour ses adaptateurs de rang 16 [@gunter2024].
+
+![**Figure 7.** Mémoire nécessaire pour $k$ spécialistes, sous forme de modèles 3B séparés sur 4 bits, ou d'une base 3B sur 4 bits plus des adaptateurs de rang 16 sur 16 bits (environ 60 Mo chacun). Mon propre calcul à partir de la formule ci-dessus.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig07.png){fig-alt="Mémoire en fonction du nombre de spécialistes. Les modèles 3B séparés montent en ligne droite et dépassent la ligne des 128 Go vers 85 ; une base plus des adaptateurs reste presque plate, 7,5 Go pour 100 spécialistes."}
+
+Cent spécialistes sous forme d'adaptateurs occupent environ 7,5 Go ; sous forme de modèles séparés, 150 Go. Il y a un compromis, et il vaut la peine de le connaître : les adaptateurs apprennent moins qu'un réentraînement complet, mais ils oublient aussi moins ce que savait le modèle de base [@biderman2024]. Pour un système qui doit continuer à apprendre sans casser, oublier moins est une qualité.
+
+## 7. L'arithmétique du routage
+
+Un écosystème ne vaut que ce que vaut son routeur. Un modèle simple rend cela précis.
+
+Soit $a$ la précision du routeur, $q_s$ la qualité quand une tâche arrive au bon spécialiste, et $q_w$ la qualité quand elle arrive au mauvais. La qualité attendue est
+
+$$
+q = a\,q_s + (1-a)\,q_w.
+$$
+
+L'écosystème bat un modèle général de qualité $q_g$, qui tourne à une vitesse semblable, seulement si
+
+$$
+a \;>\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
+$$
+
+Avec des valeurs d'illustration $q_s = 0{,}90$, $q_w = 0{,}30$ et $q_g = 0{,}80$, le routeur doit avoir raison plus de 83 % du temps. Si le routeur sait aussi quand il n'est pas sûr, et envoie la moitié de ses erreurs à un modèle plus grand de qualité $q_L = 0{,}95$, le seuil descend à environ 64 %.
+
+![**Figure 8.** Qualité attendue d'un écosystème en fonction de la précision du routeur, avec et sans renvoi des cas incertains, comparée à un modèle général qui tourne à une vitesse semblable. Valeurs d'illustration personnelles.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig08.png){fig-alt="Qualité attendue en fonction de la précision du routeur. Le modèle général est plat à 0,80. Un routeur qui renvoie la moitié de ses erreurs le dépasse à 64 % de précision ; un routeur seul seulement à 83 %."}
+
+La leçon n'est pas dans les chiffres exacts, qui sont les miens. Elle est dans la forme : un routeur qui connaît sa propre incertitude vaut plus qu'un spécialiste un peu meilleur. C'est aussi ce qui rend encourageants les travaux publiés sur le routage [@ong2024; @chen2023].
+
+## 8. Le harnais : léger autour des modèles puissants, essentiel autour des petits
+
+Une étude récente de l'EPFL et d'Apple se demande de combien de *harnais* (les orchestrateurs, sous-agents et couches de recherche construits autour d'un modèle) un agent puissant a besoin pour des tâches d'ingénierie de l'apprentissage automatique. À budget de temps égal et avec le même modèle de pointe, les harnais open source élaborés qu'ils ont testés n'ont apporté aucun avantage par rapport à une seule session d'un agent de programmation minimal, avec un accès direct pour lire, écrire et lancer des commandes [@brilliantov2026]. Leur conclusion est que le modèle est le principal moteur de la performance, et que les harnais élaborés autour des modèles puissants rapportent peu sur les bancs d'essai actuels.
+
+À première vue, cela va contre l'écosystème. Si la structure autour d'un modèle n'aide pas, pourquoi construire un écosystème ? Je le lis autrement, pour trois raisons.
+
+**D'abord, c'est un résultat sur les modèles puissants.** L'étude garde le modèle de pointe fixe. Elle dit qu'un modèle puissant a absorbé une grande partie de ce que faisait l'échafaudage. Cela rejoint la « leçon amère » de Sutton : les méthodes générales qui utilisent plus de calcul finissent par battre la structure construite à la main [@sutton2019]. Elle dit beaucoup moins de choses sur un modèle de 3 milliards de paramètres sur un ordinateur portable.
+
+**Ensuite, les petits modèles gagnent le plus avec le bon type de harnais.** Plusieurs résultats vont dans ce sens :
+
+- La conception de l'interface compte : SWE-agent a montré que donner à un modèle des commandes bien conçues pour afficher, modifier et tester du code améliorait les résultats sur des tâches logicielles, sans changer le modèle [@yang2024].
+- Un vérificateur transforme les tentatives en résultats : avec des tentatives répétées, vérifiées par les propres tests du projet, un modèle ouvert est passé de 15,9 % des problèmes de SWE-bench Lite résolus en une tentative à 56 % en 250 tentatives, au-dessus de la meilleure tentative unique publiée à l'époque, 43 % [@brown2024].
+- Du calcul supplémentaire au moment de répondre, bien utilisé, a permis à un modèle plus petit de dépasser un modèle 14 fois plus grand, sur des problèmes où le petit modèle avait déjà un taux de réussite raisonnable [@snell2024].
+- Le cadre d'Apple pour son modèle embarqué offre une génération guidée et des appels d'outils contraints, qui maintiennent la sortie d'un petit modèle dans une structure valide [@apple2025].
+
+![**Figure 9.** Tentatives répétées avec un vérificateur. Les deux points sont des résultats publiés par Brown et al. pour SWE-bench Lite [@brown2024]. La ligne pointillée est mon propre calcul de ce qui se passerait si les tentatives étaient indépendantes, $1-(1-p)^k$ avec $p = 0{,}159$ ; l'écart montre que les tentatives sont fortement corrélées. Graphique personnel.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig09.png){fig-alt="Problèmes résolus en fonction du nombre de tentatives, en échelle logarithmique. Résultats publiés : 15,9 % en une tentative, 56 % en 250. La courbe pointillée des tentatives indépendantes monte vite à 100 %. Une ligne pointillée marque la meilleure tentative unique, à 43 %."}
+
+L'arithmétique mérite une phrase. Si une tentative réussit avec une probabilité $p$ et que les tentatives étaient indépendantes, $k$ tentatives réussiraient avec une probabilité $1-(1-p)^k$. En pratique, les tentatives sont corrélées, donc le gain réel est plus petit, comme le montre la figure. Mais sur une machine locale, où un petit spécialiste est rapide et où un test peut vérifier chaque réponse, quelques tentatives de plus ne coûtent presque rien.
+
+**Enfin, une partie du harnais ne pourra jamais être absorbée par un modèle.** Une mémoire persistante qui dure au-delà d'une conversation. Des permissions sur ce qui peut quitter la machine. Des tests qui décident si un résultat ou une mise à jour est accepté. Les données locales elles-mêmes. Aussi puissants que deviennent les modèles, tout cela reste à l'extérieur.
+
+![**Figure 10.** Ma propre vision du harnais, sous forme de schéma. L'échafaudage du raisonnement (orchestrateurs, sous-agents, nouvelles tentatives) apporte beaucoup aux petits modèles et peu aux puissants. La structure qu'aucun modèle ne peut absorber (mémoire, permissions, tests, données locales) garde sa valeur. L'extrémité droite est cohérente avec le résultat de [@brilliantov2026] ; le reste de la courbe est mon hypothèse, pas des données.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig10.png){fig-alt="Schéma de ce qu'apporte le harnais en fonction de la puissance du modèle. L'échafaudage du raisonnement descend d'une valeur élevée pour les petits spécialistes jusqu'à presque zéro pour les modèles de pointe ; la structure qu'aucun modèle ne peut absorber reste plate."}
+
+Ma conclusion est donc une règle de conception : **garder le harnais léger, et ne garder que ce qui mérite sa place.** L'échafaudage qui compense un raisonnement faible devrait pouvoir être retiré, et être retiré à mesure que les spécialistes s'améliorent. La structure qui apporte mémoire, vérification et contrôle devrait rester.
+
+## 9. Notre propre cerveau
+
+La dernière raison est plus proche de nous. Quand je regarde comment notre cerveau semble organisé, il ne ressemble pas à un modèle dense unique. Il ressemble bien plus à un écosystème. Je veux être prudent ici, parce que la biologie ne prouve rien sur le logiciel, et que le cerveau n'est pas un ensemble de boîtes bien rangées.
+
+**De nombreuses parties spécialisées.** Les neurosciences ont trouvé des aires qui répondent à des choses précises. Un exemple classique est une aire du cortex visuel qui répond beaucoup plus fortement aux visages qu'aux autres objets [@kanwisher1997]. Une lésion de ces aires peut supprimer une capacité et en laisser d'autres presque intactes. En même temps, les représentations sont aussi distribuées et se chevauchent d'une aire à l'autre [@haxby2001]. Spécialisées, mais fortement connectées.
+
+**Le langage et la pensée sont pris en charge par des réseaux différents.** L'un des résultats récents les plus frappants pour mon argument vient de l'étude du langage. L'imagerie cérébrale trouve de façon fiable un réseau qui s'active quand nous lisons ou écoutons des phrases, et qui ne s'active en grande partie pas quand nous résolvons des problèmes ou raisonnons ; des personnes qui perdent le langage à la suite d'une lésion cérébrale peuvent encore raisonner [@fedorenko2024]. Mahowald et ses collègues en ont tiré la conséquence pour l'IA : les grands modèles de langage sont très bons pour la *forme* du langage, mais leur capacité à raisonner et à s'en servir dans le monde est inégale, et des modèles qui fonctionnent comme les humains pourraient avoir besoin de mécanismes séparés pour les deux [@mahowald2024].
+
+**Et aussi un réseau généraliste.** Le cerveau n'est pas fait que de spécialistes. Un réseau *à demandes multiples*, réparti sur des aires frontales et pariétales, s'active pour de nombreuses tâches exigeantes différentes et semble aider à assembler les bonnes parties pour le problème à résoudre [@duncan2020]. Dans l'écosystème, c'est le rôle du noyau partagé et du routeur : une partie générale qui coordonne de nombreuses parties spécialisées.
+
+**La spécialisation est peut-être simplement efficace.** Une expérience récente en fait plus qu'une analogie. Dobs et ses collègues ont entraîné des réseaux de neurones artificiels à reconnaître à la fois des visages et des objets. Sans qu'on le leur demande, les réseaux se sont divisés en systèmes séparés pour les visages et pour les objets, un peu comme le fait le cerveau [@dobs2022]. Leur interprétation est que la spécialisation est ce que tend à produire une bonne optimisation quand les tâches sont assez différentes.
+
+**Probablement un très grand nombre d'unités.** Mountcastle a proposé que le cortex soit construit à partir d'une unité de base répétée, la colonne corticale [@mountcastle1997]. Hawkins va plus loin et suggère que chaque colonne construit son propre modèle du monde, et qu'elles prennent leurs décisions ensemble [@hawkins2021] ; son équipe a depuis lancé un projet ouvert qui construit de l'IA à partir de nombreux *modules d'apprentissage* répétés de ce type [@clay2024]. C'est une théorie, et elle est débattue. Mais l'image d'un grand nombre d'unités semblables, chacune spécialisée par ce qu'elle reçoit, est largement partagée.
+
+**Une mémoire rapide et un apprenant lent.** La théorie des *systèmes d'apprentissage complémentaires* propose que l'hippocampe apprend vite de nouveaux épisodes, tandis que le néocortex apprend lentement, en rejouant ces épisodes au fil du temps [@mcclelland1995; @kumaran2016]. Le rejeu pendant le sommeil a d'abord été observé dans l'hippocampe du rat [@wilson1994], et il a depuis été mesuré aussi chez l'humain, au repos [@liu2019; @schuck2019]. Le sommeil semble jouer un rôle actif dans le transfert des souvenirs du système rapide vers le système lent [@klinzing2019]. L'une des raisons d'avoir deux systèmes est précisément d'éviter ce que les chercheurs en IA appellent l'oubli catastrophique [@mccloskey1989].
+
+**La plasticité.** Les connexions changent avec l'usage. Et quand nous apprenons à lire, une région du cortex visuel se spécialise dans les mots écrits, un processus que Dehaene et Cohen appellent le *recyclage neuronal* [@dehaene2007]. Les nouveaux spécialistes ne sont pas seulement présents dès la naissance ; ils se forment au cours de la vie.
+
+**Clairsemé et frugal.** Le cerveau humain compte environ 86 milliards de neurones [@herculano2009] et fonctionne avec à peu près 20 watts [@balasubramanian2021]. Les budgets énergétiques suggèrent que seule une petite part des neurones corticaux peut être fortement active en même temps, peut-être autour d'un pour cent, même si le chiffre exact est débattu [@lennie2003; @attwell2001].
+
+![**Figure 11.** Comment le cerveau semble organisé, et la partie de l'écosystème à laquelle correspond chaque idée. Une analogie personnelle, pas une affirmation que le cerveau est construit comme un logiciel. Les sources de chaque propriété du cerveau sont données dans la section 9.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig11.png){fig-alt="Tableau qui associe des caractéristiques du cerveau à des parties de l'écosystème : aires spécialisées et spécialistes, réseau généraliste et noyau partagé avec routeur, hippocampe et mémoire partagée, cortex et consolidation nocturne, plasticité et spécialistes qui s'adaptent, 20 watts et petit, clairsemé, local."}
+
+Les chercheurs qui travaillent sur l'apprentissage tout au long de la vie des machines tirent la même leçon de la biologie : des systèmes de mémoire qui apprennent à des vitesses différentes, le rejeu, et des parties modulaires et adaptables font partie des mécanismes qu'ils jugent les plus prometteurs [@kudithipudi2022]. Si notre meilleur exemple d'intelligence générale est très probablement un immense ensemble de sous-modèles spécialisés et plastiques, avec un coordinateur général, une mémoire rapide et un apprenant lent, alors j'ai du mal à croire que la meilleure IA locale sera un seul bloc dense et figé.
+
+# Partie II · L'écosystème en pratique
+
+## 10. Une mémoire hors des poids
+
+Les spécialistes ont besoin d'une mémoire qu'ils partagent. Dans [Fast AI](../2026-10-11-fast-ai/index.qmd), je soutenais qu'un grand modèle devrait servir à construire une mémoire structurée, comme un graphe de connaissances que les experts peuvent inspecter et corriger. Dans un écosystème local, cette mémoire devient le terrain commun, et joue le rôle de la mémoire rapide de la section 9. Deux sortes comptent :
+
+- **Les connaissances** : faits, règles, relations. « Ce client paie toujours sous 30 jours. »
+- **Les épisodes** : ce qui s'est passé. « Mardi dernier, cette facture a été rejetée parce que le numéro de TVA du fournisseur ne correspondait pas. »
+
+Garder cette mémoire hors des poids est ce qui rend le système digne de confiance. On peut la lire. On peut corriger un fait à un seul endroit, et chaque spécialiste en profite. On peut effacer quelque chose et savoir que c'est parti, ce qui est très difficile à garantir une fois que des données ont servi à entraîner un modèle ; retirer leur influence après coup est un problème de recherche ouvert [@bourtoule2021]. La recherche dans la mémoire permet aussi aux petits modèles de savoir bien plus que ce que contiennent leurs poids [@borgeaud2022; @lewis2020].
+
+![**Figure 12.** L'endroit où vit la connaissance compte. Mon propre résumé des propriétés décrites dans cette section ; sur l'effacement, voir [@bourtoule2021].](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig12.png){fig-alt="Tableau qui compare la connaissance dans les poids et dans une mémoire partagée. Lisible, corrigeable, effaçable, partagée par chaque spécialiste : à peine dans les poids, oui dans la mémoire. Reste sur votre machine : si local, contre oui."}
+
+C'est, pour moi, la raison la plus forte de faire tourner tout cela en local. La confidentialité n'est pas seulement une protection. C'est la condition de la mémoire. Les gens et les entreprises ne laisseront un système se souvenir de tout ce qui est utile que s'ils contrôlent l'endroit où vit cette mémoire.
+
+## 11. Une façon de continuer à apprendre
+
+Une mémoire permet à un système de *chercher des choses*. Elle ne lui permet pas de *s'améliorer*. Les modèles actuels sont entraînés une fois, figés, et livrés. Un écosystème local peut faire mieux, parce qu'il voit chaque jour le même genre de travail, et parce que ses spécialistes sont assez petits pour être mis à jour. J'imagine une boucle à deux vitesses, inspirée de la section 9 :
+
+1. **Rapide, pendant la journée.** Les spécialistes travaillent. Les réussites, les corrections et les échecs sont écrits dans la mémoire sous forme d'épisodes. Rien ne change dans les modèles.
+2. **Lente, la nuit.** Le système choisit des épisodes vérifiés, les mélange avec des exemples de ce que le spécialiste fait déjà bien, met à jour l'adaptateur, et teste le résultat sur tout ce qu'il savait déjà bien faire. S'il est meilleur et n'a rien oublié, il est gardé. Sinon, on revient en arrière.
+
+Chaque étape s'appuie sur des travaux existants. Mélanger d'anciens exemples avec de nouveaux, le *rejeu*, est l'un des moyens les plus fiables de limiter l'oubli [@rolnick2019] ; des versions du rejeu inspirées du cerveau vont plus loin et rejouent des représentations internes au lieu d'exemples stockés [@vandeven2020]. D'autres méthodes protègent les poids qui comptent le plus pour les anciennes tâches [@kirkpatrick2017]. Les adaptateurs oublient moins qu'un réentraînement complet [@biderman2024]. Et l'on commence à étudier le temps d'inactivité d'une machine comme une ressource à part entière : le *sleep-time compute* permet à un modèle de réfléchir à son contexte avant que les questions n'arrivent, ce qui réduit le travail nécessaire quand elles arrivent [@lin2025]. Une revue large de l'apprentissage continu décrit les compromis entre ces approches [@wang2024].
+
+L'étape de test mérite un peu d'arithmétique, parce que c'est là que les spécialistes étroits ont un vrai avantage. Si un spécialiste a raison avec une probabilité $p$ sur un jeu de test de $n$ exemples, l'erreur type de la précision mesurée est
+
+$$
+\sigma = \sqrt{\frac{p(1-p)}{n}}.
+$$
+
+Avec $p = 0{,}9$ et $n = 2000$, $\sigma \approx 0{,}7$ point de pourcentage, donc une baisse de 2 points ressort à environ trois erreurs types. Construire 2000 bons cas de test pour une tâche étroite est réaliste. Les construire pour chaque capacité d'un modèle général ne l'est pas.
+
+![**Figure 13.** Schéma personnel, non mesuré. Un modèle figé reste aussi bon que le jour de sa livraison. Un spécialiste qui consolide chaque nuit s'améliore par petites étapes testées. Quand une mise à jour lui fait oublier quelque chose, le test le détecte et la mise à jour est annulée.](../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig13.png){fig-alt="Graphique en escalier de la qualité sur 30 jours. Un modèle figé reste plat ; le spécialiste s'améliore un peu chaque nuit, avec une mise à jour ratée la nuit 17, détectée par le test et annulée."}
+
+Les risques sont réels. Un modèle entraîné à répétition sur ses propres sorties peut se dégrader, un problème connu sous le nom d'*effondrement du modèle* [@shumailov2024]. Le risque est bien plus faible quand les données réelles sont conservées et accumulées à côté des données générées, au lieu d'être remplacées par elles [@gerstgrasser2024]. C'est une raison de plus d'avoir une mémoire qui garde les vrais épisodes, et une boucle qui n'apprend que d'épisodes vérifiés par un test, une personne ou le monde réel, jamais de ses propres réponses non vérifiées. Et un modèle qui change chaque nuit est plus difficile à certifier. De petites mises à jour, des tests stricts, une mémoire qui garde les preuves et la possibilité de revenir en arrière ne sont pas optionnels.
+
+## 12. La place des grands modèles
+
+Rien de tout cela ne rend les modèles de pointe inutiles. Cela change leur rôle.
+
+Ils deviennent des *enseignants* : leur connaissance peut être transmise à de petits modèles par distillation [@hinton2015], y compris leurs explications pas à pas [@hsieh2023]. L'équipe de DeepSeek-R1, par exemple, a publié une famille de petits modèles, de 1,5 à 70 milliards de paramètres, entraînés sur le raisonnement de son grand modèle [@deepseekr1]. Ils deviennent des *architectes de la mémoire* : ils lisent les documents et construisent la première version du graphe de connaissances. Et ils deviennent des *consultants* : quand le routeur rencontre quelque chose de nouveau, ou un problème qui demande un raisonnement large sur de nombreux domaines, il peut leur demander, avec la permission de l'utilisateur, et la réponse vérifiée devient un épisode dont le système local peut apprendre.
+
+## 13. Ce qui me donnerait tort
+
+Un essai qui défend un avenir devrait dire ce qui ferait changer d'avis son auteur. Je changerais d'avis si :
+
+- des petits modèles généraux continuaient à battre des écosystèmes de spécialistes utilisant la même mémoire, même avec un bon routage ;
+- les routeurs ne pouvaient pas atteindre, sur du vrai travail désordonné, la précision qu'exige l'arithmétique de la section 7 ;
+- les mises à jour nocturnes ne pouvaient pas passer des tests de non-régression stricts sans oublier, même avec le rejeu et les adaptateurs ;
+- la bande passante mémoire des appareils grand public augmentait assez vite pour qu'un seul grand modèle tourne confortablement partout.
+
+Je ne pense pas que cela arrivera, mais c'est mesurable, et j'ai l'intention de continuer à observer.
+
+## 14. Conclusion
+
+Je ne pense pas que nous devions attendre que le grand cerveau vienne à nous. L'avenir auquel je crois est déjà à portée de main, et il est organisé autrement : des spécialistes excellents dans une chose, un routeur qui sait qui fait quoi et quand il ne sait pas, une mémoire qui vous appartient, un harnais léger qui garde l'essentiel, et une boucle prudente qui transforme le travail vérifié d'hier en compétence de demain.
+
+La question ne sera pas seulement « quelle quantité d'intelligence puis-je faire tourner en local ? ». Elle sera « à quel point mon intelligence locale est-elle bien organisée, de quoi se souvient-elle, et comment apprend-elle ? ». Notre propre cerveau, très probablement, y répond déjà de cette façon.
+
+::: {.read-next}
+**À lire ensuite** · [Fast AI](../2026-10-11-fast-ai/index.qmd)  
+Pourquoi le grand modèle devrait construire la mémoire une fois, au lieu de raisonner à chaque exécution.
+:::
+
+## Références
+
+::: {#refs}
+:::

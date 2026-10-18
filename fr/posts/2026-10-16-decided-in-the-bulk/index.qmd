@@ -1,0 +1,206 @@
+---
+title: "Décidé dans le volume, écrit sur le bord"
+subtitle: "Une question de physique, un générateur d'images, et une soirée avec un partenaire de laboratoire IA"
+description: "Ce qu'un article de physique m'a appris sur la façon dont l'IA fabrique des images, une expérience menée en une soirée sur deux cœurs de CPU, et ce qu'un partenaire de laboratoire IA a rendu possible."
+date: 2026-10-16
+citation: true
+categories: [essai, ia, recherche, physique]
+image: ../../../posts/2026-10-16-decided-in-the-bulk/figures/fig01.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essai, octobre 2026.** La suite d'[Un univers sans fond](../2026-10-15-a-universe-without-a-bottom/index.qmd). Tout est ouvert : [télécharger le code et les résultats](../../../posts/2026-10-16-decided-in-the-bulk/noise-to-boundaries.zip){download="noise-to-boundaries.zip"} (zip, 2 Mo), [les parcourir sur GitHub](https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries), ou lire le [document de travail](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf) (PDF, 4 pages, en anglais). Les figures et le code sont en anglais. *Traduit de l'anglais : [version originale](../../../posts/2026-10-16-decided-in-the-bulk/index.qmd).*
+:::
+
+**En bref.** Un article de physique sur la façon dont une structure apparaît à partir d'un désordre complet m'a fait poser une question que je pouvais vraiment tester : pendant qu'un générateur d'images IA transforme du bruit en image, où vit l'information de l'image, à l'intérieur d'une région ou sur son bord ? J'ai mené l'expérience en une soirée, sur deux cœurs de CPU, avec une IA comme partenaire de laboratoire. Les images terminées suivent une *loi d'aire* : l'information vit sur les bords. Mais en chemin, les grandes décisions sont d'abord prises sur toute l'image, et ne se posent que plus tard sur les contours. J'ai aussi trouvé une façon de mesurer cela à l'intérieur de n'importe quel générateur d'images, en n'utilisant que sa capacité à enlever du bruit, et je l'ai vérifiée contre des réponses exactes. Rien de tout cela n'est mon domaine. Ce sur quoi je veux insister, c'est comment cela a été possible.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## À retenir
+
+- Les chiffres manuscrits terminés suivent une loi d'aire (β = 1,07) : ce qu'une zone partage avec le reste de l'image croît avec son bord.
+- Dans la phase bruitée du début, la vraie structure ajoute jusqu'à 2,4 fois plus d'information partagée qu'un témoin, et elle croît plutôt comme la taille de la zone. La structure est décidée dans le volume et écrite sur le bord.
+- Le changement est progressif. Une « transition brutale » vue dans un premier essai était du bruit, et a disparu quand je l'ai répété.
+- La même information peut être lue à partir des seules erreurs de débruitage (écart médian de 3 % par rapport aux valeurs exactes), si bien que la méthode peut être appliquée à de vrais générateurs d'images entraînés.
+- Un partenaire de laboratoire IA ne m'a pas donné les réponses. Il m'a permis de bien poser la question : construire, lancer, vérifier, critiquer, et jeter ce qui ne tient pas.
+:::
+
+# Partie I · Du cosmos au code
+
+## 1. Ça doit être plus simple que ça
+
+J'ai récemment raconté la lecture d'un article de physique que je n'arrivais pas à suivre : *Holograms and Standard Models*, de Miyashita, Sekino et Susskind. Ma première réaction a été simple. Quelque chose ne va pas. Ça doit être plus facile. Je crois que l'univers est fondamentalement simple.
+
+Cet essai finissait en philosophie. Des grains dans des grains, le rien qui crée tout, et l'idée que le sens est au milieu.
+
+Celui-ci finit en expérience.
+
+Je suis architecte logiciel, pas physicien. Mais je revenais sans cesse à une idée de cet article, et un soir, je me suis posé une autre question : pourrais-je vraiment tester quelque chose ? Pas sur l'univers. Sur les systèmes d'IA avec lesquels je travaille tous les jours.
+
+## 2. La surface sait tout
+
+L'idée qui est restée est le *principe holographique*. Dans les années 1970, Bekenstein et Hawking ont découvert que l'information qu'un trou noir peut contenir dépend de l'aire de sa surface, et non de son volume. Doublez sa taille, et son information est multipliée par quatre, pas par huit.
+
+Les physiciens ont trouvé le même motif ailleurs. Dans beaucoup de systèmes, l'information partagée entre une région et tout ce qui l'entoure croît avec le bord de la région. Ils appellent cela une *loi d'aire*. Quand elle croît plutôt avec la taille de la région, c'est une *loi de volume*.
+
+Susskind et ses collègues vont plus loin. Ils construisent un petit monde de particules et de forces à partir d'un système à température infinie, l'état de désordre maximal, ce qui ressemble le plus à « rien » dans ce que permet la physique. De la structure à partir de rien, organisée sur une surface.
+
+Je ne pouvais pas vérifier leurs mathématiques. Mais leur question me semblait générale : *quand une structure apparaît à partir d'un désordre complet, où vit son information ?*
+
+## 3. Une machine qui construit de la structure à partir du désordre
+
+Puis j'ai réalisé que je connaissais déjà une machine qui construit de la structure à partir du désordre.
+
+Les générateurs d'images comme Stable Diffusion sont des *modèles de diffusion*. Ils partent d'un bruit purement aléatoire, ce même état de désordre maximal, et enlèvent le bruit étape par étape jusqu'à ce qu'une image apparaisse. Un visage, un chat, un chiffre manuscrit.
+
+L'univers nous offre une seule exécution, vue de l'intérieur, surtout à travers un horizon. Un modèle de diffusion nous en offre autant que nous voulons, et nous pouvons l'arrêter à tout moment pour regarder.
+
+La question est donc devenue concrète. Pendant qu'une image se forme à partir du bruit, l'information partagée entre une zone de l'image et le reste croît-elle avec le bord de la zone, ou avec sa taille ? Aire ou volume ? Et cela change-t-il en chemin ?
+
+# Partie II · L'expérience
+
+## 4. Ce que j'ai mesuré
+
+La mesure est simple à énoncer. Prenez une zone carrée d'une image. Demandez-vous à quel point connaître le reste de l'image vous renseigne sur cette zone. Les physiciens appellent cela l'*information mutuelle*. Puis agrandissez la zone et regardez comment ce nombre croît.
+
+S'il croît comme le bord de la zone, c'est une loi d'aire. S'il croît comme le nombre de pixels à l'intérieur, c'est une loi de volume. Je résume la croissance par un seul nombre, β, tiré de
+
+$$
+I(L) \propto L^{\beta},
+$$
+
+où $L$ est le côté de la zone en pixels : β proche de 1 veut dire loi d'aire, proche de 2 loi de volume.
+
+Je n'ai pas utilisé de réseau de neurones géant. J'ai utilisé quelque chose que je pouvais calculer exactement : un modèle statistique de chiffres manuscrits (le jeu de données classique MNIST) construit à partir de 40 pièces simples, quatre par chiffre. Il apprend une vraie structure ; sur des images qu'il n'a jamais vues, il est bien meilleur qu'un modèle simple. Et pour ce genre de modèle, chaque étape entre le bruit et l'image terminée peut être calculée précisément, sans bruit d'entraînement et sans approximation.
+
+La partie la plus importante est la comparaison. Pour chaque mesure, j'ai aussi construit un *témoin* : un modèle beaucoup plus simple, qui a exactement les mêmes corrélations entre pixels mais aucune vraie structure. Pas de traits, pas de chiffres, juste un flou statistique lisse. Tout ce que fait le vrai modèle et que le témoin ne fait pas vient d'une vraie structure. Sans ce témoin, je me serais trompé moi-même au moins deux fois.
+
+## 5. Ce que j'ai trouvé
+
+**Les chiffres terminés suivent une loi d'aire.** À la fin de la génération, β vaut 1,07. L'information qu'une zone partage avec le reste de l'image croît avec son bord.
+
+**Mais en chemin, il se passe autre chose.** Dans la phase bruitée du début, le vrai modèle porte jusqu'à 2,4 fois plus d'information partagée que le témoin, et cette information supplémentaire croît plutôt comme la *taille* de la zone que comme son bord. À mesure que l'image se précise, l'information supplémentaire se déplace vers les bords, et les deux courbes se rejoignent (Figure 1).
+
+![**Figure 1.** À gauche : des chiffres générés par le modèle appris. À droite : l'exposant β le long du chemin de génération, du bruit fort (à gauche) à l'image terminée (à droite). Le vrai modèle (bleu) porte une information supplémentaire, de type volume, dans la phase bruitée, bien au-dessus du témoin aux mêmes corrélations entre pixels (orange). Les deux convergent vers une loi d'aire, β = 1,07 pour les chiffres terminés.](../../../posts/2026-10-16-decided-in-the-bulk/figures/fig01.png){fig-alt="À gauche : neuf chiffres manuscrits générés. À droite : l'exposant bêta en fonction de la part du signal. Le modèle appris (bleu) reste bien au-dessus du témoin gaussien (orange) dans la phase bruitée ; les deux descendent vers 1,07 pour les chiffres terminés."}
+
+Voici comment je le lis. Au début, le modèle décide les grandes choses : quel chiffre, à peu près où, dans quel sens il penche. C'est un fait qui concerne toute l'image, et chaque pixel en porte un petit indice, donc cela croît avec la taille. Plus tard, le modèle dessine les détails : les traits, les contours, là où le noir rencontre le blanc. Ce sont des choses locales, et elles vivent sur les bords.
+
+Ou, en une ligne : **la structure est décidée dans le volume et écrite sur le bord.**
+
+## 6. Ce qui n'a pas marché
+
+Je m'attendais à une bascule brutale, comme l'eau qui devient glace, à un moment précis. Un premier essai grossier semblait en montrer une. Quand je l'ai répété avec onze niveaux de bruit et trois exécutions indépendantes, le saut a disparu. Le changement est progressif (Figure 2). La « bascule brutale » était du bruit dans une seule exécution.
+
+![**Figure 2.** La même mesure sur une grille fine de niveaux de bruit, répétée trois fois avec des ajustements de modèle et des échantillons indépendants (barres : ±2 écarts types). **a.** L'information totale converge progressivement vers une loi d'aire ; il n'y a pas de saut brutal. **b.** La part qui vient de la vraie structure, au-delà du témoin, commence près d'une loi de volume et va vers une loi d'aire à mesure que l'image se précise.](../../../posts/2026-10-16-decided-in-the-bulk/figures/fig02.png){fig-alt="Deux panneaux avec barres d'erreur. a : l'exposant total descend progressivement d'environ 1,4 à 1,1, au-dessus du témoin. b : l'excès par rapport au témoin descend d'une valeur proche de la loi de volume, environ 1,7, vers la loi d'aire."}
+
+Je le garde dans l'histoire parce que c'est exactement le genre d'erreur facile à publier et difficile à retirer.
+
+## 7. Ce que cela ne montre pas
+
+J'ai demandé une revue sévère de mes propres résultats, du genre qu'écrirait un relecteur. Voici ce qui tient moins bien que je le voudrais.
+
+- **La loi d'aire seule n'est pas surprenante.** Toute image dont les pixels sont surtout corrélés à leurs voisins donne une loi d'aire. Les physiciens le savent depuis des années. La nouveauté n'est pas la loi d'aire finale, mais la structure supplémentaire et la façon dont elle passe du volume au bord.
+- **Cela décrit les données, pas le réseau.** Comme j'ai tout calculé exactement, les résultats décrivent à quoi ressemblent des chiffres bruités à chaque étape, ce qui est pareil pour tout générateur parfait. Pour dire comment se comportent de vrais réseaux de neurones, il faut en tester un qui a été entraîné.
+- **Les images sont minuscules.** À 28×28 pixels, je ne peux comparer que des zones de 2 à 12 pixels de large. C'est moins d'un ordre de grandeur, et la bordure blanche de chaque chiffre déforme les grandes zones.
+- **La physique est une analogie.** La surface d'un trou noir et le bord d'une zone d'image ne sont pas la même chose. Le parallèle est suggestif, et testable, mais il ne prouve rien sur l'univers.
+
+Rien de tout cela ne rend le travail inutile. Cela me dit exactement quoi faire ensuite.
+
+# Partie III · Dépasser la limite
+
+## 8. Voir à l'intérieur de n'importe quel générateur
+
+La deuxième limite me gênait le plus. Ma méthode exacte ne fonctionne que sur des modèles simples. Les vrais générateurs, ceux que les gens utilisent réellement, sont des réseaux de neurones géants où rien ne peut être calculé exactement.
+
+Puis je suis tombé sur un résultat de théorie de l'information, de 2005, de Guo, Shamai et Verdú. Il relie l'information à *la difficulté d'enlever du bruit*. Appliqué à ma question, il dit quelque chose que je trouve beau :
+
+> L'information qu'une zone partage avec le reste de l'image est égale à ce que voir le reste vous aide à nettoyer cette zone, additionné sur tous les niveaux de bruit.
+
+En symboles, avec $A$ la zone, $B$ le reste de l'image et $\text{mmse}$ l'erreur du meilleur débruiteur possible à un rapport signal sur bruit $\gamma$ donné :
+
+$$
+I(A;B) = \frac{1}{2}\int_0^{\text{snr}} \Big[\, \text{mmse}_A(\gamma) + \text{mmse}_B(\gamma) - \text{mmse}_{A \cup B}(\gamma) \,\Big]\, d\gamma
+$$
+
+Cela compte, parce qu'enlever du bruit est exactement ce qu'un modèle de diffusion apprend à faire. En principe, on pourrait donc mesurer la carte de l'information de *n'importe quel* générateur simplement en lui demandant de débruiter une zone deux fois : une fois en ne voyant que la zone, une fois en voyant toute l'image.
+
+J'ai testé cela sur mon modèle de chiffres, où je connaissais déjà la réponse exacte. Les deux voies concordent, avec un écart médian de 3 % sur 32 comparaisons (tailles de zone de 2 à 12 pixels, niveaux de bruit de fort à faible). Le plus grand écart était de 14 %, sur une zone très petite et très bruitée (Figure 3).
+
+![**Figure 3.** L'information mesurée à partir des seules erreurs de débruitage (vertical) contre la valeur exacte (horizontal), pour 32 combinaisons de taille de zone et de niveau de bruit. Les points sur la ligne pointillée concordent parfaitement. L'écart médian est de 3,1 %.](../../../posts/2026-10-16-decided-in-the-bulk/figures/fig03.png){fig-alt="Nuage de 32 points en échelle log-log, l'information tirée des erreurs de débruitage contre l'information mutuelle exacte, tous proches de la ligne pointillée de concordance parfaite."}
+
+C'est la partie que je trouve la plus précieuse. Les calculs exacts deviennent une *vérité de référence* pour vérifier une méthode qui peut passer à l'échelle des vrais modèles. La prochaine étape est de la lancer sur un réseau de neurones entraîné. Il faut pour cela un modèle capable de débruiter avec une partie de l'image cachée, ce que beaucoup de générateurs d'images savent déjà faire.
+
+## 9. Pas besoin d'une grosse machine
+
+Tout ce qui est dans cet essai a tourné sur deux cœurs de CPU. Pas de GPU, pas de grappe dans le cloud, pas de modèle géant téléchargé. L'exécution la plus longue a pris environ sept minutes.
+
+À un moment, on m'a dit que la prochaine étape demandait un GPU. J'ai résisté : pourquoi une question aurait-elle besoin d'une grosse machine ? La réponse honnête était qu'une seule affirmation précise en a besoin, celle sur les réseaux de neurones entraînés. Tout le reste, les calculs exacts, les témoins, les exécutions répétées, tient sur un ordinateur portable. Une partie de la meilleure physique jamais faite était de la physique sur table. Une petite expérience bien contrôlée vaut mieux qu'une grande expérience bâclée.
+
+# Partie IV · Ce que l'IA a rendu possible
+
+## 10. Un partenaire de laboratoire, pas un oracle
+
+Je dois être transparent sur la façon dont cela a été fait. Je l'ai fait en une soirée avec Claude, l'IA d'Anthropic, comme partenaire de laboratoire. J'ai apporté les questions et l'obstination ; elle a écrit et lancé le code, cherché dans la littérature et, surtout, revu les résultats sévèrement quand je le lui demandais. Elle a aussi repéré ses propres erreurs : un modèle qui paraissait meilleur qu'il ne l'était, une légende de graphique qui exagérait un résultat, une « transition brutale » qui n'existait pas.
+
+Reprenez le chemin de cet essai et comptez les étapes qui m'auraient arrêté seul :
+
+- **D'un sentiment à une question mesurable.** « Ça doit être plus simple » n'est pas une hypothèse. La transformer en « l'information mutuelle croît-elle avec le bord ou avec la taille, et cela change-t-il le long du chemin de génération ? » a demandé une conversation, pas un diplôme.
+- **D'une question à du code qui tourne.** L'information mutuelle exacte pour un modèle de mélange de 784 pixels, des estimations de Monte-Carlo avec barres d'erreur, un témoin honnête. Chacun représente une semaine de lecture pour quelqu'un d'extérieur. Ici, chacun était un script que je pouvais lire, lancer et questionner en quelques minutes.
+- **D'un résultat à un résultat auquel je fais confiance.** Le modèle témoin, les trois exécutions indépendantes, la grille fine de niveaux de bruit : ils existent parce que je demandais sans cesse « comment est-ce que je pourrais me tromper ici ? », et les réponses revenaient sous forme d'expériences, pas d'opinions.
+- **D'une impasse à une piste.** La méthode qui fonctionne sur de vrais générateurs vient d'un article de théorie de l'information de 2005 dont je n'avais jamais entendu parler. Le trouver, comprendre ce qu'il dit de ma question et le tester contre les valeurs exactes, tout s'est passé dans la même soirée.
+- **D'une affirmation à une affirmation plus petite et honnête.** La revue sévère a fait descendre la loi d'aire de son piédestal et a laissé debout la partie la plus intéressante. La question du GPU a transformé « il faut une grosse machine » en « seule cette affirmation-là en a besoin ».
+
+Aucune de ces étapes n'est de la science nouvelle en soi. Ce qui est nouveau, pour moi, c'est qu'elles peuvent s'enchaîner à la vitesse de la curiosité. La distance entre « je me demande si… » et « voici le graphique, voici le témoin, voici pourquoi c'est peut-être faux » se comptait en mois, et pour quelqu'un d'extérieur au domaine, elle était généralement infinie. Ce soir-là, elle se comptait en heures.
+
+## 11. L'innovation est dans la question
+
+C'est la partie de l'IA que je trouve la plus intéressante. Non pas qu'elle réponde, mais qu'elle permette à quelqu'un comme moi de *bien poser la question* : mener l'expérience, la vérifier, et jeter ce qui ne tient pas.
+
+On est tenté de dire que l'IA produira de nouvelles idées toute seule. Je ne pense pas que ce soit ce qui s'est passé ici. La question est venue de moi, en lisant un article que je n'arrivais pas à suivre et en refusant de le laisser tomber. La direction a changé trois fois à cause de choix de jugement : exiger un témoin, se méfier d'un saut qui semblait trop beau, refuser d'accepter qu'une question ait besoin d'une grosse machine. Ce que l'IA a supprimé, c'est le coût de chaque étape intermédiaire. Quand essayer une idée coûte des minutes au lieu de semaines, on en essaie davantage, on tue les mauvaises plus tôt, et les bonnes sont poussées plus loin qu'on ne les aurait jamais poussées seul.
+
+Cela change aussi ce que la rigueur veut dire pour quelqu'un d'extérieur. Le danger d'un partenaire rapide, c'est d'aller vite dans la mauvaise direction, et une IA sûre d'elle peut donner à un résultat faux l'air d'être terminé. La défense est la même que dans n'importe quel laboratoire : des témoins, des exécutions répétées, un relecteur payé pour être désagréable, et tout publier pour que d'autres puissent vérifier. L'IA peut aussi jouer le relecteur, si on le lui demande. Il faut le demander.
+
+# Partie V · Retour au début
+
+## 12. Un très bon milieu
+
+Je suis parti d'un sentiment : l'univers doit être plus simple que cet article. Je le crois toujours. Mais je vois maintenant que simple ne veut pas dire facile, et ne veut pas dire achevé.
+
+Dans mon dernier essai, j'écrivais que « de rien à rien » oublie le milieu, et que le milieu, c'est tout. Cette expérience est une petite version de cette idée. Une machine part du bruit, de rien. Elle finit avec un chiffre, une chose terminée. Et entre les deux, il y a un moment où les grandes décisions sont prises partout à la fois, avant de se poser tranquillement sur les contours.
+
+Je ne sais pas si l'univers fonctionne ainsi. Je sais qu'une question posée un soir tranquille peut devenir quelque chose que l'on peut mesurer. Ce n'est la fin de rien. C'est un très bon milieu.
+
+## 13. Essayez vous-même
+
+Tout est ouvert. Vous pouvez recalculer chaque chiffre et chaque figure de cet essai sur un ordinateur portable ordinaire en une demi-heure environ.
+
+- **Code et résultats :** [télécharger en zip](../../../posts/2026-10-16-decided-in-the-bulk/noise-to-boundaries.zip){download="noise-to-boundaries.zip"}, ou [parcourir sur GitHub](https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries). Il contient tous les scripts, les fichiers de résultats, les figures, et un `run_all.sh` qui reproduit tout. La seule chose à télécharger est le jeu de données MNIST (environ 11 Mo) ; le [README](https://github.com/scuenat/scuenat.github.io/blob/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/README.md) donne le lien. Licence MIT.
+- **Document de travail :** [*From Noise to Boundaries: Area-Law Information Scaling Along the Diffusion Path*](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf), une version technique de quatre pages, en anglais, avec les équations et les références.
+- **Prérequis :** Python avec NumPy, SciPy, scikit-learn et Matplotlib. Pas de GPU.
+
+| Étape | Script | Ce qu'il fait | Durée (2 cœurs de CPU) |
+|---|---|---|---|
+| 1 | [`area_law_pilot.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/area_law_pilot.py) | Vérification de la méthode sur des champs au comportement connu | ~15 s |
+| 2 | [`mixture_pilot.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mixture_pilot.py) | Données synthétiques à 16 classes contre leur témoin | ~20 s |
+| 3 | [`digits_fit.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/digits_fit.py), [`digits_mi.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/digits_mi.py) | Petits chiffres 8×8 | ~30 s |
+| 4 | [`mnist_model.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_model.py) | Ajuster le modèle MNIST à 40 pièces ; le vérifier sur des images non vues | ~40 s |
+| 5 | [`mnist_mi.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_mi.py) | MNIST le long de tout le chemin de génération (Figure 1) | ~5 min |
+| 6 | [`mnist_fine.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_fine.py) | Grille de bruit fine, trois exécutions indépendantes (Figure 2) | ~5 min |
+| 7 | [`immse_validation.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/immse_validation.py), [`immse_compare.py`](../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/immse_compare.py) | Information tirée des erreurs de débruitage contre les valeurs exactes (Figure 3) | ~7 min |
+
+Si vous travaillez sur les modèles de diffusion, la théorie de l'information ou la physique de l'apprentissage, j'aimerais beaucoup avoir votre critique, en particulier sur la méthode des erreurs de débruitage et sur la façon de la tester sur un réseau entraîné. Et si vous êtes, comme moi, quelqu'un d'extérieur au domaine avec une question qui ne vous lâche pas : essayez. Vous n'avez peut-être pas besoin d'une plus grosse machine. Vous avez peut-être seulement besoin d'une plus petite expérience, et d'un bon partenaire pour la mener.
+
+::: {.read-next}
+**À lire ensuite** · [Un univers sans fond](../2026-10-15-a-universe-without-a-bottom/index.qmd)  
+La soirée avec un article de physique qui a lancé cette expérience.
+:::
+
+## Pour aller plus loin
+
+::: {.small}
+- Bekenstein, J. D. (1973). Black holes and entropy. *Physical Review D*, 7(8), 2333–2346.
+- Biroli, G., Bonnaire, T., de Bortoli, V., & Mézard, M. (2024). [Dynamical regimes of diffusion models](https://arxiv.org/abs/2402.18491). *Nature Communications*, 15.
+- Guo, D., Shamai, S., & Verdú, S. (2005). Mutual information and minimum mean-square error in Gaussian channels. *IEEE Transactions on Information Theory*, 51(4), 1261–1282.
+- LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). Gradient-based learning applied to document recognition. *Proceedings of the IEEE*, 86(11), 2278–2324.
+- Miyashita, S., Sekino, Y., & Susskind, L. (2026). [Holograms and Standard Models](https://arxiv.org/abs/2607.05678). arXiv:2607.05678.
+- Sclocchi, A., Favero, A., & Wyart, M. (2025). [A phase transition in diffusion models reveals the hierarchical nature of data](https://arxiv.org/abs/2402.16991). *PNAS*.
+:::
