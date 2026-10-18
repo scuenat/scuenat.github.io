@@ -15,7 +15,179 @@
 <link>https://scuenat.github.io/fr/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Sat, 17 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 18 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Le collègue junior</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-10-18-the-junior-colleague/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Analyse, octobre 2026.</strong> Une analyse de <a href="https://arxiv.org/abs/2610.21412">Zhu et al., <em>JevAgentHarness: Benchmarking, Deploying and Training Decision Models That Share Control with LLMs</em></a> (UIUC, Princeton, Google ; arXiv 2610.21412, 15 octobre 2026), lue à la lumière de mon essai <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>. Sauf mention contraire, les chiffres viennent de cet article. Les figures sont de moi, dessinées avec le code de <a href="../../../posts/2026-10-18-the-junior-colleague/figs.py">figs.py</a>, et leurs libellés sont en anglais. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-18-the-junior-colleague/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>Résumé.</strong> La plupart des appels d’un agent d’IA à un grand modèle de langage se terminent par un choix parmi des options : quel outil, quel argument, s’arrêter ou continuer. Zhu et ses collègues se demandent si ces choix peuvent être confiés à un petit <em>modèle de décision</em> qui répond en quelques millisecondes, sans perte de réussite. Leur réponse est oui, à trois conditions : le modèle de décision est testé à l’intérieur de l’agent et non sur des questions isolées, il n’est utilisé que lorsque sa confiance dépasse un seuil ajusté sur les propres exécutions de l’agent, et il est entraîné sur les états que l’agent atteint réellement, y compris après ses propres erreurs. Dans ces conditions, un modèle ouvert de 4 milliards de paramètres a rendu des agents de service client 86,3 % moins chers et 2,5 fois plus rapides, sans perte de réussite mesurable. Les gains étaient faibles pour les agents de programmation, et la méthode a lourdement échoué face à une règle que le modèle n’avait jamais vue, jusqu’à ce que les seuils soient réajustés. Je soutiens que c’est la pièce qui manquait à Fast AI : une voie rapide au niveau de chaque choix, qui sait quand elle n’est pas sûre et qui apprend ses habitudes de la voie lente.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>Principaux résultats
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>La plupart des étapes d’un agent sont des choix parmi des options.</strong> Il leur faut un modèle qui choisit et dit à quel point il est sûr, pas un modèle qui écrit.</li>
+<li><strong>Un seuil ajusté protège la réussite.</strong> Il a réduit le coût de 14,2 % sans perdre une seule tâche ; un seuil fixe a perdu 21,5 points.</li>
+<li><strong>Les scores isolés trompent.</strong> Le meilleur modèle sur des questions isolées n’a résolu que 69,5 % des tâches d’agent ; un modèle moins précis en a résolu 91,5 %.</li>
+<li><strong>L’entraînement sur les états de l’agent fonctionne.</strong> Un modèle de 4 milliards de paramètres est passé de 13,5 % à 96,0 % de tâches décalées résolues, pour 2,2 heures de GPU.</li>
+<li><strong>Les gains dépendent de la répétition.</strong> 86 à 89 % moins cher en service client et dans des jeux textuels, 7 à 10,5 % pour les agents de programmation.</li>
+<li><strong>Les modèles rapides se trompent avec assurance face à une règle nouvelle.</strong> 3,0 % de tâches résolues contre 88,0 % pour le grand modèle seul, jusqu’au réajustement.</li>
+</ul>
+</div>
+</div>
+<section id="la-question" class="level2">
+<h2 class="anchored" data-anchor-id="la-question">1. La question</h2>
+<p>Dans <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>, je soutenais que l’automatisation devrait apprendre lentement, une fois, et agir vite, à chaque fois, en gardant le grand modèle pour les exceptions. L’essai laissait une question pratique ouverte : dans un agent en marche, comment savoir quelles étapes sont routinières, et qui y répond si ce n’est pas le grand modèle ?</p>
+<p>L’article JevAgentHarness traite exactement cette question. Son point de départ est simple. Regardez un agent travailler et comptez ce qu’il décide. Un client demande d’annuler une commande ; l’agent doit choisir entre consulter la commande, l’annuler ou d’abord interroger le client ; puis quelle commande ; puis quel motif dans une liste fixe ; puis si la tâche est terminée. Chacun de ces choix est un appel à un grand modèle de langage qui lit tout le contexte et écrit sa réponse mot après mot, en quelques secondes. Pourtant, presque chacun se termine par le choix d’un élément dans une liste que la couche d’exploitation de l’agent connaît déjà.</p>
+<p>Les auteurs identifient huit <em>points de décision</em> dans une étape de la boucle d’un agent : trois qui choisissent ce que fait l’agent (l’outil, ses arguments ou la prochaine action) et cinq qui pilotent la boucle (écrire en mémoire, relire la mémoire, réfléchir après un échec, s’arrêter, ou confier l’étape à un modèle moins cher). Leur question de recherche est de savoir comment une couche d’exploitation peut déléguer ces choix « à un modèle de décision rapide et bon marché quand ce modèle est fiable, pour que les tâches agentiques deviennent plus rapides et moins chères avec peu de perte de réussite ».</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig01.png" class="img-fluid figure-img" alt="Deux rangées de six étapes. En haut : six cases LLM pour l'outil, les arguments et l'arrêt, quelques secondes chacune. En bas : cinq cases vertes du modèle de décision et une case incertaine qui appelle le LLM : un seul appel au LLM, le reste en millisecondes."></p>
+<figcaption><strong>Figure 1.</strong> Schéma. Aujourd’hui, le grand modèle fait chaque choix de la boucle. Avec un modèle de décision, les choix routiniers reçoivent une réponse en quelques millisecondes, et le grand modèle n’est appelé que là où le modèle de décision n’est pas sûr.</figcaption>
+</figure>
+</div>
+</section>
+<section id="contexte-les-modèles-de-décision" class="level2">
+<h2 class="anchored" data-anchor-id="contexte-les-modèles-de-décision">2. Contexte : les modèles de décision</h2>
+<p>Les <em>modèles de décision</em> sont une nouvelle classe de modèles conçue pour ce type de choix. À partir d’un contexte et d’une question à options fixes, ils renvoient une probabilité pour chaque option au lieu de générer du texte. Le plus connu est Jev, publié par TypeSafe en septembre 2026 et présenté comme un modèle « System One », d’après le mode de pensée rapide et intuitif décrit par Daniel Kahneman (<a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">annonce de TypeSafe</a>). Ses poids et sa taille ne sont pas publics. Dans un épisode enregistré par Zhu et ses collègues, un appel à Jev a pris 28 % du temps d’un appel à un LLM et coûté 2,6 % de son prix ; le <a href="https://github.com/JevAgentHarness/JevAgentHarness">dépôt du projet</a> estime environ 0,15 s et 0,0001 dollar pour un état typique d’agent de programmation.</p>
+<p>Des équivalents ouverts sont apparus en quelques semaines, parmi lesquels Intern-Decision, StartLux-Decision et OpenJev. Les premières évaluations indépendantes aussi, et elles méritent d’être lues avant de faire confiance à l’un de ces modèles. Comme juge bon marché, Jev a détecté des défaillances d’alignement, comme la complaisance ou l’injection d’instructions, à peu près aussi bien qu’un évaluateur LLM de référence, pour une fraction du coût (<a href="https://arxiv.org/abs/2609.29429">Guo et al., 2026</a>). Comme juge appliquant une grille d’évaluation, il s’est révélé « moins cher, plus rapide, et faux aux mêmes endroits » que les LLM (<a href="https://arxiv.org/abs/2609.29769">Rao et Callison-Burch, 2026</a>). Des tests adverses montrent que de petites modifications d’une question peuvent inverser ses réponses (<a href="https://arxiv.org/abs/2609.31142">JevAdvBench</a>), et une étude rapporte qu’inverser l’ordre de « oui » et « non » change nombre de ses réponses (<a href="https://arxiv.org/abs/2610.00346">arXiv 2610.00346</a>).</p>
+<p>L’idée elle-même est plus ancienne que ces modèles. Un classifieur qui peut s’abstenir quand il n’est pas sûr relève de la <em>classification sélective</em> (<a href="https://arxiv.org/abs/1705.08500">Geifman et El-Yaniv, 2017</a>) ; un classifieur qui confie certains cas à un expert relève de l’<em>apprentissage de la délégation</em> (<a href="https://arxiv.org/abs/2006.01862">Mozannar et Sontag, 2020</a>). Des routeurs et des cascades comme <a href="https://arxiv.org/abs/2305.05176">FrugalGPT</a> et <a href="https://arxiv.org/abs/2406.18665">RouteLLM</a> appliquent cette idée à des requêtes entières, et des agents qui pensent « vite et lentement », comme <a href="https://arxiv.org/abs/2305.17390">SwiftSage</a> ou l’architecture <a href="https://arxiv.org/abs/2410.08328">Talker-Reasoner</a>, l’appliquent à des étapes entières. Ce qui est nouveau dans JevAgentHarness, c’est la granularité : un choix typé à la fois, à l’intérieur de l’agent, avec un seuil par type de choix.</p>
+</section>
+<section id="lapproche" class="level2">
+<h2 class="anchored" data-anchor-id="lapproche">3. L’approche</h2>
+<p>L’article comporte trois parties, une pour chacune des conditions dont un modèle de décision a besoin, selon les auteurs, pour être utile.</p>
+<p><strong>Un banc d’essai à trois niveaux.</strong> AgentDecisionBench teste les modèles de décision sur des questions isolées (niveau 1), à chaque étape d’exécutions d’agent enregistrées, où les réponses sont notées mais pas exécutées (niveau 2), et aux commandes d’un agent en marche, où chaque choix modifie la suite (niveau 3). Comme les bancs d’essai publics ne vérifient que la fin d’une exécution, les auteurs ont construit DecisionGym, un service client simulé dans l’esprit de <a href="https://arxiv.org/abs/2406.12045">τ-bench</a>, qui connaît les étapes suivantes acceptables dans chaque état atteignable, y compris après des détours. Chaque tâche propose 68 outils dans un ordre aléatoire, dont 31 quasi-doublons des outils principaux.</p>
+<p><strong>Une couche d’exploitation qui demande, puis décide si elle fait confiance.</strong> JevAgentHarness se branche sur des agents existants, comme mini-SWE-agent ou l’agent terminal pi, par leurs points d’extension. À chaque choix routinier, elle pose au modèle de décision une question à choix multiple typée : des outils, des valeurs d’argument tirées d’une liste fixe ou oui/non, ou des passages à copier depuis le contexte. Dans le mode principal, la <em>cascade</em>, la réponse n’est utilisée que si la confiance <img src="https://latex.codecogs.com/png.latex?c"> du modèle de décision dépasse un seuil. Sinon, le grand modèle décide comme d’habitude. L’article tire ce seuil d’un raisonnement simple sur les coûts : déléguer en vaut la peine lorsque</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Ac%20%5C;%5Cge%5C;%20q_L%20-%20%5Cfrac%7B%5CDelta%20C%7D%7BV%7D,%0A"></p>
+<p>où <img src="https://latex.codecogs.com/png.latex?q_L"> est la fréquence à laquelle le grand modèle fait ce choix correctement, <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C"> le prix de l’appel économisé et <img src="https://latex.codecogs.com/png.latex?V"> le coût d’un mauvais choix. Le petit modèle peut être un peu moins précis que le grand, tant que l’économie couvre le risque supplémentaire. En pratique, l’agent tourne d’abord sur des tâches séparées pendant que le modèle de décision répond en silence (<em>mode fantôme</em>), et le seuil est ajusté sur ces exécutions pour chaque point de décision. Avec Jev et Gemini 3.5 Flash, les seuils ajustés étaient de 1,00 pour les outils et de 0,99 pour les arguments : seules les réponses quasi certaines sont utilisées.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig02.png" class="img-fluid figure-img" alt="Trois droites décroissantes de la confiance minimale digne de confiance en fonction du rapport entre le prix de l'appel économisé et le coût d'un mauvais choix, pour un LLM juste dans 99 %, 95 % et 90 % des cas. Un repère à 0,01 montre des seuils proches de la précision du LLM."></p>
+<figcaption><strong>Figure 2.</strong> La règle de seuil de Zhu et ses collègues, avec des valeurs d’illustration de mon choix. Quand un appel coûte peu par rapport à ce que coûte un mauvais choix, le seuil se place juste sous la propre précision du grand modèle.</figcaption>
+</figure>
+</div>
+<p><strong>Un modèle entraîné sur les états de l’agent.</strong> AgentDecision-4B est Qwen3-4B doté d’un adaptateur LoRA. La couche d’exploitation a exécuté 587 tâches d’entraînement et enregistré chaque état de décision, 15 694 au total. Pour inclure des états qui suivent des erreurs, une politique scriptée a répété des erreurs observées pendant le développement, une idée issue de l’apprentissage par imitation (<a href="https://arxiv.org/abs/1011.0686">Ross et al., 2011</a>), si bien que 30,9 % des états suivent une erreur. Les probabilités de Jev ont servi d’étiquettes souples, mélangées à la bonne réponse, avec une fonction de perte qui garde aussi les probabilités bien calibrées. Une seconde étape d’apprentissage par renforcement, dans la boucle de l’agent, a récompensé la réussite obtenue avec moins d’appels au LLM.</p>
+<p>Le protocole est soigné : les modèles, les tâches et les tests ont été enregistrés avant les exécutions principales, chaque délégation a d’abord été testée seule pour la non-infériorité (moins de 3 points de réussite perdus, au seuil de 5 %, avec une correction pour tests multiples), et ce n’est qu’ensuite que les délégations retenues ont été combinées et testées sur de nouvelles tâches.</p>
+</section>
+<section id="résultats" class="level2">
+<h2 class="anchored" data-anchor-id="résultats">4. Résultats</h2>
+<section id="les-scores-isolés-classent-mal-les-modèles-de-décision" class="level3">
+<h3 class="anchored" data-anchor-id="les-scores-isolés-classent-mal-les-modèles-de-décision">4.1 Les scores isolés classent mal les modèles de décision</h3>
+<p>Sur des questions isolées, les modèles se tenaient à environ 5 points les uns des autres. Dans un agent en marche, leur taux de réussite s’étalait sur 57 points. StartLux-9B, le plus précis sur le choix d’outil isolé avec 92,2 %, a résolu 69,5 % des tâches. AgentDecision-4B, à 89,3 %, en a résolu 91,5 %. La différence se joue dans les états difficiles, comme les moments où la bonne décision est d’interroger le client avant une action irréversible : là, AgentDecision-4B a répondu juste dans 67,4 % des cas et Jev dans 58,3 %. La précision sur des étapes d’agent enregistrées classait les modèles presque comme la réussite des tâches (corrélation de Kendall de 0,84).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig03.png" class="img-fluid figure-img" alt="Nuage de points des tâches résolues dans l'agent en fonction de la précision isolée. Les précisions isolées se situent toutes entre 87 % et 92 %, tandis que la réussite va de 34 % pour Intern-Decision-4B à 91,5 % pour AgentDecision-4B. StartLux-9B, le plus précis en isolé, résout 69,5 %."></p>
+<figcaption><strong>Figure 3.</strong> Précision sur des questions isolées en fonction des tâches résolues lorsque le modèle fait les choix d’outil de l’agent, sur des tâches de service client décalées. Données de Zhu et al., figure 4b.</figcaption>
+</figure>
+</div>
+</section>
+<section id="un-seuil-ajusté-protège-la-réussite" class="level3">
+<h3 class="anchored" data-anchor-id="un-seuil-ajusté-protège-la-réussite">4.2 Un seuil ajusté protège la réussite</h3>
+<p>Avec un seuil ajusté, Jev a fait 27,2 % des choix d’outil et 20,8 % des choix d’argument, réduisant le coût de 14,2 % sans changer l’issue d’aucune des 500 tâches. Sans seuil, laisser Jev faire tous les choix d’outil a fait perdre 19,0 points de réussite ; un seuil fixe de 0,5 en a fait perdre 21,5. C’est le seuil, et non le modèle, qui rend la délégation sûre.</p>
+</section>
+<section id="lentraînement-sur-les-états-de-lagent-fonctionne" class="level3">
+<h3 class="anchored" data-anchor-id="lentraînement-sur-les-états-de-lagent-fonctionne">4.3 L’entraînement sur les états de l’agent fonctionne</h3>
+<p>Un apprentissage supervisé sur les états de l’agent a fait passer le modèle de 4 milliards de paramètres de 13,5 % à 96,0 % de tâches décalées résolues, pour 2,2 heures de GPU. La même recette a fait passer StartLux-4B de 49,0 % à 98,0 %. L’étape d’apprentissage par renforcement n’a apporté aucun gain mesurable, ce que les auteurs rapportent sans détour. L’élève a battu son maître : Jev a résolu 82,0 % des mêmes tâches. Sur une seule carte graphique L4, AgentDecision-4B a répondu en 31 ms en médiane, contre 809 ms pour un appel à Gemini 3.5 Flash.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig04.png" class="img-fluid figure-img" alt="Barres horizontales. Qwen3-4B non entraîné 13,5 % ; après entraînement sur les états de l'agent 96,0 % ; après apprentissage par renforcement 96,0 % ; avec données publiques, AgentDecision-4B 91,5 % ; Jev 82,0 % ; StartLux-4B 49,0 %, et 98,0 % avec la recette ; Intern-Decision-4B 34,0 %."></p>
+<figcaption><strong>Figure 4.</strong> Tâches résolues sur des tâches de service client décalées, avec différents modèles de décision aux commandes des choix d’outil de l’agent. Données de Zhu et al., tableau 3.</figcaption>
+</figure>
+</div>
+</section>
+<section id="les-gains-dépendent-de-la-répétition-des-choix" class="level3">
+<h3 class="anchored" data-anchor-id="les-gains-dépendent-de-la-répétition-des-choix">4.4 Les gains dépendent de la répétition des choix</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig05.png" class="img-fluid figure-img" alt="Barres horizontales du coût économisé : service client 86,3 %, +0,5 point, 2,5 fois plus rapide ; ALFWorld 89,0 %, +4,3 points, environ deux fois plus rapide ; tâches difficiles avec une règle nouvelle 30,5 %, +2,0 points, plus lent ; agents de programmation 7,0 à 10,5 %, de -6,0 à +7,9 points."></p>
+<figcaption><strong>Figure 5.</strong> Coût d’appels au LLM économisé, avec la variation de réussite par rapport au grand modèle seul, dans quatre contextes. Données de Zhu et al., tableaux 1 et 2.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>Service client.</strong> Sur 500 nouvelles tâches, AgentDecision-4B, sur sa propre carte graphique, a fait 99,9 % des choix d’outil et 75,0 % des choix d’argument, économisant 4,5 appels au LLM par tâche : 86,3 % moins cher, 2,5 fois plus rapide, avec une réussite à moins d’un demi-point du grand modèle seul.</li>
+<li><strong>Jeux textuels.</strong> Sur ALFWorld, un modèle de 4 milliards de paramètres entraîné sur les états du jeu a rendu l’agent 89,0 % moins cher et environ deux fois plus rapide, avec une meilleure réussite, et a conservé ces gains dans des pièces jamais vues.</li>
+<li><strong>Agents de programmation.</strong> Les actions sont du texte libre, si bien que le modèle de décision pouvait seulement choisir quel LLM écrit chaque étape. Les économies ont été de 7,0 à 10,5 %, et la réussite a varié selon l’agent.</li>
+</ul>
+</section>
+<section id="les-modèles-rapides-se-trompent-avec-assurance-face-à-une-règle-nouvelle" class="level3">
+<h3 class="anchored" data-anchor-id="les-modèles-rapides-se-trompent-avec-assurance-face-à-une-règle-nouvelle">4.5 Les modèles rapides se trompent avec assurance face à une règle nouvelle</h3>
+<p>Sur des tâches plus difficiles comportant une règle d’annulation sur laquelle aucun modèle n’avait été entraîné, AgentDecision-4B a fait la plupart des choix entre annuler et expédier, mais n’en a réussi que 81,6 %, et l’agent n’a résolu que 3,0 % des tâches, contre 88,0 % pour le grand modèle seul. Réajuster le seuil a rétabli la réussite ; réentraîner le modèle sur la règle a fait passer sa précision de 76,5 % à 95,3 %. Dans le même esprit, les 34 tâches que Jev a ratées ont toutes commencé par un mauvais choix d’outil irréversible, le plus souvent une annulation là où l’agent aurait dû demander.</p>
+</section>
+</section>
+<section id="analyse-ce-que-cela-change-pour-fast-ai" class="level2">
+<h2 class="anchored" data-anchor-id="analyse-ce-que-cela-change-pour-fast-ai">5. Analyse : ce que cela change pour Fast AI</h2>
+<p>Fast AI proposait une répartition : les réseaux profonds perçoivent, un graphe de connaissances se souvient, les arbres décident, et la boucle agentique est gardée pour les exceptions. L’article ne teste pas cette architecture, mais ses résultats la concernent de cinq façons.</p>
+<p><strong>Les modèles de décision comblent l’écart entre les arbres et le grand modèle.</strong> Les arbres à gradient boosting restent mon choix quand une décision repose sur des données structurées. Mais beaucoup de choix d’un processus arrivent sous forme de texte : un message de client, un historique de conversation, un ticket. Jusqu’ici, ils revenaient par défaut au grand modèle. Un petit modèle de décision les traite désormais en quelques millisecondes, avec une probabilité à l’appui.</p>
+<p><strong>« Savoir quand on n’est pas sûr » devient une étape d’ingénierie.</strong> Fast AI exigeait que chaque modèle rapide sache quand passer la main, sans dire comment. La réponse de l’article est concrète : tourner en mode fantôme, mesurer, ajuster un seuil par type de choix, réajuster quand quelque chose change. Le résultat 4.2 montre que cette étape compte davantage que le choix du modèle.</p>
+<p><strong>La boucle des habitudes est la boucle d’entraînement.</strong> Le résultat 4.3 est l’étape de formation des habitudes de Fast AI, rendue mesurable. Les maîtres lents et coûteux, Jev et le grand modèle, étiquettent une fois l’expérience propre de l’agent. L’élève rapide apprend les habitudes de cet agent, dans ce domaine, y compris la manière de se rattraper après ses propres erreurs. Les cas délégués, consignés dans les journaux, deviennent les données du prochain entraînement.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png" class="img-fluid figure-img" alt="Flux d'un choix listé vers un petit modèle de décision, puis vers une voie rapide s'il est assez sûr ou vers une voie lente (LLM, agent, personne) sinon, les deux menant à une action. Boucle en pointillés : de la voie lente vers les journaux d'états, de délégations et d'erreurs, puis réentraînement et réajustement, puis mode fantôme, et retour au modèle de décision."></p>
+<figcaption><strong>Figure 6.</strong> Fast AI avec un modèle de décision. Chaque choix listé va à un petit modèle de décision. Au-dessus de son seuil, il décide ; en dessous, c’est le grand modèle, un agent ou une personne. Les journaux, y compris les erreurs de l’agent, servent à réentraîner le modèle et à réajuster les seuils, qui sont testés en mode fantôme avant qu’on leur fasse confiance.</figcaption>
+</figure>
+</div>
+<p><strong>Le graphe de connaissances compte toujours, peut-être davantage.</strong> Un modèle de décision ne vaut que par ses options, et le résultat 4.5 montre ce qui arrive quand les règles changent sous ses pieds. Dans un système bien construit, le graphe fournit les options (quels outils s’appliquent à ce fournisseur, quels approbateurs sont valables pour ce montant) et conserve les règles sous une forme qu’une personne peut lire et corriger. Quand une règle change, la modification est faite une fois dans le graphe, et les seuils sont réajustés. Les habitudes inscrites dans des poids sont rapides ; celles inscrites dans un graphe sont vérifiables. Un système sérieux a besoin des deux.</p>
+<p><strong>Cela s’inscrit dans l’écosystème local.</strong> Un modèle de 4 milliards de paramètres sur une seule carte graphique est exactement le genre de petit spécialiste que je décrivais dans <a href="../../../fr/posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">Un écosystème, pas un oracle</a>. Des chercheurs de NVIDIA font le même argument pour les agents en général : l’essentiel de ce que font les agents est étroit et répétitif, et de petits modèles peuvent le faire plus économiquement (<a href="https://arxiv.org/abs/2506.02153">Belcak et al., 2025</a>). Les modèles de décision vont le plus loin dans ce sens, car choisir une option est bien plus étroit qu’écrire.</p>
+</section>
+<section id="limites-et-questions-ouvertes" class="level2">
+<h2 class="anchored" data-anchor-id="limites-et-questions-ouvertes">6. Limites et questions ouvertes</h2>
+<p>L’article est prudent sur ses limites, et elles déterminent jusqu’où ses résultats peuvent être étendus.</p>
+<ul>
+<li><strong>Validité externe.</strong> Toutes les tâches sont en anglais, la plupart des exécutions utilisent des modèles Gemini, et les chiffres les plus frappants viennent de l’environnement des auteurs eux-mêmes, DecisionGym. Une réplication indépendante sur des charges de travail réelles est la prochaine étape.</li>
+<li><strong>Ajusté à un agent.</strong> Les seuils et les modèles entraînés sont ajustés aux exécutions d’un agent donné. Un nouvel agent, de nouveaux outils ou une nouvelle famille de tâches exigent un réajustement et, pour la meilleure précision, un réentraînement.</li>
+<li><strong>Dérive silencieuse.</strong> Le résultat 4.5 montre que la confiance ne baisse pas d’elle-même quand les règles changent. Les auteurs suggèrent de suivre la part des réponses au-dessus du seuil ; j’y ajouterais la surveillance fondée sur la forme décrite dans <a href="../../../fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">Ce qu’un écran silencieux ne peut pas voir</a>.</li>
+<li><strong>Actions irréversibles.</strong> Un mauvais choix fait avec assurance à une étape irréversible met fin à la tâche. Les auteurs avertissent qu’une garde confiée à un modèle de décision ne doit jamais être le seul contrôle d’une telle action, et que les adaptateurs ne doivent pas servir de barrières de sécurité.</li>
+<li><strong>Statistiques.</strong> Les tests principaux montrent que la réussite baisse de moins de 3 points ; démontrer une réussite égale demanderait un test d’équivalence. Les auteurs n’ont pas comparé leur approche à des routeurs appris comme RouteLLM sur les mêmes tâches.</li>
+<li><strong>Licence.</strong> Les poids entraînés sont publiés sous une licence non commerciale, en partie parce qu’ils sont entraînés sur les sorties d’un modèle propriétaire.</li>
+</ul>
+<p>Deux questions me semblent ouvertes. D’abord, quelle part du gain subsiste quand les options elles-mêmes doivent être découvertes, au lieu d’être listées par la couche d’exploitation ? Ensuite, peut-on garder automatiquement le seuil et le graphe de connaissances en phase, de sorte qu’un changement de règle dans le graphe déclenche un réajustement avant de provoquer des échecs ?</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>Le grand modèle n’a jamais été fait pour répondre dix mille fois par jour à « lequel de ces trois outils ? ». Il est fait pour traiter ce qui est nouveau, et pour enseigner.</p>
+<p>JevAgentHarness montre une manière soignée d’organiser cela : interroger d’abord un petit modèle de décision, ne lui faire confiance qu’au-dessus d’un seuil ajusté sur ses propres exécutions, le tester sur son propre travail plutôt que sur un classement, et l’entraîner sur les états que l’agent atteint réellement, erreurs comprises. Quand les choix se répètent, le résultat est un agent plusieurs fois plus rapide et bien moins cher, sans perte de réussite mesurable. Quand le monde change, c’est la même discipline, mode fantôme, réajustement et réentraînement, qui le garde sûr.</p>
+<p>C’est un collègue junior au meilleur sens du terme : rapide sur la routine, honnête sur ce qu’il ne sait pas, et meilleur chaque mois grâce à ce que décident les seniors. C’est aussi Fast AI, un choix à la fois.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a> Pourquoi le grand modèle devrait construire la mémoire une fois, au lieu de raisonner à chaque exécution.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cette analyse sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section></div> ]]></description>
+  <category>analyse</category>
+  <category>ia</category>
+  <category>agents</category>
+  <category>automatisation</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-10-18-the-junior-colleague/</guid>
+  <pubDate>Sun, 18 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png" medium="image" type="image/png" height="80" width="144"/>
+</item>
 <item>
   <title>Un écosystème, pas un oracle</title>
   <dc:creator>Stéphane Cuenat</dc:creator>

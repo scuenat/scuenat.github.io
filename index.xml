@@ -15,7 +15,179 @@
 <link>https://scuenat.github.io/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Sat, 17 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 18 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>The Junior Colleague</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Analysis, October 2026.</strong> An analysis of <a href="https://arxiv.org/abs/2610.21412">Zhu et al., <em>JevAgentHarness: Benchmarking, Deploying and Training Decision Models That Share Control with LLMs</em></a> (UIUC, Princeton, Google; arXiv 2610.21412, 15 October 2026), read in the light of my earlier essay <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>. Unless stated otherwise, numbers come from that paper. Figures are my own, drawn with the code in <a href="figs.py">figs.py</a>.</p>
+</div>
+</div>
+</div>
+<p><strong>Abstract.</strong> Most of an AI agent’s calls to a large language model end in a multiple-choice pick: which tool, which argument, stop or continue. Zhu and colleagues ask whether these picks can be handed to a small <em>decision model</em> that answers in milliseconds, without losing task success. Their answer is yes, under three conditions: the decision model is tested inside the agent rather than on isolated questions, it is used only when its confidence clears a threshold fitted on the agent’s own runs, and it is trained on the states the agent actually reaches, including after its own mistakes. Under these conditions, an open 4B model made customer-service agents 86.3% cheaper and 2.5 times faster with no detectable loss of success. The gains were small in coding agents, and the method failed badly on a rule the model had never seen, until thresholds were refitted. I argue that this is the missing piece of Fast AI: a fast path at the level of single choices, which knows when it is unsure and learns its habits from the slow path.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Main findings
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Most agent steps are multiple choice.</strong> They need a model that picks and says how sure it is, not one that writes.</li>
+<li><strong>A fitted threshold protects success.</strong> It cut cost by 14.2% without losing a single task; a fixed threshold lost 21.5 points.</li>
+<li><strong>Isolated scores mislead.</strong> The best model on isolated questions solved only 69.5% of agent tasks; a less accurate one solved 91.5%.</li>
+<li><strong>Training on the agent’s own states works.</strong> A 4B model went from 13.5% to 96.0% of shifted tasks solved, for 2.2 GPU-hours.</li>
+<li><strong>The gains depend on repetition.</strong> 86–89% cheaper in customer service and text games, 7–10.5% in coding agents.</li>
+<li><strong>Fast models fail confidently on new rules.</strong> 3.0% of tasks solved against 88.0% for the large model alone, until refitting.</li>
+</ul>
+</div>
+</div>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">1. The question</h2>
+<p>In <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> I argued that automation should learn slowly, once, and act fast every time, keeping the large model for the exceptions. The essay left one practical question open: inside a running agent, how do you know which steps are routine, and what answers them if not the large model?</p>
+<p>The JevAgentHarness paper addresses exactly this. Its starting observation is simple. Watch an agent work and count what it decides. A customer asks to cancel an order; the agent must choose to look up the order, cancel it, or ask the customer first; then which order; then which reason from a fixed list; then whether the task is done. Each of these is a call to a large language model that reads the whole context and writes its answer token by token, in seconds. Yet almost every one ends in picking one item from a list the harness already knows.</p>
+<p>The authors identify eight such <em>decision points</em> in one step of an agent loop: three that choose what the agent does (the tool, its arguments, or the next action) and five that control the loop (write memory, read memory, reflect after a failure, stop, or route the step to a cheaper model). Their research question is how a harness can delegate these choices “to a fast, cheap decision model when the model is reliable, so that agentic tasks become faster and cheaper with little loss of success.”</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig01.png" class="img-fluid figure-img" alt="Two rows of six steps. Top: six LLM boxes for tool, args and stop, seconds each. Bottom: five green decision-model boxes and one unsure box that calls the LLM: one LLM call, the rest in milliseconds."></p>
+<figcaption><strong>Figure 1.</strong> Schematic. Today the large model makes every choice of the loop. With a decision model, the routine choices are answered in milliseconds, and the large model is called only where the decision model is unsure.</figcaption>
+</figure>
+</div>
+</section>
+<section id="background-decision-models" class="level2">
+<h2 class="anchored" data-anchor-id="background-decision-models">2. Background: decision models</h2>
+<p><em>Decision models</em> are a new class of model built for this kind of choice. Given a context and a question with fixed options, they return a probability for each option instead of generating text. The best known is Jev, released by TypeSafe in September 2026 and presented as a “System One” model, after Daniel Kahneman’s fast, intuitive mode of thinking (<a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">TypeSafe announcement</a>). Its weights and size are not public. In one episode recorded by Zhu and colleagues, a call to Jev took 28% of an LLM call’s time and 2.6% of its price; the <a href="https://github.com/JevAgentHarness/JevAgentHarness">project repository</a> estimates about 0.15 s and $0.0001 for a typical coding-agent state.</p>
+<p>Open counterparts appeared within weeks, among them Intern-Decision, StartLux-Decision and OpenJev. So did the first independent evaluations, which are worth reading before trusting any of these models. As a cheap judge, Jev detected alignment failures such as sycophancy and prompt injection about as well as a reference LLM scorer, at a fraction of the cost (<a href="https://arxiv.org/abs/2609.29429">Guo et al., 2026</a>). As a rubric judge, it was found “cheaper, faster, and wrong in the same places” as LLMs (<a href="https://arxiv.org/abs/2609.29769">Rao and Callison-Burch, 2026</a>). Adversarial tests show that small edits to a question can flip its typed answers (<a href="https://arxiv.org/abs/2609.31142">JevAdvBench</a>), and one study reports that swapping the order of “yes” and “no” changes many of its answers (<a href="https://arxiv.org/abs/2610.00346">arXiv 2610.00346</a>).</p>
+<p>The idea itself is older than these models. A classifier that may abstain when unsure is known as <em>selective classification</em> (<a href="https://arxiv.org/abs/1705.08500">Geifman and El-Yaniv, 2017</a>); one that hands cases to an expert is <em>learning to defer</em> (<a href="https://arxiv.org/abs/2006.01862">Mozannar and Sontag, 2020</a>). Routers and cascades such as <a href="https://arxiv.org/abs/2305.05176">FrugalGPT</a> and <a href="https://arxiv.org/abs/2406.18665">RouteLLM</a> apply it to whole requests, and agents that think “fast and slow”, such as <a href="https://arxiv.org/abs/2305.17390">SwiftSage</a> or the <a href="https://arxiv.org/abs/2410.08328">Talker-Reasoner</a> architecture, apply it to whole steps. What is new in JevAgentHarness is the grain: one typed choice at a time, inside the agent, with a threshold per kind of choice.</p>
+</section>
+<section id="the-approach" class="level2">
+<h2 class="anchored" data-anchor-id="the-approach">3. The approach</h2>
+<p>The paper has three parts, one for each condition the authors believe a decision model needs to be useful.</p>
+<p><strong>A benchmark at three levels.</strong> AgentDecisionBench tests decision models on isolated questions (level 1), at each step of recorded agent runs, where answers are scored but not executed (level 2), and in control of a running agent, where every choice changes what comes next (level 3). Because public benchmarks only check the end of a run, the authors built DecisionGym, a simulated customer-service desk in the style of <a href="https://arxiv.org/abs/2406.12045">τ-bench</a>, which knows the acceptable next steps at every reachable state, including after detours. Each task offers 68 tools in shuffled order, among them 31 near-duplicates of the core tools.</p>
+<p><strong>A harness that asks, then decides whether to trust.</strong> JevAgentHarness plugs into existing harnesses such as mini-SWE-agent or the pi terminal agent through their hooks. At each routine choice, it asks the decision model a typed multiple-choice question: tools, fixed-list or yes/no argument values, or spans to copy from the context. In the main mode, the <em>cascade</em>, the answer is used only when the decision model’s confidence <img src="https://latex.codecogs.com/png.latex?c"> clears a threshold. Otherwise the large model decides as usual. The paper derives the threshold from a simple cost argument: delegating is worth it when</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Ac%20%5C;%5Cge%5C;%20q_L%20-%20%5Cfrac%7B%5CDelta%20C%7D%7BV%7D,%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?q_L"> is how often the large model gets this choice right, <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C"> the price of the saved call and <img src="https://latex.codecogs.com/png.latex?V"> the cost of a wrong choice. The small model may be slightly less accurate than the large one, as long as the saving covers the extra risk. In practice, the agent first runs on separate tasks while the decision model answers silently (<em>shadow mode</em>), and the threshold is fitted on these runs for each decision point. With Jev and Gemini 3.5 Flash, the fitted thresholds were 1.00 for tools and 0.99 for arguments: only near-certain answers are used.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig02.png" class="img-fluid figure-img" alt="Three falling lines of the lowest confidence worth trusting against the ratio of saved call price to the cost of a wrong choice, for an LLM right 99%, 95% and 90% of the time. A marker at 0.01 shows thresholds close to the LLM's accuracy."></p>
+<figcaption><strong>Figure 2.</strong> The threshold rule of Zhu and colleagues, with illustrative values of my own. When a call costs little against what a wrong choice costs, the threshold sits just under the large model’s own accuracy.</figcaption>
+</figure>
+</div>
+<p><strong>A model trained on the agent’s own states.</strong> AgentDecision-4B is Qwen3-4B with a LoRA adapter. The harness ran 587 training tasks and recorded every decision state, 15,694 in all. To include states after errors, a scripted policy repeated mistakes seen during development, an idea from imitation learning (<a href="https://arxiv.org/abs/1011.0686">Ross et al., 2011</a>), so that 30.9% of the states follow a mistake. Jev’s probabilities served as soft labels, mixed with the correct answer, under a loss that also keeps the probabilities calibrated. A second stage of reinforcement learning inside the agent loop rewarded success with fewer LLM calls.</p>
+<p>The protocol is careful: the models, tasks and tests were registered before the main runs, each delegation was tested alone for non-inferiority (less than 3 points of success lost, at the 5% level, with a correction for multiple tests), and only then were the passing delegations combined and tested on new tasks.</p>
+</section>
+<section id="findings" class="level2">
+<h2 class="anchored" data-anchor-id="findings">4. Findings</h2>
+<section id="isolated-scores-misrank-decision-models" class="level3">
+<h3 class="anchored" data-anchor-id="isolated-scores-misrank-decision-models">4.1 Isolated scores misrank decision models</h3>
+<p>On isolated questions, the models were within about 5 points of each other. Inside a running agent, their task success spread over 57 points. StartLux-9B, the most accurate on isolated tool choice at 92.2%, solved 69.5% of tasks. AgentDecision-4B, at 89.3%, solved 91.5%. The difference lies in the hard states, such as the moments when the right move is to ask the customer before an irreversible action: there, AgentDecision-4B answered 67.4% correctly and Jev 58.3%. Accuracy on recorded agent steps ranked the models nearly as task success did (Kendall correlation 0.84).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig03.png" class="img-fluid figure-img" alt="Scatter of tasks solved inside the agent against isolated accuracy. Isolated accuracies all lie between 87% and 92%, while task success ranges from 34% for Intern-Decision-4B to 91.5% for AgentDecision-4B. StartLux-9B, the most accurate in isolation, solves 69.5%."></p>
+<figcaption><strong>Figure 3.</strong> Accuracy on isolated questions against tasks solved when the model makes the agent’s tool choices, on shifted customer-service tasks. Data from Zhu et al., Figure 4b.</figcaption>
+</figure>
+</div>
+</section>
+<section id="a-fitted-threshold-protects-success" class="level3">
+<h3 class="anchored" data-anchor-id="a-fitted-threshold-protects-success">4.2 A fitted threshold protects success</h3>
+<p>With a fitted threshold, Jev made 27.2% of the tool choices and 20.8% of the argument choices, cutting cost by 14.2% without changing the outcome of any of 500 tasks. Without a threshold, letting Jev make every tool choice lost 19.0 points of success; a fixed threshold of 0.5 lost 21.5. The threshold, not the model, is what makes delegation safe.</p>
+</section>
+<section id="training-on-the-agents-own-states-works" class="level3">
+<h3 class="anchored" data-anchor-id="training-on-the-agents-own-states-works">4.3 Training on the agent’s own states works</h3>
+<p>Supervised training on the agent’s own states raised the 4B model from 13.5% to 96.0% of shifted tasks solved, for 2.2 GPU-hours. The same recipe raised StartLux-4B from 49.0% to 98.0%. The reinforcement-learning stage added no measurable gain, which the authors report plainly. The student beat its teacher: Jev solved 82.0% of the same tasks. On one L4 graphics card, AgentDecision-4B answered in a median of 31 ms, against 809 ms for a call to Gemini 3.5 Flash.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig04.png" class="img-fluid figure-img" alt="Horizontal bars. Untrained Qwen3-4B 13.5%; after training on the agent's states 96.0%; after RL 96.0%; with public data, AgentDecision-4B 91.5%; Jev 82.0%; StartLux-4B 49.0%, and 98.0% with the recipe; Intern-Decision-4B 34.0%."></p>
+<figcaption><strong>Figure 4.</strong> Tasks solved on shifted customer-service tasks, with different decision models making the agent’s tool choices. Data from Zhu et al., Table 3.</figcaption>
+</figure>
+</div>
+</section>
+<section id="the-gains-depend-on-how-much-the-choices-repeat" class="level3">
+<h3 class="anchored" data-anchor-id="the-gains-depend-on-how-much-the-choices-repeat">4.4 The gains depend on how much the choices repeat</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig05.png" class="img-fluid figure-img" alt="Horizontal bars of LLM cost saved: customer service 86.3%, +0.5 points, 2.5 times faster; ALFWorld 89.0%, +4.3 points, about twice as fast; hard tasks with a new rule 30.5%, +2.0 points, slower; coding agents 7.0 to 10.5%, -6.0 to +7.9 points."></p>
+<figcaption><strong>Figure 5.</strong> LLM cost saved, with the change in task success against the large model alone, in four settings. Data from Zhu et al., Tables 1 and 2.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>Customer service.</strong> On 500 new tasks, AgentDecision-4B on its own graphics card made 99.9% of the tool choices and 75.0% of the argument choices, saving 4.5 LLM calls per task: 86.3% cheaper, 2.5 times faster, success within half a point of the large model alone.</li>
+<li><strong>Text games.</strong> On ALFWorld, a 4B model trained on the game’s states made the agent 89.0% cheaper and about twice as fast, with higher success, and kept these gains in unseen rooms.</li>
+<li><strong>Coding agents.</strong> Actions are free text, so the decision model could only choose which LLM writes each step. Savings were 7.0–10.5%, and success varied by harness.</li>
+</ul>
+</section>
+<section id="fast-models-fail-confidently-on-new-rules" class="level3">
+<h3 class="anchored" data-anchor-id="fast-models-fail-confidently-on-new-rules">4.5 Fast models fail confidently on new rules</h3>
+<p>On harder tasks with a cancellation rule no model was trained on, AgentDecision-4B made most cancel-or-ship choices but got only 81.6% of them right, and the agent solved 3.0% of the tasks, against 88.0% for the large model alone. Refitting the threshold restored success; retraining on the rule raised the model’s accuracy from 76.5% to 95.3%. In the same vein, all 34 of Jev’s failed tasks began with an irreversible wrong tool choice, usually cancelling where the agent should have asked.</p>
+</section>
+</section>
+<section id="analysis-what-this-means-for-fast-ai" class="level2">
+<h2 class="anchored" data-anchor-id="analysis-what-this-means-for-fast-ai">5. Analysis: what this means for Fast AI</h2>
+<p>Fast AI proposed a split: deep networks perceive, a knowledge graph remembers, trees decide, and the agentic loop is kept for the exceptions. The paper does not test this architecture, but its results bear on it in five ways.</p>
+<p><strong>Decision models fill the gap between trees and the large model.</strong> Gradient-boosted trees remain my choice when a decision rests on structured features. But many choices in a process come as text: a customer message, a chat history, a ticket. These used to fall to the large model by default. A small decision model now handles them in milliseconds, with a probability attached.</p>
+<p><strong>“Knowing when unsure” becomes an engineering step.</strong> Fast AI required every fast model to know when to hand over, without saying how. The paper’s answer is concrete: run in shadow mode, measure, fit one threshold per kind of choice, refit when something changes. Finding 4.2 shows this step matters more than the choice of model.</p>
+<p><strong>The habit loop is the training loop.</strong> Finding 4.3 is the habit-forming step of Fast AI, made measurable. The slow, expensive teachers, Jev and the large model, label the agent’s own experience once. The fast student learns the habits of this agent in this domain, including how to recover from its own errors. Logged deferrals become the next round of training data.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png" class="img-fluid figure-img" alt="Flow from a listed choice to a small decision model, then to a fast path if confident enough or a slow path (LLM, agent, person) if not, both leading to an action. Dashed loop: slow path to logs of states, deferrals and mistakes, to retrain and refit, to shadow mode, back to the decision model."></p>
+<figcaption><strong>Figure 6.</strong> Fast AI with a decision model. Each listed choice goes to a small decision model. Above its threshold, it decides; below, the large model, an agent or a person does. The logs, including the agent’s mistakes, are used to retrain the model and refit the thresholds, which are tested in shadow mode before they are trusted.</figcaption>
+</figure>
+</div>
+<p><strong>The knowledge graph still matters, perhaps more.</strong> A decision model is only as good as its options, and Finding 4.5 shows what happens when the rules change under it. In a well-built system, the graph supplies the options (which tools apply to this supplier, which approvers are valid for this amount) and holds the rules in a form a person can read and correct. When a rule changes, the change is made once in the graph, and the thresholds are refitted. Habits in weights are fast; habits in a graph are auditable. A serious system needs both.</p>
+<p><strong>It fits the local ecosystem.</strong> A 4B model on one graphics card is the kind of small specialist I described in <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>. NVIDIA researchers make the same argument for agents in general: most of what agents do is narrow and repetitive, and small models can do it more economically (<a href="https://arxiv.org/abs/2506.02153">Belcak et al., 2025</a>). Decision models push this furthest, because picking an option is far narrower than writing.</p>
+</section>
+<section id="limits-and-open-questions" class="level2">
+<h2 class="anchored" data-anchor-id="limits-and-open-questions">6. Limits and open questions</h2>
+<p>The paper is careful about its limits, and they shape how far its results can be carried.</p>
+<ul>
+<li><strong>External validity.</strong> All tasks are in English, most runs use Gemini models, and the most striking numbers come from the authors’ own environment, DecisionGym. Independent replication on real workloads is the next step.</li>
+<li><strong>Fitted to one agent.</strong> Thresholds and trained models are fitted to one agent’s runs. A new agent, new tools or a new task family call for refitting and, for the best accuracy, retraining.</li>
+<li><strong>Silent drift.</strong> Finding 4.5 shows that confidence does not drop on its own when rules change. The authors suggest tracking the share of answers above the threshold; I would add the shape-based monitoring of <a href="../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">What a Quiet Screen Cannot See</a>.</li>
+<li><strong>Irreversible actions.</strong> A confident wrong choice at an irreversible step ends the task. The authors warn that a decision-model guard should never be the only control on such an action, and that adapters should not be used as security boundaries.</li>
+<li><strong>Statistics.</strong> The main tests show that success drops by less than 3 points; showing equal success would need an equivalence test. The authors did not compare against learned routers such as RouteLLM on the same tasks.</li>
+<li><strong>Licence.</strong> The trained weights are released under a non-commercial licence, partly because they are trained on outputs of a proprietary model.</li>
+</ul>
+<p>Two questions seem open to me. First, how much of the gain survives when the options themselves must be discovered, rather than listed by the harness? Second, can the threshold and the knowledge graph be kept in step automatically, so that a rule change in the graph triggers refitting before it triggers failures?</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>The large model was never meant to answer “which of these three tools?” ten thousand times a day. It was meant to handle what is new, and to teach.</p>
+<p>JevAgentHarness shows a careful way to arrange this: ask a small decision model first, trust it only above a threshold fitted on your own runs, test it on your own work rather than on a leaderboard, and train it on the states your agent really reaches, mistakes included. When the choices repeat, the result is an agent several times faster and far cheaper, with no detectable loss of success. When the world changes, the same discipline of shadow mode, refitting and retraining is what keeps it safe.</p>
+<p>That is a junior colleague in the best sense: fast on the routine, honest about what they do not know, and getting better every month from what the seniors decide. It is also Fast AI, one choice at a time.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> Why the large model should build the memory once, instead of reasoning through every run.</p>
+</div>
+<div class="small">
+<p><em>The views in this analysis are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section></div> ]]></description>
+  <category>analysis</category>
+  <category>ai</category>
+  <category>agents</category>
+  <category>automation</category>
+  <guid>https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/</guid>
+  <pubDate>Sun, 18 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png" medium="image" type="image/png" height="80" width="144"/>
+</item>
 <item>
   <title>An Ecosystem, Not an Oracle</title>
   <dc:creator>Stéphane Cuenat</dc:creator>

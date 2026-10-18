@@ -1,2 +1,1083 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"></html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-10-18">
+<meta name="description" content="Most of an agent’s calls to a large model end in a multiple-choice pick. An analysis of a new paper showing that a small decision model, trained on the agent’s own states and trusted only when it is sure, can make most of them in milliseconds.">
+
+<title>The Junior Colleague – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-6bca0946738ef4eb38bf57841a1014f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/index.html">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-10-18-the-junior-colleague/index.html">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/index.html">
+<meta name="alt-lang-url" content="/fr/posts/2026-10-18-the-junior-colleague/index.html">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="The Junior Colleague – AI, Honestly">
+<meta property="og:description" content="Most of an agent’s calls to a large model end in a multiple-choice pick. An analysis of a new paper showing that a small decision model, trained on the agent’s own states and trusted only when it is sure, can make most of them in milliseconds.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="656">
+<meta property="og:image:width" content="1187">
+<meta name="twitter:title" content="The Junior Colleague – AI, Honestly">
+<meta name="twitter:description" content="Most of an agent’s calls to a large model end in a multiple-choice pick. An analysis of a new paper showing that a small decision model, trained on the agent’s own states and trusted only when it is sure, can make most of them in milliseconds.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png">
+<meta name="twitter:image-height" content="656">
+<meta name="twitter:image-width" content="1187">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-question" id="toc-the-question" class="nav-link active" data-scroll-target="#the-question">1. The question</a></li>
+  <li><a href="#background-decision-models" id="toc-background-decision-models" class="nav-link" data-scroll-target="#background-decision-models">2. Background: decision models</a></li>
+  <li><a href="#the-approach" id="toc-the-approach" class="nav-link" data-scroll-target="#the-approach">3. The approach</a></li>
+  <li><a href="#findings" id="toc-findings" class="nav-link" data-scroll-target="#findings">4. Findings</a>
+  <ul class="collapse">
+  <li><a href="#isolated-scores-misrank-decision-models" id="toc-isolated-scores-misrank-decision-models" class="nav-link" data-scroll-target="#isolated-scores-misrank-decision-models">4.1 Isolated scores misrank decision models</a></li>
+  <li><a href="#a-fitted-threshold-protects-success" id="toc-a-fitted-threshold-protects-success" class="nav-link" data-scroll-target="#a-fitted-threshold-protects-success">4.2 A fitted threshold protects success</a></li>
+  <li><a href="#training-on-the-agents-own-states-works" id="toc-training-on-the-agents-own-states-works" class="nav-link" data-scroll-target="#training-on-the-agents-own-states-works">4.3 Training on the agent’s own states works</a></li>
+  <li><a href="#the-gains-depend-on-how-much-the-choices-repeat" id="toc-the-gains-depend-on-how-much-the-choices-repeat" class="nav-link" data-scroll-target="#the-gains-depend-on-how-much-the-choices-repeat">4.4 The gains depend on how much the choices repeat</a></li>
+  <li><a href="#fast-models-fail-confidently-on-new-rules" id="toc-fast-models-fail-confidently-on-new-rules" class="nav-link" data-scroll-target="#fast-models-fail-confidently-on-new-rules">4.5 Fast models fail confidently on new rules</a></li>
+  </ul></li>
+  <li><a href="#analysis-what-this-means-for-fast-ai" id="toc-analysis-what-this-means-for-fast-ai" class="nav-link" data-scroll-target="#analysis-what-this-means-for-fast-ai">5. Analysis: what this means for Fast AI</a></li>
+  <li><a href="#limits-and-open-questions" id="toc-limits-and-open-questions" class="nav-link" data-scroll-target="#limits-and-open-questions">6. Limits and open questions</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">7. Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">The Junior Colleague</h1>
+<p class="subtitle lead">An analysis of decision models, JevAgentHarness, and what they mean for Fast AI</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">analysis</div>
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">agents</div>
+    <div class="quarto-category">automation</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Most of an agent’s calls to a large model end in a multiple-choice pick. An analysis of a new paper showing that a small decision model, trained on the agent’s own states and trusted only when it is sure, can make most of them in milliseconds.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 18, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Analysis, October 2026.</strong> An analysis of <a href="https://arxiv.org/abs/2610.21412">Zhu et al., <em>JevAgentHarness: Benchmarking, Deploying and Training Decision Models That Share Control with LLMs</em></a> (UIUC, Princeton, Google; arXiv 2610.21412, 15 October 2026), read in the light of my earlier essay <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>. Unless stated otherwise, numbers come from that paper. Figures are my own, drawn with the code in <a href="figs.py">figs.py</a>.</p>
+</div>
+</div>
+</div>
+<p><strong>Abstract.</strong> Most of an AI agent’s calls to a large language model end in a multiple-choice pick: which tool, which argument, stop or continue. Zhu and colleagues ask whether these picks can be handed to a small <em>decision model</em> that answers in milliseconds, without losing task success. Their answer is yes, under three conditions: the decision model is tested inside the agent rather than on isolated questions, it is used only when its confidence clears a threshold fitted on the agent’s own runs, and it is trained on the states the agent actually reaches, including after its own mistakes. Under these conditions, an open 4B model made customer-service agents 86.3% cheaper and 2.5 times faster with no detectable loss of success. The gains were small in coding agents, and the method failed badly on a rule the model had never seen, until thresholds were refitted. I argue that this is the missing piece of Fast AI: a fast path at the level of single choices, which knows when it is unsure and learns its habits from the slow path.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Main findings
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Most agent steps are multiple choice.</strong> They need a model that picks and says how sure it is, not one that writes.</li>
+<li><strong>A fitted threshold protects success.</strong> It cut cost by 14.2% without losing a single task; a fixed threshold lost 21.5 points.</li>
+<li><strong>Isolated scores mislead.</strong> The best model on isolated questions solved only 69.5% of agent tasks; a less accurate one solved 91.5%.</li>
+<li><strong>Training on the agent’s own states works.</strong> A 4B model went from 13.5% to 96.0% of shifted tasks solved, for 2.2 GPU-hours.</li>
+<li><strong>The gains depend on repetition.</strong> 86–89% cheaper in customer service and text games, 7–10.5% in coding agents.</li>
+<li><strong>Fast models fail confidently on new rules.</strong> 3.0% of tasks solved against 88.0% for the large model alone, until refitting.</li>
+</ul>
+</div>
+</div>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">1. The question</h2>
+<p>In <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> I argued that automation should learn slowly, once, and act fast every time, keeping the large model for the exceptions. The essay left one practical question open: inside a running agent, how do you know which steps are routine, and what answers them if not the large model?</p>
+<p>The JevAgentHarness paper addresses exactly this. Its starting observation is simple. Watch an agent work and count what it decides. A customer asks to cancel an order; the agent must choose to look up the order, cancel it, or ask the customer first; then which order; then which reason from a fixed list; then whether the task is done. Each of these is a call to a large language model that reads the whole context and writes its answer token by token, in seconds. Yet almost every one ends in picking one item from a list the harness already knows.</p>
+<p>The authors identify eight such <em>decision points</em> in one step of an agent loop: three that choose what the agent does (the tool, its arguments, or the next action) and five that control the loop (write memory, read memory, reflect after a failure, stop, or route the step to a cheaper model). Their research question is how a harness can delegate these choices “to a fast, cheap decision model when the model is reliable, so that agentic tasks become faster and cheaper with little loss of success.”</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig01.png" class="img-fluid figure-img" alt="Two rows of six steps. Top: six LLM boxes for tool, args and stop, seconds each. Bottom: five green decision-model boxes and one unsure box that calls the LLM: one LLM call, the rest in milliseconds."></p>
+<figcaption><strong>Figure 1.</strong> Schematic. Today the large model makes every choice of the loop. With a decision model, the routine choices are answered in milliseconds, and the large model is called only where the decision model is unsure.</figcaption>
+</figure>
+</div>
+</section>
+<section id="background-decision-models" class="level2">
+<h2 class="anchored" data-anchor-id="background-decision-models">2. Background: decision models</h2>
+<p><em>Decision models</em> are a new class of model built for this kind of choice. Given a context and a question with fixed options, they return a probability for each option instead of generating text. The best known is Jev, released by TypeSafe in September 2026 and presented as a “System One” model, after Daniel Kahneman’s fast, intuitive mode of thinking (<a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">TypeSafe announcement</a>). Its weights and size are not public. In one episode recorded by Zhu and colleagues, a call to Jev took 28% of an LLM call’s time and 2.6% of its price; the <a href="https://github.com/JevAgentHarness/JevAgentHarness">project repository</a> estimates about 0.15 s and $0.0001 for a typical coding-agent state.</p>
+<p>Open counterparts appeared within weeks, among them Intern-Decision, StartLux-Decision and OpenJev. So did the first independent evaluations, which are worth reading before trusting any of these models. As a cheap judge, Jev detected alignment failures such as sycophancy and prompt injection about as well as a reference LLM scorer, at a fraction of the cost (<a href="https://arxiv.org/abs/2609.29429">Guo et al., 2026</a>). As a rubric judge, it was found “cheaper, faster, and wrong in the same places” as LLMs (<a href="https://arxiv.org/abs/2609.29769">Rao and Callison-Burch, 2026</a>). Adversarial tests show that small edits to a question can flip its typed answers (<a href="https://arxiv.org/abs/2609.31142">JevAdvBench</a>), and one study reports that swapping the order of “yes” and “no” changes many of its answers (<a href="https://arxiv.org/abs/2610.00346">arXiv 2610.00346</a>).</p>
+<p>The idea itself is older than these models. A classifier that may abstain when unsure is known as <em>selective classification</em> (<a href="https://arxiv.org/abs/1705.08500">Geifman and El-Yaniv, 2017</a>); one that hands cases to an expert is <em>learning to defer</em> (<a href="https://arxiv.org/abs/2006.01862">Mozannar and Sontag, 2020</a>). Routers and cascades such as <a href="https://arxiv.org/abs/2305.05176">FrugalGPT</a> and <a href="https://arxiv.org/abs/2406.18665">RouteLLM</a> apply it to whole requests, and agents that think “fast and slow”, such as <a href="https://arxiv.org/abs/2305.17390">SwiftSage</a> or the <a href="https://arxiv.org/abs/2410.08328">Talker-Reasoner</a> architecture, apply it to whole steps. What is new in JevAgentHarness is the grain: one typed choice at a time, inside the agent, with a threshold per kind of choice.</p>
+</section>
+<section id="the-approach" class="level2">
+<h2 class="anchored" data-anchor-id="the-approach">3. The approach</h2>
+<p>The paper has three parts, one for each condition the authors believe a decision model needs to be useful.</p>
+<p><strong>A benchmark at three levels.</strong> AgentDecisionBench tests decision models on isolated questions (level 1), at each step of recorded agent runs, where answers are scored but not executed (level 2), and in control of a running agent, where every choice changes what comes next (level 3). Because public benchmarks only check the end of a run, the authors built DecisionGym, a simulated customer-service desk in the style of <a href="https://arxiv.org/abs/2406.12045">τ-bench</a>, which knows the acceptable next steps at every reachable state, including after detours. Each task offers 68 tools in shuffled order, among them 31 near-duplicates of the core tools.</p>
+<p><strong>A harness that asks, then decides whether to trust.</strong> JevAgentHarness plugs into existing harnesses such as mini-SWE-agent or the pi terminal agent through their hooks. At each routine choice, it asks the decision model a typed multiple-choice question: tools, fixed-list or yes/no argument values, or spans to copy from the context. In the main mode, the <em>cascade</em>, the answer is used only when the decision model’s confidence <span class="math inline">c</span> clears a threshold. Otherwise the large model decides as usual. The paper derives the threshold from a simple cost argument: delegating is worth it when</p>
+<p><span class="math display">
+c \;\ge\; q_L - \frac{\Delta C}{V},
+</span></p>
+<p>where <span class="math inline">q_L</span> is how often the large model gets this choice right, <span class="math inline">\Delta C</span> the price of the saved call and <span class="math inline">V</span> the cost of a wrong choice. The small model may be slightly less accurate than the large one, as long as the saving covers the extra risk. In practice, the agent first runs on separate tasks while the decision model answers silently (<em>shadow mode</em>), and the threshold is fitted on these runs for each decision point. With Jev and Gemini 3.5 Flash, the fitted thresholds were 1.00 for tools and 0.99 for arguments: only near-certain answers are used.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig02.png" class="img-fluid figure-img" alt="Three falling lines of the lowest confidence worth trusting against the ratio of saved call price to the cost of a wrong choice, for an LLM right 99%, 95% and 90% of the time. A marker at 0.01 shows thresholds close to the LLM's accuracy."></p>
+<figcaption><strong>Figure 2.</strong> The threshold rule of Zhu and colleagues, with illustrative values of my own. When a call costs little against what a wrong choice costs, the threshold sits just under the large model’s own accuracy.</figcaption>
+</figure>
+</div>
+<p><strong>A model trained on the agent’s own states.</strong> AgentDecision-4B is Qwen3-4B with a LoRA adapter. The harness ran 587 training tasks and recorded every decision state, 15,694 in all. To include states after errors, a scripted policy repeated mistakes seen during development, an idea from imitation learning (<a href="https://arxiv.org/abs/1011.0686">Ross et al., 2011</a>), so that 30.9% of the states follow a mistake. Jev’s probabilities served as soft labels, mixed with the correct answer, under a loss that also keeps the probabilities calibrated. A second stage of reinforcement learning inside the agent loop rewarded success with fewer LLM calls.</p>
+<p>The protocol is careful: the models, tasks and tests were registered before the main runs, each delegation was tested alone for non-inferiority (less than 3 points of success lost, at the 5% level, with a correction for multiple tests), and only then were the passing delegations combined and tested on new tasks.</p>
+</section>
+<section id="findings" class="level2">
+<h2 class="anchored" data-anchor-id="findings">4. Findings</h2>
+<section id="isolated-scores-misrank-decision-models" class="level3">
+<h3 class="anchored" data-anchor-id="isolated-scores-misrank-decision-models">4.1 Isolated scores misrank decision models</h3>
+<p>On isolated questions, the models were within about 5 points of each other. Inside a running agent, their task success spread over 57 points. StartLux-9B, the most accurate on isolated tool choice at 92.2%, solved 69.5% of tasks. AgentDecision-4B, at 89.3%, solved 91.5%. The difference lies in the hard states, such as the moments when the right move is to ask the customer before an irreversible action: there, AgentDecision-4B answered 67.4% correctly and Jev 58.3%. Accuracy on recorded agent steps ranked the models nearly as task success did (Kendall correlation 0.84).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig03.png" class="img-fluid figure-img" alt="Scatter of tasks solved inside the agent against isolated accuracy. Isolated accuracies all lie between 87% and 92%, while task success ranges from 34% for Intern-Decision-4B to 91.5% for AgentDecision-4B. StartLux-9B, the most accurate in isolation, solves 69.5%."></p>
+<figcaption><strong>Figure 3.</strong> Accuracy on isolated questions against tasks solved when the model makes the agent’s tool choices, on shifted customer-service tasks. Data from Zhu et al., Figure 4b.</figcaption>
+</figure>
+</div>
+</section>
+<section id="a-fitted-threshold-protects-success" class="level3">
+<h3 class="anchored" data-anchor-id="a-fitted-threshold-protects-success">4.2 A fitted threshold protects success</h3>
+<p>With a fitted threshold, Jev made 27.2% of the tool choices and 20.8% of the argument choices, cutting cost by 14.2% without changing the outcome of any of 500 tasks. Without a threshold, letting Jev make every tool choice lost 19.0 points of success; a fixed threshold of 0.5 lost 21.5. The threshold, not the model, is what makes delegation safe.</p>
+</section>
+<section id="training-on-the-agents-own-states-works" class="level3">
+<h3 class="anchored" data-anchor-id="training-on-the-agents-own-states-works">4.3 Training on the agent’s own states works</h3>
+<p>Supervised training on the agent’s own states raised the 4B model from 13.5% to 96.0% of shifted tasks solved, for 2.2 GPU-hours. The same recipe raised StartLux-4B from 49.0% to 98.0%. The reinforcement-learning stage added no measurable gain, which the authors report plainly. The student beat its teacher: Jev solved 82.0% of the same tasks. On one L4 graphics card, AgentDecision-4B answered in a median of 31 ms, against 809 ms for a call to Gemini 3.5 Flash.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig04.png" class="img-fluid figure-img" alt="Horizontal bars. Untrained Qwen3-4B 13.5%; after training on the agent's states 96.0%; after RL 96.0%; with public data, AgentDecision-4B 91.5%; Jev 82.0%; StartLux-4B 49.0%, and 98.0% with the recipe; Intern-Decision-4B 34.0%."></p>
+<figcaption><strong>Figure 4.</strong> Tasks solved on shifted customer-service tasks, with different decision models making the agent’s tool choices. Data from Zhu et al., Table 3.</figcaption>
+</figure>
+</div>
+</section>
+<section id="the-gains-depend-on-how-much-the-choices-repeat" class="level3">
+<h3 class="anchored" data-anchor-id="the-gains-depend-on-how-much-the-choices-repeat">4.4 The gains depend on how much the choices repeat</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig05.png" class="img-fluid figure-img" alt="Horizontal bars of LLM cost saved: customer service 86.3%, +0.5 points, 2.5 times faster; ALFWorld 89.0%, +4.3 points, about twice as fast; hard tasks with a new rule 30.5%, +2.0 points, slower; coding agents 7.0 to 10.5%, -6.0 to +7.9 points."></p>
+<figcaption><strong>Figure 5.</strong> LLM cost saved, with the change in task success against the large model alone, in four settings. Data from Zhu et al., Tables 1 and 2.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>Customer service.</strong> On 500 new tasks, AgentDecision-4B on its own graphics card made 99.9% of the tool choices and 75.0% of the argument choices, saving 4.5 LLM calls per task: 86.3% cheaper, 2.5 times faster, success within half a point of the large model alone.</li>
+<li><strong>Text games.</strong> On ALFWorld, a 4B model trained on the game’s states made the agent 89.0% cheaper and about twice as fast, with higher success, and kept these gains in unseen rooms.</li>
+<li><strong>Coding agents.</strong> Actions are free text, so the decision model could only choose which LLM writes each step. Savings were 7.0–10.5%, and success varied by harness.</li>
+</ul>
+</section>
+<section id="fast-models-fail-confidently-on-new-rules" class="level3">
+<h3 class="anchored" data-anchor-id="fast-models-fail-confidently-on-new-rules">4.5 Fast models fail confidently on new rules</h3>
+<p>On harder tasks with a cancellation rule no model was trained on, AgentDecision-4B made most cancel-or-ship choices but got only 81.6% of them right, and the agent solved 3.0% of the tasks, against 88.0% for the large model alone. Refitting the threshold restored success; retraining on the rule raised the model’s accuracy from 76.5% to 95.3%. In the same vein, all 34 of Jev’s failed tasks began with an irreversible wrong tool choice, usually cancelling where the agent should have asked.</p>
+</section>
+</section>
+<section id="analysis-what-this-means-for-fast-ai" class="level2">
+<h2 class="anchored" data-anchor-id="analysis-what-this-means-for-fast-ai">5. Analysis: what this means for Fast AI</h2>
+<p>Fast AI proposed a split: deep networks perceive, a knowledge graph remembers, trees decide, and the agentic loop is kept for the exceptions. The paper does not test this architecture, but its results bear on it in five ways.</p>
+<p><strong>Decision models fill the gap between trees and the large model.</strong> Gradient-boosted trees remain my choice when a decision rests on structured features. But many choices in a process come as text: a customer message, a chat history, a ticket. These used to fall to the large model by default. A small decision model now handles them in milliseconds, with a probability attached.</p>
+<p><strong>“Knowing when unsure” becomes an engineering step.</strong> Fast AI required every fast model to know when to hand over, without saying how. The paper’s answer is concrete: run in shadow mode, measure, fit one threshold per kind of choice, refit when something changes. Finding 4.2 shows this step matters more than the choice of model.</p>
+<p><strong>The habit loop is the training loop.</strong> Finding 4.3 is the habit-forming step of Fast AI, made measurable. The slow, expensive teachers, Jev and the large model, label the agent’s own experience once. The fast student learns the habits of this agent in this domain, including how to recover from its own errors. Logged deferrals become the next round of training data.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig06.png" class="img-fluid figure-img" alt="Flow from a listed choice to a small decision model, then to a fast path if confident enough or a slow path (LLM, agent, person) if not, both leading to an action. Dashed loop: slow path to logs of states, deferrals and mistakes, to retrain and refit, to shadow mode, back to the decision model."></p>
+<figcaption><strong>Figure 6.</strong> Fast AI with a decision model. Each listed choice goes to a small decision model. Above its threshold, it decides; below, the large model, an agent or a person does. The logs, including the agent’s mistakes, are used to retrain the model and refit the thresholds, which are tested in shadow mode before they are trusted.</figcaption>
+</figure>
+</div>
+<p><strong>The knowledge graph still matters, perhaps more.</strong> A decision model is only as good as its options, and Finding 4.5 shows what happens when the rules change under it. In a well-built system, the graph supplies the options (which tools apply to this supplier, which approvers are valid for this amount) and holds the rules in a form a person can read and correct. When a rule changes, the change is made once in the graph, and the thresholds are refitted. Habits in weights are fast; habits in a graph are auditable. A serious system needs both.</p>
+<p><strong>It fits the local ecosystem.</strong> A 4B model on one graphics card is the kind of small specialist I described in <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>. NVIDIA researchers make the same argument for agents in general: most of what agents do is narrow and repetitive, and small models can do it more economically (<a href="https://arxiv.org/abs/2506.02153">Belcak et al., 2025</a>). Decision models push this furthest, because picking an option is far narrower than writing.</p>
+</section>
+<section id="limits-and-open-questions" class="level2">
+<h2 class="anchored" data-anchor-id="limits-and-open-questions">6. Limits and open questions</h2>
+<p>The paper is careful about its limits, and they shape how far its results can be carried.</p>
+<ul>
+<li><strong>External validity.</strong> All tasks are in English, most runs use Gemini models, and the most striking numbers come from the authors’ own environment, DecisionGym. Independent replication on real workloads is the next step.</li>
+<li><strong>Fitted to one agent.</strong> Thresholds and trained models are fitted to one agent’s runs. A new agent, new tools or a new task family call for refitting and, for the best accuracy, retraining.</li>
+<li><strong>Silent drift.</strong> Finding 4.5 shows that confidence does not drop on its own when rules change. The authors suggest tracking the share of answers above the threshold; I would add the shape-based monitoring of <a href="../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">What a Quiet Screen Cannot See</a>.</li>
+<li><strong>Irreversible actions.</strong> A confident wrong choice at an irreversible step ends the task. The authors warn that a decision-model guard should never be the only control on such an action, and that adapters should not be used as security boundaries.</li>
+<li><strong>Statistics.</strong> The main tests show that success drops by less than 3 points; showing equal success would need an equivalence test. The authors did not compare against learned routers such as RouteLLM on the same tasks.</li>
+<li><strong>Licence.</strong> The trained weights are released under a non-commercial licence, partly because they are trained on outputs of a proprietary model.</li>
+</ul>
+<p>Two questions seem open to me. First, how much of the gain survives when the options themselves must be discovered, rather than listed by the harness? Second, can the threshold and the knowledge graph be kept in step automatically, so that a rule change in the graph triggers refitting before it triggers failures?</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>The large model was never meant to answer “which of these three tools?” ten thousand times a day. It was meant to handle what is new, and to teach.</p>
+<p>JevAgentHarness shows a careful way to arrange this: ask a small decision model first, trust it only above a threshold fitted on your own runs, test it on your own work rather than on a leaderboard, and train it on the states your agent really reaches, mistakes included. When the choices repeat, the result is an agent several times faster and far cheaper, with no detectable loss of success. When the world changes, the same discipline of shadow mode, refitting and retraining is what keeps it safe.</p>
+<p>That is a junior colleague in the best sense: fast on the routine, honest about what they do not know, and getting better every month from what the seniors decide. It is also Fast AI, one choice at a time.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> Why the large model should build the memory once, instead of reasoning through every run.</p>
+</div>
+<div class="small">
+<p><em>The views in this analysis are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "About": ["À propos", "/fr/about.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
