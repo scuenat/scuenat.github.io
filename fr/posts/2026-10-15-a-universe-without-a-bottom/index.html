@@ -50,9 +50,12 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-6bca0946738ef4eb38bf57841a1014f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-9fa42bba2f63fb82853c6be880c2b465.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -473,7 +476,7 @@ S = \frac{A}{4\,\ell_P^2}
 <p>En termes simples&nbsp;: couvrez l’horizon de minuscules tuiles, chacune de la taille de la plus petite longueur que connaît la physique, et vous avez compté tout ce qu’il y a à l’intérieur. Doublez la taille du trou noir, et son information est multipliée par quatre, pas par huit.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-10-15-a-universe-without-a-bottom/figures/fig01.png" class="img-fluid figure-img" alt="À gauche&nbsp;: une sphère couverte d'une grille, quelques tuiles de sa surface colorées en ambre. À droite&nbsp;: des barres pour un trou noir et un autre deux fois plus large ; le volume passe de 1 à 8, l'information de 1 à 4."></p>
+<p><a href="../../../posts/2026-10-15-a-universe-without-a-bottom/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. La surface sait tout. À gauche&nbsp;: un horizon couvert de tuiles, chacune de la plus petite aire que connaît la physique. À droite&nbsp;: rendez un trou noir deux fois plus large, et la place à l’intérieur est multipliée par huit, mais l’information qu’il peut contenir seulement par quatre, comme sa surface. Schéma personnel ; les libellés sont en anglais, le code est dans figs.py."><img src="../../../posts/2026-10-15-a-universe-without-a-bottom/figures/fig01.png" class="img-fluid figure-img" alt="À gauche&nbsp;: une sphère couverte d'une grille, quelques tuiles de sa surface colorées en ambre. À droite&nbsp;: des barres pour un trou noir et un autre deux fois plus large ; le volume passe de 1 à 8, l'information de 1 à 4."></a></p>
 <figcaption><strong>Figure 1.</strong> La surface sait tout. À gauche&nbsp;: un horizon couvert de tuiles, chacune de la plus petite aire que connaît la physique. À droite&nbsp;: rendez un trou noir deux fois plus large, et la place à l’intérieur est multipliée par huit, mais l’information qu’il peut contenir seulement par quatre, comme sa surface. Schéma personnel ; les libellés sont en anglais, le code est dans <a href="../../../posts/2026-10-15-a-universe-without-a-bottom/figs.py">figs.py</a>.</figcaption>
 </figure>
 </div>
@@ -986,6 +989,38 @@ La même question, transformée en expérience sur un générateur d’images IA
   document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
 })();
 </script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

@@ -50,9 +50,12 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-6bca0946738ef4eb38bf57841a1014f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-9fa42bba2f63fb82853c6be880c2b465.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -494,7 +497,7 @@ window.Quarto = {
 <p>Les auteurs identifient huit <em>points de décision</em> dans une étape de la boucle d’un agent : trois qui choisissent ce que fait l’agent (l’outil, ses arguments ou la prochaine action) et cinq qui pilotent la boucle (écrire en mémoire, relire la mémoire, réfléchir après un échec, s’arrêter, ou confier l’étape à un modèle moins cher). Leur question de recherche est de savoir comment une couche d’exploitation peut déléguer ces choix « à un modèle de décision rapide et bon marché quand ce modèle est fiable, pour que les tâches agentiques deviennent plus rapides et moins chères avec peu de perte de réussite ».</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig01.png" class="img-fluid figure-img" alt="Deux rangées de six étapes. En haut : six cases LLM pour l'outil, les arguments et l'arrêt, quelques secondes chacune. En bas : cinq cases vertes du modèle de décision et une case incertaine qui appelle le LLM : un seul appel au LLM, le reste en millisecondes."></p>
+<p><a href="../../../posts/2026-10-18-the-junior-colleague/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma. Aujourd’hui, le grand modèle fait chaque choix de la boucle. Avec un modèle de décision, les choix routiniers reçoivent une réponse en quelques millisecondes, et le grand modèle n’est appelé que là où le modèle de décision n’est pas sûr."><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig01.png" class="img-fluid figure-img" alt="Deux rangées de six étapes. En haut : six cases LLM pour l'outil, les arguments et l'arrêt, quelques secondes chacune. En bas : cinq cases vertes du modèle de décision et une case incertaine qui appelle le LLM : un seul appel au LLM, le reste en millisecondes."></a></p>
 <figcaption><strong>Figure 1.</strong> Schéma. Aujourd’hui, le grand modèle fait chaque choix de la boucle. Avec un modèle de décision, les choix routiniers reçoivent une réponse en quelques millisecondes, et le grand modèle n’est appelé que là où le modèle de décision n’est pas sûr.</figcaption>
 </figure>
 </div>
@@ -516,7 +519,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p>où <span class="math inline">q_L</span> est la fréquence à laquelle le grand modèle fait ce choix correctement, <span class="math inline">\Delta C</span> le prix de l’appel économisé et <span class="math inline">V</span> le coût d’un mauvais choix. Le petit modèle peut être un peu moins précis que le grand, tant que l’économie couvre le risque supplémentaire. En pratique, l’agent tourne d’abord sur des tâches séparées pendant que le modèle de décision répond en silence (<em>mode fantôme</em>), et le seuil est ajusté sur ces exécutions pour chaque point de décision. Avec Jev et Gemini 3.5 Flash, les seuils ajustés étaient de 1,00 pour les outils et de 0,99 pour les arguments : seules les réponses quasi certaines sont utilisées.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig02.png" class="img-fluid figure-img" alt="Trois droites décroissantes de la confiance minimale digne de confiance en fonction du rapport entre le prix de l'appel économisé et le coût d'un mauvais choix, pour un LLM juste dans 99 %, 95 % et 90 % des cas. Un repère à 0,01 montre des seuils proches de la précision du LLM."></p>
+<p><a href="../../../posts/2026-10-18-the-junior-colleague/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. La règle de seuil de Zhu et ses collègues, avec des valeurs d’illustration de mon choix. Quand un appel coûte peu par rapport à ce que coûte un mauvais choix, le seuil se place juste sous la propre précision du grand modèle."><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig02.png" class="img-fluid figure-img" alt="Trois droites décroissantes de la confiance minimale digne de confiance en fonction du rapport entre le prix de l'appel économisé et le coût d'un mauvais choix, pour un LLM juste dans 99 %, 95 % et 90 % des cas. Un repère à 0,01 montre des seuils proches de la précision du LLM."></a></p>
 <figcaption><strong>Figure 2.</strong> La règle de seuil de Zhu et ses collègues, avec des valeurs d’illustration de mon choix. Quand un appel coûte peu par rapport à ce que coûte un mauvais choix, le seuil se place juste sous la propre précision du grand modèle.</figcaption>
 </figure>
 </div>
@@ -530,7 +533,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p>Sur des questions isolées, les modèles se tenaient à environ 5 points les uns des autres. Dans un agent en marche, leur taux de réussite s’étalait sur 57 points. StartLux-9B, le plus précis sur le choix d’outil isolé avec 92,2 %, a résolu 69,5 % des tâches. AgentDecision-4B, à 89,3 %, en a résolu 91,5 %. La différence se joue dans les états difficiles, comme les moments où la bonne décision est d’interroger le client avant une action irréversible : là, AgentDecision-4B a répondu juste dans 67,4 % des cas et Jev dans 58,3 %. La précision sur des étapes d’agent enregistrées classait les modèles presque comme la réussite des tâches (corrélation de Kendall de 0,84).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig03.png" class="img-fluid figure-img" alt="Nuage de points des tâches résolues dans l'agent en fonction de la précision isolée. Les précisions isolées se situent toutes entre 87 % et 92 %, tandis que la réussite va de 34 % pour Intern-Decision-4B à 91,5 % pour AgentDecision-4B. StartLux-9B, le plus précis en isolé, résout 69,5 %."></p>
+<p><a href="../../../posts/2026-10-18-the-junior-colleague/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Précision sur des questions isolées en fonction des tâches résolues lorsque le modèle fait les choix d’outil de l’agent, sur des tâches de service client décalées. Données de Zhu et al., figure 4b."><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig03.png" class="img-fluid figure-img" alt="Nuage de points des tâches résolues dans l'agent en fonction de la précision isolée. Les précisions isolées se situent toutes entre 87 % et 92 %, tandis que la réussite va de 34 % pour Intern-Decision-4B à 91,5 % pour AgentDecision-4B. StartLux-9B, le plus précis en isolé, résout 69,5 %."></a></p>
 <figcaption><strong>Figure 3.</strong> Précision sur des questions isolées en fonction des tâches résolues lorsque le modèle fait les choix d’outil de l’agent, sur des tâches de service client décalées. Données de Zhu et al., figure 4b.</figcaption>
 </figure>
 </div>
@@ -544,7 +547,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p>Un apprentissage supervisé sur les états de l’agent a fait passer le modèle de 4 milliards de paramètres de 13,5 % à 96,0 % de tâches décalées résolues, pour 2,2 heures de GPU. La même recette a fait passer StartLux-4B de 49,0 % à 98,0 %. L’étape d’apprentissage par renforcement n’a apporté aucun gain mesurable, ce que les auteurs rapportent sans détour. L’élève a battu son maître : Jev a résolu 82,0 % des mêmes tâches. Sur une seule carte graphique L4, AgentDecision-4B a répondu en 31 ms en médiane, contre 809 ms pour un appel à Gemini 3.5 Flash.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig04.png" class="img-fluid figure-img" alt="Barres horizontales. Qwen3-4B non entraîné 13,5 % ; après entraînement sur les états de l'agent 96,0 % ; après apprentissage par renforcement 96,0 % ; avec données publiques, AgentDecision-4B 91,5 % ; Jev 82,0 % ; StartLux-4B 49,0 %, et 98,0 % avec la recette ; Intern-Decision-4B 34,0 %."></p>
+<p><a href="../../../posts/2026-10-18-the-junior-colleague/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Tâches résolues sur des tâches de service client décalées, avec différents modèles de décision aux commandes des choix d’outil de l’agent. Données de Zhu et al., tableau 3."><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig04.png" class="img-fluid figure-img" alt="Barres horizontales. Qwen3-4B non entraîné 13,5 % ; après entraînement sur les états de l'agent 96,0 % ; après apprentissage par renforcement 96,0 % ; avec données publiques, AgentDecision-4B 91,5 % ; Jev 82,0 % ; StartLux-4B 49,0 %, et 98,0 % avec la recette ; Intern-Decision-4B 34,0 %."></a></p>
 <figcaption><strong>Figure 4.</strong> Tâches résolues sur des tâches de service client décalées, avec différents modèles de décision aux commandes des choix d’outil de l’agent. Données de Zhu et al., tableau 3.</figcaption>
 </figure>
 </div>
@@ -553,7 +556,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <h3 class="anchored" data-anchor-id="les-gains-dépendent-de-la-répétition-des-choix">4.4 Les gains dépendent de la répétition des choix</h3>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig05.png" class="img-fluid figure-img" alt="Barres horizontales du coût économisé : service client 86,3 %, +0,5 point, 2,5 fois plus rapide ; ALFWorld 89,0 %, +4,3 points, environ deux fois plus rapide ; tâches difficiles avec une règle nouvelle 30,5 %, +2,0 points, plus lent ; agents de programmation 7,0 à 10,5 %, de -6,0 à +7,9 points."></p>
+<p><a href="../../../posts/2026-10-18-the-junior-colleague/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Coût d’appels au LLM économisé, avec la variation de réussite par rapport au grand modèle seul, dans quatre contextes. Données de Zhu et al., tableaux 1 et 2."><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig05.png" class="img-fluid figure-img" alt="Barres horizontales du coût économisé : service client 86,3 %, +0,5 point, 2,5 fois plus rapide ; ALFWorld 89,0 %, +4,3 points, environ deux fois plus rapide ; tâches difficiles avec une règle nouvelle 30,5 %, +2,0 points, plus lent ; agents de programmation 7,0 à 10,5 %, de -6,0 à +7,9 points."></a></p>
 <figcaption><strong>Figure 5.</strong> Coût d’appels au LLM économisé, avec la variation de réussite par rapport au grand modèle seul, dans quatre contextes. Données de Zhu et al., tableaux 1 et 2.</figcaption>
 </figure>
 </div>
@@ -576,7 +579,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p><strong>La boucle des habitudes est la boucle d’entraînement.</strong> Le résultat 4.3 est l’étape de formation des habitudes de Fast AI, rendue mesurable. Les maîtres lents et coûteux, Jev et le grand modèle, étiquettent une fois l’expérience propre de l’agent. L’élève rapide apprend les habitudes de cet agent, dans ce domaine, y compris la manière de se rattraper après ses propres erreurs. Les cas délégués, consignés dans les journaux, deviennent les données du prochain entraînement.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig06.png" class="img-fluid figure-img" alt="Flux d'un choix listé vers un petit modèle de décision, puis vers une voie rapide s'il est assez sûr ou vers une voie lente (LLM, agent, personne) sinon, les deux menant à une action. Boucle en pointillés : de la voie lente vers les journaux d'états, de délégations et d'erreurs, puis réentraînement et réajustement, puis mode fantôme, et retour au modèle de décision."></p>
+<p><a href="../../../posts/2026-10-18-the-junior-colleague/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Fast AI avec un modèle de décision. Chaque choix listé va à un petit modèle de décision. Au-dessus de son seuil, il décide ; en dessous, c’est le grand modèle, un agent ou une personne. Les journaux, y compris les erreurs de l’agent, servent à réentraîner le modèle et à réajuster les seuils, qui sont testés en mode fantôme avant qu’on leur fasse confiance."><img src="../../../posts/2026-10-18-the-junior-colleague/figures/fig06.png" class="img-fluid figure-img" alt="Flux d'un choix listé vers un petit modèle de décision, puis vers une voie rapide s'il est assez sûr ou vers une voie lente (LLM, agent, personne) sinon, les deux menant à une action. Boucle en pointillés : de la voie lente vers les journaux d'états, de délégations et d'erreurs, puis réentraînement et réajustement, puis mode fantôme, et retour au modèle de décision."></a></p>
 <figcaption><strong>Figure 6.</strong> Fast AI avec un modèle de décision. Chaque choix listé va à un petit modèle de décision. Au-dessus de son seuil, il décide ; en dessous, c’est le grand modèle, un agent ou une personne. Les journaux, y compris les erreurs de l’agent, servent à réentraîner le modèle et à réajuster les seuils, qui sont testés en mode fantôme avant qu’on leur fasse confiance.</figcaption>
 </figure>
 </div>
@@ -1074,6 +1077,38 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
   document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
 })();
 </script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

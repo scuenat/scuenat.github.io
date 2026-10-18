@@ -51,9 +51,12 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-6bca0946738ef4eb38bf57841a1014f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-9fa42bba2f63fb82853c6be880c2b465.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -495,7 +498,7 @@ window.Quarto = {
 <p>The authors identify eight such <em>decision points</em> in one step of an agent loop: three that choose what the agent does (the tool, its arguments, or the next action) and five that control the loop (write memory, read memory, reflect after a failure, stop, or route the step to a cheaper model). Their research question is how a harness can delegate these choices “to a fast, cheap decision model when the model is reliable, so that agentic tasks become faster and cheaper with little loss of success.”</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig01.png" class="img-fluid figure-img" alt="Two rows of six steps. Top: six LLM boxes for tool, args and stop, seconds each. Bottom: five green decision-model boxes and one unsure box that calls the LLM: one LLM call, the rest in milliseconds."></p>
+<p><a href="figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic. Today the large model makes every choice of the loop. With a decision model, the routine choices are answered in milliseconds, and the large model is called only where the decision model is unsure."><img src="figures/fig01.png" class="img-fluid figure-img" alt="Two rows of six steps. Top: six LLM boxes for tool, args and stop, seconds each. Bottom: five green decision-model boxes and one unsure box that calls the LLM: one LLM call, the rest in milliseconds."></a></p>
 <figcaption><strong>Figure 1.</strong> Schematic. Today the large model makes every choice of the loop. With a decision model, the routine choices are answered in milliseconds, and the large model is called only where the decision model is unsure.</figcaption>
 </figure>
 </div>
@@ -517,7 +520,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p>where <span class="math inline">q_L</span> is how often the large model gets this choice right, <span class="math inline">\Delta C</span> the price of the saved call and <span class="math inline">V</span> the cost of a wrong choice. The small model may be slightly less accurate than the large one, as long as the saving covers the extra risk. In practice, the agent first runs on separate tasks while the decision model answers silently (<em>shadow mode</em>), and the threshold is fitted on these runs for each decision point. With Jev and Gemini 3.5 Flash, the fitted thresholds were 1.00 for tools and 0.99 for arguments: only near-certain answers are used.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig02.png" class="img-fluid figure-img" alt="Three falling lines of the lowest confidence worth trusting against the ratio of saved call price to the cost of a wrong choice, for an LLM right 99%, 95% and 90% of the time. A marker at 0.01 shows thresholds close to the LLM's accuracy."></p>
+<p><a href="figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. The threshold rule of Zhu and colleagues, with illustrative values of my own. When a call costs little against what a wrong choice costs, the threshold sits just under the large model’s own accuracy."><img src="figures/fig02.png" class="img-fluid figure-img" alt="Three falling lines of the lowest confidence worth trusting against the ratio of saved call price to the cost of a wrong choice, for an LLM right 99%, 95% and 90% of the time. A marker at 0.01 shows thresholds close to the LLM's accuracy."></a></p>
 <figcaption><strong>Figure 2.</strong> The threshold rule of Zhu and colleagues, with illustrative values of my own. When a call costs little against what a wrong choice costs, the threshold sits just under the large model’s own accuracy.</figcaption>
 </figure>
 </div>
@@ -531,7 +534,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p>On isolated questions, the models were within about 5 points of each other. Inside a running agent, their task success spread over 57 points. StartLux-9B, the most accurate on isolated tool choice at 92.2%, solved 69.5% of tasks. AgentDecision-4B, at 89.3%, solved 91.5%. The difference lies in the hard states, such as the moments when the right move is to ask the customer before an irreversible action: there, AgentDecision-4B answered 67.4% correctly and Jev 58.3%. Accuracy on recorded agent steps ranked the models nearly as task success did (Kendall correlation 0.84).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig03.png" class="img-fluid figure-img" alt="Scatter of tasks solved inside the agent against isolated accuracy. Isolated accuracies all lie between 87% and 92%, while task success ranges from 34% for Intern-Decision-4B to 91.5% for AgentDecision-4B. StartLux-9B, the most accurate in isolation, solves 69.5%."></p>
+<p><a href="figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Accuracy on isolated questions against tasks solved when the model makes the agent’s tool choices, on shifted customer-service tasks. Data from Zhu et al., Figure 4b."><img src="figures/fig03.png" class="img-fluid figure-img" alt="Scatter of tasks solved inside the agent against isolated accuracy. Isolated accuracies all lie between 87% and 92%, while task success ranges from 34% for Intern-Decision-4B to 91.5% for AgentDecision-4B. StartLux-9B, the most accurate in isolation, solves 69.5%."></a></p>
 <figcaption><strong>Figure 3.</strong> Accuracy on isolated questions against tasks solved when the model makes the agent’s tool choices, on shifted customer-service tasks. Data from Zhu et al., Figure 4b.</figcaption>
 </figure>
 </div>
@@ -545,7 +548,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p>Supervised training on the agent’s own states raised the 4B model from 13.5% to 96.0% of shifted tasks solved, for 2.2 GPU-hours. The same recipe raised StartLux-4B from 49.0% to 98.0%. The reinforcement-learning stage added no measurable gain, which the authors report plainly. The student beat its teacher: Jev solved 82.0% of the same tasks. On one L4 graphics card, AgentDecision-4B answered in a median of 31 ms, against 809 ms for a call to Gemini 3.5 Flash.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig04.png" class="img-fluid figure-img" alt="Horizontal bars. Untrained Qwen3-4B 13.5%; after training on the agent's states 96.0%; after RL 96.0%; with public data, AgentDecision-4B 91.5%; Jev 82.0%; StartLux-4B 49.0%, and 98.0% with the recipe; Intern-Decision-4B 34.0%."></p>
+<p><a href="figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Tasks solved on shifted customer-service tasks, with different decision models making the agent’s tool choices. Data from Zhu et al., Table 3."><img src="figures/fig04.png" class="img-fluid figure-img" alt="Horizontal bars. Untrained Qwen3-4B 13.5%; after training on the agent's states 96.0%; after RL 96.0%; with public data, AgentDecision-4B 91.5%; Jev 82.0%; StartLux-4B 49.0%, and 98.0% with the recipe; Intern-Decision-4B 34.0%."></a></p>
 <figcaption><strong>Figure 4.</strong> Tasks solved on shifted customer-service tasks, with different decision models making the agent’s tool choices. Data from Zhu et al., Table 3.</figcaption>
 </figure>
 </div>
@@ -554,7 +557,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <h3 class="anchored" data-anchor-id="the-gains-depend-on-how-much-the-choices-repeat">4.4 The gains depend on how much the choices repeat</h3>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig05.png" class="img-fluid figure-img" alt="Horizontal bars of LLM cost saved: customer service 86.3%, +0.5 points, 2.5 times faster; ALFWorld 89.0%, +4.3 points, about twice as fast; hard tasks with a new rule 30.5%, +2.0 points, slower; coding agents 7.0 to 10.5%, -6.0 to +7.9 points."></p>
+<p><a href="figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. LLM cost saved, with the change in task success against the large model alone, in four settings. Data from Zhu et al., Tables 1 and 2."><img src="figures/fig05.png" class="img-fluid figure-img" alt="Horizontal bars of LLM cost saved: customer service 86.3%, +0.5 points, 2.5 times faster; ALFWorld 89.0%, +4.3 points, about twice as fast; hard tasks with a new rule 30.5%, +2.0 points, slower; coding agents 7.0 to 10.5%, -6.0 to +7.9 points."></a></p>
 <figcaption><strong>Figure 5.</strong> LLM cost saved, with the change in task success against the large model alone, in four settings. Data from Zhu et al., Tables 1 and 2.</figcaption>
 </figure>
 </div>
@@ -577,7 +580,7 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
 <p><strong>The habit loop is the training loop.</strong> Finding 4.3 is the habit-forming step of Fast AI, made measurable. The slow, expensive teachers, Jev and the large model, label the agent’s own experience once. The fast student learns the habits of this agent in this domain, including how to recover from its own errors. Logged deferrals become the next round of training data.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig06.png" class="img-fluid figure-img" alt="Flow from a listed choice to a small decision model, then to a fast path if confident enough or a slow path (LLM, agent, person) if not, both leading to an action. Dashed loop: slow path to logs of states, deferrals and mistakes, to retrain and refit, to shadow mode, back to the decision model."></p>
+<p><a href="figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Fast AI with a decision model. Each listed choice goes to a small decision model. Above its threshold, it decides; below, the large model, an agent or a person does. The logs, including the agent’s mistakes, are used to retrain the model and refit the thresholds, which are tested in shadow mode before they are trusted."><img src="figures/fig06.png" class="img-fluid figure-img" alt="Flow from a listed choice to a small decision model, then to a fast path if confident enough or a slow path (LLM, agent, person) if not, both leading to an action. Dashed loop: slow path to logs of states, deferrals and mistakes, to retrain and refit, to shadow mode, back to the decision model."></a></p>
 <figcaption><strong>Figure 6.</strong> Fast AI with a decision model. Each listed choice goes to a small decision model. Above its threshold, it decides; below, the large model, an agent or a person does. The logs, including the agent’s mistakes, are used to retrain the model and refit the thresholds, which are tested in shadow mode before they are trusted.</figcaption>
 </figure>
 </div>
@@ -1075,6 +1078,38 @@ c \;\ge\; q_L - \frac{\Delta C}{V},
   document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
 })();
 </script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

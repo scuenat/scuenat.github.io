@@ -50,9 +50,12 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-6bca0946738ef4eb38bf57841a1014f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-9fa42bba2f63fb82853c6be880c2b465.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-ead842791d3794d2d7832bb5413d32c9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -509,7 +512,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>Plus nous ajoutons de termes, plus la courbe se rapproche de chaque point. Avec assez de termes, elle passe par tous. Cela semble parfait, mais ce ne l’est pas. Entre les points, la courbe oscille violemment (Figure 1). Elle a appris le bruit, pas la vraie forme.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig01.png" class="img-fluid figure-img" alt="Graphique de 16 points noirs. Une courbe rouge de degré 15 passe par chaque point mais oscille violemment entre eux ; une courbe bleue de degré 3 suit de près la réalité sous-jacente, en pointillés gris."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Seize mesures bruitées. La courbe à 15 termes (rouge) touche chaque point mais s’en écarte fortement entre eux. La courbe simple à 3 termes (bleu) manque quelques points mais suit la vraie forme. Toutes les figures de ce document utilisent des données simulées."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig01.png" class="img-fluid figure-img" alt="Graphique de 16 points noirs. Une courbe rouge de degré 15 passe par chaque point mais oscille violemment entre eux ; une courbe bleue de degré 3 suit de près la réalité sous-jacente, en pointillés gris."></a></p>
 <figcaption><strong>Figure 1.</strong> Seize mesures bruitées. La courbe à 15 termes (rouge) touche chaque point mais s’en écarte fortement entre eux. La courbe simple à 3 termes (bleu) manque quelques points mais suit la vraie forme. Toutes les figures de ce document utilisent des données simulées.</figcaption>
 </figure>
 </div>
@@ -520,7 +523,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>La Figure 2 montre le compromis. Ajouter des termes améliore toujours l’ajustement aux données passées. Mais la capacité à prédire de nouveaux cas ne s’améliore que jusqu’à un certain point, puis se dégrade fortement. Le meilleur résultat vient d’un petit nombre de termes.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig02.png" class="img-fluid figure-img" alt="Graphique à échelle logarithmique de l'erreur en fonction de la complexité, de 0 à 15. La ligne grise de l'ajustement au passé ne cesse de baisser ; la ligne bleue de l'erreur de prédiction est au plus bas à 3, marquée sweet spot, puis monte en flèche."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. À mesure que l’on ajoute des termes, l’ajustement aux données passées continue de s’améliorer (gris). La prédiction de nouvelles données (bleu) est la meilleure avec 3 termes, puis se dégrade fortement."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig02.png" class="img-fluid figure-img" alt="Graphique à échelle logarithmique de l'erreur en fonction de la complexité, de 0 à 15. La ligne grise de l'ajustement au passé ne cesse de baisser ; la ligne bleue de l'erreur de prédiction est au plus bas à 3, marquée sweet spot, puis monte en flèche."></a></p>
 <figcaption><strong>Figure 2.</strong> À mesure que l’on ajoute des termes, l’ajustement aux données passées continue de s’améliorer (gris). La prédiction de nouvelles données (bleu) est la meilleure avec 3 termes, puis se dégrade fortement.</figcaption>
 </figure>
 </div>
@@ -534,7 +537,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>Cela ne veut pas dire que nous devrions collecter moins de données. Pour trouver les quelques bons chiffres, il faut souvent beaucoup de mesures. La vraie question est&nbsp;: qui fait le résumé ? Dans la Figure 3, 120 mesures sont réduites à six chiffres qui décrivent toute la surface, même là où rien n’a été mesuré. Les machines devraient traiter le volume ; les personnes devraient recevoir le résultat.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig03.png" class="img-fluid figure-img" style="width:60.0%" alt="Graphique en 3D de points rouges dispersés autour d'une surface bleue courbe et lisse."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. 120 mesures (rouge) résumées par une surface décrite par seulement six chiffres (bleu)."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig03.png" class="img-fluid figure-img" style="width:60.0%" alt="Graphique en 3D de points rouges dispersés autour d'une surface bleue courbe et lisse."></a></p>
 <figcaption><strong>Figure 3.</strong> 120 mesures (rouge) résumées par une surface décrite par seulement six chiffres (bleu).</figcaption>
 </figure>
 </div>
@@ -546,7 +549,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig04.png" class="img-fluid figure-img" alt="Entonnoir de quatre boîtes, chacune plus étroite que la précédente&nbsp;: observations brutes (des millions d'événements), modèle ou compression (quelques termes), signal (3 choses ont bougé, 1 compte), décision (agir ou non)."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. L’entonnoir de l’information. Chaque étape devrait être plus petite que la précédente, pour que ce qui arrive à une personne soit assez petit pour agir."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig04.png" class="img-fluid figure-img" alt="Entonnoir de quatre boîtes, chacune plus étroite que la précédente&nbsp;: observations brutes (des millions d'événements), modèle ou compression (quelques termes), signal (3 choses ont bougé, 1 compte), décision (agir ou non)."></a></p>
 <figcaption><strong>Figure 4.</strong> L’entonnoir de l’information. Chaque étape devrait être plus petite que la précédente, pour que ce qui arrive à une personne soit assez petit pour agir.</figcaption>
 </figure>
 </div>
@@ -562,7 +565,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>L’histoire le montre bien. Tycho Brahe a passé des décennies à noter la position des planètes. Kepler a résumé ses tables en trois lois courtes. Newton a ensuite découvert la gravitation, non pas à partir des tables brutes de Tycho, mais à partir des trois lois de Kepler. La règle a été trouvée dans le résumé, pas dans les données brutes.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig05.png" class="img-fluid figure-img" alt="Deux schémas. En haut&nbsp;: Tycho (données), puis Kepler (3 lois, compression), puis Newton (1 règle). En bas&nbsp;: une boucle des données vers compresser, puis extraire la règle, puis les résidus, qui reviennent vers la compression."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. En haut&nbsp;: des données au résumé, puis à la règle. En bas&nbsp;: la même idée sous forme de méthode. Résumer et trouver des règles forment une boucle, entraînée par ce que la règle manque encore. Les règles sont testées en pratique avant qu’on leur fasse confiance."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig05.png" class="img-fluid figure-img" alt="Deux schémas. En haut&nbsp;: Tycho (données), puis Kepler (3 lois, compression), puis Newton (1 règle). En bas&nbsp;: une boucle des données vers compresser, puis extraire la règle, puis les résidus, qui reviennent vers la compression."></a></p>
 <figcaption><strong>Figure 5.</strong> En haut&nbsp;: des données au résumé, puis à la règle. En bas&nbsp;: la même idée sous forme de méthode. Résumer et trouver des règles forment une boucle, entraînée par ce que la règle manque encore. Les règles sont testées en pratique avant qu’on leur fasse confiance.</figcaption>
 </figure>
 </div>
@@ -585,7 +588,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>La structure mérite un mot, car les moyennes ne la voient pas. Dans la Figure 6, trois jeux de données ont exactement la même moyenne et la même dispersion, et pourtant l’un est un nuage, l’autre une boucle, le troisième deux boucles. Un processus qui se répète et un processus qui dérive sont très différents, même si leurs moyennes sont égales. Une branche des mathématiques, l’analyse topologique des données, détecte ce genre de structure et la décrit avec quelques chiffres&nbsp;: combien de groupes, combien de boucles.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig06.png" class="img-fluid figure-img" alt="Trois nuages de points avec la même moyenne 0 et le même écart type 1&nbsp;: un nuage sans forme, un anneau unique, et deux anneaux côte à côte."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Trois jeux de données avec la même moyenne et la même dispersion. Les statistiques habituelles ne peuvent pas les distinguer, mais leurs formes sont complètement différentes&nbsp;: aucune boucle, une boucle, deux boucles."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig06.png" class="img-fluid figure-img" alt="Trois nuages de points avec la même moyenne 0 et le même écart type 1&nbsp;: un nuage sans forme, un anneau unique, et deux anneaux côte à côte."></a></p>
 <figcaption><strong>Figure 6.</strong> Trois jeux de données avec la même moyenne et la même dispersion. Les statistiques habituelles ne peuvent pas les distinguer, mais leurs formes sont complètement différentes&nbsp;: aucune boucle, une boucle, deux boucles.</figcaption>
 </figure>
 </div>
@@ -604,7 +607,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>Les mathématiciens appellent cela une différence finie. Le tableau de bord ne montre alors ni les données ni même la forme, mais comment notre compréhension a changé (Figure 7).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig07.png" class="img-fluid figure-img" alt="Trois rangées sur cinq semaines. En bas&nbsp;: des points de données dispersés. Au milieu&nbsp;: la forme, une ellipse les semaines 1 à 3, deux ellipses à partir de la semaine 4. En haut&nbsp;: le tableau de bord, vide sauf une case rouge new loop en semaine 4."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig07.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Illustration. En bas&nbsp;: les données brutes, utilisées comme preuves et jamais montrées. Au milieu&nbsp;: la forme, notre compréhension, mise à jour chaque semaine. En haut&nbsp;: la différence entre formes successives. C’est le tableau de bord, et il reste vide tant que la forme ne change pas."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig07.png" class="img-fluid figure-img" alt="Trois rangées sur cinq semaines. En bas&nbsp;: des points de données dispersés. Au milieu&nbsp;: la forme, une ellipse les semaines 1 à 3, deux ellipses à partir de la semaine 4. En haut&nbsp;: le tableau de bord, vide sauf une case rouge new loop en semaine 4."></a></p>
 <figcaption><strong>Figure 7.</strong> Illustration. En bas&nbsp;: les données brutes, utilisées comme preuves et jamais montrées. Au milieu&nbsp;: la forme, notre compréhension, mise à jour chaque semaine. En haut&nbsp;: la différence entre formes successives. C’est le tableau de bord, et il reste vide tant que la forme ne change pas.</figcaption>
 </figure>
 </div>
@@ -630,14 +633,14 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p><strong>Mesurer là où les choses changent.</strong> Une règle nous dit comment les choses évoluent ; à partir d’un point de départ, elle peut reconstruire le reste. Les données sont donc surtout nécessaires là où la forme est incertaine ou en train de changer. Dans la Figure 8, les mêmes 13 mesures, placées là où la courbe change, donnent une erreur six fois plus petite. En pratique, nous ne savons pas à l’avance où les choses changent, alors nous le découvrons pas à pas&nbsp;: mesurer un peu partout, puis davantage là où sont les surprises.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig08.png" class="img-fluid figure-img" alt="Deux graphiques de la même courbe échantillonnée en 13 points. Des points régulièrement espacés ratent la montée brusque (erreur max 0,38) ; des points regroupés là où la courbe change la suivent de près (erreur max 0,06)."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig08.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. Treize mesures placées régulièrement (en haut) ou là où la courbe change (en bas). La seconde version suit la courbe de bien plus près avec le même nombre de points."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig08.png" class="img-fluid figure-img" alt="Deux graphiques de la même courbe échantillonnée en 13 points. Des points régulièrement espacés ratent la montée brusque (erreur max 0,38) ; des points regroupés là où la courbe change la suivent de près (erreur max 0,06)."></a></p>
 <figcaption><strong>Figure 8.</strong> Treize mesures placées régulièrement (en haut) ou là où la courbe change (en bas). La seconde version suit la courbe de bien plus près avec le même nombre de points.</figcaption>
 </figure>
 </div>
 <p><strong>Une donnée vaut ce qu’elle change.</strong> Une mesure n’a de valeur que si elle pourrait changer une décision. Quand le choix est déjà clair, plus de données n’apportent rien (Figure 9). Une bonne forme rend les choix plus clairs, et réduit donc la quantité de données nécessaire.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig09.png" class="img-fluid figure-img" alt="Courbes culminant au seuil de décision et tombant à zéro des deux côtés. Le modèle incertain (trait plein) culmine plus haut que le modèle confiant (pointillés). Loin du seuil, mesurer ne vaut rien."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig09.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure 9. Ce que vaut une nouvelle mesure, selon la proximité d’une décision. Elle compte le plus près du point de bascule, et moins quand le modèle est sûr de lui."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig09.png" class="img-fluid figure-img" alt="Courbes culminant au seuil de décision et tombant à zéro des deux côtés. Le modèle incertain (trait plein) culmine plus haut que le modèle confiant (pointillés). Loin du seuil, mesurer ne vaut rien."></a></p>
 <figcaption><strong>Figure 9.</strong> Ce que vaut une nouvelle mesure, selon la proximité d’une décision. Elle compte le plus près du point de bascule, et moins quand le modèle est sûr de lui.</figcaption>
 </figure>
 </div>
@@ -670,7 +673,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p><strong>Le tableau de bord habituel.</strong> Un tableau de bord typique montre 24 tuiles&nbsp;: les requêtes par langue et par agent, le temps de réponse par agent, et la fréquence d’utilisation de chaque fonction (Figure 10). Chaque tuile est signalée quand elle sort de sa plage normale. Sur les 60 derniers jours, les tuiles lèvent 106 alertes. La croissance normale et la nouvelle fonction d’export ressemblent à des anomalies. Chaque vrai problème n’est signalé qu’une fois, les deux le jour 74 pendant un pic des serveurs, sans rien pour les distinguer des 104 fausses alertes. Aucune cause n’est nommée. Cette référence est volontairement simple. Un analyste soigneux ajusterait chaque tuile pour les week-ends et la croissance, et supprimerait la plupart des fausses alertes. Mais les deux vrais problèmes resteraient cachés dans les variations quotidiennes des serveurs, et aucune tuile ne nommerait la cause.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig10.png" class="img-fluid figure-img" alt="Grille de 24 petites séries temporelles (requêtes, latence et fonctions) sur 90 jours, avec de nombreux points rouges qui signalent des jours hors plage, et une ligne pointillée au jour 60."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig10.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure 10. Le tableau de bord habituel&nbsp;: 24 tuiles sur 90 jours. Les points rouges marquent les jours hors de la plage normale&nbsp;: 106 alertes, presque toutes fausses. La ligne pointillée marque le jour 60."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig10.png" class="img-fluid figure-img" alt="Grille de 24 petites séries temporelles (requêtes, latence et fonctions) sur 90 jours, avec de nombreux points rouges qui signalent des jours hors plage, et une ligne pointillée au jour 60."></a></p>
 <figcaption><strong>Figure 10.</strong> Le tableau de bord habituel&nbsp;: 24 tuiles sur 90 jours. Les points rouges marquent les jours hors de la plage normale&nbsp;: 106 alertes, presque toutes fausses. La ligne pointillée marque le jour 60.</figcaption>
 </figure>
 </div>
@@ -678,14 +681,14 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p><strong>Le tableau de bord.</strong> La Figure 11 montre la différence entre la forme de chaque semaine et la précédente. À gauche, la différence brute&nbsp;: de nombreuses cases s’allument semaine après semaine, parce que le volume croît et que l’export remplace le brouillon. À droite, la différence moins le changement attendu, en ne gardant que les changements significatifs (5&nbsp;% pour la vitesse et le volume, deux points de pourcentage pour l’usage). Ces seuils ne sont pas des choix techniques ; ils devraient être fixés par les responsables des décisions, par exemple l’équipe chargée des temps de réponse. Pendant douze semaines, tout le tableau de bord est vide, sauf une ligne&nbsp;: agent de code, allemand. L’avis apparaît à la fin de la semaine 9, deux jours après le début du problème, et nomme la cause. Il réapparaît en semaine 10, parce que la forme de la semaine 9 ne contenait que trois jours du problème. Ensuite, la nouvelle vitesse fait partie de la forme, et le tableau de bord redevient silencieux.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig11.png" class="img-fluid figure-img" alt="Deux cartes de chaleur des 33 chiffres de la fiche de forme sur 12 semaines. À gauche, les différences brutes montrent beaucoup de cases pâles. À droite, après soustraction du changement attendu, tout est vide sauf speed code DE en semaines 9 et 10."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure 11. Le tableau de bord comme différence de formes, sur 12 semaines. À gauche&nbsp;: la différence brute, d’une semaine à l’autre, des 33 chiffres de la fiche de forme. À droite&nbsp;: la différence moins le changement attendu, en ne gardant que les changements significatifs. Il reste une ligne&nbsp;: agent de code, allemand, semaines 9 et 10."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig11.png" class="img-fluid figure-img" alt="Deux cartes de chaleur des 33 chiffres de la fiche de forme sur 12 semaines. À gauche, les différences brutes montrent beaucoup de cases pâles. À droite, après soustraction du changement attendu, tout est vide sauf speed code DE en semaines 9 et 10."></a></p>
 <figcaption><strong>Figure 11.</strong> Le tableau de bord comme différence de formes, sur 12 semaines. À gauche&nbsp;: la différence brute, d’une semaine à l’autre, des 33 chiffres de la fiche de forme. À droite&nbsp;: la différence moins le changement attendu, en ne gardant que les changements significatifs. Il reste une ligne&nbsp;: agent de code, allemand, semaines 9 et 10.</figcaption>
 </figure>
 </div>
 <p><strong>La dérive lente.</strong> Le ralentissement de la traduction ne bouge jamais de plus de 1,7&nbsp;% d’une semaine à l’autre, donc il n’apparaît jamais sur le tableau de bord hebdomadaire. Comparé à une forme de référence fixe (semaines 1 à 6), il franchit la ligne des 5&nbsp;% en semaine 12 et il est signalé (Figure 12). C’est la quatrième précaution à l’œuvre.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="../../../posts/2026-09-29-show-what-changed/figures/fig12.png" class="img-fluid figure-img" alt="Graphique sur 12 semaines. Les barres grises du changement d'une semaine à l'autre restent petites. Une ligne bleue du changement par rapport à une forme de référence monte après le début de la dérive en semaine 7 et franchit la ligne des 5&nbsp;% en semaine 12."></p>
+<p><a href="../../../posts/2026-09-29-show-what-changed/figures/fig12.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure 12. La dérive lente de l’agent de traduction. Les changements d’une semaine à l’autre (barres) restent petits. Le changement par rapport à une forme de référence fixe (ligne) ne cesse de croître et franchit le seuil de significativité en semaine 12."><img src="../../../posts/2026-09-29-show-what-changed/figures/fig12.png" class="img-fluid figure-img" alt="Graphique sur 12 semaines. Les barres grises du changement d'une semaine à l'autre restent petites. Une ligne bleue du changement par rapport à une forme de référence monte après le début de la dérive en semaine 7 et franchit la ligne des 5&nbsp;% en semaine 12."></a></p>
 <figcaption><strong>Figure 12.</strong> La dérive lente de l’agent de traduction. Les changements d’une semaine à l’autre (barres) restent petits. Le changement par rapport à une forme de référence fixe (ligne) ne cesse de croître et franchit le seuil de significativité en semaine 12.</figcaption>
 </figure>
 </div>
@@ -1252,6 +1255,38 @@ données.”</span> September 29. <a href="https://scuenat.github.io/fr/posts/20
   document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
 })();
 </script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
