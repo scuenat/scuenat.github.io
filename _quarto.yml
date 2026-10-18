@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: _site
+  render:
+    - "**/*.qmd"   # pages are .qmd; keeps LICENSE-content.md etc. out of the site
   resources:
     - hero-network.svg   # only referenced from CSS
 
@@ -88,6 +90,22 @@ format:
         </script>
     include-in-header:
       text: |
+        <script>
+        // Search only the current language: French pages see fr/ results, English pages the rest.
+        (function () {
+          var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+          window.fetch = function (input) {
+            var url = typeof input === "string" ? input : input.url;
+            if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+            return f.apply(this, arguments).then(function (r) {
+              return r.json().then(function (items) {
+                var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+                return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+              });
+            });
+          };
+        })();
+        </script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
