@@ -64,7 +64,7 @@
 <p>I would rather ask a different question: <em>what would intelligence look like if it were designed for the machine in front of me from the start?</em></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig01.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig01.png" class="img-fluid figure-img" alt="Two diagrams. An oracle: four tasks all go to one large model. An ecosystem: a router sends each task to a small specialist (invoices, code, email, contracts), all connected to a shared memory."></p>
 <figcaption><strong>Figure 1.</strong> Two ways to organise intelligence. An oracle sends every task to one large model. An ecosystem sends each task to a small specialist, chosen by a router, and all specialists share one memory. Schematic, my own.</figcaption>
 </figure>
 </div>
@@ -82,7 +82,7 @@
 <p>A frontier model can stay outside, as a teacher and an occasional consultant.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png" class="img-fluid figure-img" alt="Diagram of a local machine: you send a task to a router, which picks a vision, language, planner or domain specialist; all share a memory; nightly consolidation updates them. Outside, a frontier model distils knowledge and is consulted rarely."></p>
 <figcaption><strong>Figure 2.</strong> The local ecosystem I have in mind. A router sends each task to a specialist. Specialists read from and write to a shared memory. At night, the system consolidates what it has learned into updated specialists. A frontier model, outside the machine, teaches once and is consulted rarely. Schematic, my own.</figcaption>
 </figure>
 </div>
@@ -99,13 +99,13 @@
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig03.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig03.png" class="img-fluid figure-img" alt="Three grids. Dense model: all cells filled. Mixture of experts: all loaded but only a few cells active. Ecosystem: separate specialist boxes, only one active."></p>
 <figcaption><strong>Figure 3.</strong> Three architectures. A dense model loads all its parameters and uses all of them for every word. A mixture of experts loads all of them but uses only a few experts per word. An ecosystem loads separate specialist models when they are needed. Schematic, my own.</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig04.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig04.png" class="img-fluid figure-img" alt="Bar chart of share active per word: dense model 100%, Mixtral 8x7B 27.6%, DeepSeek-V3 5.5%, cortex estimate about 1% (hatched)."></p>
 <figcaption><strong>Figure 4.</strong> Share of parameters used for each word. Mixtral and DeepSeek-V3 values are computed from the published parameter counts <span class="citation" data-cites="jiang2024 deepseek2024">(<span class="nocase">Jiang et al.</span> 2024; DeepSeek-AI 2024)</span>. The cortex value is a rough estimate of the share of neurons that can be strongly active at the same time, from energy constraints <span class="citation" data-cites="lennie2003">(Lennie 2003)</span>; it is debated and shown hatched. Chart my own.</figcaption>
 </figure>
 </div>
@@ -171,7 +171,7 @@
 </table>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig05.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig05.png" class="img-fluid figure-img" alt="Log-log line of tokens per second against billions of parameters read per token: 3B and 8B specialists over 100 tokens per second, 70B dense about 14, and an MoE with 37B active marked as not fitting in 128 GB."></p>
 <figcaption><strong>Figure 5.</strong> Upper bound on generation speed when every word requires reading all active weights once, at 500 GB/s and 4-bit weights. Open circle: does not fit in 128 GB. Real speeds are lower; computation, the conversation’s cache and software all cost something. My own calculation from the formula above; DeepSeek-V3 parameter counts from <span class="citation" data-cites="deepseek2024">(DeepSeek-AI 2024)</span>.</figcaption>
 </figure>
 </div>
@@ -188,7 +188,7 @@
 <p>With illustrative values of 2 billion for the core and 1 billion for the domain, a domain that is 1% of the general model’s training needs about 102 billion parameters for the same depth, against 3 billion for the specialist.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig06.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig06.png" class="img-fluid figure-img" alt="Log-log chart of parameters needed against the domain's share of training. The general model's curve falls from 1000B at 0.1% to 3B at 100%; the specialist stays flat at 3B. At 1%: about 102B against 3B."></p>
 <figcaption><strong>Figure 6.</strong> A simple capacity model. Parameters needed for the same depth in one domain, for a general model and for a specialist, as a function of the domain’s share <img src="https://latex.codecogs.com/png.latex?f"> of the general model’s training. Illustrative values, my own: <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bshared%7D%7D"> = 2B, <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bdomain%7D%7D"> = 1B, no transfer between domains beyond the shared core. Model inspired by the quanta view of scaling <span class="citation" data-cites="michaud2023">(Michaud et al. 2023)</span>.</figcaption>
 </figure>
 </div>
@@ -203,7 +203,7 @@
 <p>With <img src="https://latex.codecogs.com/png.latex?r%20=%2016"> and <img src="https://latex.codecogs.com/png.latex?d%20=%203072">, that is about 1%. Applied to a 3-billion-parameter base model, an adapter has roughly 30 million parameters, about 60 MB at 16 bits, consistent with the “tens of megabytes” Apple reports for its rank-16 adapters <span class="citation" data-cites="gunter2024">(<span class="nocase">Gunter et al.</span> 2024)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig07.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig07.png" class="img-fluid figure-img" alt="Memory against number of specialists. Separate 3B models rise linearly past the 128 GB line at about 85; one base plus adapters stays nearly flat, 7.5 GB for 100 specialists."></p>
 <figcaption><strong>Figure 7.</strong> Memory needed for <img src="https://latex.codecogs.com/png.latex?k"> specialists, as separate 3B models at 4 bits, or as one 3B base at 4 bits plus rank-16 adapters at 16 bits (about 60 MB each). My own calculation from the formula above.</figcaption>
 </figure>
 </div>
@@ -219,7 +219,7 @@
 <p>With illustrative values <img src="https://latex.codecogs.com/png.latex?q_s%20=%200.90">, <img src="https://latex.codecogs.com/png.latex?q_w%20=%200.30"> and <img src="https://latex.codecogs.com/png.latex?q_g%20=%200.80">, the router must be right more than 83% of the time. If the router also knows when it is unsure, and sends half of its mistakes to a larger model with quality <img src="https://latex.codecogs.com/png.latex?q_L%20=%200.95">, the threshold drops to about 64%.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig08.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig08.png" class="img-fluid figure-img" alt="Expected quality against router accuracy. The general model is flat at 0.80. A router that escalates half its mistakes passes it at 64% accuracy; a router alone only at 83%."></p>
 <figcaption><strong>Figure 8.</strong> Expected quality of an ecosystem as a function of router accuracy, with and without escalation of uncertain cases, compared to one general model that runs at a similar speed. Illustrative values, my own.</figcaption>
 </figure>
 </div>
@@ -239,7 +239,7 @@
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig09.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig09.png" class="img-fluid figure-img" alt="Issues solved against attempts, log scale. Reported results: 15.9% with one attempt, 56% with 250. The dashed independent-attempt curve rises to 100% quickly. A dotted line marks the best single attempt at 43%."></p>
 <figcaption><strong>Figure 9.</strong> Repeated attempts with a verifier. The two points are results reported by Brown et al.&nbsp;for SWE-bench Lite <span class="citation" data-cites="brown2024">(<span class="nocase">Brown et al.</span> 2024)</span>. The dashed line is my own calculation of what would happen if attempts were independent, <img src="https://latex.codecogs.com/png.latex?1-(1-p)%5Ek"> with <img src="https://latex.codecogs.com/png.latex?p%20=%200.159">; the gap shows that attempts are strongly correlated. Chart my own.</figcaption>
 </figure>
 </div>
@@ -247,7 +247,7 @@
 <p><strong>Third, some of the harness can never be absorbed into a model.</strong> A persistent memory that lasts beyond one conversation. Permissions over what may leave the machine. Tests that decide whether an output or an update is accepted. The local data itself. However strong models become, these stay outside.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig10.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig10.png" class="img-fluid figure-img" alt="Schematic of what the harness adds against model strength. Reasoning scaffolding falls from high for small specialists to near zero for frontier models; structure no model can absorb stays flat."></p>
 <figcaption><strong>Figure 10.</strong> My own view of the harness, as a schematic. Scaffolding for reasoning (orchestrators, sub-agents, retries) adds much to small models and little to strong ones. Structure no model can absorb (memory, permissions, tests, local data) keeps its value. The right end is consistent with the finding of <span class="citation" data-cites="brilliantov2026">(Brilliantov et al. 2026)</span>; the rest of the curve is my hypothesis, not data.</figcaption>
 </figure>
 </div>
@@ -266,7 +266,7 @@
 <p><strong>Sparse and frugal.</strong> The human brain has about 86 billion neurons <span class="citation" data-cites="herculano2009">(Herculano-Houzel 2009)</span> and runs on roughly 20 watts <span class="citation" data-cites="balasubramanian2021">(Balasubramanian 2021)</span>. Energy budgets suggest that only a small share of cortical neurons can be strongly active at the same time, perhaps around one percent, although the exact figure is debated <span class="citation" data-cites="lennie2003 attwell2001">(Lennie 2003; Attwell and Laughlin 2001)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig11.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig11.png" class="img-fluid figure-img" alt="Table mapping brain features to ecosystem parts: specialised areas to specialists, domain-general network to shared core and router, hippocampus to shared memory, cortex to nightly consolidation, plasticity to adapting specialists, 20 watts to small, sparse, local."></p>
 <figcaption><strong>Figure 11.</strong> How the brain seems to be organised, and the part of the ecosystem each idea corresponds to. An analogy, my own, not a claim that the brain is built like software. Sources for each brain property are given in section 9.</figcaption>
 </figure>
 </div>
@@ -285,7 +285,7 @@
 <p>Keeping this memory outside the weights is what makes the system trustworthy. You can read it. You can correct a fact in one place, and every specialist benefits. You can delete something and know it is gone, which is very hard to guarantee once data has been used to train a model; removing its influence afterwards is an open research problem <span class="citation" data-cites="bourtoule2021">(<span class="nocase">Bourtoule et al.</span> 2021)</span>. Retrieval also lets small models know far more than their weights hold <span class="citation" data-cites="borgeaud2022 lewis2020">(<span class="nocase">Borgeaud et al.</span> 2022; <span class="nocase">Lewis et al.</span> 2020)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig12.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig12.png" class="img-fluid figure-img" alt="Table comparing knowledge in the weights with a shared memory. Readable, correctable, deletable, shared by every specialist: hardly in the weights, yes in memory. Stays on your machine: if local, against yes."></p>
 <figcaption><strong>Figure 12.</strong> Where knowledge lives matters. My own summary of the properties described in this section; on deletion, see <span class="citation" data-cites="bourtoule2021">(<span class="nocase">Bourtoule et al.</span> 2021)</span>.</figcaption>
 </figure>
 </div>
@@ -304,7 +304,7 @@
 <p>With <img src="https://latex.codecogs.com/png.latex?p%20=%200.9"> and <img src="https://latex.codecogs.com/png.latex?n%20=%202000">, <img src="https://latex.codecogs.com/png.latex?%5Csigma%20%5Capprox%200.7"> percentage points, so a drop of 2 points stands out at about three standard errors. Building 2000 good test cases for one narrow job is realistic. Building them for every ability of a general model is not.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig13.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig13.png" class="img-fluid figure-img" alt="Step chart of quality over 30 days. A frozen model stays flat; the specialist improves a little each night, with one failed update on night 17 caught by the test and rolled back."></p>
 <figcaption><strong>Figure 13.</strong> Schematic, my own, not measured. A frozen model stays as good as the day it was shipped. A specialist that consolidates every night improves in small, tested steps. When an update makes it forget something, the test catches it and the update is rolled back.</figcaption>
 </figure>
 </div>
@@ -623,7 +623,7 @@ October 17. <a href="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not
 <p><strong>But on the way, something else happens.</strong> In the noisy early phase, the real model carries up to 2.4 times more shared information than the control, and that extra information grows more like the <em>size</em> of the patch than its border. As the image sharpens, the extra information moves toward the borders, and the two curves meet (Figure 1).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" class="img-fluid figure-img" alt="Left: nine generated handwritten digits. Right: scaling exponent beta against signal fraction. The learned model (blue) stays well above the Gaussian control (orange) in the noisy phase; both fall toward 1.07 for finished digits."></p>
 <figcaption><strong>Figure 1.</strong> Left: digits generated by the learned model. Right: the scaling exponent β along the generation path, from heavy noise (left) to finished image (right). The real model (blue) carries extra, bulk-like information in the noisy phase, well above the control with the same pixel correlations (orange). Both converge to an area law, β = 1.07 for finished digits.</figcaption>
 </figure>
 </div>
@@ -635,7 +635,7 @@ October 17. <a href="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not
 <p>I expected a sudden switch, like water turning to ice, at one precise moment. A first coarse run seemed to show one. When I repeated it with eleven noise levels and three independent runs, the jump disappeared. The change is smooth (Figure 2). The “sudden switch” was noise in a single run.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig02.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig02.png" class="img-fluid figure-img" alt="Two panels with error bars. a: total scaling exponent falls smoothly from about 1.4 to 1.1, above the control. b: the excess over control falls from near the volume law, about 1.7, toward the area law."></p>
 <figcaption><strong>Figure 2.</strong> The same measurement on a fine grid of noise levels, repeated three times with independent model fits and samples (bars: ±2 standard deviations). <strong>a.</strong> The total information converges smoothly to an area law; there is no sudden jump. <strong>b.</strong> The part that comes from real structure, beyond the control, starts close to a volume law and moves toward an area law as the image sharpens.</figcaption>
 </figure>
 </div>
@@ -668,7 +668,7 @@ October 17. <a href="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not
 <p>I tested this on my digit model, where I already knew the exact answer. The two routes agree, with a median difference of 3% across 32 comparisons (patch sizes from 2 to 12 pixels, noise levels from heavy to light). The largest difference was 14%, on one very small, very noisy patch (Figure 3).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig03.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig03.png" class="img-fluid figure-img" alt="Log-log scatter of 32 points, information from denoising errors against exact mutual information, all lying close to the dashed line of perfect agreement."></p>
 <figcaption><strong>Figure 3.</strong> Information measured from denoising errors alone (vertical) against the exact value (horizontal), for 32 combinations of patch size and noise level. Points on the dashed line agree perfectly. The median difference is 3.1%.</figcaption>
 </figure>
 </div>
@@ -941,7 +941,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>This is how expertise works, in people and in most living things. Learning is slow and deliberate, and it happens rarely. Acting is fast and nearly automatic, and it happens constantly. The slow part builds a structure; the fast part uses it. When something truly new appears, the expert slows down again, thinks, and if the lesson is worth keeping, it becomes a new habit.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig01.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig01.png" class="img-fluid figure-img" alt="Curve of effort per invoice against years of experience: high in the first week, falling to near zero, with three sharp spikes where something new appears, ending at a glance ten years later."></p>
 <figcaption><strong>Figure 1.</strong> Schematic. The effort an expert spends on a routine case falls as slow learning turns into fast habit. When something truly new appears, the expert slows down again, and the lesson becomes the next habit.</figcaption>
 </figure>
 </div>
@@ -960,7 +960,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig02.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig02.png" class="img-fluid figure-img" alt="Curves of the chance that every step is right against the number of steps, for 99%, 95% and 90% per step. The 95% curve is marked at 20 steps: 36% fully right."></p>
 <figcaption><strong>Figure 2.</strong> Errors compound. The chance that every step of a loop is right falls quickly with the number of steps. At 95% per step, a 20-step loop is fully right only 36% of the time.</figcaption>
 </figure>
 </div>
@@ -973,7 +973,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>In this view, the language model’s best role in automation is not to sit inside the loop. It is to work before the loop, as the compiler. It does the slow, intelligent work once: reading, extracting, structuring, connecting. Then it steps aside, and something fast and simple runs the process.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig03.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig03.png" class="img-fluid figure-img" alt="Two diagrams. Interpret: four runs, each repeating read, reason, call. Compile: a large model builds memory plus fast models once, followed by five small, fast, identical runs."></p>
 <figcaption><strong>Figure 3.</strong> Interpret or compile. An agentic loop puts the large model inside every run. Fast AI uses it once, before the loop, to build a memory and fast models; the runs that follow are fast, identical and explainable.</figcaption>
 </figure>
 </div>
@@ -984,7 +984,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>Language models are very good at the slow work this requires. Give them contracts, policies, past cases, emails and the notes experts leave behind, and they can extract the entities and relations hidden in all that text. For supplier invoices, that means suppliers, contracts, cost centres, approvers, products and the links between them: this supplier’s invoices go to this budget, amounts above this limit need a second approval, this kind of line item was disputed three times last year.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig04.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig04.png" class="img-fluid figure-img" alt="Knowledge graph of boxes and labelled links: supplier Acme AG, contract 2025-114, cost centre Maintenance, a spare-parts line item, 3 disputes last year, a rule above CHF 10,000 and approver Head of Ops."></p>
 <figcaption><strong>Figure 4.</strong> A small piece of a knowledge graph for supplier invoices. Every fact is a node or a link that a person can inspect, correct or delete. Names and values are illustrative.</figcaption>
 </figure>
 </div>
@@ -1008,7 +1008,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig05.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig05.png" class="img-fluid figure-img" alt="Flow from raw input to deep network (perceives) to trees (decide) to decision with reasons, with a knowledge graph feeding facts, history and rules into the trees."></p>
 <figcaption><strong>Figure 5.</strong> The hybrid. A deep network turns raw input into features, the knowledge graph adds what is known about them, and a tree ensemble makes the decision and shows its reasons.</figcaption>
 </figure>
 </div>
@@ -1021,7 +1021,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>And when the slow path solves a new case, the answer does not vanish. It goes back into the knowledge graph, and if it repeats, the fast models are retrained on it. Deliberation becomes habit. This is the expert again, slowing down only for the truly new, and learning from it.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig06.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig06.png" class="img-fluid figure-img" alt="Flow from new case to fast models. If confident, the fast path handles it in milliseconds. If unsure, the slow path (language model, agent or person) answers, the knowledge graph keeps it, and repeats retrain the fast models."></p>
 <figcaption><strong>Figure 6.</strong> Fast path and slow path. Familiar cases are decided in milliseconds. Unfamiliar ones go to a language model, an agent or a person; their answers return to the knowledge graph, and repeated ones are used to retrain the fast models.</figcaption>
 </figure>
 </div>
@@ -1034,7 +1034,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p><strong>The Fast AI way.</strong> Months earlier, a language model read the contracts, policies and past decisions, and built a graph of suppliers, budgets, limits and approvers. The finance team reviewed it. Now, for each new invoice, a network reads the document, the graph supplies the relevant contract and history, and a tree ensemble picks a route in milliseconds. It explains its choice: supplier, amount against contract, cost centre, past disputes. When an invoice is unlike anything seen before, it says so and hands it to a person or an agent. Their answer enriches the graph.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig07.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig07.png" class="img-fluid figure-img" alt="Two pipelines. The agentic way runs seven reasoning steps on every invoice, about half a minute each. The Fast AI way builds a reviewed graph once, then a network and trees route each invoice in milliseconds with reasons."></p>
 <figcaption><strong>Figure 7.</strong> Routing supplier invoices, two ways. The agent reasons through every invoice from scratch. Fast AI does the reading once, months earlier, and then routes each invoice in milliseconds with its reasons, handing only the unfamiliar ones to a person or an agent.</figcaption>
 </figure>
 </div>
@@ -1067,7 +1067,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
   <category>ai</category>
   <category>automation</category>
   <guid>https://scuenat.github.io/posts/2026-10-11-fast-ai/</guid>
-  <pubDate>Sun, 11 Oct 2026 00:00:00 GMT</pubDate>
+  <pubDate>Sun, 11 Oct 2026 14:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig03.png" medium="image" type="image/png" height="85" width="144"/>
 </item>
 <item>
@@ -1131,7 +1131,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>Any real change in the system is an arrow. Part of that arrow points along the directions the shape describes; that part moves the shape and reaches the dashboard. The rest points elsewhere; it moves nothing the shape measures, so the difference of shapes does not see it at all (Figure 1).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig01.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig01.png" class="img-fluid figure-img" alt="Vector diagram. A large real change points mostly upward, outside what the shape describes; only its short horizontal shadow is seen, too small to report."></p>
 <figcaption><strong>Figure 1.</strong> A change in the system splits into two parts. The part along what the shape describes moves the shape card and can reach the dashboard. The part outside it is invisible, however large. A large real change can still show only a small shadow on the dashboard, too small to report.</figcaption>
 </figure>
 </div>
@@ -1154,7 +1154,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>The reason is instructive. The slowdown hits every agent and every language equally, because iOS users are spread evenly across them. So the relative speeds that the shape card tracks do not change at all. What does change is the overall level: on average, all requests are about 2% slower. But the shape was built to treat changes in the overall level as server swings, because the servers really do swing, by about 5% from day to day. A step of 2% inside daily swings of 5% looks like one more swing. Look at the top panel of Figure 2: the 7-day average wandered just as much in weeks 3 and 4, when nothing was wrong.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig02.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig02.png" class="img-fluid figure-img" alt="Top: noisy daily level over 80 days with a 7-day average; the iOS problem starts at day 51 with no visible jump. Bottom: weekly bars of the largest shape-card change, all below the 5% material line."></p>
 <figcaption><strong>Figure 2.</strong> Top: the shared daily level, which the shape treats as server swings. The iOS slowdown adds a step of about 2% from day 51, inside daily swings of about 5%. It is indistinguishable from earlier wandering. Bottom: the dashboard. The largest change in the shape card never comes close to the 5% line.</figcaption>
 </figure>
 </div>
@@ -1183,7 +1183,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>Figure 3 shows the first question in the simulation. The size of the exceptions is measured relative to the first six weeks, so 1 means “usual”. For seven weeks it stays within about 1% of 1. In week 8, it jumps to 1.18, then settles between 1.30 and 1.37. With a materiality line at +10%, the monitor raises a notice at the end of week 8, five days after the problem began. The shape card, for the same weeks, still says nothing has changed.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig03.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig03.png" class="img-fluid figure-img" alt="Line chart over 12 weeks of the size of exceptions. It stays at 1 until week 7, then rises above the +10% line to about 1.37. A dashed line after week 8, once device type is learned, stays near 1."></p>
 <figcaption><strong>Figure 3.</strong> The size of the exceptions, relative to the first six weeks. It stays at 1 until the iOS problem starts, then crosses the +10% line at the end of week 8. The dashed line shows what happens once the shape learns device type: the exceptions return to their usual size.</figcaption>
 </figure>
 </div>
@@ -1191,7 +1191,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>Figure 4 shows the second question. Before the problem, the device field explains only 1 to 2% of the exceptions. That small part is real: iOS requests were always about 3% slower, a constant difference the shape never learned. After week 8, the device field explains 18 to 19% of the exceptions. Region and plan stay below 1% throughout.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig04.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig04.png" class="img-fluid figure-img" alt="Line chart over 12 weeks of the share of exceptions explained by each field. Device jumps from about 2% to nearly 20% after week 7; region and plan stay near zero."></p>
 <figcaption><strong>Figure 4.</strong> How much of the exceptions each recorded field explains. Device type jumps from 1–2% to almost 20% when the iOS problem starts. Region and plan stay close to zero. The monitor does not only say that something is wrong; it says where to look.</figcaption>
 </figure>
 </div>
@@ -1223,7 +1223,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>So there are three kinds of change, and each needs a different watcher (Figure 5).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png" class="img-fluid figure-img" alt="Three nested boxes. The world, seen by people, changes leave no record. Inside it, the data, seen by the exception monitor. Inside that, the shape, seen by the dashboard."></p>
 <figcaption><strong>Figure 5.</strong> Three kinds of change and who can see them. Changes in what the shape describes reach the dashboard. Changes elsewhere in the data reach the exception monitor. Changes that leave no record can only be seen by people.</figcaption>
 </figure>
 </div>
@@ -1283,7 +1283,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
   <category>data</category>
   <category>dashboards</category>
   <guid>https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/</guid>
-  <pubDate>Sun, 11 Oct 2026 00:00:00 GMT</pubDate>
+  <pubDate>Sun, 11 Oct 2026 10:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png" medium="image" type="image/png" height="87" width="144"/>
 </item>
 <item>
@@ -1340,7 +1340,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>The more terms we add, the closer the curve gets to each point. With enough terms, it passes through all of them. That looks perfect, but it is not. Between the points, the curve swings wildly (Figure 1). It has learned the noise, not the real shape.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig01.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig01.png" class="img-fluid figure-img" alt="Line chart of 16 black data points. A red degree-15 curve passes through every point but oscillates wildly between them; a blue degree-3 curve follows the dashed grey underlying reality closely."></p>
 <figcaption><strong>Figure 1.</strong> Sixteen noisy measurements. The curve with 15 terms (red) hits every point but swings far away between them. The simple curve with 3 terms (blue) misses some points but follows the real shape. All figures in this paper use simulated data.</figcaption>
 </figure>
 </div>
@@ -1351,7 +1351,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>Figure 2 shows the trade-off. Adding terms always improves the fit to past data. But the ability to predict new cases improves only up to a point, and then gets much worse. The best result comes from a small number of terms.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig02.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig02.png" class="img-fluid figure-img" alt="Line chart, log scale, of error against complexity from 0 to 15. The grey fit-to-past-data line keeps falling; the blue prediction-error line is lowest at 3, marked sweet spot, then rises steeply."></p>
 <figcaption><strong>Figure 2.</strong> As terms are added, the fit to past data keeps improving (grey). Prediction of new data (blue) is best with 3 terms, then gets much worse.</figcaption>
 </figure>
 </div>
@@ -1365,7 +1365,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>This does not mean we should collect less data. To find the few right numbers, we often need many measurements. The real question is who does the summarising. In Figure 3, 120 measurements are reduced to six numbers that describe the whole surface, even where nothing was measured. Machines should handle the volume; people should receive the result.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig03.png" class="img-fluid figure-img" style="width:60.0%"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig03.png" class="img-fluid figure-img" style="width:60.0%" alt="3D plot of red data points scattered around a smooth blue curved surface."></p>
 <figcaption><strong>Figure 3.</strong> 120 measurements (red) summarised by a surface described by only six numbers (blue).</figcaption>
 </figure>
 </div>
@@ -1377,7 +1377,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig04.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig04.png" class="img-fluid figure-img" alt="Funnel of four boxes, each narrower than the last: raw observations (millions of events), model or compression (a few terms), signal (3 things moved, 1 matters), decision (act, or don't)."></p>
 <figcaption><strong>Figure 4.</strong> The information funnel. Each step should be smaller than the one before, so that what reaches a person is small enough to act on.</figcaption>
 </figure>
 </div>
@@ -1391,7 +1391,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>History shows this well. Tycho Brahe spent decades recording the positions of the planets. Kepler summarised his tables in three short laws. Newton then discovered gravity, not from Tycho’s raw tables, but from Kepler’s three laws. The rule was found in the summary, not in the raw data.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig05.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig05.png" class="img-fluid figure-img" alt="Two diagrams. Top: Tycho (data) to Kepler (3 laws, compression) to Newton (1 rule). Bottom: a loop from data to compress to extract rule to residuals, which feed back into compression."></p>
 <figcaption><strong>Figure 5.</strong> Top: from data, to summary, to rule. Bottom: the same idea as a method. Summarising and finding rules form a loop, driven by what the rule still misses. Rules are tested in practice before they are trusted.</figcaption>
 </figure>
 </div>
@@ -1414,7 +1414,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>Structure deserves a word, because averages cannot see it. In Figure 6, three datasets have exactly the same average and spread, yet one is a cloud, one is a loop and one is two loops. A process that repeats and a process that drifts are very different, even if their averages match. A branch of mathematics called topological data analysis detects such structure and describes it with a few numbers: how many groups, how many loops.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig06.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig06.png" class="img-fluid figure-img" alt="Three scatter plots with the same mean 0 and standard deviation 1: a shapeless cloud, a single ring, and two side-by-side rings."></p>
 <figcaption><strong>Figure 6.</strong> Three datasets with the same average and spread. Standard statistics cannot tell them apart, but their shapes are completely different: no loop, one loop, two loops.</figcaption>
 </figure>
 </div>
@@ -1431,7 +1431,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p>Mathematicians call this a finite difference. The dashboard then shows neither the data nor even the shape, but how our understanding has changed (Figure 7).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig07.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig07.png" class="img-fluid figure-img" alt="Three rows over five weeks. Bottom: scattered data points. Middle: the shape, one ellipse in weeks 1 to 3, two ellipses from week 4. Top: the dashboard, empty except for a red new loop box in week 4."></p>
 <figcaption><strong>Figure 7.</strong> Illustrative. Bottom: the raw data, used as evidence and never shown. Middle: the shape, our understanding, updated each week. Top: the difference between consecutive shapes. This is the dashboard, and it stays empty until the shape changes.</figcaption>
 </figure>
 </div>
@@ -1457,14 +1457,14 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p><strong>Measure where things change.</strong> A rule tells us how things evolve; given a starting point, it can rebuild the rest. So data is needed mainly where the shape is unsure or changing. In Figure 8, the same 13 measurements, placed where the curve changes, give an error six times smaller. In practice we do not know in advance where things change, so we find out step by step: measure a little everywhere, then more where the surprises are.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig08.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig08.png" class="img-fluid figure-img" alt="Two plots of the same curve sampled with 13 points. Evenly spaced points miss the steep rise (max error 0.38); points clustered where the curve changes follow it closely (max error 0.06)."></p>
 <figcaption><strong>Figure 8.</strong> Thirteen measurements placed evenly (top) or where the curve changes (bottom). The second version follows the curve much more closely with the same number of points.</figcaption>
 </figure>
 </div>
 <p><strong>Data is worth what it changes.</strong> A measurement is valuable only if it could change a decision. When the choice is already clear, more data adds nothing (Figure 9). A good shape makes choices clearer, and so reduces how much data we need.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig09.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig09.png" class="img-fluid figure-img" alt="Curves peaking at the decision threshold and falling to zero on both sides. The uncertain model (solid) peaks higher than the confident model (dashed). Far from the threshold, measuring is worthless."></p>
 <figcaption><strong>Figure 9.</strong> How much a new measurement is worth, depending on how close we are to a decision. It matters most near the tipping point, and less when the model is confident.</figcaption>
 </figure>
 </div>
@@ -1497,7 +1497,7 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p><strong>The usual dashboard.</strong> A typical dashboard shows 24 tiles: requests per language and per agent, response time per agent, and how often each function is used (Figure 10). Each tile is flagged when it leaves its normal range. Over the last 60 days, the tiles raise 106 flags. Normal growth and the new export function look like anomalies. Each real problem is flagged just once, both on day 74 during a server spike, with nothing to set them apart from the 104 false flags. Neither cause is named. This baseline is deliberately simple. A careful analyst would adjust each tile for weekends and growth, and remove most of the false flags. But the two real problems would still be hidden in the daily server swings, and no tile would name the cause.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig10.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig10.png" class="img-fluid figure-img" alt="Grid of 24 small time-series tiles (requests, latency and function metrics) over 90 days, with many red dots flagging out-of-range days and a dotted line at day 60."></p>
 <figcaption><strong>Figure 10.</strong> The usual dashboard: 24 tiles over 90 days. Red dots mark days outside the normal range: 106 flags, almost all false. The dotted line marks day 60.</figcaption>
 </figure>
 </div>
@@ -1505,14 +1505,14 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
 <p><strong>The dashboard.</strong> Figure 11 shows the difference between each week’s shape and the previous one. On the left is the raw difference: many cells light up week after week, because volume grows and export replaces draft. On the right is the difference minus the expected change, keeping only material changes (5% for speed and volume, two percentage points for usage). These thresholds are not technical choices; they should be set by the people who own the decisions, for example the team responsible for response times. For twelve weeks, the whole dashboard is empty except for one line: code agent, German. The notice appears at the end of week 9, two days after the problem began, and names the cause. It appears again in week 10, because the week-9 shape contained only three days of the problem. After that, the new speed is part of the shape, and the dashboard is quiet again.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig11.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig11.png" class="img-fluid figure-img" alt="Two heat maps of 33 shape-card numbers over 12 weeks. Left, raw differences, shows many faint cells. Right, after subtracting expected change, is blank except speed code DE in weeks 9 and 10."></p>
 <figcaption><strong>Figure 11.</strong> The dashboard as a difference of shapes, over 12 weeks. Left: the raw week-to-week difference of the 33 numbers in the shape card. Right: the difference minus the expected change, keeping only material changes. One line remains: code agent, German, weeks 9 and 10.</figcaption>
 </figure>
 </div>
 <p><strong>The slow drift.</strong> The translate slowdown never moves more than 1.7% from one week to the next, so it never appears on the weekly dashboard. Compared with a fixed reference shape (weeks 1 to 6), it crosses the 5% line in week 12 and is reported (Figure 12). This is the fourth caution at work.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig12.png" class="img-fluid figure-img"></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig12.png" class="img-fluid figure-img" alt="Chart over 12 weeks. Grey bars of week-to-week change stay small. A blue line of change against a reference shape rises after the drift starts in week 7 and crosses the 5% material line in week 12."></p>
 <figcaption><strong>Figure 12.</strong> The slow drift of the translate agent. Week-to-week changes (bars) stay small. The change compared with a fixed reference shape (line) keeps growing and crosses the materiality line in week 12.</figcaption>
 </figure>
 </div>

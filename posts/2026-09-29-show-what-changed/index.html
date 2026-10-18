@@ -8,7 +8,7 @@
 
 <meta name="author" content="Stéphane Cuenat">
 <meta name="dcterms.date" content="2026-09-29">
-<meta name="description" content="Data is not what we need. The dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding.">
+<meta name="description" content="A dashboard should show neither the data nor the shape, but how today’s shape differs from the last one: what changed in our understanding.">
 
 <title>Show What Changed, Not the Data – Stéphane Cuenat</title>
 <style>
@@ -51,9 +51,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-0d9e3b6402f43ac10db2ca3bad395da4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-3f194aa7d49fd687a19338d5e60402bd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-0d9e3b6402f43ac10db2ca3bad395da4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-43069b3fbab21cbcf5dca0ddbd59e0c2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-11cdb82d53becd3da568706cf3a7d080.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-43069b3fbab21cbcf5dca0ddbd59e0c2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -82,6 +82,9 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
 <script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
 
   <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
@@ -129,13 +132,13 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Show What Changed, Not the Data – Stéphane Cuenat">
-<meta property="og:description" content="Data is not what we need. The dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding.">
+<meta property="og:description" content="A dashboard should show neither the data nor the shape, but how today’s shape differs from the last one: what changed in our understanding.">
 <meta property="og:image" content="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig07.png">
 <meta property="og:site_name" content="Stéphane Cuenat">
 <meta property="og:image:height" content="705">
 <meta property="og:image:width" content="990">
 <meta name="twitter:title" content="Show What Changed, Not the Data – Stéphane Cuenat">
-<meta name="twitter:description" content="Data is not what we need. The dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding.">
+<meta name="twitter:description" content="A dashboard should show neither the data nor the shape, but how today’s shape differs from the last one: what changed in our understanding.">
 <meta name="twitter:image" content="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig07.png">
 <meta name="twitter:image-height" content="705">
 <meta name="twitter:image-width" content="990">
@@ -404,7 +407,7 @@ window.Quarto = {
 
 <div>
   <div class="description">
-    Data is not what we need. The dashboard should show neither the data nor the shape, but the difference between today’s shape and the previous one: what changed in our understanding.
+    A dashboard should show neither the data nor the shape, but how today’s shape differs from the last one: what changed in our understanding.
   </div>
 </div>
 
@@ -479,7 +482,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>The more terms we add, the closer the curve gets to each point. With enough terms, it passes through all of them. That looks perfect, but it is not. Between the points, the curve swings wildly (Figure 1). It has learned the noise, not the real shape.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig01.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig01.png" class="img-fluid figure-img" alt="Line chart of 16 black data points. A red degree-15 curve passes through every point but oscillates wildly between them; a blue degree-3 curve follows the dashed grey underlying reality closely."></p>
 <figcaption><strong>Figure 1.</strong> Sixteen noisy measurements. The curve with 15 terms (red) hits every point but swings far away between them. The simple curve with 3 terms (blue) misses some points but follows the real shape. All figures in this paper use simulated data.</figcaption>
 </figure>
 </div>
@@ -490,7 +493,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>Figure 2 shows the trade-off. Adding terms always improves the fit to past data. But the ability to predict new cases improves only up to a point, and then gets much worse. The best result comes from a small number of terms.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig02.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig02.png" class="img-fluid figure-img" alt="Line chart, log scale, of error against complexity from 0 to 15. The grey fit-to-past-data line keeps falling; the blue prediction-error line is lowest at 3, marked sweet spot, then rises steeply."></p>
 <figcaption><strong>Figure 2.</strong> As terms are added, the fit to past data keeps improving (grey). Prediction of new data (blue) is best with 3 terms, then gets much worse.</figcaption>
 </figure>
 </div>
@@ -504,7 +507,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>This does not mean we should collect less data. To find the few right numbers, we often need many measurements. The real question is who does the summarising. In Figure 3, 120 measurements are reduced to six numbers that describe the whole surface, even where nothing was measured. Machines should handle the volume; people should receive the result.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig03.png" class="img-fluid figure-img" style="width:60.0%"></p>
+<p><img src="figures/fig03.png" class="img-fluid figure-img" style="width:60.0%" alt="3D plot of red data points scattered around a smooth blue curved surface."></p>
 <figcaption><strong>Figure 3.</strong> 120 measurements (red) summarised by a surface described by only six numbers (blue).</figcaption>
 </figure>
 </div>
@@ -516,7 +519,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig04.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig04.png" class="img-fluid figure-img" alt="Funnel of four boxes, each narrower than the last: raw observations (millions of events), model or compression (a few terms), signal (3 things moved, 1 matters), decision (act, or don't)."></p>
 <figcaption><strong>Figure 4.</strong> The information funnel. Each step should be smaller than the one before, so that what reaches a person is small enough to act on.</figcaption>
 </figure>
 </div>
@@ -532,7 +535,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>History shows this well. Tycho Brahe spent decades recording the positions of the planets. Kepler summarised his tables in three short laws. Newton then discovered gravity, not from Tycho’s raw tables, but from Kepler’s three laws. The rule was found in the summary, not in the raw data.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig05.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig05.png" class="img-fluid figure-img" alt="Two diagrams. Top: Tycho (data) to Kepler (3 laws, compression) to Newton (1 rule). Bottom: a loop from data to compress to extract rule to residuals, which feed back into compression."></p>
 <figcaption><strong>Figure 5.</strong> Top: from data, to summary, to rule. Bottom: the same idea as a method. Summarising and finding rules form a loop, driven by what the rule still misses. Rules are tested in practice before they are trusted.</figcaption>
 </figure>
 </div>
@@ -555,7 +558,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>Structure deserves a word, because averages cannot see it. In Figure 6, three datasets have exactly the same average and spread, yet one is a cloud, one is a loop and one is two loops. A process that repeats and a process that drifts are very different, even if their averages match. A branch of mathematics called topological data analysis detects such structure and describes it with a few numbers: how many groups, how many loops.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig06.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig06.png" class="img-fluid figure-img" alt="Three scatter plots with the same mean 0 and standard deviation 1: a shapeless cloud, a single ring, and two side-by-side rings."></p>
 <figcaption><strong>Figure 6.</strong> Three datasets with the same average and spread. Standard statistics cannot tell them apart, but their shapes are completely different: no loop, one loop, two loops.</figcaption>
 </figure>
 </div>
@@ -574,7 +577,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p>Mathematicians call this a finite difference. The dashboard then shows neither the data nor even the shape, but how our understanding has changed (Figure 7).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig07.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig07.png" class="img-fluid figure-img" alt="Three rows over five weeks. Bottom: scattered data points. Middle: the shape, one ellipse in weeks 1 to 3, two ellipses from week 4. Top: the dashboard, empty except for a red new loop box in week 4."></p>
 <figcaption><strong>Figure 7.</strong> Illustrative. Bottom: the raw data, used as evidence and never shown. Middle: the shape, our understanding, updated each week. Top: the difference between consecutive shapes. This is the dashboard, and it stays empty until the shape changes.</figcaption>
 </figure>
 </div>
@@ -600,14 +603,14 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p><strong>Measure where things change.</strong> A rule tells us how things evolve; given a starting point, it can rebuild the rest. So data is needed mainly where the shape is unsure or changing. In Figure 8, the same 13 measurements, placed where the curve changes, give an error six times smaller. In practice we do not know in advance where things change, so we find out step by step: measure a little everywhere, then more where the surprises are.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig08.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig08.png" class="img-fluid figure-img" alt="Two plots of the same curve sampled with 13 points. Evenly spaced points miss the steep rise (max error 0.38); points clustered where the curve changes follow it closely (max error 0.06)."></p>
 <figcaption><strong>Figure 8.</strong> Thirteen measurements placed evenly (top) or where the curve changes (bottom). The second version follows the curve much more closely with the same number of points.</figcaption>
 </figure>
 </div>
 <p><strong>Data is worth what it changes.</strong> A measurement is valuable only if it could change a decision. When the choice is already clear, more data adds nothing (Figure 9). A good shape makes choices clearer, and so reduces how much data we need.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig09.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig09.png" class="img-fluid figure-img" alt="Curves peaking at the decision threshold and falling to zero on both sides. The uncertain model (solid) peaks higher than the confident model (dashed). Far from the threshold, measuring is worthless."></p>
 <figcaption><strong>Figure 9.</strong> How much a new measurement is worth, depending on how close we are to a decision. It matters most near the tipping point, and less when the model is confident.</figcaption>
 </figure>
 </div>
@@ -640,7 +643,7 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p><strong>The usual dashboard.</strong> A typical dashboard shows 24 tiles: requests per language and per agent, response time per agent, and how often each function is used (Figure 10). Each tile is flagged when it leaves its normal range. Over the last 60 days, the tiles raise 106 flags. Normal growth and the new export function look like anomalies. Each real problem is flagged just once, both on day 74 during a server spike, with nothing to set them apart from the 104 false flags. Neither cause is named. This baseline is deliberately simple. A careful analyst would adjust each tile for weekends and growth, and remove most of the false flags. But the two real problems would still be hidden in the daily server swings, and no tile would name the cause.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig10.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig10.png" class="img-fluid figure-img" alt="Grid of 24 small time-series tiles (requests, latency and function metrics) over 90 days, with many red dots flagging out-of-range days and a dotted line at day 60."></p>
 <figcaption><strong>Figure 10.</strong> The usual dashboard: 24 tiles over 90 days. Red dots mark days outside the normal range: 106 flags, almost all false. The dotted line marks day 60.</figcaption>
 </figure>
 </div>
@@ -648,14 +651,14 @@ p(x) = a_0 + a_1 x + a_2 x^2 + \dots + a_n x^n
 <p><strong>The dashboard.</strong> Figure 11 shows the difference between each week’s shape and the previous one. On the left is the raw difference: many cells light up week after week, because volume grows and export replaces draft. On the right is the difference minus the expected change, keeping only material changes (5% for speed and volume, two percentage points for usage). These thresholds are not technical choices; they should be set by the people who own the decisions, for example the team responsible for response times. For twelve weeks, the whole dashboard is empty except for one line: code agent, German. The notice appears at the end of week 9, two days after the problem began, and names the cause. It appears again in week 10, because the week-9 shape contained only three days of the problem. After that, the new speed is part of the shape, and the dashboard is quiet again.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig11.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig11.png" class="img-fluid figure-img" alt="Two heat maps of 33 shape-card numbers over 12 weeks. Left, raw differences, shows many faint cells. Right, after subtracting expected change, is blank except speed code DE in weeks 9 and 10."></p>
 <figcaption><strong>Figure 11.</strong> The dashboard as a difference of shapes, over 12 weeks. Left: the raw week-to-week difference of the 33 numbers in the shape card. Right: the difference minus the expected change, keeping only material changes. One line remains: code agent, German, weeks 9 and 10.</figcaption>
 </figure>
 </div>
 <p><strong>The slow drift.</strong> The translate slowdown never moves more than 1.7% from one week to the next, so it never appears on the weekly dashboard. Compared with a fixed reference shape (weeks 1 to 6), it crosses the 5% line in week 12 and is reported (Figure 12). This is the fourth caution at work.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig12.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig12.png" class="img-fluid figure-img" alt="Chart over 12 weeks. Grey bars of week-to-week change stay small. A blue line of change against a reference shape rises after the drift starts in week 7 and crosses the 5% material line in week 12."></p>
 <figcaption><strong>Figure 12.</strong> The slow drift of the translate agent. Week-to-week changes (bars) stay small. The change compared with a fixed reference shape (line) keeps growing and crosses the materiality line in week 12.</figcaption>
 </figure>
 </div>

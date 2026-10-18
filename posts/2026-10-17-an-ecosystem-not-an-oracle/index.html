@@ -8,7 +8,7 @@
 
 <meta name="author" content="Stéphane Cuenat">
 <meta name="dcterms.date" content="2026-10-17">
-<meta name="description" content="When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.">
+<meta name="description" content="Local AI will not be one big model made small. I see an ecosystem: specialised models, a shared memory, a thin harness and a loop that keeps learning.">
 
 <title>An Ecosystem, Not an Oracle – Stéphane Cuenat</title>
 <style>
@@ -70,9 +70,9 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-0d9e3b6402f43ac10db2ca3bad395da4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-3f194aa7d49fd687a19338d5e60402bd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-0d9e3b6402f43ac10db2ca3bad395da4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-43069b3fbab21cbcf5dca0ddbd59e0c2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-11cdb82d53becd3da568706cf3a7d080.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-43069b3fbab21cbcf5dca0ddbd59e0c2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -101,6 +101,9 @@ div.csl-indent {
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
 <script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
 
   <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
@@ -148,13 +151,13 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="An Ecosystem, Not an Oracle – Stéphane Cuenat">
-<meta property="og:description" content="When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.">
+<meta property="og:description" content="Local AI will not be one big model made small. I see an ecosystem: specialised models, a shared memory, a thin harness and a loop that keeps learning.">
 <meta property="og:image" content="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png">
 <meta property="og:site_name" content="Stéphane Cuenat">
 <meta property="og:image:height" content="717">
 <meta property="og:image:width" content="1218">
 <meta name="twitter:title" content="An Ecosystem, Not an Oracle – Stéphane Cuenat">
-<meta name="twitter:description" content="When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.">
+<meta name="twitter:description" content="Local AI will not be one big model made small. I see an ecosystem: specialised models, a shared memory, a thin harness and a loop that keeps learning.">
 <meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png">
 <meta name="twitter:image-height" content="717">
 <meta name="twitter:image-width" content="1218">
@@ -423,7 +426,7 @@ window.Quarto = {
 
 <div>
   <div class="description">
-    When people talk about local AI, they usually mean one big model made small enough to fit a laptop. I see it differently: an ecosystem of specialised models, a memory they share, a thin harness, and a loop that lets them keep learning. Here are my reasons, with the arithmetic, the existing architectures that already point this way, and the limits.
+    Local AI will not be one big model made small. I see an ecosystem: specialised models, a shared memory, a thin harness and a loop that keeps learning.
   </div>
 </div>
 
@@ -490,7 +493,7 @@ window.Quarto = {
 <p>I would rather ask a different question: <em>what would intelligence look like if it were designed for the machine in front of me from the start?</em></p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig01.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig01.png" class="img-fluid figure-img" alt="Two diagrams. An oracle: four tasks all go to one large model. An ecosystem: a router sends each task to a small specialist (invoices, code, email, contracts), all connected to a shared memory."></p>
 <figcaption><strong>Figure 1.</strong> Two ways to organise intelligence. An oracle sends every task to one large model. An ecosystem sends each task to a small specialist, chosen by a router, and all specialists share one memory. Schematic, my own.</figcaption>
 </figure>
 </div>
@@ -508,7 +511,7 @@ window.Quarto = {
 <p>A frontier model can stay outside, as a teacher and an occasional consultant.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig02.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig02.png" class="img-fluid figure-img" alt="Diagram of a local machine: you send a task to a router, which picks a vision, language, planner or domain specialist; all share a memory; nightly consolidation updates them. Outside, a frontier model distils knowledge and is consulted rarely."></p>
 <figcaption><strong>Figure 2.</strong> The local ecosystem I have in mind. A router sends each task to a specialist. Specialists read from and write to a shared memory. At night, the system consolidates what it has learned into updated specialists. A frontier model, outside the machine, teaches once and is consulted rarely. Schematic, my own.</figcaption>
 </figure>
 </div>
@@ -525,13 +528,13 @@ window.Quarto = {
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig03.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig03.png" class="img-fluid figure-img" alt="Three grids. Dense model: all cells filled. Mixture of experts: all loaded but only a few cells active. Ecosystem: separate specialist boxes, only one active."></p>
 <figcaption><strong>Figure 3.</strong> Three architectures. A dense model loads all its parameters and uses all of them for every word. A mixture of experts loads all of them but uses only a few experts per word. An ecosystem loads separate specialist models when they are needed. Schematic, my own.</figcaption>
 </figure>
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig04.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig04.png" class="img-fluid figure-img" alt="Bar chart of share active per word: dense model 100%, Mixtral 8x7B 27.6%, DeepSeek-V3 5.5%, cortex estimate about 1% (hatched)."></p>
 <figcaption><strong>Figure 4.</strong> Share of parameters used for each word. Mixtral and DeepSeek-V3 values are computed from the published parameter counts <span class="citation" data-cites="jiang2024 deepseek2024">(<a href="#ref-jiang2024" role="doc-biblioref"><span class="nocase">Jiang et al.</span> 2024</a>; <a href="#ref-deepseek2024" role="doc-biblioref">DeepSeek-AI 2024</a>)</span>. The cortex value is a rough estimate of the share of neurons that can be strongly active at the same time, from energy constraints <span class="citation" data-cites="lennie2003">(<a href="#ref-lennie2003" role="doc-biblioref">Lennie 2003</a>)</span>; it is debated and shown hatched. Chart my own.</figcaption>
 </figure>
 </div>
@@ -599,7 +602,7 @@ window.Quarto = {
 </table>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig05.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig05.png" class="img-fluid figure-img" alt="Log-log line of tokens per second against billions of parameters read per token: 3B and 8B specialists over 100 tokens per second, 70B dense about 14, and an MoE with 37B active marked as not fitting in 128 GB."></p>
 <figcaption><strong>Figure 5.</strong> Upper bound on generation speed when every word requires reading all active weights once, at 500 GB/s and 4-bit weights. Open circle: does not fit in 128 GB. Real speeds are lower; computation, the conversation’s cache and software all cost something. My own calculation from the formula above; DeepSeek-V3 parameter counts from <span class="citation" data-cites="deepseek2024">(<a href="#ref-deepseek2024" role="doc-biblioref">DeepSeek-AI 2024</a>)</span>.</figcaption>
 </figure>
 </div>
@@ -620,7 +623,7 @@ N_{\text{general}} \approx N_{\text{shared}} + \frac{N_{\text{domain}}}{f}.
 <p>With illustrative values of 2 billion for the core and 1 billion for the domain, a domain that is 1% of the general model’s training needs about 102 billion parameters for the same depth, against 3 billion for the specialist.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig06.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig06.png" class="img-fluid figure-img" alt="Log-log chart of parameters needed against the domain's share of training. The general model's curve falls from 1000B at 0.1% to 3B at 100%; the specialist stays flat at 3B. At 1%: about 102B against 3B."></p>
 <figcaption><strong>Figure 6.</strong> A simple capacity model. Parameters needed for the same depth in one domain, for a general model and for a specialist, as a function of the domain’s share <span class="math inline">f</span> of the general model’s training. Illustrative values, my own: <span class="math inline">N_{\text{shared}}</span> = 2B, <span class="math inline">N_{\text{domain}}</span> = 1B, no transfer between domains beyond the shared core. Model inspired by the quanta view of scaling <span class="citation" data-cites="michaud2023">(<a href="#ref-michaud2023" role="doc-biblioref">Michaud et al. 2023</a>)</span>.</figcaption>
 </figure>
 </div>
@@ -637,7 +640,7 @@ N_{\text{general}} \approx N_{\text{shared}} + \frac{N_{\text{domain}}}{f}.
 <p>With <span class="math inline">r = 16</span> and <span class="math inline">d = 3072</span>, that is about 1%. Applied to a 3-billion-parameter base model, an adapter has roughly 30 million parameters, about 60 MB at 16 bits, consistent with the “tens of megabytes” Apple reports for its rank-16 adapters <span class="citation" data-cites="gunter2024">(<a href="#ref-gunter2024" role="doc-biblioref"><span class="nocase">Gunter et al.</span> 2024</a>)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig07.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig07.png" class="img-fluid figure-img" alt="Memory against number of specialists. Separate 3B models rise linearly past the 128 GB line at about 85; one base plus adapters stays nearly flat, 7.5 GB for 100 specialists."></p>
 <figcaption><strong>Figure 7.</strong> Memory needed for <span class="math inline">k</span> specialists, as separate 3B models at 4 bits, or as one 3B base at 4 bits plus rank-16 adapters at 16 bits (about 60 MB each). My own calculation from the formula above.</figcaption>
 </figure>
 </div>
@@ -657,7 +660,7 @@ a \;&gt;\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
 <p>With illustrative values <span class="math inline">q_s = 0.90</span>, <span class="math inline">q_w = 0.30</span> and <span class="math inline">q_g = 0.80</span>, the router must be right more than 83% of the time. If the router also knows when it is unsure, and sends half of its mistakes to a larger model with quality <span class="math inline">q_L = 0.95</span>, the threshold drops to about 64%.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig08.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig08.png" class="img-fluid figure-img" alt="Expected quality against router accuracy. The general model is flat at 0.80. A router that escalates half its mistakes passes it at 64% accuracy; a router alone only at 83%."></p>
 <figcaption><strong>Figure 8.</strong> Expected quality of an ecosystem as a function of router accuracy, with and without escalation of uncertain cases, compared to one general model that runs at a similar speed. Illustrative values, my own.</figcaption>
 </figure>
 </div>
@@ -677,7 +680,7 @@ a \;&gt;\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig09.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig09.png" class="img-fluid figure-img" alt="Issues solved against attempts, log scale. Reported results: 15.9% with one attempt, 56% with 250. The dashed independent-attempt curve rises to 100% quickly. A dotted line marks the best single attempt at 43%."></p>
 <figcaption><strong>Figure 9.</strong> Repeated attempts with a verifier. The two points are results reported by Brown et al.&nbsp;for SWE-bench Lite <span class="citation" data-cites="brown2024">(<a href="#ref-brown2024" role="doc-biblioref"><span class="nocase">Brown et al.</span> 2024</a>)</span>. The dashed line is my own calculation of what would happen if attempts were independent, <span class="math inline">1-(1-p)^k</span> with <span class="math inline">p = 0.159</span>; the gap shows that attempts are strongly correlated. Chart my own.</figcaption>
 </figure>
 </div>
@@ -685,7 +688,7 @@ a \;&gt;\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
 <p><strong>Third, some of the harness can never be absorbed into a model.</strong> A persistent memory that lasts beyond one conversation. Permissions over what may leave the machine. Tests that decide whether an output or an update is accepted. The local data itself. However strong models become, these stay outside.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig10.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig10.png" class="img-fluid figure-img" alt="Schematic of what the harness adds against model strength. Reasoning scaffolding falls from high for small specialists to near zero for frontier models; structure no model can absorb stays flat."></p>
 <figcaption><strong>Figure 10.</strong> My own view of the harness, as a schematic. Scaffolding for reasoning (orchestrators, sub-agents, retries) adds much to small models and little to strong ones. Structure no model can absorb (memory, permissions, tests, local data) keeps its value. The right end is consistent with the finding of <span class="citation" data-cites="brilliantov2026">(<a href="#ref-brilliantov2026" role="doc-biblioref">Brilliantov et al. 2026</a>)</span>; the rest of the curve is my hypothesis, not data.</figcaption>
 </figure>
 </div>
@@ -704,7 +707,7 @@ a \;&gt;\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
 <p><strong>Sparse and frugal.</strong> The human brain has about 86 billion neurons <span class="citation" data-cites="herculano2009">(<a href="#ref-herculano2009" role="doc-biblioref">Herculano-Houzel 2009</a>)</span> and runs on roughly 20 watts <span class="citation" data-cites="balasubramanian2021">(<a href="#ref-balasubramanian2021" role="doc-biblioref">Balasubramanian 2021</a>)</span>. Energy budgets suggest that only a small share of cortical neurons can be strongly active at the same time, perhaps around one percent, although the exact figure is debated <span class="citation" data-cites="lennie2003 attwell2001">(<a href="#ref-lennie2003" role="doc-biblioref">Lennie 2003</a>; <a href="#ref-attwell2001" role="doc-biblioref">Attwell and Laughlin 2001</a>)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig11.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig11.png" class="img-fluid figure-img" alt="Table mapping brain features to ecosystem parts: specialised areas to specialists, domain-general network to shared core and router, hippocampus to shared memory, cortex to nightly consolidation, plasticity to adapting specialists, 20 watts to small, sparse, local."></p>
 <figcaption><strong>Figure 11.</strong> How the brain seems to be organised, and the part of the ecosystem each idea corresponds to. An analogy, my own, not a claim that the brain is built like software. Sources for each brain property are given in section 9.</figcaption>
 </figure>
 </div>
@@ -723,7 +726,7 @@ a \;&gt;\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
 <p>Keeping this memory outside the weights is what makes the system trustworthy. You can read it. You can correct a fact in one place, and every specialist benefits. You can delete something and know it is gone, which is very hard to guarantee once data has been used to train a model; removing its influence afterwards is an open research problem <span class="citation" data-cites="bourtoule2021">(<a href="#ref-bourtoule2021" role="doc-biblioref"><span class="nocase">Bourtoule et al.</span> 2021</a>)</span>. Retrieval also lets small models know far more than their weights hold <span class="citation" data-cites="borgeaud2022 lewis2020">(<a href="#ref-borgeaud2022" role="doc-biblioref"><span class="nocase">Borgeaud et al.</span> 2022</a>; <a href="#ref-lewis2020" role="doc-biblioref"><span class="nocase">Lewis et al.</span> 2020</a>)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig12.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig12.png" class="img-fluid figure-img" alt="Table comparing knowledge in the weights with a shared memory. Readable, correctable, deletable, shared by every specialist: hardly in the weights, yes in memory. Stays on your machine: if local, against yes."></p>
 <figcaption><strong>Figure 12.</strong> Where knowledge lives matters. My own summary of the properties described in this section; on deletion, see <span class="citation" data-cites="bourtoule2021">(<a href="#ref-bourtoule2021" role="doc-biblioref"><span class="nocase">Bourtoule et al.</span> 2021</a>)</span>.</figcaption>
 </figure>
 </div>
@@ -744,7 +747,7 @@ a \;&gt;\; a^{*} = \frac{q_g - q_w}{q_s - q_w}.
 <p>With <span class="math inline">p = 0.9</span> and <span class="math inline">n = 2000</span>, <span class="math inline">\sigma \approx 0.7</span> percentage points, so a drop of 2 points stands out at about three standard errors. Building 2000 good test cases for one narrow job is realistic. Building them for every ability of a general model is not.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig13.png" class="img-fluid figure-img"></p>
+<p><img src="figures/fig13.png" class="img-fluid figure-img" alt="Step chart of quality over 30 days. A frozen model stays flat; the specialist improves a little each night, with one failed update on night 17 caught by the test and rolled back."></p>
 <figcaption><strong>Figure 13.</strong> Schematic, my own, not measured. A frozen model stays as good as the day it was shipped. A specialist that consolidates every night improves in small, tested steps. When an update makes it forget something, the test catches it and the update is rolled back.</figcaption>
 </figure>
 </div>
