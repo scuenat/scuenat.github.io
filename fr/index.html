@@ -111,6 +111,22 @@ ul.task-list li input[type="checkbox"] {
   })
   </script>
 <style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
@@ -429,7 +445,7 @@ window.Quarto = {
 
 <div class="quarto-listing quarto-listing-container-default" id="listing-listing">
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="ZXNzYWklMkNwaHlzaXF1ZSUyQ3BlcnNvbm5lbA==" data-listing-date-sort="1792022400000" data-listing-file-modified-sort="1792338967402" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1347">
+<div class="quarto-post image-right" data-index="0" data-categories="ZXNzYWklMkNwaHlzaXF1ZSUyQ3BlcnNvbm5lbA==" data-listing-date-sort="1792022400000" data-listing-file-modified-sort="1792339140236" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1347">
 <div class="thumbnail"><a href="../fr/posts/2026-10-15-a-universe-without-a-bottom/index.html" class="no-external">
 
 <img loading="lazy" src="../posts/2026-10-15-a-universe-without-a-bottom/figures/cover.png" class="thumbnail-image">
@@ -464,7 +480,7 @@ window.Quarto = {
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="ZXNzYWklMkNpYSUyQ2F1dG9tYXRpc2F0aW9u" data-listing-date-sort="1791727200000" data-listing-file-modified-sort="1792338967402" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2492">
+<div class="quarto-post image-right" data-index="1" data-categories="ZXNzYWklMkNpYSUyQ2F1dG9tYXRpc2F0aW9u" data-listing-date-sort="1791727200000" data-listing-file-modified-sort="1792339140236" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2492">
 <div class="thumbnail"><a href="../fr/posts/2026-10-11-fast-ai/index.html" class="no-external">
 
 <img loading="lazy" src="../posts/2026-10-11-fast-ai/figures/fig03.png" class="thumbnail-image">
@@ -499,7 +515,7 @@ window.Quarto = {
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="2" data-categories="YXJ0aWNsZSUyQ2Rvbm4lQzMlQTllcyUyQ3RhYmxlYXV4JTIwZGUlMjBib3Jk" data-listing-date-sort="1790640000000" data-listing-file-modified-sort="1792338967402" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="27" data-listing-word-count-sort="5232">
+<div class="quarto-post image-right" data-index="2" data-categories="YXJ0aWNsZSUyQ2Rvbm4lQzMlQTllcyUyQ3RhYmxlYXV4JTIwZGUlMjBib3Jk" data-listing-date-sort="1790640000000" data-listing-file-modified-sort="1792339140236" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="27" data-listing-word-count-sort="5232">
 <div class="thumbnail"><a href="../fr/posts/2026-09-29-show-what-changed/index.html" class="no-external">
 
 <img loading="lazy" src="../posts/2026-09-29-show-what-changed/figures/fig07.png" class="thumbnail-image">
