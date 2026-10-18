@@ -130,9 +130,11 @@ blockquote {
   figcaption { font-size: .92rem; color: $muted; line-height: 1.5; }
 }
 
-.katex-display { margin: 1.5rem 0; }
+.katex-display { margin: 1.5rem 0; overflow-x: auto; overflow-y: hidden; }
 
 table { font-size: .95rem; }
+// Long URLs in references and links must wrap, not widen the page
+main.content a { overflow-wrap: anywhere; }
 .small, .small p, .small li { font-size: .9rem !important; }
 
 .callout { border-radius: $border-radius; }
@@ -147,6 +149,46 @@ table { font-size: .95rem; }
   p { margin: 0; }
   strong { font-family: $font-family-sans-serif; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: $accent-warm; }
   a { font-weight: 600; }
+}
+
+// ---------- Phones ----------
+// Most readers are on phones: a slightly smaller reading size, figures that use the
+// full screen width, and tables that scroll instead of widening the page.
+@media (max-width: 575.98px) {
+  main.content p,
+  main.content li,
+  main.content blockquote { font-size: 1.04rem; line-height: 1.65; }
+  main.content h2 { font-size: 1.45rem; margin-top: 2rem; }
+  main.content h3 { font-size: 1.2rem; }
+
+  .quarto-title h1.title { font-size: 2rem; }
+  .quarto-title .subtitle { font-size: 1.12rem; }
+  // Only the date is shown: one column, so "September 29, 2026" stays on one line
+  #title-block-header.quarto-title-block.default .quarto-title-meta { grid-template-columns: 1fr; }
+
+  // Figures bleed to the screen edges; the white card frame would cost a fifth of the width
+  .quarto-figure {
+    margin: 1.5rem calc(50% - 50vw);   // the text column is centred, so this reaches both edges
+    img { border-radius: 0; border-left: none; border-right: none; padding: .25rem 0; }
+    figcaption { padding: 0 1.25rem; font-size: .88rem; }
+  }
+
+  main.content table { display: block; max-width: 100%; overflow-x: auto; font-size: .85rem; }
+  main.content table th,
+  main.content table td { padding: .4rem .45rem; }
+
+  .references { font-size: .9rem; }
+  .references.hanging-indent .csl-entry { margin-left: 1em; text-indent: -1em; padding-left: 0; }
+
+  .callout { font-size: .95rem; }
+  .read-next { margin: 2rem 0 1.5rem; padding: .85rem 1rem; }
+
+  .quarto-listing-default .quarto-post {
+    padding: 1rem 0;
+    margin-bottom: 0;
+    .listing-title { font-size: 1.25rem; }
+    .listing-description { font-size: 1rem; }
+  }
 }
 
 // ---------- Home hero (banner) ----------
