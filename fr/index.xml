@@ -15,7 +15,809 @@
 <link>https://scuenat.github.io/fr/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Thu, 15 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 17 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Un écosystème, pas un oracle</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-10-17-an-ecosystem-not-an-oracle/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, octobre 2026.</strong> Le pendant de <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>. Toutes les figures sont de moi, dessinées avec le code de <a href="../../../posts/2026-10-17-an-ecosystem-not-an-oracle/figs.py">figs.py</a>, et leurs libellés sont en anglais. Quand une figure ou une phrase utilise des chiffres tirés du travail de quelqu’un d’autre, la source est citée à côté et reprise dans les références. Quand les chiffres sont mes propres hypothèses d’illustration, la légende le dit. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Je crois que l’avenir de l’IA est, dans une large mesure, local. Mais quand on parle d’IA locale, on imagine en général un grand modèle rendu assez petit pour tenir sur un ordinateur portable. Je le vois autrement&nbsp;: de nombreux modèles spécialisés, une mémoire qu’ils partagent, un harnais léger autour d’eux, et une boucle prudente qui leur permet de continuer à apprendre du travail qu’ils font. J’ai quatre raisons. Les architectures des plus grands modèles actuels sont déjà allées dans cette direction. Une arithmétique simple de la mémoire et de la bande passante la favorise sur une machine locale. Un harnais léger peut aider les petits modèles là où il n’aide plus les grands. Et notre propre cerveau fonctionne très probablement ainsi&nbsp;: un immense ensemble de parties spécialisées, une mémoire rapide, un apprenant lent, et de la plasticité partout.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Les plus grands modèles se divisent déjà en experts. DeepSeek-V3 utilise environ 5,5&nbsp;% de ses paramètres pour chaque mot <span class="citation" data-cites="deepseek2024">(DeepSeek-AI 2024)</span>. Un écosystème pousse la même idée plus loin, avec des parties que l’on peut charger, échanger, tester et mettre à jour une par une.</li>
+<li>Sur un ordinateur portable, la génération de texte est limitée par la bande passante mémoire, pas par le calcul. La vitesse est au plus la bande passante divisée par les octets lus par mot, donc les petits modèles actifs gagnent.</li>
+<li>Dans un modèle de capacité simple, un modèle général a besoin d’environ <img src="https://latex.codecogs.com/png.latex?1/f"> fois plus de capacité de domaine qu’un spécialiste, où <img src="https://latex.codecogs.com/png.latex?f"> est la part de son entraînement consacrée à ce domaine.</li>
+<li>Des travaux récents suggèrent que des harnais élaborés apportent peu autour des modèles de pointe puissants <span class="citation" data-cites="brilliantov2026">(Brilliantov et al. 2026)</span>. Pour les petits modèles locaux, je soutiens l’inverse&nbsp;: vérificateurs, outils et structure sont là où ils gagnent le plus.</li>
+<li>Notre cerveau semble combiner des aires spécialisées, un réseau de coordination généraliste, une mémoire rapide, un apprenant lent qui consolide pendant le sommeil, et de la plasticité <span class="citation" data-cites="fedorenko2024 duncan2020 mcclelland1995 dehaene2007">(Fedorenko et al. 2024; Duncan et al. 2020; McClelland et al. 1995; Dehaene et Cohen 2007)</span>.</li>
+<li>La mémoire a sa place hors des poids, là où les gens peuvent la lire, la corriger et l’effacer. L’apprentissage a sa place dans une boucle lente et testée.</li>
+</ul>
+</div>
+</div>
+<section id="la-mauvaise-image" class="level2">
+<h2 class="anchored" data-anchor-id="la-mauvaise-image">1. La mauvaise image</h2>
+<p>Les modèles deviennent plus petits pour une même capacité. Xiao et ses collègues ont mesuré cela sous le nom de <em>densité de capacité</em>, et ont trouvé que, pour les modèles ouverts, elle doublait à peu près tous les trois mois à trois mois et demi entre 2023 et 2025 <span class="citation" data-cites="xiao2024">(<span class="nocase">Xiao et al.</span> 2024)</span>. Un meilleur entraînement, de meilleures architectures, la quantification et de meilleures puces poussent tous dans la même direction. Je suis convaincu qu’une grande partie de l’IA va se rapprocher de là où se fait le travail&nbsp;: sur nos ordinateurs portables, nos téléphones, nos machines et nos serveurs privés.</p>
+<p>Mais l’image que la plupart d’entre nous ont en tête est celle d’un cerveau géant, qui attend d’être compressé dans une boîte plus petite. La question devient «&nbsp;quelle part du grand modèle puis-je faire tourner en local ?&nbsp;», et la réponse est toujours «&nbsp;un peu moins que vous ne voudriez, mais attendez un an&nbsp;».</p>
+<p>Je préfère poser une autre question&nbsp;: <em>à quoi ressemblerait l’intelligence si elle était conçue dès le départ pour la machine que j’ai devant moi ?</em></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig01.png" class="img-fluid figure-img" alt="Deux schémas. Un oracle&nbsp;: quatre tâches vont toutes à un seul grand modèle. Un écosystème&nbsp;: un routeur envoie chaque tâche à un petit spécialiste (factures, code, e-mail, contrats), tous reliés à une mémoire partagée."></p>
+<figcaption><strong>Figure 1.</strong> Deux façons d’organiser l’intelligence. Un oracle envoie chaque tâche à un seul grand modèle. Un écosystème envoie chaque tâche à un petit spécialiste, choisi par un routeur, et tous les spécialistes partagent une mémoire. Schéma personnel.</figcaption>
+</figure>
+</div>
+</section>
+<section id="ce-que-jentends-par-écosystème" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-jentends-par-écosystème">2. Ce que j’entends par écosystème</h2>
+<p>Par écosystème, j’entends cinq parties qui travaillent ensemble sur une machine&nbsp;:</p>
+<ol type="1">
+<li><strong>Des spécialistes.</strong> De petits modèles, ou des adaptateurs sur un modèle de base partagé, chacun bon dans une tâche&nbsp;: lire des factures, écrire des requêtes, transcrire la parole, le domaine propre d’une entreprise.</li>
+<li><strong>Un routeur.</strong> Un petit modèle qui décide quel spécialiste traite une tâche, et quand faire appel à plus grand.</li>
+<li><strong>Une mémoire partagée.</strong> Des connaissances et des épisodes stockés hors des poids, lisibles et corrigeables par des personnes.</li>
+<li><strong>Un harnais léger.</strong> Les outils, les vérifications et les permissions autour des modèles&nbsp;: lancer les tests, valider le résultat, garder les données en local.</li>
+<li><strong>Une boucle de consolidation.</strong> Un processus lent, par exemple la nuit, qui transforme l’expérience vérifiée en petites mises à jour testées des spécialistes.</li>
+</ol>
+<p>Un modèle de pointe peut rester à l’extérieur, comme enseignant et consultant occasionnel.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png" class="img-fluid figure-img" alt="Schéma d'une machine locale&nbsp;: vous envoyez une tâche à un routeur, qui choisit un spécialiste vision, langage, planification ou domaine ; tous partagent une mémoire ; une consolidation nocturne les met à jour. À l'extérieur, un modèle de pointe distille ses connaissances et n'est consulté que rarement."></p>
+<figcaption><strong>Figure 2.</strong> L’écosystème local que j’ai en tête. Un routeur envoie chaque tâche à un spécialiste. Les spécialistes lisent et écrivent dans une mémoire partagée. La nuit, le système consolide ce qu’il a appris dans des spécialistes mis à jour. Un modèle de pointe, hors de la machine, enseigne une fois et n’est consulté que rarement. Schéma personnel.</figcaption>
+</figure>
+</div>
+</section>
+<section id="partie-i-pourquoi-je-le-pense" class="level1">
+<h1>Partie I · Pourquoi je le pense</h1>
+<section id="les-plus-grands-modèles-actuels-montrent-déjà-cette-direction" class="level2">
+<h2 class="anchored" data-anchor-id="les-plus-grands-modèles-actuels-montrent-déjà-cette-direction">3. Les plus grands modèles actuels montrent déjà cette direction</h2>
+<p><strong>Du dense aux mélanges d’experts.</strong> Un modèle de langage classique est <em>dense</em>&nbsp;: pour produire chaque mot, il utilise chacun de ses paramètres. Beaucoup des plus grands modèles actuels sont plutôt des <em>mélanges d’experts</em>. L’idée remonte à Shazeer et ses collègues <span class="citation" data-cites="shazeer2017">(Shazeer et al. 2017)</span> et a été portée à grande échelle dans le Switch Transformer <span class="citation" data-cites="fedus2022">(Fedus et al. 2022)</span>. À l’intérieur, le modèle est divisé en de nombreux sous-réseaux, et pour chaque mot une petite porte en choisit quelques-uns.</p>
+<p>Deux exemples publiés illustrent le propos&nbsp;:</p>
+<ul>
+<li><strong>Mixtral 8x7B</strong> a 46,7 milliards de paramètres, mais chaque mot en utilise environ 12,9 milliards&nbsp;: deux de ses huit experts par couche <span class="citation" data-cites="jiang2024">(<span class="nocase">Jiang et al.</span> 2024)</span>.</li>
+<li><strong>DeepSeek-V3</strong> a 671 milliards de paramètres, mais chaque mot en utilise environ 37 milliards <span class="citation" data-cites="deepseek2024">(DeepSeek-AI 2024)</span>. Sa conception est parlante&nbsp;: dans chaque couche d’experts, un expert <em>partagé</em> est utilisé pour chaque mot, et 8 experts <em>routés</em> sur 256 sont choisis pour ce mot. Un noyau commun, plus des spécialistes choisis à la demande.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig03.png" class="img-fluid figure-img" alt="Trois grilles. Modèle dense&nbsp;: toutes les cases remplies. Mélange d'experts&nbsp;: tout est chargé mais seules quelques cases sont actives. Écosystème&nbsp;: des boîtes de spécialistes séparées, une seule active."></p>
+<figcaption><strong>Figure 3.</strong> Trois architectures. Un modèle dense charge tous ses paramètres et les utilise tous pour chaque mot. Un mélange d’experts les charge tous mais n’utilise que quelques experts par mot. Un écosystème charge des modèles spécialistes séparés quand on en a besoin. Schéma personnel.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig04.png" class="img-fluid figure-img" alt="Diagramme en barres de la part active par mot&nbsp;: modèle dense 100&nbsp;%, Mixtral 8x7B 27,6&nbsp;%, DeepSeek-V3 5,5&nbsp;%, estimation pour le cortex environ 1&nbsp;% (en hachures)."></p>
+<figcaption><strong>Figure 4.</strong> Part des paramètres utilisés pour chaque mot. Les valeurs de Mixtral et DeepSeek-V3 sont calculées à partir des nombres de paramètres publiés <span class="citation" data-cites="jiang2024 deepseek2024">(<span class="nocase">Jiang et al.</span> 2024; DeepSeek-AI 2024)</span>. La valeur du cortex est une estimation grossière de la part des neurones qui peuvent être fortement actifs en même temps, d’après les contraintes énergétiques <span class="citation" data-cites="lennie2003">(Lennie 2003)</span> ; elle est débattue et figure en hachures. Graphique personnel.</figcaption>
+</figure>
+</div>
+<p>Ceux qui construisent les plus grands modèles en ont conclu que tout ne devait pas travailler sur tout. Mais un mélange d’experts reste un seul modèle. Tous ses experts doivent être chargés en mémoire, même si seuls quelques-uns travaillent à la fois. Ils sont entraînés ensemble, donc on ne peut pas en remplacer un sans toucher aux autres. Et ce ne sont pas des spécialistes qu’une personne reconnaîtrait&nbsp;: un expert est une partie du réseau vers laquelle l’entraînement a fini par diriger certains mots.</p>
+<p><strong>Les autres pièces existent déjà, elles aussi.</strong> Ce que j’appelle un écosystème est surtout un assemblage de choses qui fonctionnent déjà&nbsp;:</p>
+<ul>
+<li><strong>Base partagée et adaptateurs, en production.</strong> Le modèle embarqué d’Apple a environ 3 milliards de paramètres et utilise de petits <em>adaptateurs LoRA</em> propres à chaque tâche, échangés selon la tâche ; un adaptateur de rang 16 occupe quelques dizaines de mégaoctets <span class="citation" data-cites="gunter2024 hu2021">(<span class="nocase">Gunter et al.</span> 2024; Hu et al. 2022)</span>.</li>
+<li><strong>Beaucoup d’adaptateurs sur une machine.</strong> S-LoRA a montré comment servir des milliers d’adaptateurs au-dessus d’un seul modèle de base <span class="citation" data-cites="sheng2023">(<span class="nocase">Sheng et al.</span> 2023)</span>.</li>
+<li><strong>Des experts entraînés séparément.</strong> Branch-Train-MiX entraîne des experts de domaine en parallèle à partir d’un modèle de départ commun, puis les combine <span class="citation" data-cites="sukhbaatar2024">(<span class="nocase">Sukhbaatar et al.</span> 2024)</span>.</li>
+<li><strong>Le routage entre modèles.</strong> RouteLLM apprend quand une requête peut aller à un modèle moins cher, et rapporte des réductions de coût de plus de deux fois sur certains bancs d’essai, sans perte de qualité <span class="citation" data-cites="ong2024">(<span class="nocase">Ong et al.</span> 2025)</span>. FrugalGPT rapporte égaler le meilleur modèle seul avec de fortes économies en enchaînant des modèles en cascade <span class="citation" data-cites="chen2023">(Chen et al. 2023)</span>.</li>
+<li><strong>La mémoire hors des poids.</strong> RETRO, avec une recherche dans une grande base de textes, obtient des résultats comparables à GPT-3 sur le banc d’essai Pile avec environ 25 fois moins de paramètres <span class="citation" data-cites="borgeaud2022 lewis2020">(<span class="nocase">Borgeaud et al.</span> 2022; <span class="nocase">Lewis et al.</span> 2020)</span>.</li>
+</ul>
+<p>Aucun de ces travaux n’est l’écosystème complet. Ensemble, ils montrent qu’aucune des parties n’est de la spéculation. Des chercheurs de NVIDIA ont récemment défendu une idée semblable pour les agents&nbsp;: l’essentiel de ce que font les agents est un petit nombre de tâches répétitives et spécialisées, que de petits modèles peuvent traiter plus économiquement, les grands modèles n’étant appelés que si nécessaire <span class="citation" data-cites="belcak2025">(Belcak et al. 2025)</span>.</p>
+</section>
+<section id="larithmétique-dun-ordinateur-portable-la-bande-passante" class="level2">
+<h2 class="anchored" data-anchor-id="larithmétique-dun-ordinateur-portable-la-bande-passante">4. L’arithmétique d’un ordinateur portable&nbsp;: la bande passante</h2>
+<p>C’est l’argument que je trouve le plus convaincant, parce que c’est de l’arithmétique simple.</p>
+<p>Quand un modèle génère du texte pour une personne, chaque nouveau mot demande de lire une fois tous les poids actifs en mémoire, et de faire à peu près deux opérations par poids. Avec des poids stockés sur <img src="https://latex.codecogs.com/png.latex?b"> bits, un modèle à <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bactif%7D%7D"> paramètres actifs lit <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bactif%7D%7D%20%5Ccdot%20b/8"> octets par mot. La vitesse est donc bornée par la bande passante mémoire <img src="https://latex.codecogs.com/png.latex?B">&nbsp;:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bmots%20par%20seconde%7D%20%5C;%5Cle%5C;%20%5Cfrac%7BB%7D%7BN_%7B%5Ctext%7Bactif%7D%7D%20%5Ccdot%20b/8%7D.%0A"></p>
+<p>La bande passante est-elle vraiment la limite, et pas le calcul ? Le modèle <em>roofline</em> répond à cette question en comparant les opérations par octet <span class="citation" data-cites="williams2009">(Williams et al. 2009)</span>. Le décodage pour un utilisateur à 4 bits fait environ deux opérations par demi-octet, soit environ 4 opérations par octet lu. Un GPU d’ordinateur portable capable de dizaines de milliers de milliards d’opérations par seconde, avec une bande passante d’environ 500 Go/s, a besoin de dizaines d’opérations par octet pour être occupé. Le décodage en offre bien moins, donc il attend la mémoire.</p>
+<p>Prenons un ordinateur portable avec 128 Go de mémoire et jusqu’à 546 Go/s de bande passante, les chiffres publiés pour l’Apple M4 Max <span class="citation" data-cites="apple2024m4">(Apple 2024)</span>. J’utilise 500 Go/s et des poids sur 4 bits&nbsp;:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Modèle</th>
+<th>Paramètres actifs</th>
+<th>Lu par mot</th>
+<th>Borne supérieure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Spécialiste 3B</td>
+<td>3B</td>
+<td>1,5 Go</td>
+<td>≈ 330 mots/s</td>
+</tr>
+<tr class="even">
+<td>Spécialiste 8B</td>
+<td>8B</td>
+<td>4 Go</td>
+<td>≈ 125 mots/s</td>
+</tr>
+<tr class="odd">
+<td>Modèle dense 70B</td>
+<td>70B</td>
+<td>35 Go</td>
+<td>≈ 14 mots/s</td>
+</tr>
+<tr class="even">
+<td>DeepSeek-V3 (MoE)</td>
+<td>37B sur 671B</td>
+<td>18,5 Go</td>
+<td>≈ 27 mots/s, mais 335 Go ne tiennent pas dans 128 Go</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig05.png" class="img-fluid figure-img" alt="Droite en échelle log-log des tokens par seconde en fonction des milliards de paramètres lus par token&nbsp;: les spécialistes 3B et 8B au-dessus de 100 tokens par seconde, le dense 70B vers 14, et un MoE à 37B actifs marqué comme ne tenant pas dans 128 Go."></p>
+<figcaption><strong>Figure 5.</strong> Borne supérieure de la vitesse de génération quand chaque mot demande de lire une fois tous les poids actifs, à 500 Go/s et avec des poids sur 4 bits. Cercle vide&nbsp;: ne tient pas dans 128 Go. Les vitesses réelles sont plus basses ; le calcul, le cache de la conversation et le logiciel coûtent tous quelque chose. Mon propre calcul à partir de la formule ci-dessus ; nombres de paramètres de DeepSeek-V3 tirés de <span class="citation" data-cites="deepseek2024">(DeepSeek-AI 2024)</span>.</figcaption>
+</figure>
+</div>
+<p>Deux conséquences en découlent. Les mêmes 128 Go qui ne peuvent pas contenir un modèle de pointe peuvent contenir une trentaine de spécialistes à 8 milliards de paramètres, chacun rapide. Et ce mur ne va pas disparaître bientôt&nbsp;: en deux décennies, la puissance de calcul de pointe du matériel serveur a été multipliée par environ 3,0 tous les deux ans, mais la bande passante mémoire seulement par environ 1,6 <span class="citation" data-cites="gholami2024">(Gholami et al. 2024)</span>. Des techniques comme le décodage spéculatif <span class="citation" data-cites="leviathan2023">(Leviathan et al. 2023)</span> aident, mais elles aident autant les petits modèles que les grands.</p>
+</section>
+<section id="larithmétique-de-la-capacité-pourquoi-les-spécialistes-peuvent-être-petits" class="level2">
+<h2 class="anchored" data-anchor-id="larithmétique-de-la-capacité-pourquoi-les-spécialistes-peuvent-être-petits">5. L’arithmétique de la capacité&nbsp;: pourquoi les spécialistes peuvent être petits</h2>
+<p>Le deuxième argument porte sur la façon dont un modèle dépense sa capacité.</p>
+<p>Michaud et ses collègues ont proposé une façon utile de penser la mise à l’échelle&nbsp;: la connaissance se présente en unités discrètes, qu’ils appellent <em>quanta</em>, utilisées à des fréquences très différentes, et un modèle les apprend à peu près dans l’ordre de leur fréquence d’utilisation <span class="citation" data-cites="michaud2023">(Michaud et al. 2023)</span>. En voici une conséquence simple, avec mes mots et mes simplifications.</p>
+<p>Supposons qu’une tâche demande deux sortes de quanta&nbsp;: un noyau partagé (le langage, le raisonnement de base), qui prend <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bpartag%C3%A9%7D%7D"> paramètres, et la connaissance du domaine, qui prend <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bdomaine%7D%7D">. Un spécialiste a besoin des deux&nbsp;:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AN_%7B%5Ctext%7Bsp%C3%A9cialiste%7D%7D%20%5Capprox%20N_%7B%5Ctext%7Bpartag%C3%A9%7D%7D%20+%20N_%7B%5Ctext%7Bdomaine%7D%7D.%0A"></p>
+<p>Un modèle général est entraîné sur tout, et le domaine n’est qu’une part <img src="https://latex.codecogs.com/png.latex?f"> de ce qu’il voit. Dans le cas symétrique le plus simple, où de nombreux domaines ont chacun une part <img src="https://latex.codecogs.com/png.latex?f"> et une structure semblable, le modèle général n’atteint la même profondeur dans ce domaine que s’il a appris aussi profondément tous les autres domaines&nbsp;:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AN_%7B%5Ctext%7Bg%C3%A9n%C3%A9ral%7D%7D%20%5Capprox%20N_%7B%5Ctext%7Bpartag%C3%A9%7D%7D%20+%20%5Cfrac%7BN_%7B%5Ctext%7Bdomaine%7D%7D%7D%7Bf%7D.%0A"></p>
+<p>Avec des valeurs d’illustration de 2 milliards pour le noyau et 1 milliard pour le domaine, un domaine qui représente 1&nbsp;% de l’entraînement du modèle général demande environ 102 milliards de paramètres pour la même profondeur, contre 3 milliards pour le spécialiste.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig06.png" class="img-fluid figure-img" alt="Graphique log-log des paramètres nécessaires en fonction de la part du domaine dans l'entraînement. La courbe du modèle général descend de 1000B à 0,1&nbsp;% jusqu'à 3B à 100&nbsp;% ; le spécialiste reste plat à 3B. À 1&nbsp;%&nbsp;: environ 102B contre 3B."></p>
+<figcaption><strong>Figure 6.</strong> Un modèle de capacité simple. Paramètres nécessaires pour la même profondeur dans un domaine, pour un modèle général et pour un spécialiste, en fonction de la part <img src="https://latex.codecogs.com/png.latex?f"> du domaine dans l’entraînement du modèle général. Valeurs d’illustration personnelles&nbsp;: <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bpartag%C3%A9%7D%7D"> = 2B, <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bdomaine%7D%7D"> = 1B, aucun transfert entre domaines au-delà du noyau partagé. Modèle inspiré de la vision de la mise à l’échelle par quanta <span class="citation" data-cites="michaud2023">(Michaud et al. 2023)</span>.</figcaption>
+</figure>
+</div>
+<p>Le modèle est grossier, et son hypothèse principale, que les domaines ne s’aident pas les uns les autres au-delà du noyau partagé, n’est pas entièrement vraie. La connaissance se transfère entre domaines, et un modèle général comme GPT-4, soigneusement guidé, a dépassé des modèles médicaux spécialisés sur des bancs d’essai médicaux <span class="citation" data-cites="nori2023">(<span class="nocase">Nori et al.</span> 2023)</span>. C’est exactement pourquoi la formule garde <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bpartag%C3%A9%7D%7D">&nbsp;: un bon spécialiste n’est pas entraîné à partir de zéro, il part d’un solide noyau partagé.</p>
+<p>Les résultats publiés vont dans le sens de l’argument. Un modèle de 770 millions de paramètres, entraîné avec les explications d’un modèle bien plus grand, a dépassé PaLM à 540 milliards de paramètres, guidé par quelques exemples, sur un banc d’essai, en n’utilisant que 80&nbsp;% des données d’entraînement <span class="citation" data-cites="hsieh2023">(<span class="nocase">Hsieh et al.</span> 2023)</span>. Un modèle de 1,3 milliard de paramètres entraîné sur des données soigneusement choisies a atteint 50,6&nbsp;% sur le banc d’essai de programmation HumanEval <span class="citation" data-cites="gunasekar2023">(<span class="nocase">Gunasekar et al.</span> 2023)</span>. Des modèles étroits et bien enseignés peuvent être très petits.</p>
+</section>
+<section id="larithmétique-de-nombreux-spécialistes-les-adaptateurs" class="level2">
+<h2 class="anchored" data-anchor-id="larithmétique-de-nombreux-spécialistes-les-adaptateurs">6. L’arithmétique de nombreux spécialistes&nbsp;: les adaptateurs</h2>
+<p>Si chaque spécialiste était un modèle séparé, la mémoire se remplirait vite. Les adaptateurs règlent une grande partie du problème.</p>
+<p>Un adaptateur LoRA remplace la mise à jour d’une matrice de poids de taille <img src="https://latex.codecogs.com/png.latex?d_%7B%5Ctext%7Bin%7D%7D%20%5Ctimes%20d_%7B%5Ctext%7Bout%7D%7D"> par deux matrices fines de rang <img src="https://latex.codecogs.com/png.latex?r"> <span class="citation" data-cites="hu2021">(Hu et al. 2022)</span>. Sa taille par rapport à la matrice est</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cfrac%7Br%5C,(d_%7B%5Ctext%7Bin%7D%7D%20+%20d_%7B%5Ctext%7Bout%7D%7D)%7D%7Bd_%7B%5Ctext%7Bin%7D%7D%5C,d_%7B%5Ctext%7Bout%7D%7D%7D%20%5C;%5Capprox%5C;%20%5Cfrac%7B2r%7D%7Bd%7D%20%5Cquad%20%5Ctext%7Bpour%20une%20matrice%20carr%C3%A9e%7D.%0A"></p>
+<p>Avec <img src="https://latex.codecogs.com/png.latex?r%20=%2016"> et <img src="https://latex.codecogs.com/png.latex?d%20=%203072">, cela fait environ 1&nbsp;%. Appliqué à un modèle de base de 3 milliards de paramètres, un adaptateur a à peu près 30 millions de paramètres, environ 60 Mo sur 16 bits, ce qui correspond aux «&nbsp;dizaines de mégaoctets&nbsp;» qu’Apple annonce pour ses adaptateurs de rang 16 <span class="citation" data-cites="gunter2024">(<span class="nocase">Gunter et al.</span> 2024)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig07.png" class="img-fluid figure-img" alt="Mémoire en fonction du nombre de spécialistes. Les modèles 3B séparés montent en ligne droite et dépassent la ligne des 128 Go vers 85 ; une base plus des adaptateurs reste presque plate, 7,5 Go pour 100 spécialistes."></p>
+<figcaption><strong>Figure 7.</strong> Mémoire nécessaire pour <img src="https://latex.codecogs.com/png.latex?k"> spécialistes, sous forme de modèles 3B séparés sur 4 bits, ou d’une base 3B sur 4 bits plus des adaptateurs de rang 16 sur 16 bits (environ 60 Mo chacun). Mon propre calcul à partir de la formule ci-dessus.</figcaption>
+</figure>
+</div>
+<p>Cent spécialistes sous forme d’adaptateurs occupent environ 7,5 Go ; sous forme de modèles séparés, 150 Go. Il y a un compromis, et il vaut la peine de le connaître&nbsp;: les adaptateurs apprennent moins qu’un réentraînement complet, mais ils oublient aussi moins ce que savait le modèle de base <span class="citation" data-cites="biderman2024">(<span class="nocase">Biderman et al.</span> 2024)</span>. Pour un système qui doit continuer à apprendre sans casser, oublier moins est une qualité.</p>
+</section>
+<section id="larithmétique-du-routage" class="level2">
+<h2 class="anchored" data-anchor-id="larithmétique-du-routage">7. L’arithmétique du routage</h2>
+<p>Un écosystème ne vaut que ce que vaut son routeur. Un modèle simple rend cela précis.</p>
+<p>Soit <img src="https://latex.codecogs.com/png.latex?a"> la précision du routeur, <img src="https://latex.codecogs.com/png.latex?q_s"> la qualité quand une tâche arrive au bon spécialiste, et <img src="https://latex.codecogs.com/png.latex?q_w"> la qualité quand elle arrive au mauvais. La qualité attendue est</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Aq%20=%20a%5C,q_s%20+%20(1-a)%5C,q_w.%0A"></p>
+<p>L’écosystème bat un modèle général de qualité <img src="https://latex.codecogs.com/png.latex?q_g">, qui tourne à une vitesse semblable, seulement si</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Aa%20%5C;%3E%5C;%20a%5E%7B*%7D%20=%20%5Cfrac%7Bq_g%20-%20q_w%7D%7Bq_s%20-%20q_w%7D.%0A"></p>
+<p>Avec des valeurs d’illustration <img src="https://latex.codecogs.com/png.latex?q_s%20=%200%7B,%7D90">, <img src="https://latex.codecogs.com/png.latex?q_w%20=%200%7B,%7D30"> et <img src="https://latex.codecogs.com/png.latex?q_g%20=%200%7B,%7D80">, le routeur doit avoir raison plus de 83&nbsp;% du temps. Si le routeur sait aussi quand il n’est pas sûr, et envoie la moitié de ses erreurs à un modèle plus grand de qualité <img src="https://latex.codecogs.com/png.latex?q_L%20=%200%7B,%7D95">, le seuil descend à environ 64&nbsp;%.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig08.png" class="img-fluid figure-img" alt="Qualité attendue en fonction de la précision du routeur. Le modèle général est plat à 0,80. Un routeur qui renvoie la moitié de ses erreurs le dépasse à 64&nbsp;% de précision ; un routeur seul seulement à 83&nbsp;%."></p>
+<figcaption><strong>Figure 8.</strong> Qualité attendue d’un écosystème en fonction de la précision du routeur, avec et sans renvoi des cas incertains, comparée à un modèle général qui tourne à une vitesse semblable. Valeurs d’illustration personnelles.</figcaption>
+</figure>
+</div>
+<p>La leçon n’est pas dans les chiffres exacts, qui sont les miens. Elle est dans la forme&nbsp;: un routeur qui connaît sa propre incertitude vaut plus qu’un spécialiste un peu meilleur. C’est aussi ce qui rend encourageants les travaux publiés sur le routage <span class="citation" data-cites="ong2024 chen2023">(<span class="nocase">Ong et al.</span> 2025; Chen et al. 2023)</span>.</p>
+</section>
+<section id="le-harnais-léger-autour-des-modèles-puissants-essentiel-autour-des-petits" class="level2">
+<h2 class="anchored" data-anchor-id="le-harnais-léger-autour-des-modèles-puissants-essentiel-autour-des-petits">8. Le harnais&nbsp;: léger autour des modèles puissants, essentiel autour des petits</h2>
+<p>Une étude récente de l’EPFL et d’Apple se demande de combien de <em>harnais</em> (les orchestrateurs, sous-agents et couches de recherche construits autour d’un modèle) un agent puissant a besoin pour des tâches d’ingénierie de l’apprentissage automatique. À budget de temps égal et avec le même modèle de pointe, les harnais open source élaborés qu’ils ont testés n’ont apporté aucun avantage par rapport à une seule session d’un agent de programmation minimal, avec un accès direct pour lire, écrire et lancer des commandes <span class="citation" data-cites="brilliantov2026">(Brilliantov et al. 2026)</span>. Leur conclusion est que le modèle est le principal moteur de la performance, et que les harnais élaborés autour des modèles puissants rapportent peu sur les bancs d’essai actuels.</p>
+<p>À première vue, cela va contre l’écosystème. Si la structure autour d’un modèle n’aide pas, pourquoi construire un écosystème ? Je le lis autrement, pour trois raisons.</p>
+<p><strong>D’abord, c’est un résultat sur les modèles puissants.</strong> L’étude garde le modèle de pointe fixe. Elle dit qu’un modèle puissant a absorbé une grande partie de ce que faisait l’échafaudage. Cela rejoint la «&nbsp;leçon amère&nbsp;» de Sutton&nbsp;: les méthodes générales qui utilisent plus de calcul finissent par battre la structure construite à la main <span class="citation" data-cites="sutton2019">(Sutton 2019)</span>. Elle dit beaucoup moins de choses sur un modèle de 3 milliards de paramètres sur un ordinateur portable.</p>
+<p><strong>Ensuite, les petits modèles gagnent le plus avec le bon type de harnais.</strong> Plusieurs résultats vont dans ce sens&nbsp;:</p>
+<ul>
+<li>La conception de l’interface compte&nbsp;: SWE-agent a montré que donner à un modèle des commandes bien conçues pour afficher, modifier et tester du code améliorait les résultats sur des tâches logicielles, sans changer le modèle <span class="citation" data-cites="yang2024">(<span class="nocase">Yang et al.</span> 2024)</span>.</li>
+<li>Un vérificateur transforme les tentatives en résultats&nbsp;: avec des tentatives répétées, vérifiées par les propres tests du projet, un modèle ouvert est passé de 15,9&nbsp;% des problèmes de SWE-bench Lite résolus en une tentative à 56&nbsp;% en 250 tentatives, au-dessus de la meilleure tentative unique publiée à l’époque, 43&nbsp;% <span class="citation" data-cites="brown2024">(<span class="nocase">Brown et al.</span> 2024)</span>.</li>
+<li>Du calcul supplémentaire au moment de répondre, bien utilisé, a permis à un modèle plus petit de dépasser un modèle 14 fois plus grand, sur des problèmes où le petit modèle avait déjà un taux de réussite raisonnable <span class="citation" data-cites="snell2024">(Snell et al. 2025)</span>.</li>
+<li>Le cadre d’Apple pour son modèle embarqué offre une génération guidée et des appels d’outils contraints, qui maintiennent la sortie d’un petit modèle dans une structure valide <span class="citation" data-cites="apple2025">(Apple 2025)</span>.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig09.png" class="img-fluid figure-img" alt="Problèmes résolus en fonction du nombre de tentatives, en échelle logarithmique. Résultats publiés&nbsp;: 15,9&nbsp;% en une tentative, 56&nbsp;% en 250. La courbe pointillée des tentatives indépendantes monte vite à 100&nbsp;%. Une ligne pointillée marque la meilleure tentative unique, à 43&nbsp;%."></p>
+<figcaption><strong>Figure 9.</strong> Tentatives répétées avec un vérificateur. Les deux points sont des résultats publiés par Brown et al.&nbsp;pour SWE-bench Lite <span class="citation" data-cites="brown2024">(<span class="nocase">Brown et al.</span> 2024)</span>. La ligne pointillée est mon propre calcul de ce qui se passerait si les tentatives étaient indépendantes, <img src="https://latex.codecogs.com/png.latex?1-(1-p)%5Ek"> avec <img src="https://latex.codecogs.com/png.latex?p%20=%200%7B,%7D159"> ; l’écart montre que les tentatives sont fortement corrélées. Graphique personnel.</figcaption>
+</figure>
+</div>
+<p>L’arithmétique mérite une phrase. Si une tentative réussit avec une probabilité <img src="https://latex.codecogs.com/png.latex?p"> et que les tentatives étaient indépendantes, <img src="https://latex.codecogs.com/png.latex?k"> tentatives réussiraient avec une probabilité <img src="https://latex.codecogs.com/png.latex?1-(1-p)%5Ek">. En pratique, les tentatives sont corrélées, donc le gain réel est plus petit, comme le montre la figure. Mais sur une machine locale, où un petit spécialiste est rapide et où un test peut vérifier chaque réponse, quelques tentatives de plus ne coûtent presque rien.</p>
+<p><strong>Enfin, une partie du harnais ne pourra jamais être absorbée par un modèle.</strong> Une mémoire persistante qui dure au-delà d’une conversation. Des permissions sur ce qui peut quitter la machine. Des tests qui décident si un résultat ou une mise à jour est accepté. Les données locales elles-mêmes. Aussi puissants que deviennent les modèles, tout cela reste à l’extérieur.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig10.png" class="img-fluid figure-img" alt="Schéma de ce qu'apporte le harnais en fonction de la puissance du modèle. L'échafaudage du raisonnement descend d'une valeur élevée pour les petits spécialistes jusqu'à presque zéro pour les modèles de pointe ; la structure qu'aucun modèle ne peut absorber reste plate."></p>
+<figcaption><strong>Figure 10.</strong> Ma propre vision du harnais, sous forme de schéma. L’échafaudage du raisonnement (orchestrateurs, sous-agents, nouvelles tentatives) apporte beaucoup aux petits modèles et peu aux puissants. La structure qu’aucun modèle ne peut absorber (mémoire, permissions, tests, données locales) garde sa valeur. L’extrémité droite est cohérente avec le résultat de <span class="citation" data-cites="brilliantov2026">(Brilliantov et al. 2026)</span> ; le reste de la courbe est mon hypothèse, pas des données.</figcaption>
+</figure>
+</div>
+<p>Ma conclusion est donc une règle de conception&nbsp;: <strong>garder le harnais léger, et ne garder que ce qui mérite sa place.</strong> L’échafaudage qui compense un raisonnement faible devrait pouvoir être retiré, et être retiré à mesure que les spécialistes s’améliorent. La structure qui apporte mémoire, vérification et contrôle devrait rester.</p>
+</section>
+<section id="notre-propre-cerveau" class="level2">
+<h2 class="anchored" data-anchor-id="notre-propre-cerveau">9. Notre propre cerveau</h2>
+<p>La dernière raison est plus proche de nous. Quand je regarde comment notre cerveau semble organisé, il ne ressemble pas à un modèle dense unique. Il ressemble bien plus à un écosystème. Je veux être prudent ici, parce que la biologie ne prouve rien sur le logiciel, et que le cerveau n’est pas un ensemble de boîtes bien rangées.</p>
+<p><strong>De nombreuses parties spécialisées.</strong> Les neurosciences ont trouvé des aires qui répondent à des choses précises. Un exemple classique est une aire du cortex visuel qui répond beaucoup plus fortement aux visages qu’aux autres objets <span class="citation" data-cites="kanwisher1997">(Kanwisher et al. 1997)</span>. Une lésion de ces aires peut supprimer une capacité et en laisser d’autres presque intactes. En même temps, les représentations sont aussi distribuées et se chevauchent d’une aire à l’autre <span class="citation" data-cites="haxby2001">(<span class="nocase">Haxby et al.</span> 2001)</span>. Spécialisées, mais fortement connectées.</p>
+<p><strong>Le langage et la pensée sont pris en charge par des réseaux différents.</strong> L’un des résultats récents les plus frappants pour mon argument vient de l’étude du langage. L’imagerie cérébrale trouve de façon fiable un réseau qui s’active quand nous lisons ou écoutons des phrases, et qui ne s’active en grande partie pas quand nous résolvons des problèmes ou raisonnons ; des personnes qui perdent le langage à la suite d’une lésion cérébrale peuvent encore raisonner <span class="citation" data-cites="fedorenko2024">(Fedorenko et al. 2024)</span>. Mahowald et ses collègues en ont tiré la conséquence pour l’IA&nbsp;: les grands modèles de langage sont très bons pour la <em>forme</em> du langage, mais leur capacité à raisonner et à s’en servir dans le monde est inégale, et des modèles qui fonctionnent comme les humains pourraient avoir besoin de mécanismes séparés pour les deux <span class="citation" data-cites="mahowald2024">(Mahowald et al. 2024)</span>.</p>
+<p><strong>Et aussi un réseau généraliste.</strong> Le cerveau n’est pas fait que de spécialistes. Un réseau <em>à demandes multiples</em>, réparti sur des aires frontales et pariétales, s’active pour de nombreuses tâches exigeantes différentes et semble aider à assembler les bonnes parties pour le problème à résoudre <span class="citation" data-cites="duncan2020">(Duncan et al. 2020)</span>. Dans l’écosystème, c’est le rôle du noyau partagé et du routeur&nbsp;: une partie générale qui coordonne de nombreuses parties spécialisées.</p>
+<p><strong>La spécialisation est peut-être simplement efficace.</strong> Une expérience récente en fait plus qu’une analogie. Dobs et ses collègues ont entraîné des réseaux de neurones artificiels à reconnaître à la fois des visages et des objets. Sans qu’on le leur demande, les réseaux se sont divisés en systèmes séparés pour les visages et pour les objets, un peu comme le fait le cerveau <span class="citation" data-cites="dobs2022">(Dobs et al. 2022)</span>. Leur interprétation est que la spécialisation est ce que tend à produire une bonne optimisation quand les tâches sont assez différentes.</p>
+<p><strong>Probablement un très grand nombre d’unités.</strong> Mountcastle a proposé que le cortex soit construit à partir d’une unité de base répétée, la colonne corticale <span class="citation" data-cites="mountcastle1997">(Mountcastle 1997)</span>. Hawkins va plus loin et suggère que chaque colonne construit son propre modèle du monde, et qu’elles prennent leurs décisions ensemble <span class="citation" data-cites="hawkins2021">(Hawkins 2021)</span> ; son équipe a depuis lancé un projet ouvert qui construit de l’IA à partir de nombreux <em>modules d’apprentissage</em> répétés de ce type <span class="citation" data-cites="clay2024">(Clay et al. 2024)</span>. C’est une théorie, et elle est débattue. Mais l’image d’un grand nombre d’unités semblables, chacune spécialisée par ce qu’elle reçoit, est largement partagée.</p>
+<p><strong>Une mémoire rapide et un apprenant lent.</strong> La théorie des <em>systèmes d’apprentissage complémentaires</em> propose que l’hippocampe apprend vite de nouveaux épisodes, tandis que le néocortex apprend lentement, en rejouant ces épisodes au fil du temps <span class="citation" data-cites="mcclelland1995 kumaran2016">(McClelland et al. 1995; Kumaran et al. 2016)</span>. Le rejeu pendant le sommeil a d’abord été observé dans l’hippocampe du rat <span class="citation" data-cites="wilson1994">(Wilson et McNaughton 1994)</span>, et il a depuis été mesuré aussi chez l’humain, au repos <span class="citation" data-cites="liu2019 schuck2019">(Liu et al. 2019; Schuck et Niv 2019)</span>. Le sommeil semble jouer un rôle actif dans le transfert des souvenirs du système rapide vers le système lent <span class="citation" data-cites="klinzing2019">(Klinzing et al. 2019)</span>. L’une des raisons d’avoir deux systèmes est précisément d’éviter ce que les chercheurs en IA appellent l’oubli catastrophique <span class="citation" data-cites="mccloskey1989">(McCloskey et Cohen 1989)</span>.</p>
+<p><strong>La plasticité.</strong> Les connexions changent avec l’usage. Et quand nous apprenons à lire, une région du cortex visuel se spécialise dans les mots écrits, un processus que Dehaene et Cohen appellent le <em>recyclage neuronal</em> <span class="citation" data-cites="dehaene2007">(Dehaene et Cohen 2007)</span>. Les nouveaux spécialistes ne sont pas seulement présents dès la naissance ; ils se forment au cours de la vie.</p>
+<p><strong>Clairsemé et frugal.</strong> Le cerveau humain compte environ 86 milliards de neurones <span class="citation" data-cites="herculano2009">(Herculano-Houzel 2009)</span> et fonctionne avec à peu près 20 watts <span class="citation" data-cites="balasubramanian2021">(Balasubramanian 2021)</span>. Les budgets énergétiques suggèrent que seule une petite part des neurones corticaux peut être fortement active en même temps, peut-être autour d’un pour cent, même si le chiffre exact est débattu <span class="citation" data-cites="lennie2003 attwell2001">(Lennie 2003; Attwell et Laughlin 2001)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig11.png" class="img-fluid figure-img" alt="Tableau qui associe des caractéristiques du cerveau à des parties de l'écosystème&nbsp;: aires spécialisées et spécialistes, réseau généraliste et noyau partagé avec routeur, hippocampe et mémoire partagée, cortex et consolidation nocturne, plasticité et spécialistes qui s'adaptent, 20 watts et petit, clairsemé, local."></p>
+<figcaption><strong>Figure 11.</strong> Comment le cerveau semble organisé, et la partie de l’écosystème à laquelle correspond chaque idée. Une analogie personnelle, pas une affirmation que le cerveau est construit comme un logiciel. Les sources de chaque propriété du cerveau sont données dans la section 9.</figcaption>
+</figure>
+</div>
+<p>Les chercheurs qui travaillent sur l’apprentissage tout au long de la vie des machines tirent la même leçon de la biologie&nbsp;: des systèmes de mémoire qui apprennent à des vitesses différentes, le rejeu, et des parties modulaires et adaptables font partie des mécanismes qu’ils jugent les plus prometteurs <span class="citation" data-cites="kudithipudi2022">(<span class="nocase">Kudithipudi et al.</span> 2022)</span>. Si notre meilleur exemple d’intelligence générale est très probablement un immense ensemble de sous-modèles spécialisés et plastiques, avec un coordinateur général, une mémoire rapide et un apprenant lent, alors j’ai du mal à croire que la meilleure IA locale sera un seul bloc dense et figé.</p>
+</section>
+</section>
+<section id="partie-ii-lécosystème-en-pratique" class="level1">
+<h1>Partie II · L’écosystème en pratique</h1>
+<section id="une-mémoire-hors-des-poids" class="level2">
+<h2 class="anchored" data-anchor-id="une-mémoire-hors-des-poids">10. Une mémoire hors des poids</h2>
+<p>Les spécialistes ont besoin d’une mémoire qu’ils partagent. Dans <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>, je soutenais qu’un grand modèle devrait servir à construire une mémoire structurée, comme un graphe de connaissances que les experts peuvent inspecter et corriger. Dans un écosystème local, cette mémoire devient le terrain commun, et joue le rôle de la mémoire rapide de la section 9. Deux sortes comptent&nbsp;:</p>
+<ul>
+<li><strong>Les connaissances</strong>&nbsp;: faits, règles, relations. «&nbsp;Ce client paie toujours sous 30 jours.&nbsp;»</li>
+<li><strong>Les épisodes</strong>&nbsp;: ce qui s’est passé. «&nbsp;Mardi dernier, cette facture a été rejetée parce que le numéro de TVA du fournisseur ne correspondait pas.&nbsp;»</li>
+</ul>
+<p>Garder cette mémoire hors des poids est ce qui rend le système digne de confiance. On peut la lire. On peut corriger un fait à un seul endroit, et chaque spécialiste en profite. On peut effacer quelque chose et savoir que c’est parti, ce qui est très difficile à garantir une fois que des données ont servi à entraîner un modèle ; retirer leur influence après coup est un problème de recherche ouvert <span class="citation" data-cites="bourtoule2021">(<span class="nocase">Bourtoule et al.</span> 2021)</span>. La recherche dans la mémoire permet aussi aux petits modèles de savoir bien plus que ce que contiennent leurs poids <span class="citation" data-cites="borgeaud2022 lewis2020">(<span class="nocase">Borgeaud et al.</span> 2022; <span class="nocase">Lewis et al.</span> 2020)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig12.png" class="img-fluid figure-img" alt="Tableau qui compare la connaissance dans les poids et dans une mémoire partagée. Lisible, corrigeable, effaçable, partagée par chaque spécialiste&nbsp;: à peine dans les poids, oui dans la mémoire. Reste sur votre machine&nbsp;: si local, contre oui."></p>
+<figcaption><strong>Figure 12.</strong> L’endroit où vit la connaissance compte. Mon propre résumé des propriétés décrites dans cette section ; sur l’effacement, voir <span class="citation" data-cites="bourtoule2021">(<span class="nocase">Bourtoule et al.</span> 2021)</span>.</figcaption>
+</figure>
+</div>
+<p>C’est, pour moi, la raison la plus forte de faire tourner tout cela en local. La confidentialité n’est pas seulement une protection. C’est la condition de la mémoire. Les gens et les entreprises ne laisseront un système se souvenir de tout ce qui est utile que s’ils contrôlent l’endroit où vit cette mémoire.</p>
+</section>
+<section id="une-façon-de-continuer-à-apprendre" class="level2">
+<h2 class="anchored" data-anchor-id="une-façon-de-continuer-à-apprendre">11. Une façon de continuer à apprendre</h2>
+<p>Une mémoire permet à un système de <em>chercher des choses</em>. Elle ne lui permet pas de <em>s’améliorer</em>. Les modèles actuels sont entraînés une fois, figés, et livrés. Un écosystème local peut faire mieux, parce qu’il voit chaque jour le même genre de travail, et parce que ses spécialistes sont assez petits pour être mis à jour. J’imagine une boucle à deux vitesses, inspirée de la section 9&nbsp;:</p>
+<ol type="1">
+<li><strong>Rapide, pendant la journée.</strong> Les spécialistes travaillent. Les réussites, les corrections et les échecs sont écrits dans la mémoire sous forme d’épisodes. Rien ne change dans les modèles.</li>
+<li><strong>Lente, la nuit.</strong> Le système choisit des épisodes vérifiés, les mélange avec des exemples de ce que le spécialiste fait déjà bien, met à jour l’adaptateur, et teste le résultat sur tout ce qu’il savait déjà bien faire. S’il est meilleur et n’a rien oublié, il est gardé. Sinon, on revient en arrière.</li>
+</ol>
+<p>Chaque étape s’appuie sur des travaux existants. Mélanger d’anciens exemples avec de nouveaux, le <em>rejeu</em>, est l’un des moyens les plus fiables de limiter l’oubli <span class="citation" data-cites="rolnick2019">(Rolnick et al. 2019)</span> ; des versions du rejeu inspirées du cerveau vont plus loin et rejouent des représentations internes au lieu d’exemples stockés <span class="citation" data-cites="vandeven2020">(Ven et al. 2020)</span>. D’autres méthodes protègent les poids qui comptent le plus pour les anciennes tâches <span class="citation" data-cites="kirkpatrick2017">(<span class="nocase">Kirkpatrick et al.</span> 2017)</span>. Les adaptateurs oublient moins qu’un réentraînement complet <span class="citation" data-cites="biderman2024">(<span class="nocase">Biderman et al.</span> 2024)</span>. Et l’on commence à étudier le temps d’inactivité d’une machine comme une ressource à part entière&nbsp;: le <em>sleep-time compute</em> permet à un modèle de réfléchir à son contexte avant que les questions n’arrivent, ce qui réduit le travail nécessaire quand elles arrivent <span class="citation" data-cites="lin2025">(<span class="nocase">Lin et al.</span> 2025)</span>. Une revue large de l’apprentissage continu décrit les compromis entre ces approches <span class="citation" data-cites="wang2024">(Wang et al. 2024)</span>.</p>
+<p>L’étape de test mérite un peu d’arithmétique, parce que c’est là que les spécialistes étroits ont un vrai avantage. Si un spécialiste a raison avec une probabilité <img src="https://latex.codecogs.com/png.latex?p"> sur un jeu de test de <img src="https://latex.codecogs.com/png.latex?n"> exemples, l’erreur type de la précision mesurée est</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Csigma%20=%20%5Csqrt%7B%5Cfrac%7Bp(1-p)%7D%7Bn%7D%7D.%0A"></p>
+<p>Avec <img src="https://latex.codecogs.com/png.latex?p%20=%200%7B,%7D9"> et <img src="https://latex.codecogs.com/png.latex?n%20=%202000">, <img src="https://latex.codecogs.com/png.latex?%5Csigma%20%5Capprox%200%7B,%7D7"> point de pourcentage, donc une baisse de 2 points ressort à environ trois erreurs types. Construire 2000 bons cas de test pour une tâche étroite est réaliste. Les construire pour chaque capacité d’un modèle général ne l’est pas.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig13.png" class="img-fluid figure-img" alt="Graphique en escalier de la qualité sur 30 jours. Un modèle figé reste plat ; le spécialiste s'améliore un peu chaque nuit, avec une mise à jour ratée la nuit 17, détectée par le test et annulée."></p>
+<figcaption><strong>Figure 13.</strong> Schéma personnel, non mesuré. Un modèle figé reste aussi bon que le jour de sa livraison. Un spécialiste qui consolide chaque nuit s’améliore par petites étapes testées. Quand une mise à jour lui fait oublier quelque chose, le test le détecte et la mise à jour est annulée.</figcaption>
+</figure>
+</div>
+<p>Les risques sont réels. Un modèle entraîné à répétition sur ses propres sorties peut se dégrader, un problème connu sous le nom d’<em>effondrement du modèle</em> <span class="citation" data-cites="shumailov2024">(Shumailov et al. 2024)</span>. Le risque est bien plus faible quand les données réelles sont conservées et accumulées à côté des données générées, au lieu d’être remplacées par elles <span class="citation" data-cites="gerstgrasser2024">(<span class="nocase">Gerstgrasser et al.</span> 2024)</span>. C’est une raison de plus d’avoir une mémoire qui garde les vrais épisodes, et une boucle qui n’apprend que d’épisodes vérifiés par un test, une personne ou le monde réel, jamais de ses propres réponses non vérifiées. Et un modèle qui change chaque nuit est plus difficile à certifier. De petites mises à jour, des tests stricts, une mémoire qui garde les preuves et la possibilité de revenir en arrière ne sont pas optionnels.</p>
+</section>
+<section id="la-place-des-grands-modèles" class="level2">
+<h2 class="anchored" data-anchor-id="la-place-des-grands-modèles">12. La place des grands modèles</h2>
+<p>Rien de tout cela ne rend les modèles de pointe inutiles. Cela change leur rôle.</p>
+<p>Ils deviennent des <em>enseignants</em>&nbsp;: leur connaissance peut être transmise à de petits modèles par distillation <span class="citation" data-cites="hinton2015">(Hinton et al. 2015)</span>, y compris leurs explications pas à pas <span class="citation" data-cites="hsieh2023">(<span class="nocase">Hsieh et al.</span> 2023)</span>. L’équipe de DeepSeek-R1, par exemple, a publié une famille de petits modèles, de 1,5 à 70 milliards de paramètres, entraînés sur le raisonnement de son grand modèle <span class="citation" data-cites="deepseekr1">(DeepSeek-AI 2025)</span>. Ils deviennent des <em>architectes de la mémoire</em>&nbsp;: ils lisent les documents et construisent la première version du graphe de connaissances. Et ils deviennent des <em>consultants</em>&nbsp;: quand le routeur rencontre quelque chose de nouveau, ou un problème qui demande un raisonnement large sur de nombreux domaines, il peut leur demander, avec la permission de l’utilisateur, et la réponse vérifiée devient un épisode dont le système local peut apprendre.</p>
+</section>
+<section id="ce-qui-me-donnerait-tort" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-me-donnerait-tort">13. Ce qui me donnerait tort</h2>
+<p>Un essai qui défend un avenir devrait dire ce qui ferait changer d’avis son auteur. Je changerais d’avis si&nbsp;:</p>
+<ul>
+<li>des petits modèles généraux continuaient à battre des écosystèmes de spécialistes utilisant la même mémoire, même avec un bon routage ;</li>
+<li>les routeurs ne pouvaient pas atteindre, sur du vrai travail désordonné, la précision qu’exige l’arithmétique de la section 7 ;</li>
+<li>les mises à jour nocturnes ne pouvaient pas passer des tests de non-régression stricts sans oublier, même avec le rejeu et les adaptateurs ;</li>
+<li>la bande passante mémoire des appareils grand public augmentait assez vite pour qu’un seul grand modèle tourne confortablement partout.</li>
+</ul>
+<p>Je ne pense pas que cela arrivera, mais c’est mesurable, et j’ai l’intention de continuer à observer.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">14. Conclusion</h2>
+<p>Je ne pense pas que nous devions attendre que le grand cerveau vienne à nous. L’avenir auquel je crois est déjà à portée de main, et il est organisé autrement&nbsp;: des spécialistes excellents dans une chose, un routeur qui sait qui fait quoi et quand il ne sait pas, une mémoire qui vous appartient, un harnais léger qui garde l’essentiel, et une boucle prudente qui transforme le travail vérifié d’hier en compétence de demain.</p>
+<p>La question ne sera pas seulement «&nbsp;quelle quantité d’intelligence puis-je faire tourner en local ?&nbsp;». Elle sera «&nbsp;à quel point mon intelligence locale est-elle bien organisée, de quoi se souvient-elle, et comment apprend-elle ?&nbsp;». Notre propre cerveau, très probablement, y répond déjà de cette façon.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a><br>
+Pourquoi le grand modèle devrait construire la mémoire une fois, au lieu de raisonner à chaque exécution.</p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-apple2024m4" class="csl-entry">
+Apple. 2024. <em>Apple introduces <span>M4 Pro</span> and <span>M4 Max</span></em>. Apple Newsroom. <a href="https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/">https://www.apple.com/newsroom/2024/10/apple-introduces-m4-pro-and-m4-max/</a>.
+</div>
+<div id="ref-apple2025" class="csl-entry">
+Apple. 2025. <span>«&nbsp;Apple Intelligence Foundation Language Models: Tech Report 2025&nbsp;»</span>. <em>arXiv preprint arXiv:2507.13575</em>. <a href="https://arxiv.org/abs/2507.13575">https://arxiv.org/abs/2507.13575</a>.
+</div>
+<div id="ref-attwell2001" class="csl-entry">
+Attwell, David, et Simon B. Laughlin. 2001. <span>«&nbsp;An Energy Budget for Signaling in the Grey Matter of the Brain&nbsp;»</span>. <em>Journal of Cerebral Blood Flow and Metabolism</em> 21 (10): 1133‑45.
+</div>
+<div id="ref-balasubramanian2021" class="csl-entry">
+Balasubramanian, Vijay. 2021. <span>«&nbsp;Brain Power&nbsp;»</span>. <em>Proceedings of the National Academy of Sciences</em> 118 (32): e2107022118.
+</div>
+<div id="ref-belcak2025" class="csl-entry">
+Belcak, Peter, Greg Heinrich, Shizhe Diao, et al. 2025. <span>«&nbsp;Small Language Models are the Future of Agentic <span>AI</span>&nbsp;»</span>. <em>arXiv preprint arXiv:2506.02153</em>. <a href="https://arxiv.org/abs/2506.02153">https://arxiv.org/abs/2506.02153</a>.
+</div>
+<div id="ref-biderman2024" class="csl-entry">
+<span class="nocase">Biderman, Dan et al.</span> 2024. <span>«&nbsp;<span>LoRA</span> Learns Less and Forgets Less&nbsp;»</span>. <em>Transactions on Machine Learning Research</em>. <a href="https://arxiv.org/abs/2405.09673">https://arxiv.org/abs/2405.09673</a>.
+</div>
+<div id="ref-borgeaud2022" class="csl-entry">
+<span class="nocase">Borgeaud, Sebastian et al.</span> 2022. <span>«&nbsp;Improving Language Models by Retrieving from Trillions of Tokens&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://proceedings.mlr.press/v162/borgeaud22a.html">https://proceedings.mlr.press/v162/borgeaud22a.html</a>.
+</div>
+<div id="ref-bourtoule2021" class="csl-entry">
+<span class="nocase">Bourtoule, Lucas et al.</span> 2021. <span>«&nbsp;Machine Unlearning&nbsp;»</span>. <em>IEEE Symposium on Security and Privacy</em>. <a href="https://arxiv.org/abs/1912.03817">https://arxiv.org/abs/1912.03817</a>.
+</div>
+<div id="ref-brilliantov2026" class="csl-entry">
+Brilliantov, Kirill, Alejandro Hernández-Cano, et Emmanuel Abbé. 2026. <span>«&nbsp;How Much of a Harness Does a Strong Agent Need for Autonomous <span>ML</span> Engineering?&nbsp;»</span> <em>arXiv preprint arXiv:2609.40303</em>. <a href="https://arxiv.org/abs/2609.40303">https://arxiv.org/abs/2609.40303</a>.
+</div>
+<div id="ref-brown2024" class="csl-entry">
+<span class="nocase">Brown, Bradley et al.</span> 2024. <span>«&nbsp;Large Language Monkeys: Scaling Inference Compute with Repeated Sampling&nbsp;»</span>. <em>arXiv preprint arXiv:2407.21787</em>. <a href="https://arxiv.org/abs/2407.21787">https://arxiv.org/abs/2407.21787</a>.
+</div>
+<div id="ref-chen2023" class="csl-entry">
+Chen, Lingjiao, Matei Zaharia, et James Zou. 2023. <span>«&nbsp;<span>FrugalGPT</span>: How to Use Large Language Models While Reducing Cost and Improving Performance&nbsp;»</span>. <em>arXiv preprint arXiv:2305.05176</em>. <a href="https://arxiv.org/abs/2305.05176">https://arxiv.org/abs/2305.05176</a>.
+</div>
+<div id="ref-clay2024" class="csl-entry">
+Clay, Viviane, Niels Leadholm, et Jeff Hawkins. 2024. <span>«&nbsp;The Thousand Brains Project: A New Paradigm for Sensorimotor Intelligence&nbsp;»</span>. <em>arXiv preprint arXiv:2412.18354</em>. <a href="https://arxiv.org/abs/2412.18354">https://arxiv.org/abs/2412.18354</a>.
+</div>
+<div id="ref-deepseek2024" class="csl-entry">
+DeepSeek-AI. 2024. <span>«&nbsp;<span>DeepSeek-V3</span> Technical Report&nbsp;»</span>. <em>arXiv preprint arXiv:2412.19437</em>. <a href="https://arxiv.org/abs/2412.19437">https://arxiv.org/abs/2412.19437</a>.
+</div>
+<div id="ref-deepseekr1" class="csl-entry">
+DeepSeek-AI. 2025. <span>«&nbsp;<span>DeepSeek-R1</span>: Incentivizing Reasoning Capability in <span>LLMs</span> via Reinforcement Learning&nbsp;»</span>. <em>arXiv preprint arXiv:2501.12948</em>. <a href="https://arxiv.org/abs/2501.12948">https://arxiv.org/abs/2501.12948</a>.
+</div>
+<div id="ref-dehaene2007" class="csl-entry">
+Dehaene, Stanislas, et Laurent Cohen. 2007. <span>«&nbsp;Cultural Recycling of Cortical Maps&nbsp;»</span>. <em>Neuron</em> 56 (2): 384‑98.
+</div>
+<div id="ref-dobs2022" class="csl-entry">
+Dobs, Katharina, Julio Martinez, Alexander J. E. Kell, et Nancy Kanwisher. 2022. <span>«&nbsp;Brain-Like Functional Specialization Emerges Spontaneously in Deep Neural Networks&nbsp;»</span>. <em>Science Advances</em> 8 (11): eabl8913. <a href="https://doi.org/10.1126/sciadv.abl8913">https://doi.org/10.1126/sciadv.abl8913</a>.
+</div>
+<div id="ref-duncan2020" class="csl-entry">
+Duncan, John, Moataz Assem, et Sneha Shashidhara. 2020. <span>«&nbsp;Integrated Intelligence from Distributed Brain Activity&nbsp;»</span>. <em>Trends in Cognitive Sciences</em> 24 (10): 838‑52.
+</div>
+<div id="ref-fedorenko2024" class="csl-entry">
+Fedorenko, Evelina, Steven T. Piantadosi, et Edward A. F. Gibson. 2024. <span>«&nbsp;Language Is Primarily a Tool for Communication Rather than Thought&nbsp;»</span>. <em>Nature</em> 630: 575‑86. <a href="https://doi.org/10.1038/s41586-024-07522-w">https://doi.org/10.1038/s41586-024-07522-w</a>.
+</div>
+<div id="ref-fedus2022" class="csl-entry">
+Fedus, William, Barret Zoph, et Noam Shazeer. 2022. <span>«&nbsp;Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity&nbsp;»</span>. <em>Journal of Machine Learning Research</em> 23 (120): 1‑39. <a href="https://jmlr.org/papers/v23/21-0998.html">https://jmlr.org/papers/v23/21-0998.html</a>.
+</div>
+<div id="ref-gerstgrasser2024" class="csl-entry">
+<span class="nocase">Gerstgrasser, Matthias et al.</span> 2024. <span>«&nbsp;Is Model Collapse Inevitable? Breaking the Curse of Recursion by Accumulating Real and Synthetic Data&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2404.01413">https://arxiv.org/abs/2404.01413</a>.
+</div>
+<div id="ref-gholami2024" class="csl-entry">
+Gholami, Amir, Zhewei Yao, Sehoon Kim, Coleman Hooper, Michael W. Mahoney, et Kurt Keutzer. 2024. <span>«&nbsp;<span>AI</span> and Memory Wall&nbsp;»</span>. <em>IEEE Micro</em>. <a href="https://arxiv.org/abs/2403.14123">https://arxiv.org/abs/2403.14123</a>.
+</div>
+<div id="ref-gunasekar2023" class="csl-entry">
+<span class="nocase">Gunasekar, Suriya et al.</span> 2023. <span>«&nbsp;Textbooks Are All You Need&nbsp;»</span>. <em>arXiv preprint arXiv:2306.11644</em>. <a href="https://arxiv.org/abs/2306.11644">https://arxiv.org/abs/2306.11644</a>.
+</div>
+<div id="ref-gunter2024" class="csl-entry">
+<span class="nocase">Gunter, Tom et al.</span> 2024. <span>«&nbsp;Apple Intelligence Foundation Language Models&nbsp;»</span>. <em>arXiv preprint arXiv:2407.21075</em>. <a href="https://arxiv.org/abs/2407.21075">https://arxiv.org/abs/2407.21075</a>.
+</div>
+<div id="ref-hawkins2021" class="csl-entry">
+Hawkins, Jeff. 2021. <em>A Thousand Brains: A New Theory of Intelligence</em>. Basic Books.
+</div>
+<div id="ref-haxby2001" class="csl-entry">
+<span class="nocase">Haxby, James V. et al.</span> 2001. <span>«&nbsp;Distributed and Overlapping Representations of Faces and Objects in Ventral Temporal Cortex&nbsp;»</span>. <em>Science</em> 293 (5539): 2425‑30.
+</div>
+<div id="ref-herculano2009" class="csl-entry">
+Herculano-Houzel, Suzana. 2009. <span>«&nbsp;The Human Brain in Numbers: A Linearly Scaled-up Primate Brain&nbsp;»</span>. <em>Frontiers in Human Neuroscience</em> 3: 31.
+</div>
+<div id="ref-hinton2015" class="csl-entry">
+Hinton, Geoffrey, Oriol Vinyals, et Jeff Dean. 2015. <span>«&nbsp;Distilling the Knowledge in a Neural Network&nbsp;»</span>. <em>arXiv preprint arXiv:1503.02531</em>. <a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
+</div>
+<div id="ref-hsieh2023" class="csl-entry">
+<span class="nocase">Hsieh, Cheng-Yu et al.</span> 2023. <span>«&nbsp;Distilling Step-by-Step! Outperforming Larger Language Models with Less Training Data and Smaller Model Sizes&nbsp;»</span>. <em>Findings of the Association for Computational Linguistics: ACL 2023</em>, 8003‑17. <a href="https://arxiv.org/abs/2305.02301">https://arxiv.org/abs/2305.02301</a>.
+</div>
+<div id="ref-hu2021" class="csl-entry">
+Hu, Edward J., Yelong Shen, Phillip Wallis, et al. 2022. <span>«&nbsp;<span>LoRA</span>: Low-Rank Adaptation of Large Language Models&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2106.09685">https://arxiv.org/abs/2106.09685</a>.
+</div>
+<div id="ref-jiang2024" class="csl-entry">
+<span class="nocase">Jiang, Albert Q. et al.</span> 2024. <span>«&nbsp;Mixtral of Experts&nbsp;»</span>. <em>arXiv preprint arXiv:2401.04088</em>. <a href="https://arxiv.org/abs/2401.04088">https://arxiv.org/abs/2401.04088</a>.
+</div>
+<div id="ref-kanwisher1997" class="csl-entry">
+Kanwisher, Nancy, Josh McDermott, et Marvin M. Chun. 1997. <span>«&nbsp;The Fusiform Face Area: A Module in Human Extrastriate Cortex Specialized for Face Perception&nbsp;»</span>. <em>Journal of Neuroscience</em> 17 (11): 4302‑11.
+</div>
+<div id="ref-kirkpatrick2017" class="csl-entry">
+<span class="nocase">Kirkpatrick, James et al.</span> 2017. <span>«&nbsp;Overcoming Catastrophic Forgetting in Neural Networks&nbsp;»</span>. <em>Proceedings of the National Academy of Sciences</em> 114 (13): 3521‑26.
+</div>
+<div id="ref-klinzing2019" class="csl-entry">
+Klinzing, Jens G., Niels Niethard, et Jan Born. 2019. <span>«&nbsp;Mechanisms of Systems Memory Consolidation during Sleep&nbsp;»</span>. <em>Nature Neuroscience</em> 22: 1598‑610.
+</div>
+<div id="ref-kudithipudi2022" class="csl-entry">
+<span class="nocase">Kudithipudi, Dhireesha et al.</span> 2022. <span>«&nbsp;Biological Underpinnings for Lifelong Learning Machines&nbsp;»</span>. <em>Nature Machine Intelligence</em> 4: 196‑210. <a href="https://doi.org/10.1038/s42256-022-00452-0">https://doi.org/10.1038/s42256-022-00452-0</a>.
+</div>
+<div id="ref-kumaran2016" class="csl-entry">
+Kumaran, Dharshan, Demis Hassabis, et James L. McClelland. 2016. <span>«&nbsp;What Learning Systems Do Intelligent Agents Need? Complementary Learning Systems Theory Updated&nbsp;»</span>. <em>Trends in Cognitive Sciences</em> 20 (7): 512‑34.
+</div>
+<div id="ref-lennie2003" class="csl-entry">
+Lennie, Peter. 2003. <span>«&nbsp;The Cost of Cortical Computation&nbsp;»</span>. <em>Current Biology</em> 13 (6): 493‑97.
+</div>
+<div id="ref-leviathan2023" class="csl-entry">
+Leviathan, Yaniv, Matan Kalman, et Yossi Matias. 2023. <span>«&nbsp;Fast Inference from Transformers via Speculative Decoding&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.17192">https://arxiv.org/abs/2211.17192</a>.
+</div>
+<div id="ref-lewis2020" class="csl-entry">
+<span class="nocase">Lewis, Patrick et al.</span> 2020. <span>«&nbsp;Retrieval-Augmented Generation for Knowledge-Intensive <span>NLP</span> Tasks&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
+</div>
+<div id="ref-lin2025" class="csl-entry">
+<span class="nocase">Lin, Kevin, Charlie Snell, et al.</span> 2025. <span>«&nbsp;Sleep-time Compute: Beyond Inference Scaling at Test-time&nbsp;»</span>. <em>arXiv preprint arXiv:2504.13171</em>. <a href="https://arxiv.org/abs/2504.13171">https://arxiv.org/abs/2504.13171</a>.
+</div>
+<div id="ref-liu2019" class="csl-entry">
+Liu, Yunzhe, Raymond J. Dolan, Zeb Kurth-Nelson, et Timothy E. J. Behrens. 2019. <span>«&nbsp;Human Replay Spontaneously Reorganizes Experience&nbsp;»</span>. <em>Cell</em> 178 (3): 640‑52.
+</div>
+<div id="ref-mahowald2024" class="csl-entry">
+Mahowald, Kyle, Anna A. Ivanova, Idan A. Blank, Nancy Kanwisher, Joshua B. Tenenbaum, et Evelina Fedorenko. 2024. <span>«&nbsp;Dissociating Language and Thought in Large Language Models&nbsp;»</span>. <em>Trends in Cognitive Sciences</em> 28 (6): 517‑40. <a href="https://doi.org/10.1016/j.tics.2024.01.011">https://doi.org/10.1016/j.tics.2024.01.011</a>.
+</div>
+<div id="ref-mcclelland1995" class="csl-entry">
+McClelland, James L., Bruce L. McNaughton, et Randall C. O’Reilly. 1995. <span>«&nbsp;Why There Are Complementary Learning Systems in the Hippocampus and Neocortex&nbsp;»</span>. <em>Psychological Review</em> 102 (3): 419‑57.
+</div>
+<div id="ref-mccloskey1989" class="csl-entry">
+McCloskey, Michael, et Neal J. Cohen. 1989. <span>«&nbsp;Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem&nbsp;»</span>. In <em>Psychology of Learning and Motivation</em>, vol. 24. Academic Press.
+</div>
+<div id="ref-michaud2023" class="csl-entry">
+Michaud, Eric J., Ziming Liu, Uzay Girit, et Max Tegmark. 2023. <span>«&nbsp;The Quantization Model of Neural Scaling&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2303.13506">https://arxiv.org/abs/2303.13506</a>.
+</div>
+<div id="ref-mountcastle1997" class="csl-entry">
+Mountcastle, Vernon B. 1997. <span>«&nbsp;The Columnar Organization of the Neocortex&nbsp;»</span>. <em>Brain</em> 120 (4): 701‑22.
+</div>
+<div id="ref-nori2023" class="csl-entry">
+<span class="nocase">Nori, Harsha et al.</span> 2023. <span>«&nbsp;Can Generalist Foundation Models Outcompete Special-Purpose Tuning? Case Study in Medicine&nbsp;»</span>. <em>arXiv preprint arXiv:2311.16452</em>. <a href="https://arxiv.org/abs/2311.16452">https://arxiv.org/abs/2311.16452</a>.
+</div>
+<div id="ref-ong2024" class="csl-entry">
+<span class="nocase">Ong, Isaac et al.</span> 2025. <span>«&nbsp;<span>RouteLLM</span>: Learning to Route <span>LLMs</span> with Preference Data&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2406.18665">https://arxiv.org/abs/2406.18665</a>.
+</div>
+<div id="ref-rolnick2019" class="csl-entry">
+Rolnick, David, Arun Ahuja, Jonathan Schwarz, Timothy Lillicrap, et Gregory Wayne. 2019. <span>«&nbsp;Experience Replay for Continual Learning&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/1811.11682">https://arxiv.org/abs/1811.11682</a>.
+</div>
+<div id="ref-schuck2019" class="csl-entry">
+Schuck, Nicolas W., et Yael Niv. 2019. <span>«&nbsp;Sequential Replay of Nonspatial Task States in the Human Hippocampus&nbsp;»</span>. <em>Science</em> 364 (6447): eaaw5181.
+</div>
+<div id="ref-shazeer2017" class="csl-entry">
+Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, et al. 2017. <span>«&nbsp;Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1701.06538">https://arxiv.org/abs/1701.06538</a>.
+</div>
+<div id="ref-sheng2023" class="csl-entry">
+<span class="nocase">Sheng, Ying et al.</span> 2023. <span>«&nbsp;<span>S-LoRA</span>: Serving Thousands of Concurrent <span>LoRA</span> Adapters&nbsp;»</span>. <em>arXiv preprint arXiv:2311.03285</em>. <a href="https://arxiv.org/abs/2311.03285">https://arxiv.org/abs/2311.03285</a>.
+</div>
+<div id="ref-shumailov2024" class="csl-entry">
+Shumailov, Ilia, Zakhar Shumaylov, Yiren Zhao, Nicolas Papernot, Ross Anderson, et Yarin Gal. 2024. <span>«&nbsp;<span>AI</span> Models Collapse When Trained on Recursively Generated Data&nbsp;»</span>. <em>Nature</em> 631: 755‑59.
+</div>
+<div id="ref-snell2024" class="csl-entry">
+Snell, Charlie, Jaehoon Lee, Kelvin Xu, et Aviral Kumar. 2025. <span>«&nbsp;Scaling <span>LLM</span> Test-Time Compute Optimally Can Be More Effective than Scaling Parameters for Reasoning&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2408.03314">https://arxiv.org/abs/2408.03314</a>.
+</div>
+<div id="ref-sukhbaatar2024" class="csl-entry">
+<span class="nocase">Sukhbaatar, Sainbayar et al.</span> 2024. <span>«&nbsp;Branch-Train-MiX: Mixing Expert <span>LLMs</span> into a Mixture-of-Experts <span>LLM</span>&nbsp;»</span>. <em>arXiv preprint arXiv:2403.07816</em>. <a href="https://arxiv.org/abs/2403.07816">https://arxiv.org/abs/2403.07816</a>.
+</div>
+<div id="ref-sutton2019" class="csl-entry">
+Sutton, Richard. 2019. <em>The Bitter Lesson</em>. <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">http://www.incompleteideas.net/IncIdeas/BitterLesson.html</a>.
+</div>
+<div id="ref-vandeven2020" class="csl-entry">
+Ven, Gido M. van de, Hava T. Siegelmann, et Andreas S. Tolias. 2020. <span>«&nbsp;Brain-Inspired Replay for Continual Learning with Artificial Neural Networks&nbsp;»</span>. <em>Nature Communications</em> 11: 4069. <a href="https://doi.org/10.1038/s41467-020-17866-2">https://doi.org/10.1038/s41467-020-17866-2</a>.
+</div>
+<div id="ref-wang2024" class="csl-entry">
+Wang, Liyuan, Xingxing Zhang, Hang Su, et Jun Zhu. 2024. <span>«&nbsp;A Comprehensive Survey of Continual Learning: Theory, Method and Application&nbsp;»</span>. <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em> 46 (8): 5362‑83.
+</div>
+<div id="ref-williams2009" class="csl-entry">
+Williams, Samuel, Andrew Waterman, et David Patterson. 2009. <span>«&nbsp;Roofline: An Insightful Visual Performance Model for Multicore Architectures&nbsp;»</span>. <em>Communications of the ACM</em> 52 (4): 65‑76. <a href="https://doi.org/10.1145/1498765.1498785">https://doi.org/10.1145/1498765.1498785</a>.
+</div>
+<div id="ref-wilson1994" class="csl-entry">
+Wilson, Matthew A., et Bruce L. McNaughton. 1994. <span>«&nbsp;Reactivation of Hippocampal Ensemble Memories During Sleep&nbsp;»</span>. <em>Science</em> 265 (5172): 676‑79.
+</div>
+<div id="ref-xiao2024" class="csl-entry">
+<span class="nocase">Xiao, Chaojun et al.</span> 2024. <span>«&nbsp;Densing Law of <span>LLMs</span>&nbsp;»</span>. <em>arXiv preprint arXiv:2412.04315</em>. <a href="https://arxiv.org/abs/2412.04315">https://arxiv.org/abs/2412.04315</a>.
+</div>
+<div id="ref-yang2024" class="csl-entry">
+<span class="nocase">Yang, John et al.</span> 2024. <span>«&nbsp;<span>SWE-agent</span>: Agent-Computer Interfaces Enable Automated Software Engineering&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2405.15793">https://arxiv.org/abs/2405.15793</a>.
+</div>
+</div>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Un écosystème, pas un oracle},
+  date = {2026-10-17},
+  url = {https://scuenat.github.io/fr/posts/2026-10-17-an-ecosystem-not-an-oracle/},
+  langid = {fr}
+}
+</code></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Un écosystème, pas un oracle.”</span>
+October 17. <a href="https://scuenat.github.io/fr/posts/2026-10-17-an-ecosystem-not-an-oracle/">https://scuenat.github.io/fr/posts/2026-10-17-an-ecosystem-not-an-oracle/</a>.
+</div></div></section></div> ]]></description>
+  <category>essai</category>
+  <category>ia</category>
+  <category>ia-locale</category>
+  <category>architecture</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-10-17-an-ecosystem-not-an-oracle/</guid>
+  <pubDate>Sat, 17 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png" medium="image" type="image/png" height="85" width="144"/>
+</item>
+<item>
+  <title>Décidé dans le volume, écrit sur le bord</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, octobre 2026.</strong> La suite d’<a href="../../../fr/posts/2026-10-15-a-universe-without-a-bottom/index.html">Un univers sans fond</a>. Tout est ouvert&nbsp;: <a href="../../../posts/2026-10-16-decided-in-the-bulk/noise-to-boundaries.zip" download="noise-to-boundaries.zip">télécharger le code et les résultats</a> (zip, 2 Mo), <a href="https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries">les parcourir sur GitHub</a>, ou lire le <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf">document de travail</a> (PDF, 4 pages, en anglais). Les figures et le code sont en anglais. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-10-16-decided-in-the-bulk/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Un article de physique sur la façon dont une structure apparaît à partir d’un désordre complet m’a fait poser une question que je pouvais vraiment tester&nbsp;: pendant qu’un générateur d’images IA transforme du bruit en image, où vit l’information de l’image, à l’intérieur d’une région ou sur son bord ? J’ai mené l’expérience en une soirée, sur deux cœurs de CPU, avec une IA comme partenaire de laboratoire. Les images terminées suivent une <em>loi d’aire</em>&nbsp;: l’information vit sur les bords. Mais en chemin, les grandes décisions sont d’abord prises sur toute l’image, et ne se posent que plus tard sur les contours. J’ai aussi trouvé une façon de mesurer cela à l’intérieur de n’importe quel générateur d’images, en n’utilisant que sa capacité à enlever du bruit, et je l’ai vérifiée contre des réponses exactes. Rien de tout cela n’est mon domaine. Ce sur quoi je veux insister, c’est comment cela a été possible.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Les chiffres manuscrits terminés suivent une loi d’aire (β = 1,07)&nbsp;: ce qu’une zone partage avec le reste de l’image croît avec son bord.</li>
+<li>Dans la phase bruitée du début, la vraie structure ajoute jusqu’à 2,4 fois plus d’information partagée qu’un témoin, et elle croît plutôt comme la taille de la zone. La structure est décidée dans le volume et écrite sur le bord.</li>
+<li>Le changement est progressif. Une «&nbsp;transition brutale&nbsp;» vue dans un premier essai était du bruit, et a disparu quand je l’ai répété.</li>
+<li>La même information peut être lue à partir des seules erreurs de débruitage (écart médian de 3&nbsp;% par rapport aux valeurs exactes), si bien que la méthode peut être appliquée à de vrais générateurs d’images entraînés.</li>
+<li>Un partenaire de laboratoire IA ne m’a pas donné les réponses. Il m’a permis de bien poser la question&nbsp;: construire, lancer, vérifier, critiquer, et jeter ce qui ne tient pas.</li>
+</ul>
+</div>
+</div>
+<section id="partie-i-du-cosmos-au-code" class="level1">
+<h1>Partie I · Du cosmos au code</h1>
+<section id="ça-doit-être-plus-simple-que-ça" class="level2">
+<h2 class="anchored" data-anchor-id="ça-doit-être-plus-simple-que-ça">1. Ça doit être plus simple que ça</h2>
+<p>J’ai récemment raconté la lecture d’un article de physique que je n’arrivais pas à suivre&nbsp;: <em>Holograms and Standard Models</em>, de Miyashita, Sekino et Susskind. Ma première réaction a été simple. Quelque chose ne va pas. Ça doit être plus facile. Je crois que l’univers est fondamentalement simple.</p>
+<p>Cet essai finissait en philosophie. Des grains dans des grains, le rien qui crée tout, et l’idée que le sens est au milieu.</p>
+<p>Celui-ci finit en expérience.</p>
+<p>Je suis architecte logiciel, pas physicien. Mais je revenais sans cesse à une idée de cet article, et un soir, je me suis posé une autre question&nbsp;: pourrais-je vraiment tester quelque chose ? Pas sur l’univers. Sur les systèmes d’IA avec lesquels je travaille tous les jours.</p>
+</section>
+<section id="la-surface-sait-tout" class="level2">
+<h2 class="anchored" data-anchor-id="la-surface-sait-tout">2. La surface sait tout</h2>
+<p>L’idée qui est restée est le <em>principe holographique</em>. Dans les années 1970, Bekenstein et Hawking ont découvert que l’information qu’un trou noir peut contenir dépend de l’aire de sa surface, et non de son volume. Doublez sa taille, et son information est multipliée par quatre, pas par huit.</p>
+<p>Les physiciens ont trouvé le même motif ailleurs. Dans beaucoup de systèmes, l’information partagée entre une région et tout ce qui l’entoure croît avec le bord de la région. Ils appellent cela une <em>loi d’aire</em>. Quand elle croît plutôt avec la taille de la région, c’est une <em>loi de volume</em>.</p>
+<p>Susskind et ses collègues vont plus loin. Ils construisent un petit monde de particules et de forces à partir d’un système à température infinie, l’état de désordre maximal, ce qui ressemble le plus à «&nbsp;rien&nbsp;» dans ce que permet la physique. De la structure à partir de rien, organisée sur une surface.</p>
+<p>Je ne pouvais pas vérifier leurs mathématiques. Mais leur question me semblait générale&nbsp;: <em>quand une structure apparaît à partir d’un désordre complet, où vit son information ?</em></p>
+</section>
+<section id="une-machine-qui-construit-de-la-structure-à-partir-du-désordre" class="level2">
+<h2 class="anchored" data-anchor-id="une-machine-qui-construit-de-la-structure-à-partir-du-désordre">3. Une machine qui construit de la structure à partir du désordre</h2>
+<p>Puis j’ai réalisé que je connaissais déjà une machine qui construit de la structure à partir du désordre.</p>
+<p>Les générateurs d’images comme Stable Diffusion sont des <em>modèles de diffusion</em>. Ils partent d’un bruit purement aléatoire, ce même état de désordre maximal, et enlèvent le bruit étape par étape jusqu’à ce qu’une image apparaisse. Un visage, un chat, un chiffre manuscrit.</p>
+<p>L’univers nous offre une seule exécution, vue de l’intérieur, surtout à travers un horizon. Un modèle de diffusion nous en offre autant que nous voulons, et nous pouvons l’arrêter à tout moment pour regarder.</p>
+<p>La question est donc devenue concrète. Pendant qu’une image se forme à partir du bruit, l’information partagée entre une zone de l’image et le reste croît-elle avec le bord de la zone, ou avec sa taille ? Aire ou volume ? Et cela change-t-il en chemin ?</p>
+</section>
+</section>
+<section id="partie-ii-lexpérience" class="level1">
+<h1>Partie II · L’expérience</h1>
+<section id="ce-que-jai-mesuré" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-jai-mesuré">4. Ce que j’ai mesuré</h2>
+<p>La mesure est simple à énoncer. Prenez une zone carrée d’une image. Demandez-vous à quel point connaître le reste de l’image vous renseigne sur cette zone. Les physiciens appellent cela l’<em>information mutuelle</em>. Puis agrandissez la zone et regardez comment ce nombre croît.</p>
+<p>S’il croît comme le bord de la zone, c’est une loi d’aire. S’il croît comme le nombre de pixels à l’intérieur, c’est une loi de volume. Je résume la croissance par un seul nombre, β, tiré de</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AI(L)%20%5Cpropto%20L%5E%7B%5Cbeta%7D,%0A"></p>
+<p>où <img src="https://latex.codecogs.com/png.latex?L"> est le côté de la zone en pixels&nbsp;: β proche de 1 veut dire loi d’aire, proche de 2 loi de volume.</p>
+<p>Je n’ai pas utilisé de réseau de neurones géant. J’ai utilisé quelque chose que je pouvais calculer exactement&nbsp;: un modèle statistique de chiffres manuscrits (le jeu de données classique MNIST) construit à partir de 40 pièces simples, quatre par chiffre. Il apprend une vraie structure ; sur des images qu’il n’a jamais vues, il est bien meilleur qu’un modèle simple. Et pour ce genre de modèle, chaque étape entre le bruit et l’image terminée peut être calculée précisément, sans bruit d’entraînement et sans approximation.</p>
+<p>La partie la plus importante est la comparaison. Pour chaque mesure, j’ai aussi construit un <em>témoin</em>&nbsp;: un modèle beaucoup plus simple, qui a exactement les mêmes corrélations entre pixels mais aucune vraie structure. Pas de traits, pas de chiffres, juste un flou statistique lisse. Tout ce que fait le vrai modèle et que le témoin ne fait pas vient d’une vraie structure. Sans ce témoin, je me serais trompé moi-même au moins deux fois.</p>
+</section>
+<section id="ce-que-jai-trouvé" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-jai-trouvé">5. Ce que j’ai trouvé</h2>
+<p><strong>Les chiffres terminés suivent une loi d’aire.</strong> À la fin de la génération, β vaut 1,07. L’information qu’une zone partage avec le reste de l’image croît avec son bord.</p>
+<p><strong>Mais en chemin, il se passe autre chose.</strong> Dans la phase bruitée du début, le vrai modèle porte jusqu’à 2,4 fois plus d’information partagée que le témoin, et cette information supplémentaire croît plutôt comme la <em>taille</em> de la zone que comme son bord. À mesure que l’image se précise, l’information supplémentaire se déplace vers les bords, et les deux courbes se rejoignent (Figure 1).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" class="img-fluid figure-img" alt="À gauche&nbsp;: neuf chiffres manuscrits générés. À droite&nbsp;: l'exposant bêta en fonction de la part du signal. Le modèle appris (bleu) reste bien au-dessus du témoin gaussien (orange) dans la phase bruitée ; les deux descendent vers 1,07 pour les chiffres terminés."></p>
+<figcaption><strong>Figure 1.</strong> À gauche&nbsp;: des chiffres générés par le modèle appris. À droite&nbsp;: l’exposant β le long du chemin de génération, du bruit fort (à gauche) à l’image terminée (à droite). Le vrai modèle (bleu) porte une information supplémentaire, de type volume, dans la phase bruitée, bien au-dessus du témoin aux mêmes corrélations entre pixels (orange). Les deux convergent vers une loi d’aire, β = 1,07 pour les chiffres terminés.</figcaption>
+</figure>
+</div>
+<p>Voici comment je le lis. Au début, le modèle décide les grandes choses&nbsp;: quel chiffre, à peu près où, dans quel sens il penche. C’est un fait qui concerne toute l’image, et chaque pixel en porte un petit indice, donc cela croît avec la taille. Plus tard, le modèle dessine les détails&nbsp;: les traits, les contours, là où le noir rencontre le blanc. Ce sont des choses locales, et elles vivent sur les bords.</p>
+<p>Ou, en une ligne&nbsp;: <strong>la structure est décidée dans le volume et écrite sur le bord.</strong></p>
+</section>
+<section id="ce-qui-na-pas-marché" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-na-pas-marché">6. Ce qui n’a pas marché</h2>
+<p>Je m’attendais à une bascule brutale, comme l’eau qui devient glace, à un moment précis. Un premier essai grossier semblait en montrer une. Quand je l’ai répété avec onze niveaux de bruit et trois exécutions indépendantes, le saut a disparu. Le changement est progressif (Figure 2). La «&nbsp;bascule brutale&nbsp;» était du bruit dans une seule exécution.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig02.png" class="img-fluid figure-img" alt="Deux panneaux avec barres d'erreur. a&nbsp;: l'exposant total descend progressivement d'environ 1,4 à 1,1, au-dessus du témoin. b&nbsp;: l'excès par rapport au témoin descend d'une valeur proche de la loi de volume, environ 1,7, vers la loi d'aire."></p>
+<figcaption><strong>Figure 2.</strong> La même mesure sur une grille fine de niveaux de bruit, répétée trois fois avec des ajustements de modèle et des échantillons indépendants (barres&nbsp;: ±2 écarts types). <strong>a.</strong> L’information totale converge progressivement vers une loi d’aire ; il n’y a pas de saut brutal. <strong>b.</strong> La part qui vient de la vraie structure, au-delà du témoin, commence près d’une loi de volume et va vers une loi d’aire à mesure que l’image se précise.</figcaption>
+</figure>
+</div>
+<p>Je le garde dans l’histoire parce que c’est exactement le genre d’erreur facile à publier et difficile à retirer.</p>
+</section>
+<section id="ce-que-cela-ne-montre-pas" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-cela-ne-montre-pas">7. Ce que cela ne montre pas</h2>
+<p>J’ai demandé une revue sévère de mes propres résultats, du genre qu’écrirait un relecteur. Voici ce qui tient moins bien que je le voudrais.</p>
+<ul>
+<li><strong>La loi d’aire seule n’est pas surprenante.</strong> Toute image dont les pixels sont surtout corrélés à leurs voisins donne une loi d’aire. Les physiciens le savent depuis des années. La nouveauté n’est pas la loi d’aire finale, mais la structure supplémentaire et la façon dont elle passe du volume au bord.</li>
+<li><strong>Cela décrit les données, pas le réseau.</strong> Comme j’ai tout calculé exactement, les résultats décrivent à quoi ressemblent des chiffres bruités à chaque étape, ce qui est pareil pour tout générateur parfait. Pour dire comment se comportent de vrais réseaux de neurones, il faut en tester un qui a été entraîné.</li>
+<li><strong>Les images sont minuscules.</strong> À 28×28 pixels, je ne peux comparer que des zones de 2 à 12 pixels de large. C’est moins d’un ordre de grandeur, et la bordure blanche de chaque chiffre déforme les grandes zones.</li>
+<li><strong>La physique est une analogie.</strong> La surface d’un trou noir et le bord d’une zone d’image ne sont pas la même chose. Le parallèle est suggestif, et testable, mais il ne prouve rien sur l’univers.</li>
+</ul>
+<p>Rien de tout cela ne rend le travail inutile. Cela me dit exactement quoi faire ensuite.</p>
+</section>
+</section>
+<section id="partie-iii-dépasser-la-limite" class="level1">
+<h1>Partie III · Dépasser la limite</h1>
+<section id="voir-à-lintérieur-de-nimporte-quel-générateur" class="level2">
+<h2 class="anchored" data-anchor-id="voir-à-lintérieur-de-nimporte-quel-générateur">8. Voir à l’intérieur de n’importe quel générateur</h2>
+<p>La deuxième limite me gênait le plus. Ma méthode exacte ne fonctionne que sur des modèles simples. Les vrais générateurs, ceux que les gens utilisent réellement, sont des réseaux de neurones géants où rien ne peut être calculé exactement.</p>
+<p>Puis je suis tombé sur un résultat de théorie de l’information, de 2005, de Guo, Shamai et Verdú. Il relie l’information à <em>la difficulté d’enlever du bruit</em>. Appliqué à ma question, il dit quelque chose que je trouve beau&nbsp;:</p>
+<blockquote class="blockquote">
+<p>L’information qu’une zone partage avec le reste de l’image est égale à ce que voir le reste vous aide à nettoyer cette zone, additionné sur tous les niveaux de bruit.</p>
+</blockquote>
+<p>En symboles, avec <img src="https://latex.codecogs.com/png.latex?A"> la zone, <img src="https://latex.codecogs.com/png.latex?B"> le reste de l’image et <img src="https://latex.codecogs.com/png.latex?%5Ctext%7Bmmse%7D"> l’erreur du meilleur débruiteur possible à un rapport signal sur bruit <img src="https://latex.codecogs.com/png.latex?%5Cgamma"> donné&nbsp;:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AI(A;B)%20=%20%5Cfrac%7B1%7D%7B2%7D%5Cint_0%5E%7B%5Ctext%7Bsnr%7D%7D%20%5CBig%5B%5C,%20%5Ctext%7Bmmse%7D_A(%5Cgamma)%20+%20%5Ctext%7Bmmse%7D_B(%5Cgamma)%20-%20%5Ctext%7Bmmse%7D_%7BA%20%5Ccup%20B%7D(%5Cgamma)%20%5C,%5CBig%5D%5C,%20d%5Cgamma%0A"></p>
+<p>Cela compte, parce qu’enlever du bruit est exactement ce qu’un modèle de diffusion apprend à faire. En principe, on pourrait donc mesurer la carte de l’information de <em>n’importe quel</em> générateur simplement en lui demandant de débruiter une zone deux fois&nbsp;: une fois en ne voyant que la zone, une fois en voyant toute l’image.</p>
+<p>J’ai testé cela sur mon modèle de chiffres, où je connaissais déjà la réponse exacte. Les deux voies concordent, avec un écart médian de 3&nbsp;% sur 32 comparaisons (tailles de zone de 2 à 12 pixels, niveaux de bruit de fort à faible). Le plus grand écart était de 14&nbsp;%, sur une zone très petite et très bruitée (Figure 3).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig03.png" class="img-fluid figure-img" alt="Nuage de 32 points en échelle log-log, l'information tirée des erreurs de débruitage contre l'information mutuelle exacte, tous proches de la ligne pointillée de concordance parfaite."></p>
+<figcaption><strong>Figure 3.</strong> L’information mesurée à partir des seules erreurs de débruitage (vertical) contre la valeur exacte (horizontal), pour 32 combinaisons de taille de zone et de niveau de bruit. Les points sur la ligne pointillée concordent parfaitement. L’écart médian est de 3,1&nbsp;%.</figcaption>
+</figure>
+</div>
+<p>C’est la partie que je trouve la plus précieuse. Les calculs exacts deviennent une <em>vérité de référence</em> pour vérifier une méthode qui peut passer à l’échelle des vrais modèles. La prochaine étape est de la lancer sur un réseau de neurones entraîné. Il faut pour cela un modèle capable de débruiter avec une partie de l’image cachée, ce que beaucoup de générateurs d’images savent déjà faire.</p>
+</section>
+<section id="pas-besoin-dune-grosse-machine" class="level2">
+<h2 class="anchored" data-anchor-id="pas-besoin-dune-grosse-machine">9. Pas besoin d’une grosse machine</h2>
+<p>Tout ce qui est dans cet essai a tourné sur deux cœurs de CPU. Pas de GPU, pas de grappe dans le cloud, pas de modèle géant téléchargé. L’exécution la plus longue a pris environ sept minutes.</p>
+<p>À un moment, on m’a dit que la prochaine étape demandait un GPU. J’ai résisté&nbsp;: pourquoi une question aurait-elle besoin d’une grosse machine ? La réponse honnête était qu’une seule affirmation précise en a besoin, celle sur les réseaux de neurones entraînés. Tout le reste, les calculs exacts, les témoins, les exécutions répétées, tient sur un ordinateur portable. Une partie de la meilleure physique jamais faite était de la physique sur table. Une petite expérience bien contrôlée vaut mieux qu’une grande expérience bâclée.</p>
+</section>
+</section>
+<section id="partie-iv-ce-que-lia-a-rendu-possible" class="level1">
+<h1>Partie IV · Ce que l’IA a rendu possible</h1>
+<section id="un-partenaire-de-laboratoire-pas-un-oracle" class="level2">
+<h2 class="anchored" data-anchor-id="un-partenaire-de-laboratoire-pas-un-oracle">10. Un partenaire de laboratoire, pas un oracle</h2>
+<p>Je dois être transparent sur la façon dont cela a été fait. Je l’ai fait en une soirée avec Claude, l’IA d’Anthropic, comme partenaire de laboratoire. J’ai apporté les questions et l’obstination ; elle a écrit et lancé le code, cherché dans la littérature et, surtout, revu les résultats sévèrement quand je le lui demandais. Elle a aussi repéré ses propres erreurs&nbsp;: un modèle qui paraissait meilleur qu’il ne l’était, une légende de graphique qui exagérait un résultat, une «&nbsp;transition brutale&nbsp;» qui n’existait pas.</p>
+<p>Reprenez le chemin de cet essai et comptez les étapes qui m’auraient arrêté seul&nbsp;:</p>
+<ul>
+<li><strong>D’un sentiment à une question mesurable.</strong> «&nbsp;Ça doit être plus simple&nbsp;» n’est pas une hypothèse. La transformer en «&nbsp;l’information mutuelle croît-elle avec le bord ou avec la taille, et cela change-t-il le long du chemin de génération ?&nbsp;» a demandé une conversation, pas un diplôme.</li>
+<li><strong>D’une question à du code qui tourne.</strong> L’information mutuelle exacte pour un modèle de mélange de 784 pixels, des estimations de Monte-Carlo avec barres d’erreur, un témoin honnête. Chacun représente une semaine de lecture pour quelqu’un d’extérieur. Ici, chacun était un script que je pouvais lire, lancer et questionner en quelques minutes.</li>
+<li><strong>D’un résultat à un résultat auquel je fais confiance.</strong> Le modèle témoin, les trois exécutions indépendantes, la grille fine de niveaux de bruit&nbsp;: ils existent parce que je demandais sans cesse «&nbsp;comment est-ce que je pourrais me tromper ici ?&nbsp;», et les réponses revenaient sous forme d’expériences, pas d’opinions.</li>
+<li><strong>D’une impasse à une piste.</strong> La méthode qui fonctionne sur de vrais générateurs vient d’un article de théorie de l’information de 2005 dont je n’avais jamais entendu parler. Le trouver, comprendre ce qu’il dit de ma question et le tester contre les valeurs exactes, tout s’est passé dans la même soirée.</li>
+<li><strong>D’une affirmation à une affirmation plus petite et honnête.</strong> La revue sévère a fait descendre la loi d’aire de son piédestal et a laissé debout la partie la plus intéressante. La question du GPU a transformé «&nbsp;il faut une grosse machine&nbsp;» en «&nbsp;seule cette affirmation-là en a besoin&nbsp;».</li>
+</ul>
+<p>Aucune de ces étapes n’est de la science nouvelle en soi. Ce qui est nouveau, pour moi, c’est qu’elles peuvent s’enchaîner à la vitesse de la curiosité. La distance entre «&nbsp;je me demande si…&nbsp;» et «&nbsp;voici le graphique, voici le témoin, voici pourquoi c’est peut-être faux&nbsp;» se comptait en mois, et pour quelqu’un d’extérieur au domaine, elle était généralement infinie. Ce soir-là, elle se comptait en heures.</p>
+</section>
+<section id="linnovation-est-dans-la-question" class="level2">
+<h2 class="anchored" data-anchor-id="linnovation-est-dans-la-question">11. L’innovation est dans la question</h2>
+<p>C’est la partie de l’IA que je trouve la plus intéressante. Non pas qu’elle réponde, mais qu’elle permette à quelqu’un comme moi de <em>bien poser la question</em>&nbsp;: mener l’expérience, la vérifier, et jeter ce qui ne tient pas.</p>
+<p>On est tenté de dire que l’IA produira de nouvelles idées toute seule. Je ne pense pas que ce soit ce qui s’est passé ici. La question est venue de moi, en lisant un article que je n’arrivais pas à suivre et en refusant de le laisser tomber. La direction a changé trois fois à cause de choix de jugement&nbsp;: exiger un témoin, se méfier d’un saut qui semblait trop beau, refuser d’accepter qu’une question ait besoin d’une grosse machine. Ce que l’IA a supprimé, c’est le coût de chaque étape intermédiaire. Quand essayer une idée coûte des minutes au lieu de semaines, on en essaie davantage, on tue les mauvaises plus tôt, et les bonnes sont poussées plus loin qu’on ne les aurait jamais poussées seul.</p>
+<p>Cela change aussi ce que la rigueur veut dire pour quelqu’un d’extérieur. Le danger d’un partenaire rapide, c’est d’aller vite dans la mauvaise direction, et une IA sûre d’elle peut donner à un résultat faux l’air d’être terminé. La défense est la même que dans n’importe quel laboratoire&nbsp;: des témoins, des exécutions répétées, un relecteur payé pour être désagréable, et tout publier pour que d’autres puissent vérifier. L’IA peut aussi jouer le relecteur, si on le lui demande. Il faut le demander.</p>
+</section>
+</section>
+<section id="partie-v-retour-au-début" class="level1">
+<h1>Partie V · Retour au début</h1>
+<section id="un-très-bon-milieu" class="level2">
+<h2 class="anchored" data-anchor-id="un-très-bon-milieu">12. Un très bon milieu</h2>
+<p>Je suis parti d’un sentiment&nbsp;: l’univers doit être plus simple que cet article. Je le crois toujours. Mais je vois maintenant que simple ne veut pas dire facile, et ne veut pas dire achevé.</p>
+<p>Dans mon dernier essai, j’écrivais que «&nbsp;de rien à rien&nbsp;» oublie le milieu, et que le milieu, c’est tout. Cette expérience est une petite version de cette idée. Une machine part du bruit, de rien. Elle finit avec un chiffre, une chose terminée. Et entre les deux, il y a un moment où les grandes décisions sont prises partout à la fois, avant de se poser tranquillement sur les contours.</p>
+<p>Je ne sais pas si l’univers fonctionne ainsi. Je sais qu’une question posée un soir tranquille peut devenir quelque chose que l’on peut mesurer. Ce n’est la fin de rien. C’est un très bon milieu.</p>
+</section>
+<section id="essayez-vous-même" class="level2">
+<h2 class="anchored" data-anchor-id="essayez-vous-même">13. Essayez vous-même</h2>
+<p>Tout est ouvert. Vous pouvez recalculer chaque chiffre et chaque figure de cet essai sur un ordinateur portable ordinaire en une demi-heure environ.</p>
+<ul>
+<li><strong>Code et résultats&nbsp;:</strong> <a href="../../../posts/2026-10-16-decided-in-the-bulk/noise-to-boundaries.zip" download="noise-to-boundaries.zip">télécharger en zip</a>, ou <a href="https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries">parcourir sur GitHub</a>. Il contient tous les scripts, les fichiers de résultats, les figures, et un <code>run_all.sh</code> qui reproduit tout. La seule chose à télécharger est le jeu de données MNIST (environ 11 Mo) ; le <a href="https://github.com/scuenat/scuenat.github.io/blob/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/README.md">README</a> donne le lien. Licence MIT.</li>
+<li><strong>Document de travail&nbsp;:</strong> <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf"><em>From Noise to Boundaries: Area-Law Information Scaling Along the Diffusion Path</em></a>, une version technique de quatre pages, en anglais, avec les équations et les références.</li>
+<li><strong>Prérequis&nbsp;:</strong> Python avec NumPy, SciPy, scikit-learn et Matplotlib. Pas de GPU.</li>
+</ul>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Étape</th>
+<th>Script</th>
+<th>Ce qu’il fait</th>
+<th>Durée (2 cœurs de CPU)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/area_law_pilot.py"><code>area_law_pilot.py</code></a></td>
+<td>Vérification de la méthode sur des champs au comportement connu</td>
+<td>~15 s</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mixture_pilot.py"><code>mixture_pilot.py</code></a></td>
+<td>Données synthétiques à 16 classes contre leur témoin</td>
+<td>~20 s</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/digits_fit.py"><code>digits_fit.py</code></a>, <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/digits_mi.py"><code>digits_mi.py</code></a></td>
+<td>Petits chiffres 8×8</td>
+<td>~30 s</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_model.py"><code>mnist_model.py</code></a></td>
+<td>Ajuster le modèle MNIST à 40 pièces ; le vérifier sur des images non vues</td>
+<td>~40 s</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_mi.py"><code>mnist_mi.py</code></a></td>
+<td>MNIST le long de tout le chemin de génération (Figure 1)</td>
+<td>~5 min</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_fine.py"><code>mnist_fine.py</code></a></td>
+<td>Grille de bruit fine, trois exécutions indépendantes (Figure 2)</td>
+<td>~5 min</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/immse_validation.py"><code>immse_validation.py</code></a>, <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/immse_compare.py"><code>immse_compare.py</code></a></td>
+<td>Information tirée des erreurs de débruitage contre les valeurs exactes (Figure 3)</td>
+<td>~7 min</td>
+</tr>
+</tbody>
+</table>
+<p>Si vous travaillez sur les modèles de diffusion, la théorie de l’information ou la physique de l’apprentissage, j’aimerais beaucoup avoir votre critique, en particulier sur la méthode des erreurs de débruitage et sur la façon de la tester sur un réseau entraîné. Et si vous êtes, comme moi, quelqu’un d’extérieur au domaine avec une question qui ne vous lâche pas&nbsp;: essayez. Vous n’avez peut-être pas besoin d’une plus grosse machine. Vous avez peut-être seulement besoin d’une plus petite expérience, et d’un bon partenaire pour la mener.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-15-a-universe-without-a-bottom/index.html">Un univers sans fond</a><br>
+La soirée avec un article de physique qui a lancé cette expérience.</p>
+</div>
+</section>
+<section id="pour-aller-plus-loin" class="level2">
+<h2 class="anchored" data-anchor-id="pour-aller-plus-loin">Pour aller plus loin</h2>
+<div class="small">
+<ul>
+<li>Bekenstein, J. D. (1973). Black holes and entropy. <em>Physical Review D</em>, 7(8), 2333–2346.</li>
+<li>Biroli, G., Bonnaire, T., de Bortoli, V., &amp; Mézard, M. (2024). <a href="https://arxiv.org/abs/2402.18491">Dynamical regimes of diffusion models</a>. <em>Nature Communications</em>, 15.</li>
+<li>Guo, D., Shamai, S., &amp; Verdú, S. (2005). Mutual information and minimum mean-square error in Gaussian channels. <em>IEEE Transactions on Information Theory</em>, 51(4), 1261–1282.</li>
+<li>LeCun, Y., Bottou, L., Bengio, Y., &amp; Haffner, P. (1998). Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11), 2278–2324.</li>
+<li>Miyashita, S., Sekino, Y., &amp; Susskind, L. (2026). <a href="https://arxiv.org/abs/2607.05678">Holograms and Standard Models</a>. arXiv:2607.05678.</li>
+<li>Sclocchi, A., Favero, A., &amp; Wyart, M. (2025). <a href="https://arxiv.org/abs/2402.16991">A phase transition in diffusion models reveals the hierarchical nature of data</a>. <em>PNAS</em>.</li>
+</ul>
+</div>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Décidé dans le volume, écrit sur le bord},
+  date = {2026-10-16},
+  url = {https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/},
+  langid = {fr}
+}
+</code></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Décidé dans le volume, écrit sur le
+bord.”</span> October 16. <a href="https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/">https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/</a>.
+</div></div></section></div> ]]></description>
+  <category>essai</category>
+  <category>ia</category>
+  <category>recherche</category>
+  <category>physique</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/</guid>
+  <pubDate>Fri, 16 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" medium="image" type="image/png" height="84" width="144"/>
+</item>
 <item>
   <title>Un univers sans fond</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
@@ -32,7 +834,7 @@
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p><strong>Quelque chose de différent, pour une fois.</strong> Ce blog parle d’habitude d’IA, de machines et de mesure. Pas cet essai. C’est un détour personnel par la physique, écrit par quelqu’un qui n’est ni physicien ni mathématicien, et qui suit une question par curiosité. Sa suite, <a href="../../../posts/2026-10-16-decided-in-the-bulk/index.html">Decided in the Bulk, Written on the Boundary</a> (en anglais), ramène la question vers l’IA. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-10-15-a-universe-without-a-bottom/index.html">version originale</a>.</em></p>
+<p><strong>Quelque chose de différent, pour une fois.</strong> Ce blog parle d’habitude d’IA, de machines et de mesure. Pas cet essai. C’est un détour personnel par la physique, écrit par quelqu’un qui n’est ni physicien ni mathématicien, et qui suit une question par curiosité. Sa suite, <a href="../../../fr/posts/2026-10-16-decided-in-the-bulk/index.html">Décidé dans le volume, écrit sur le bord</a>, ramène la question vers l’IA. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-10-15-a-universe-without-a-bottom/index.html">version originale</a>.</em></p>
 </div>
 </div>
 </div>
@@ -83,6 +885,10 @@
 <p>Peut-être la physique est-elle pareille. Une fin hors d’atteinte ne rend pas moins réelles les réponses trouvées en chemin. Feynman disait qu’il pouvait vivre avec le doute et l’ignorance, et que c’était plus intéressant que d’avoir des réponses peut-être fausses.</p>
 <p>Et «&nbsp;de rien à rien&nbsp;» oublie le milieu. Le milieu, c’est tout&nbsp;: les étoiles, les trous noirs, et quelqu’un qui, un soir tranquille, essaie de comprendre un article trop difficile pour lui. S’il n’y a pas de fin ultime, alors poser des questions n’est pas un échec à arriver. C’est peut-être ce que fait l’univers quand il devient assez complexe pour se regarder lui-même.</p>
 <p>J’ai commencé en croyant que l’univers devait être simple. Je le crois toujours. Mais simple ne veut peut-être pas dire achevé.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-16-decided-in-the-bulk/index.html">Décidé dans le volume, écrit sur le bord</a><br>
+La même question, transformée en expérience sur un générateur d’images IA.</p>
+</div>
 </section>
 <section id="sources" class="level2">
 <h2 class="anchored" data-anchor-id="sources">Sources</h2>
@@ -161,15 +967,15 @@
 <p>L’agent typique reçoit une tâche, lit le contexte, réfléchit à ce qu’il faut faire, appelle un outil, lit le résultat, réfléchit encore, appelle un autre outil, et continue jusqu’à ce qu’il estime la tâche terminée. C’est impressionnant à regarder. C’est aussi un employé qui arrive chaque matin sans mémoire et relit tout le manuel avant de toucher à quoi que ce soit.</p>
 <p>Pour les processus d’automatisation, cela a quatre coûts.</p>
 <ul>
-<li><strong>Les erreurs s’accumulent.</strong> Si chaque étape est juste 95 % du temps, une boucle de 20 étapes n’est entièrement juste qu’environ 36 % du temps (0,95 à la puissance 20). Les agents ajoutent des vérifications et des nouvelles tentatives pour compenser, ce qui ajoute des étapes, du temps et des coûts.</li>
+<li><strong>Les erreurs s’accumulent.</strong> Si chaque étape est juste 95&nbsp;% du temps, une boucle de 20 étapes n’est entièrement juste qu’environ 36&nbsp;% du temps (0,95 à la puissance 20). Les agents ajoutent des vérifications et des nouvelles tentatives pour compenser, ce qui ajoute des étapes, du temps et des coûts.</li>
 <li><strong>C’est lent.</strong> Chaque étape est un appel à un grand modèle qui prend des secondes. Un processus qui tourne dix mille fois par jour paie ce prix dix mille fois, pour un raisonnement presque identique à celui de la veille.</li>
 <li><strong>Ce n’est pas reproductible.</strong> Donnez deux fois la même entrée, et l’agent peut prendre un chemin différent. Dans un travail réglementé, la question n’est pas seulement «&nbsp;la réponse est-elle juste ?&nbsp;», mais «&nbsp;donnerait-il la même réponse demain, et pouvez-vous me montrer pourquoi ?&nbsp;». Une boucle de raisonnement en texte libre est difficile à auditer et plus difficile encore à certifier.</li>
 <li><strong>Rien ne s’accumule.</strong> Ce que l’agent a compris lundi a disparu mardi, à moins que quelqu’un ne construise une mémoire autour. L’intelligence est dépensée, pas investie.</li>
 </ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig02.png" class="img-fluid figure-img" alt="Courbes de la probabilité que chaque étape soit juste en fonction du nombre d'étapes, pour 99 %, 95 % et 90 % par étape. La courbe à 95 % est marquée à 20 étapes&nbsp;: 36 % entièrement juste."></p>
-<figcaption><strong>Figure 2.</strong> Les erreurs s’accumulent. La probabilité que chaque étape d’une boucle soit juste chute vite avec le nombre d’étapes. À 95 % par étape, une boucle de 20 étapes n’est entièrement juste que 36 % du temps.</figcaption>
+<p><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig02.png" class="img-fluid figure-img" alt="Courbes de la probabilité que chaque étape soit juste en fonction du nombre d'étapes, pour 99&nbsp;%, 95&nbsp;% et 90&nbsp;% par étape. La courbe à 95&nbsp;% est marquée à 20 étapes&nbsp;: 36&nbsp;% entièrement juste."></p>
+<figcaption><strong>Figure 2.</strong> Les erreurs s’accumulent. La probabilité que chaque étape d’une boucle soit juste chute vite avec le nombre d’étapes. À 95&nbsp;% par étape, une boucle de 20 étapes n’est entièrement juste que 36&nbsp;% du temps.</figcaption>
 </figure>
 </div>
 <p>Rien de tout cela ne veut dire que les agents sont mauvais. Cela veut dire qu’ils sont le mauvais choix par défaut pour un travail qui se répète.</p>
@@ -254,7 +1060,7 @@
 <ul>
 <li><strong>Le graphe demande du travail.</strong> Il faut repérer les erreurs d’extraction, et quelqu’un doit être responsable de la mémoire. Un fait faux dans le graphe est répété vite et avec assurance, ce qui est pire qu’une erreur lente.</li>
 <li><strong>Il faut de la répétition.</strong> Pour des tâches vraiment ponctuelles ou ouvertes, compiler n’a pas de sens. Il n’y a rien à réutiliser, et l’agent est le bon outil.</li>
-<li><strong>Le monde dérive.</strong> Nouveaux fournisseurs, nouvelles règles, nouveaux produits&nbsp;: un système rapide peut continuer à appliquer avec assurance de vieilles habitudes. Il lui faut un moniteur qui remarque quand ses décisions ne collent plus, comme <a href="../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">mon dernier essai</a> (en anglais) le défendait pour les tableaux de bord.</li>
+<li><strong>Le monde dérive.</strong> Nouveaux fournisseurs, nouvelles règles, nouveaux produits&nbsp;: un système rapide peut continuer à appliquer avec assurance de vieilles habitudes. Il lui faut un moniteur qui remarque quand ses décisions ne collent plus, comme <a href="../../../fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">mon dernier essai</a> le défendait pour les tableaux de bord.</li>
 <li><strong>Il faut de la conception.</strong> Un agent se met en place en un après-midi. Un hybride de graphe, de réseaux et d’arbres demande de l’ingénierie. Ce coût initial est précisément l’apprentissage lent, et il n’est rentable que si le processus se répète assez.</li>
 </ul>
 </section>
@@ -263,6 +1069,10 @@
 <p>Nous sommes tentés de placer le modèle le plus puissant au milieu de chaque processus, à réfléchir à chaque exécution. Pour les problèmes ouverts, c’est juste. Pour l’automatisation, c’est souvent comme demander à un expert chevronné de relire tout le manuel avant chaque tâche de routine.</p>
 <p>L’alternative est plus ancienne que l’IA. Apprendre lentement, une fois, et mettre par écrit ce que l’on a appris. Agir vite, avec des outils simples que l’on peut expliquer. Ne ralentir que quand quelque chose est vraiment nouveau, et transformer ce que l’on y apprend en prochaine habitude.</p>
 <p>Utiliser le grand modèle pour construire la mémoire, pas pour la remplacer. Laisser l’apprentissage profond percevoir et les arbres décider. Garder la boucle pour les exceptions. C’est cela, Fast AI&nbsp;: pas moins d’intelligence, mais une intelligence dépensée une fois et investie, au lieu d’être dépensée à nouveau à chaque exécution.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">Un écosystème, pas un oracle</a><br>
+La même idée pour l’IA locale&nbsp;: de nombreux petits spécialistes, une mémoire partagée et une façon de continuer à apprendre.</p>
+</div>
 <div class="small">
 <p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
 </div>
@@ -277,6 +1087,226 @@
   <guid>https://scuenat.github.io/fr/posts/2026-10-11-fast-ai/</guid>
   <pubDate>Sun, 11 Oct 2026 14:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig03.png" medium="image" type="image/png" height="85" width="144"/>
+</item>
+<item>
+  <title>Ce qu’un écran silencieux ne peut pas voir</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, octobre 2026.</strong> La suite de <a href="../../../fr/posts/2026-09-29-show-what-changed/index.html">Montrer ce qui a changé, pas les données</a>. Le code de la simulation est ici&nbsp;: <a href="../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/sim.py">sim.py</a>, <a href="../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/figs.py">figs.py</a>. Les figures sont en anglais. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Mon dernier essai soutenait qu’un tableau de bord ne devrait montrer que la façon dont notre compréhension d’un système a changé, si bien que la plupart des semaines il est vide. Un lecteur a mis le doigt sur le point faible&nbsp;: si quelque chose se dérègle là où notre compréhension ne va pas, l’écran reste silencieux pendant que le système tombe en panne. Il a raison, et cet essai prend l’objection au sérieux. Un tableau de bord vide peut vouloir dire deux choses différentes, <em>rien n’a changé</em> ou <em>quelque chose a changé là où nous ne regardons pas</em>, et le tableau de bord seul ne peut pas les distinguer. Mais les données le peuvent. Tout résumé laisse quelque chose d’inexpliqué, et quand le monde change dans une direction que le résumé ne couvre pas, cette part restante grandit. La surveiller ne coûte presque rien, et cela transforme un angle mort silencieux en avertissement.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Un modèle ne peut signaler que les changements pour lesquels il a des mots. Tout le reste lui est invisible, aussi grand soit-il.</li>
+<li>Le silence a donc deux sens, et un battement de cœur qui dit «&nbsp;vérifié&nbsp;» ne les sépare pas.</li>
+<li>Ce que le modèle n’explique pas, ses exceptions, est l’endroit où le changement invisible apparaît en premier. Surveillez la taille des exceptions, et ce qui les explique.</li>
+<li>Certains changements ne laissent aucune trace dans les données. Pour ceux-là, seules les personnes aident&nbsp;: revues, visites, conversations.</li>
+<li>Un écran silencieux doit mériter son silence. Il devrait dire ce qu’il a vérifié, ce qu’il n’a pas pu expliquer, et quand il a prouvé pour la dernière fois qu’il voit encore.</li>
+</ul>
+</div>
+</div>
+<section id="partie-i-deux-sortes-de-silence" class="level1">
+<h1>Partie I · Deux sortes de silence</h1>
+<section id="lobjection" class="level2">
+<h2 class="anchored" data-anchor-id="lobjection">1. L’objection</h2>
+<p>Après la publication du premier essai, un lecteur nommé Ronald a écrit un commentaire auquel je pense depuis. Il aimait l’idée et la comparait au fonctionnement du cerveau&nbsp;: celui-ci ne traite pas tout ce qu’il reçoit, il prédit ce qui devrait se passer et ne réagit qu’à la différence. Un tableau de bord vide, disait-il, est comme un organisme bien adapté qui n’a rien à quoi réagir.</p>
+<p>Puis il a ajouté la réserve. Le tableau de bord a un angle mort intégré. Si quelque chose se dérègle en dehors de ce que décrit la forme, l’écran reste silencieux pendant que le système tombe en panne sans un bruit.</p>
+<p>J’avais mentionné cette limite à la fin du document, en un paragraphe. Ce n’était pas assez. Toute la proposition repose sur une promesse&nbsp;: <em>si l’écran est vide, vous pouvez regarder ailleurs.</em> Si un écran vide peut aussi vouloir dire «&nbsp;quelque chose casse là où je ne vois pas&nbsp;», la promesse est rompue, et l’ancien tableau de bord encombré commence à paraître plus sûr. La question mérite donc une réponse complète&nbsp;: quand peut-on faire confiance au silence ?</p>
+</section>
+<section id="deux-silences" class="level2">
+<h2 class="anchored" data-anchor-id="deux-silences">2. Deux silences</h2>
+<p>Imaginez deux semaines pendant lesquelles le tableau de bord n’affiche rien.</p>
+<p>La première semaine, rien n’a changé. Le système s’est comporté comme notre forme (notre description compacte de son fonctionnement) le prévoyait. Le silence est une bonne nouvelle.</p>
+<p>La seconde semaine, quelque chose a bien changé, mais dans une direction que la forme ne décrit pas. Peut-être qu’un type d’appareil est devenu lent, et la forme ne suit pas les appareils. La forme est recalculée, elle ressemble à celle de la semaine précédente, la différence est nulle, et l’écran est vide. Le silence est maintenant une mauvaise nouvelle, et il ressemble exactement à la bonne.</p>
+<p>Dans le premier essai, j’avais ajouté un <em>battement de cœur</em>&nbsp;: une ligne hebdomadaire qui dit «&nbsp;forme vérifiée sur les données de cette semaine, aucun changement significatif&nbsp;». Il résout un vrai problème. Sans lui, une chaîne de traitement en panne et un système en bonne santé produisent tous deux un écran vide. Mais le battement de cœur prouve seulement que le système <em>vérifie</em>. Il ne prouve pas que le système peut <em>voir</em> le changement qui compte. La seconde semaine, le battement de cœur est envoyé, il est vrai, et il est inutile.</p>
+</section>
+<section id="la-géométrie-dun-angle-mort" class="level2">
+<h2 class="anchored" data-anchor-id="la-géométrie-dun-angle-mort">3. La géométrie d’un angle mort</h2>
+<p>Une image aide. La forme est un petit ensemble de chiffres&nbsp;: par exemple la vitesse de chaque agent dans chaque langue, après avoir retiré l’effet de la longueur des requêtes et les hauts et les bas quotidiens des serveurs partagés. Pensez à chaque chiffre comme à une direction dans laquelle le système peut bouger. Ensemble, ces directions forment l’espace que décrit la forme.</p>
+<p>Tout changement réel du système est une flèche. Une partie de cette flèche pointe le long des directions que décrit la forme ; cette partie fait bouger la forme et atteint le tableau de bord. Le reste pointe ailleurs ; il ne fait bouger rien de ce que mesure la forme, si bien que la différence des formes ne le voit pas du tout (Figure 1).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig01.png" class="img-fluid figure-img" alt="Schéma de vecteurs. Un grand changement réel pointe surtout vers le haut, en dehors de ce que décrit la forme ; seule sa courte ombre horizontale est vue, trop petite pour être signalée."></p>
+<figcaption><strong>Figure 1.</strong> Un changement du système se divise en deux parties. La partie le long de ce que décrit la forme fait bouger la fiche de forme et peut atteindre le tableau de bord. La partie en dehors est invisible, aussi grande soit-elle. Un grand changement réel peut n’apparaître sur le tableau de bord que comme une petite ombre, trop petite pour être signalée.</figcaption>
+</figure>
+</div>
+<p>Les mathématiciens appellent la partie visible une <em>projection</em>. Le tableau de bord du premier essai ne voit que la projection de chaque changement sur la forme. Ce n’est pas un défaut d’un tableau de bord en particulier ; c’est vrai de tout modèle, de tout résumé et de tout ensemble d’indicateurs. On ne peut signaler un changement qu’avec les mots que l’on a. Un thermomètre ne peut pas vous dire que la pièce est en feu si le feu n’a pas encore réchauffé l’air autour de lui.</p>
+<p>Le danger n’est pas seulement que certains changements soient invisibles. C’est que la forme les <em>expliquera</em> souvent à tort. Si un changement ressemble, vu de l’intérieur de la forme, à quelque chose que la forme attend déjà, comme du bruit ou une variation connue, la forme l’absorbera dans cette catégorie sans protester.</p>
+</section>
+</section>
+<section id="partie-ii-un-problème-que-la-forme-ne-peut-pas-voir" class="level1">
+<h1>Partie II · Un problème que la forme ne peut pas voir</h1>
+<section id="le-dispositif" class="level2">
+<h2 class="anchored" data-anchor-id="le-dispositif">4. Le dispositif</h2>
+<p>Pour voir comment cela arrive, j’ai réutilisé le copilote IA simulé du premier essai&nbsp;: cinq agents (recherche, code, résumé, traduction, e-mail), quatre langues (anglais, allemand, français, italien), des longueurs de requêtes, une croissance lente, des week-ends calmes, et des temps de réponse qui montent et descendent chaque jour pour tout le monde parce que les serveurs sont partagés. Sur 12 semaines, la simulation produit environ 2,2 millions de requêtes.</p>
+<p>Une chose est nouvelle. Chaque requête enregistre maintenant aussi trois champs que la fiche de forme n’utilise pas&nbsp;: l’<strong>appareil</strong> (navigateur web, application de bureau ou application iOS), la <strong>région</strong> et l’<strong>abonnement</strong> du client. C’est réaliste. La télémétrie enregistre généralement bien plus de champs que n’en utilise un résumé.</p>
+<p>La fiche de forme est la même qu’avant&nbsp;: la vitesse de chaque agent dans chaque langue, après avoir retiré l’effet de la longueur des requêtes et les variations quotidiennes communes. Elle apprend correctement la règle de longueur (exposant 0,50, la valeur utilisée pour créer les données) et reste silencieuse pendant sept semaines, comme il se doit.</p>
+<p>Puis, le mercredi de la semaine 8, les requêtes venant de l’<strong>application iOS</strong> deviennent <strong>15&nbsp;% plus lentes</strong>, pour tous les agents et toutes les langues. Peut-être qu’une mise à jour de l’application a changé la façon dont les requêtes sont assemblées. iOS représente 15&nbsp;% de tout le trafic.</p>
+</section>
+<section id="pourquoi-la-forme-reste-silencieuse" class="level2">
+<h2 class="anchored" data-anchor-id="pourquoi-la-forme-reste-silencieuse">5. Pourquoi la forme reste silencieuse</h2>
+<p>La fiche de forme ne bouge jamais. Sur les douze semaines, le plus grand changement de l’un de ses chiffres est de 2,6&nbsp;% d’une semaine à l’autre, et de 2,5&nbsp;% par rapport aux semaines de référence. Le seuil de significativité est de 5&nbsp;%. Le tableau de bord est vide pendant les douze semaines, et douze battements de cœur annoncent «&nbsp;aucun changement significatif&nbsp;» (Figure 2).</p>
+<p>La raison est instructive. Le ralentissement touche tous les agents et toutes les langues de la même façon, parce que les utilisateurs iOS sont répartis uniformément entre eux. Les vitesses relatives que suit la fiche de forme ne changent donc pas du tout. Ce qui change, c’est le niveau global&nbsp;: en moyenne, toutes les requêtes sont environ 2&nbsp;% plus lentes. Mais la forme a été construite pour traiter les changements de niveau global comme des variations des serveurs, parce que les serveurs varient vraiment, d’environ 5&nbsp;% d’un jour à l’autre. Une marche de 2&nbsp;% au milieu de variations quotidiennes de 5&nbsp;% ressemble à une variation de plus. Regardez le panneau du haut de la Figure 2&nbsp;: la moyenne sur 7 jours a tout autant erré pendant les semaines 3 et 4, alors que tout allait bien.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig02.png" class="img-fluid figure-img" alt="En haut&nbsp;: un niveau quotidien bruité sur 80 jours avec une moyenne sur 7 jours ; le problème iOS commence au jour 51 sans saut visible. En bas&nbsp;: des barres hebdomadaires du plus grand changement de la fiche de forme, toutes sous la ligne des 5&nbsp;%."></p>
+<figcaption><strong>Figure 2.</strong> En haut&nbsp;: le niveau quotidien commun, que la forme traite comme des variations des serveurs. Le ralentissement iOS ajoute une marche d’environ 2&nbsp;% à partir du jour 51, au milieu de variations quotidiennes d’environ 5&nbsp;%. On ne peut pas la distinguer des errances précédentes. En bas&nbsp;: le tableau de bord. Le plus grand changement de la fiche de forme n’approche jamais la ligne des 5&nbsp;%.</figcaption>
+</figure>
+</div>
+<p>C’est la pire sorte d’angle mort. La forme n’ignore pas le problème. Elle l’<em>explique</em>, avec une totale assurance et la mauvaise explication. Un ralentissement de 15&nbsp;% pour un utilisateur sur sept devient «&nbsp;les serveurs ont eu une quinzaine un peu lente&nbsp;».</p>
+<p>La quatrième précaution du premier essai, comparer à une référence fixe et pas seulement à la semaine précédente, n’aide pas non plus ici. Cette précaution attrape les changements lents le long des directions que décrit la forme. Ce changement n’est pas lent ; il est de côté.</p>
+</section>
+</section>
+<section id="partie-iii-surveiller-ce-que-la-forme-nexplique-pas" class="level1">
+<h1>Partie III · Surveiller ce que la forme n’explique pas</h1>
+<section id="la-part-restante" class="level2">
+<h2 class="anchored" data-anchor-id="la-part-restante">6. La part restante</h2>
+<p>La solution vient d’une idée qui était déjà au centre du premier essai. La description la plus courte d’un ensemble de données a deux parties&nbsp;:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bdonn%C3%A9es%7D%20=%20%5Ctext%7Br%C3%A8gle%7D%20+%20%5Ctext%7Bexceptions%7D%0A"></p>
+<p>La forme est la règle. Les <em>exceptions</em> sont tout ce que la règle n’explique pas&nbsp;: pour chaque petit groupe de requêtes, l’écart entre la vitesse que prédit la forme et la vitesse réellement mesurée.</p>
+<p>Quand la forme est juste, les exceptions sont du pur bruit. Elles ont une taille typique, que l’on peut mesurer pendant les semaines calmes, et elles n’ont pas de structure&nbsp;: on ne peut les prédire à partir de rien.</p>
+<p>Quand le monde change dans une direction que la forme ne décrit pas, le changement doit aller quelque part. Il ne peut pas aller dans la forme, alors il va dans les exceptions. Dans le langage de la Figure 1, la partie invisible de la flèche n’est pas perdue ; elle atterrit dans la part restante. Les exceptions grossissent, et elles commencent à avoir un motif.</p>
+<p>La forme a donc besoin d’un second moniteur, très simple, à côté du tableau de bord. Il pose deux questions chaque semaine.</p>
+<ul>
+<li><strong>Les exceptions sont-elles plus grandes que d’habitude ?</strong> Si la règle tient toujours, la part restante devrait être aussi grande que pendant les semaines calmes, pas plus.</li>
+<li><strong>Quelque chose peut-il les expliquer ?</strong> Pour chaque champ enregistré que la forme n’utilise pas, vérifier quelle part des exceptions il explique. Si la forme tient toujours, la réponse devrait être&nbsp;: presque rien.</li>
+</ul>
+<p>La première question nous dit que la forme s’use. La seconde nous dit où.</p>
+</section>
+<section id="ce-que-montrent-les-exceptions" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-montrent-les-exceptions">7. Ce que montrent les exceptions</h2>
+<p>La Figure 3 montre la première question dans la simulation. La taille des exceptions est mesurée par rapport aux six premières semaines, donc 1 veut dire «&nbsp;habituel&nbsp;». Pendant sept semaines, elle reste à environ 1&nbsp;% de 1. En semaine 8, elle saute à 1,18, puis se stabilise entre 1,30 et 1,37. Avec un seuil de significativité à +10&nbsp;%, le moniteur émet un avis à la fin de la semaine 8, cinq jours après le début du problème. La fiche de forme, pour les mêmes semaines, dit toujours que rien n’a changé.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig03.png" class="img-fluid figure-img" alt="Graphique sur 12 semaines de la taille des exceptions. Elle reste à 1 jusqu'à la semaine 7, puis monte au-dessus de la ligne des +10&nbsp;% jusqu'à environ 1,37. Une ligne pointillée après la semaine 8, une fois le type d'appareil appris, reste près de 1."></p>
+<figcaption><strong>Figure 3.</strong> La taille des exceptions, par rapport aux six premières semaines. Elle reste à 1 jusqu’au début du problème iOS, puis franchit la ligne des +10&nbsp;% à la fin de la semaine 8. La ligne pointillée montre ce qui se passe une fois que la forme apprend le type d’appareil&nbsp;: les exceptions reviennent à leur taille habituelle.</figcaption>
+</figure>
+</div>
+<p>Il y a ici quelque chose d’important. Cette première vérification n’a pas du tout besoin du champ appareil. Elle a seulement besoin de savoir que la règle explique maintenant les données moins bien qu’avant. Même si l’appareil n’était jamais enregistré, nous saurions que la forme ne colle plus, sans savoir pourquoi. Cela seul vaut beaucoup&nbsp;: le battement de cœur passe de «&nbsp;aucun changement&nbsp;» à «&nbsp;aucun changement de la forme, mais la forme colle moins bien que d’habitude&nbsp;». C’est un message très différent, et beaucoup plus honnête.</p>
+<p>La Figure 4 montre la seconde question. Avant le problème, le champ appareil n’explique que 1 à 2&nbsp;% des exceptions. Cette petite part est réelle&nbsp;: les requêtes iOS ont toujours été environ 3&nbsp;% plus lentes, une différence constante que la forme n’a jamais apprise. Après la semaine 8, le champ appareil explique 18 à 19&nbsp;% des exceptions. La région et l’abonnement restent sous 1&nbsp;% tout du long.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig04.png" class="img-fluid figure-img" alt="Graphique sur 12 semaines de la part des exceptions expliquée par chaque champ. L'appareil passe d'environ 2&nbsp;% à près de 20&nbsp;% après la semaine 7 ; la région et l'abonnement restent près de zéro."></p>
+<figcaption><strong>Figure 4.</strong> Quelle part des exceptions chaque champ enregistré explique. Le type d’appareil passe de 1–2&nbsp;% à presque 20&nbsp;% quand le problème iOS commence. La région et l’abonnement restent proches de zéro. Le moniteur ne dit pas seulement que quelque chose ne va pas ; il dit où regarder.</figcaption>
+</figure>
+</div>
+<p>L’avis peut donc dire quelque chose de précis&nbsp;: <em>la forme colle moins bien que d’habitude, et l’essentiel de ce qu’elle n’explique pas est lié au type d’appareil ; les requêtes iOS sont environ 15&nbsp;% plus lentes que ce qu’attend la forme.</em> C’est presque le diagnostic complet, trouvé par un moniteur qui n’a aucune idée de ce qu’est une application iOS.</p>
+</section>
+<section id="la-forme-apprend" class="level2">
+<h2 class="anchored" data-anchor-id="la-forme-apprend">8. La forme apprend</h2>
+<p>Ce qui suit est la boucle du premier essai&nbsp;: résumer, regarder ce que la règle manque, résumer à nouveau. L’avis nous dit qu’il manque une dimension à la forme. Alors nous l’ajoutons&nbsp;: la fiche de forme gagne deux chiffres, la vitesse de l’application de bureau et celle de l’application iOS par rapport au web.</p>
+<p>Avec ces deux chiffres, la forme apprend qu’iOS était environ 3&nbsp;% plus lent que le web avant la semaine 8 et environ 18&nbsp;% plus lent après, ce qui correspond au ralentissement de 15&nbsp;% que nous avions caché. Les exceptions reviennent à leur taille habituelle (la ligne pointillée de la Figure 3). L’écran redevient silencieux, et cette fois le silence est justifié.</p>
+<p>C’est ainsi qu’une forme devrait grandir&nbsp;: non pas en ajoutant chaque champ «&nbsp;au cas où&nbsp;», ce qui ramène le tableau de bord encombré et la courbe qui a trop de termes, mais en ajoutant une dimension quand les exceptions prouvent qu’elle est nécessaire. La part restante n’est pas un déchet. C’est de là que vient la prochaine règle. Kepler a abandonné les orbites circulaires à cause d’un écart de huit minutes d’arc dans l’orbite de Mars que les cercles ne pouvaient pas expliquer.</p>
+</section>
+</section>
+<section id="partie-iv-ce-que-cela-a-à-voir-avec-le-cerveau" class="level1">
+<h1>Partie IV · Ce que cela a à voir avec le cerveau</h1>
+<section id="le-codage-prédictif-a-le-même-problème" class="level2">
+<h2 class="anchored" data-anchor-id="le-codage-prédictif-a-le-même-problème">9. Le codage prédictif a le même problème</h2>
+<p>La comparaison de Ronald avec le cerveau est bonne, et elle va plus loin qu’il ne l’a dit. Une théorie bien connue en neurosciences, le <em>codage prédictif</em>, propose que le cerveau prédit en permanence ce que ses sens vont rapporter, et transmet surtout la différence entre la prédiction et la réalité. C’est exactement un tableau de bord des différences. Et le cerveau a exactement le même angle mort.</p>
+<p>La démonstration la plus célèbre est une expérience de Simons et Chabris. On demande à des spectateurs de compter les passes dans une vidéo où des gens se lancent un ballon de basket. À mi-parcours, une personne déguisée en gorille traverse la scène. Environ la moitié des spectateurs ne remarquent pas du tout le gorille. Ils ne regardaient pas au mauvais endroit ; le gorille est passé au milieu de l’écran. Leur modèle de la tâche n’avait tout simplement pas de case pour les gorilles.</p>
+<p>Alors comment le cerveau survit-il dans un monde plein de gorilles ? Une réponse influente, de Yu et Dayan, est que le cerveau suit deux sortes d’incertitude. L’<em>incertitude attendue</em> est le bruit normal d’une situation familière&nbsp;: nous savons que le monde est un peu imprévisible et nous ne réagissons pas à chaque petite surprise. L’<em>incertitude inattendue</em>, c’est quand les surprises deviennent plus fréquentes ou plus grandes que ce que notre modèle prévoit. C’est le signal que le modèle lui-même est faux, et on pense qu’il déclenche une remise à zéro&nbsp;: l’attention s’élargit, l’apprentissage s’accélère, les anciennes règles sont remises en question.</p>
+<p>C’est le moniteur des exceptions. Le cerveau ne surveille pas seulement <em>ce qui</em> diffère de sa prédiction. Il surveille <em>à quel point</em> il est surpris dans l’ensemble, par rapport à ce qu’il attend. Quand la surprise monte au-dessus de son niveau habituel, le cerveau cesse de faire confiance à son modèle et se met à regarder autour de lui. Un tableau de bord devrait faire de même.</p>
+</section>
+</section>
+<section id="partie-v-le-troisième-silence" class="level1">
+<h1>Partie V · Le troisième silence</h1>
+<section id="des-changements-qui-ne-laissent-pas-de-trace" class="level2">
+<h2 class="anchored" data-anchor-id="des-changements-qui-ne-laissent-pas-de-trace">10. Des changements qui ne laissent pas de trace</h2>
+<p>Le moniteur des exceptions a lui aussi une limite, et mieux vaut la dire clairement. Il voit les changements qui laissent une trace dans les données, même dans des champs que la forme n’utilise pas. Il ne peut pas voir les changements qui ne laissent de trace dans aucune donnée.</p>
+<p>Supposons que les réponses du copilote en italien se dégradent lentement, moins exactes et moins utiles, tout en restant exactement aussi rapides. La télémétrie de vitesse ne le montrera jamais. Aucune forme, aucune exception et aucun champ ne bougera, parce que rien de ce que nous enregistrons n’est touché. Les seuls endroits où cela apparaît sont des personnes&nbsp;: un utilisateur qui cesse d’utiliser le copilote, une collègue à Milan qui en parle à la pause café, un ingénieur qui lit vingt réponses en italien un après-midi.</p>
+<p>Il y a donc trois sortes de changement, et chacune demande un observateur différent (Figure 5).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png" class="img-fluid figure-img" alt="Trois boîtes imbriquées. Le monde, vu par les personnes, où les changements ne laissent aucune trace. À l'intérieur, les données, vues par le moniteur des exceptions. À l'intérieur encore, la forme, vue par le tableau de bord."></p>
+<figcaption><strong>Figure 5.</strong> Trois sortes de changement et qui peut les voir. Les changements dans ce que décrit la forme atteignent le tableau de bord. Les changements ailleurs dans les données atteignent le moniteur des exceptions. Les changements qui ne laissent aucune trace ne peuvent être vus que par des personnes.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>Les changements dans la forme</strong> atteignent le tableau de bord. C’était le sujet du premier essai.</li>
+<li><strong>Les changements dans les données mais hors de la forme</strong> atteignent le moniteur des exceptions. C’est ce qu’ajoute cet essai.</li>
+<li><strong>Les changements hors des données</strong> n’atteignent aucune machine. Ils demandent des personnes qui regardent régulièrement la chose réelle&nbsp;: lire les réponses, aller dans l’atelier, parler aux utilisateurs.</li>
+</ul>
+<p>Le troisième cercle n’est pas une note de bas de page. En 1983, Lisanne Bainbridge a décrit les «&nbsp;ironies de l’automatisation&nbsp;»&nbsp;: plus un système automatique devient fiable, moins les gens pratiquent les compétences dont ils auront besoin le jour où il tombe en panne. Un tableau de bord silencieux aggrave cela, parce qu’il supprime le contact quotidien avec le système qui entretenait l’intuition des gens. Si nous retirons l’écran encombré, nous devons rendre ce contact sous une forme délibérée&nbsp;: un regard régulier et sans hâte sur des cas bruts, choisis au hasard, par des personnes dont le travail est de remarquer ce que personne ne leur a demandé de chercher.</p>
+</section>
+<section id="prouver-que-le-système-voit-encore" class="level2">
+<h2 class="anchored" data-anchor-id="prouver-que-le-système-voit-encore">11. Prouver que le système voit encore</h2>
+<p>Il y a un piège de plus. Même un bon moniteur des exceptions peut tomber en panne en silence. Une chaîne de traitement peut cesser de remplir un champ ; un seuil peut être réglé trop haut après un mois chargé ; un modèle peut être réentraîné d’une façon qui cache les exceptions dans la règle. Chacun de ces cas produit un écran silencieux.</p>
+<p>Les ingénieurs savent déjà traiter cela dans d’autres domaines. On teste les alarmes incendie. Les pilotes s’entraînent sur simulateur à des pannes qu’ils espèrent ne jamais voir. Dans les grands systèmes logiciels, l’<em>ingénierie du chaos</em> casse délibérément des choses en production, de façon petite et contrôlée, pour vérifier que la surveillance le remarque.</p>
+<p>La même idée fonctionne ici. De temps en temps, injectez un petit changement artificiel et connu dans une copie des données&nbsp;: rendez plus lente une tranche de requêtes synthétiques, le long d’une dimension que la forme ne suit pas. Puis vérifiez que le moniteur des exceptions le remarque, et en combien de temps. S’il ne le remarque pas, le silence des semaines suivantes ne veut rien dire. S’il le remarque, nous avons une preuve, et pas seulement un espoir, que le système voit encore.</p>
+</section>
+</section>
+<section id="partie-vi-un-écran-silencieux-qui-mérite-son-silence" class="level1">
+<h1>Partie VI · Un écran silencieux qui mérite son silence</h1>
+<section id="un-meilleur-battement-de-cœur" class="level2">
+<h2 class="anchored" data-anchor-id="un-meilleur-battement-de-cœur">12. Un meilleur battement de cœur</h2>
+<p>Mis ensemble, le battement de cœur hebdomadaire devient un rapport court et honnête de ce qui a été vérifié, et à quel point&nbsp;:</p>
+<blockquote class="blockquote">
+<p><strong>Semaine 12.</strong> Forme vérifiée sur les données de cette semaine&nbsp;: aucun changement significatif. Exceptions&nbsp;: taille habituelle ; aucun champ enregistré ne les explique. Dernier exercice&nbsp;: ralentissement injecté sur une tranche cachée, détecté après 4 jours. Dernière revue humaine de cas bruts&nbsp;: il y a 3 semaines.</p>
+</blockquote>
+<p>Chaque ligne répond à un doute différent. La première dit que notre compréhension tient toujours. La deuxième dit qu’elle <em>colle</em> toujours&nbsp;: rien ne se cache dans la part restante. La troisième dit que l’observateur voit encore. La quatrième dit quand une personne a regardé le monde directement pour la dernière fois, en dehors de tout modèle.</p>
+<p>Cela reste très peu à lire&nbsp;: quatre lignes par semaine au lieu de quarante tuiles par jour. Mais maintenant, le silence porte de l’information. Il ne dit pas seulement «&nbsp;rien n’a changé&nbsp;», mais «&nbsp;rien n’a changé que nous aurions pu voir, voici ce que nous pouvions voir, et voici quand nous avons vérifié le reste pour la dernière fois&nbsp;».</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">13. Conclusion</h2>
+<p>L’objection au premier essai était juste&nbsp;: un système qui ne surveille que sa propre image du monde ne peut pas voir ce qui se trouve en dehors de cette image, et il expliquera souvent à tort ce qu’il ne peut pas voir. Plus de tuiles n’est pas la réponse ; un écran encombré a aussi des angles morts, il les cache simplement sous le bruit.</p>
+<p>La réponse est de surveiller la part des données que l’image ne peut pas expliquer. Quand le monde bouge de côté, loin de ce que décrit notre modèle, les exceptions grossissent et prennent un motif bien avant que quiconque pense à ajouter un nouveau graphique. Les surveiller ne coûte pas cher, ne demande aucune connaissance de ce qui pourrait mal tourner, et nous dit à la fois que notre compréhension ne colle plus et à peu près où.</p>
+<p>Et pour ce qui ne laisse de trace dans aucune donnée, il n’y a pas de raccourci&nbsp;: les personnes doivent continuer à regarder la chose réelle. Un tableau de bord vide est le bon objectif. Mais le silence est une affirmation, et comme toute affirmation, il doit être mérité.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-09-29-show-what-changed/index.html">Montrer ce qui a changé, pas les données</a><br>
+Le document de travail auquel cet essai répond&nbsp;: le tableau de bord comme différence de formes.</p>
+</div>
+</section>
+<section id="pour-aller-plus-loin" class="level2">
+<h2 class="anchored" data-anchor-id="pour-aller-plus-loin">Pour aller plus loin</h2>
+<div class="small">
+<ul>
+<li>Bainbridge, L. (1983). Ironies of automation. <em>Automatica</em>, 19(6), 775–779.</li>
+<li>Basiri, A., et al.&nbsp;(2016). Chaos engineering. <em>IEEE Software</em>, 33(3), 35–41.</li>
+<li>Box, G. E. P. (1980). Sampling and Bayes’ inference in scientific modelling and robustness. <em>Journal of the Royal Statistical Society, Series A</em>, 143(4), 383–430.</li>
+<li>Friston, K. (2010). The free-energy principle: a unified brain theory? <em>Nature Reviews Neuroscience</em>, 11(2), 127–138.</li>
+<li>Gama, J., Žliobaitė, I., Bifet, A., Pechenizkiy, M., &amp; Bouchachia, A. (2014). A survey on concept drift adaptation. <em>ACM Computing Surveys</em>, 46(4), 1–37.</li>
+<li>Rao, R. P. N., &amp; Ballard, D. H. (1999). Predictive coding in the visual cortex. <em>Nature Neuroscience</em>, 2(1), 79–87.</li>
+<li>Rissanen, J. (1978). Modeling by shortest data description. <em>Automatica</em>, 14(5), 465–471.</li>
+<li>Simons, D. J., &amp; Chabris, C. F. (1999). Gorillas in our midst: sustained inattentional blindness for dynamic events. <em>Perception</em>, 28(9), 1059–1074.</li>
+<li>Yu, A. J., &amp; Dayan, P. (2005). Uncertainty, neuromodulation, and attention. <em>Neuron</em>, 46(4), 681–692.</li>
+</ul>
+</div>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section></div> ]]></description>
+  <category>essai</category>
+  <category>données</category>
+  <category>tableaux de bord</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/</guid>
+  <pubDate>Sun, 11 Oct 2026 10:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png" medium="image" type="image/png" height="87" width="144"/>
 </item>
 <item>
   <title>Montrer ce qui a changé, pas les données</title>
@@ -294,7 +1324,7 @@
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p><strong>Document de travail, septembre 2026.</strong> <a href="../../../posts/2026-09-29-show-what-changed/Cuenat_Show_What_Changed.pdf" download="Cuenat_Show_What_Changed.pdf">Télécharger le PDF</a> (en anglais). Suite dans <a href="../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">What a Quiet Screen Cannot See</a> (en anglais), qui répond à l’objection d’un lecteur. Les figures sont en anglais. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-09-29-show-what-changed/index.html">version originale</a>.</em></p>
+<p><strong>Document de travail, septembre 2026.</strong> <a href="../../../posts/2026-09-29-show-what-changed/Cuenat_Show_What_Changed.pdf" download="Cuenat_Show_What_Changed.pdf">Télécharger le PDF</a> (en anglais). Suite dans <a href="../../../fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">Ce qu’un écran silencieux ne peut pas voir</a>, qui répond à l’objection d’un lecteur. Les figures sont en anglais. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-09-29-show-what-changed/index.html">version originale</a>.</em></p>
 </div>
 </div>
 </div>
@@ -485,7 +1515,7 @@
 <section id="un-cas-simulé-la-télémétrie-dun-copilote" class="level2">
 <h2 class="anchored" data-anchor-id="un-cas-simulé-la-télémétrie-dun-copilote">11. Un cas simulé&nbsp;: la télémétrie d’un copilote</h2>
 <p>Pour rendre cela concret, nous avons simulé 90 jours de télémétrie d’un copilote IA à cinq agents&nbsp;: recherche, code, résumé, traduction et e-mail. Chaque requête enregistre sa langue (anglais, allemand, français ou italien), l’agent, la fonction utilisée, la longueur de la requête et le temps de réponse. L’usage croît lentement et baisse le week-end, et une nouvelle fonction d’export remplace peu à peu l’ancienne fonction de brouillon. Les temps de réponse montent et descendent aussi chaque jour pour tout le monde, parce que les serveurs sont partagés.</p>
-<p>Nous avons caché deux vrais problèmes. À partir du jour 45, l’agent de traduction commence à ralentir très progressivement, de 0,2 % par jour. Le jour 60, l’agent de code devient soudain 25 % plus lent, pour les requêtes en allemand seulement. Au total, la simulation produit 1,6 million de requêtes et environ 10 millions de chiffres.</p>
+<p>Nous avons caché deux vrais problèmes. À partir du jour 45, l’agent de traduction commence à ralentir très progressivement, de 0,2&nbsp;% par jour. Le jour 60, l’agent de code devient soudain 25&nbsp;% plus lent, pour les requêtes en allemand seulement. Au total, la simulation produit 1,6 million de requêtes et environ 10 millions de chiffres.</p>
 <p><strong>Le tableau de bord habituel.</strong> Un tableau de bord typique montre 24 tuiles&nbsp;: les requêtes par langue et par agent, le temps de réponse par agent, et la fréquence d’utilisation de chaque fonction (Figure 10). Chaque tuile est signalée quand elle sort de sa plage normale. Sur les 60 derniers jours, les tuiles lèvent 106 alertes. La croissance normale et la nouvelle fonction d’export ressemblent à des anomalies. Chaque vrai problème n’est signalé qu’une fois, les deux le jour 74 pendant un pic des serveurs, sans rien pour les distinguer des 104 fausses alertes. Aucune cause n’est nommée. Cette référence est volontairement simple. Un analyste soigneux ajusterait chaque tuile pour les week-ends et la croissance, et supprimerait la plupart des fausses alertes. Mais les deux vrais problèmes resteraient cachés dans les variations quotidiennes des serveurs, et aucune tuile ne nommerait la cause.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -493,22 +1523,22 @@
 <figcaption><strong>Figure 10.</strong> Le tableau de bord habituel&nbsp;: 24 tuiles sur 90 jours. Les points rouges marquent les jours hors de la plage normale&nbsp;: 106 alertes, presque toutes fausses. La ligne pointillée marque le jour 60.</figcaption>
 </figure>
 </div>
-<p><strong>La forme.</strong> Le système résume d’abord les requêtes brutes en 7 200 petits groupes, un par jour, agent, langue et longueur de requête. À partir de ce résumé, il apprend les règles&nbsp;: les jours de semaine apportent quatre fois plus de requêtes que le week-end ; l’usage croît d’environ 0,3 % par jour ; l’export remplace régulièrement le brouillon ; et le temps de réponse croît comme la racine carrée de la longueur de la requête (valeur apprise 0,54, contre 0,5 utilisé pour créer les données). Chaque semaine, il décrit ensuite le copilote avec une fiche de forme de 33 chiffres&nbsp;: le volume global, la répartition des langues, la vitesse de chaque agent dans chaque langue (après avoir retiré l’effet de la longueur des requêtes et les variations communes des serveurs), et la part de chaque fonction dans son agent. Douze semaines de formes font moins de 400 chiffres, au lieu de 10 millions.</p>
-<p><strong>Le tableau de bord.</strong> La Figure 11 montre la différence entre la forme de chaque semaine et la précédente. À gauche, la différence brute&nbsp;: de nombreuses cases s’allument semaine après semaine, parce que le volume croît et que l’export remplace le brouillon. À droite, la différence moins le changement attendu, en ne gardant que les changements significatifs (5 % pour la vitesse et le volume, deux points de pourcentage pour l’usage). Ces seuils ne sont pas des choix techniques ; ils devraient être fixés par les responsables des décisions, par exemple l’équipe chargée des temps de réponse. Pendant douze semaines, tout le tableau de bord est vide, sauf une ligne&nbsp;: agent de code, allemand. L’avis apparaît à la fin de la semaine 9, deux jours après le début du problème, et nomme la cause. Il réapparaît en semaine 10, parce que la forme de la semaine 9 ne contenait que trois jours du problème. Ensuite, la nouvelle vitesse fait partie de la forme, et le tableau de bord redevient silencieux.</p>
+<p><strong>La forme.</strong> Le système résume d’abord les requêtes brutes en 7 200 petits groupes, un par jour, agent, langue et longueur de requête. À partir de ce résumé, il apprend les règles&nbsp;: les jours de semaine apportent quatre fois plus de requêtes que le week-end ; l’usage croît d’environ 0,3&nbsp;% par jour ; l’export remplace régulièrement le brouillon ; et le temps de réponse croît comme la racine carrée de la longueur de la requête (valeur apprise 0,54, contre 0,5 utilisé pour créer les données). Chaque semaine, il décrit ensuite le copilote avec une fiche de forme de 33 chiffres&nbsp;: le volume global, la répartition des langues, la vitesse de chaque agent dans chaque langue (après avoir retiré l’effet de la longueur des requêtes et les variations communes des serveurs), et la part de chaque fonction dans son agent. Douze semaines de formes font moins de 400 chiffres, au lieu de 10 millions.</p>
+<p><strong>Le tableau de bord.</strong> La Figure 11 montre la différence entre la forme de chaque semaine et la précédente. À gauche, la différence brute&nbsp;: de nombreuses cases s’allument semaine après semaine, parce que le volume croît et que l’export remplace le brouillon. À droite, la différence moins le changement attendu, en ne gardant que les changements significatifs (5&nbsp;% pour la vitesse et le volume, deux points de pourcentage pour l’usage). Ces seuils ne sont pas des choix techniques ; ils devraient être fixés par les responsables des décisions, par exemple l’équipe chargée des temps de réponse. Pendant douze semaines, tout le tableau de bord est vide, sauf une ligne&nbsp;: agent de code, allemand. L’avis apparaît à la fin de la semaine 9, deux jours après le début du problème, et nomme la cause. Il réapparaît en semaine 10, parce que la forme de la semaine 9 ne contenait que trois jours du problème. Ensuite, la nouvelle vitesse fait partie de la forme, et le tableau de bord redevient silencieux.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig11.png" class="img-fluid figure-img" alt="Deux cartes de chaleur des 33 chiffres de la fiche de forme sur 12 semaines. À gauche, les différences brutes montrent beaucoup de cases pâles. À droite, après soustraction du changement attendu, tout est vide sauf speed code DE en semaines 9 et 10."></p>
 <figcaption><strong>Figure 11.</strong> Le tableau de bord comme différence de formes, sur 12 semaines. À gauche&nbsp;: la différence brute, d’une semaine à l’autre, des 33 chiffres de la fiche de forme. À droite&nbsp;: la différence moins le changement attendu, en ne gardant que les changements significatifs. Il reste une ligne&nbsp;: agent de code, allemand, semaines 9 et 10.</figcaption>
 </figure>
 </div>
-<p><strong>La dérive lente.</strong> Le ralentissement de la traduction ne bouge jamais de plus de 1,7 % d’une semaine à l’autre, donc il n’apparaît jamais sur le tableau de bord hebdomadaire. Comparé à une forme de référence fixe (semaines 1 à 6), il franchit la ligne des 5 % en semaine 12 et il est signalé (Figure 12). C’est la quatrième précaution à l’œuvre.</p>
+<p><strong>La dérive lente.</strong> Le ralentissement de la traduction ne bouge jamais de plus de 1,7&nbsp;% d’une semaine à l’autre, donc il n’apparaît jamais sur le tableau de bord hebdomadaire. Comparé à une forme de référence fixe (semaines 1 à 6), il franchit la ligne des 5&nbsp;% en semaine 12 et il est signalé (Figure 12). C’est la quatrième précaution à l’œuvre.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig12.png" class="img-fluid figure-img" alt="Graphique sur 12 semaines. Les barres grises du changement d'une semaine à l'autre restent petites. Une ligne bleue du changement par rapport à une forme de référence monte après le début de la dérive en semaine 7 et franchit la ligne des 5 % en semaine 12."></p>
+<p><img src="https://scuenat.github.io/posts/2026-09-29-show-what-changed/figures/fig12.png" class="img-fluid figure-img" alt="Graphique sur 12 semaines. Les barres grises du changement d'une semaine à l'autre restent petites. Une ligne bleue du changement par rapport à une forme de référence monte après le début de la dérive en semaine 7 et franchit la ligne des 5&nbsp;% en semaine 12."></p>
 <figcaption><strong>Figure 12.</strong> La dérive lente de l’agent de traduction. Les changements d’une semaine à l’autre (barres) restent petits. Le changement par rapport à une forme de référence fixe (ligne) ne cesse de croître et franchit le seuil de significativité en semaine 12.</figcaption>
 </figure>
 </div>
-<p><strong>Le pas de temps.</strong> Si l’on compare les formes chaque jour au lieu de chaque semaine, le bruit seul produit 51 changements de vitesse supérieurs à 5 % pendant les 59 premiers jours, avant que rien de réel ne se soit produit. La comparaison hebdomadaire n’en produit aucun. C’est la première précaution à l’œuvre.</p>
+<p><strong>Le pas de temps.</strong> Si l’on compare les formes chaque jour au lieu de chaque semaine, le bruit seul produit 51 changements de vitesse supérieurs à 5&nbsp;% pendant les 59 premiers jours, avant que rien de réel ne se soit produit. La comparaison hebdomadaire n’en produit aucun. C’est la première précaution à l’œuvre.</p>
 <p><strong>Une limite.</strong> Nous avons caché les deux problèmes le long de dimensions que suit la fiche de forme&nbsp;: l’agent et la langue. Un problème le long d’une dimension qu’elle ne suit pas, comme le type d’appareil, n’apparaîtrait pas du tout. C’est la vraie limite de l’approche, et la raison pour laquelle la forme elle-même doit être réexaminée, et les données brutes explorées de temps en temps (section 10).</p>
 <table class="caption-top table">
 <caption><strong>Tableau 1.</strong> Les deux approches sur les mêmes données simulées. Les chiffres du tableau de bord couvrent 90 jours, les formes 12 semaines complètes. Les 3 avis sont deux pour le problème soudain (semaines 9 et 10) et un pour la dérive.</caption>
@@ -563,6 +1593,10 @@
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">12. Conclusion</h2>
 <p>Nous sommes partis d’une observation simple&nbsp;: l’IA rend facile de produire davantage, et nous finissons par regarder des données. Les données ne sont pas ce dont nous avons besoin. Ce dont nous avons besoin, c’est de compréhension, et de la capacité à remarquer quand elle doit changer. Bien résumer des données et trouver les règles qui les sous-tendent sont une seule tâche, et son résultat est une forme. Le tableau de bord, enfin, devrait être la différence entre les formes&nbsp;: une page vide la plupart des jours, et quelques lignes précises quand notre compréhension du monde doit bouger. Nous n’avons pas besoin de plus de données sur plus d’écrans. Nous avons besoin d’une bonne forme, d’une façon soigneuse de mesurer comment elle change, et de l’humilité de continuer à vérifier qu’elle tient toujours.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">Ce qu’un écran silencieux ne peut pas voir</a><br>
+L’objection d’un lecteur, prise au sérieux&nbsp;: et si quelque chose cassait là où la forme ne voit pas ?</p>
+</div>
 </section>
 <section id="pour-aller-plus-loin" class="level2">
 <h2 class="anchored" data-anchor-id="pour-aller-plus-loin">Pour aller plus loin</h2>

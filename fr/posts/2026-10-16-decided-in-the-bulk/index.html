@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Ce qu’un article de physique m’a appris sur la façon dont l’IA fabrique des images, une expérience menée en une soirée sur deux cœurs de CPU, et ce qu’un partenaire de laboratoire IA a rendu possible.">
+
+<title>Décidé dans le volume, écrit sur le bord – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-6bca0946738ef4eb38bf57841a1014f7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-f227cb2611cd201cd1ce2db6da80b0a1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/index.html">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/index.html">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/index.html">
+<meta name="alt-lang-url" content="/posts/2026-10-16-decided-in-the-bulk/index.html">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Décidé dans le volume, écrit sur le bord – AI, Honestly">
+<meta property="og:description" content="Ce qu’un article de physique m’a appris sur la façon dont l’IA fabrique des images, une expérience menée en une soirée sur deux cœurs de CPU, et ce qu’un partenaire de laboratoire IA a rendu possible.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="860">
+<meta property="og:image:width" content="1480">
+<meta name="twitter:title" content="Décidé dans le volume, écrit sur le bord – AI, Honestly">
+<meta name="twitter:description" content="Ce qu’un article de physique m’a appris sur la façon dont l’IA fabrique des images, une expérience menée en une soirée sur deux cœurs de CPU, et ce qu’un partenaire de laboratoire IA a rendu possible.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png">
+<meta name="twitter:image-height" content="860">
+<meta name="twitter:image-width" content="1480">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul>
+  <li><a href="#partie-i-du-cosmos-au-code" id="toc-partie-i-du-cosmos-au-code" class="nav-link active" data-scroll-target="#partie-i-du-cosmos-au-code">Partie I · Du cosmos au code</a>
+  <ul class="collapse">
+  <li><a href="#ça-doit-être-plus-simple-que-ça" id="toc-ça-doit-être-plus-simple-que-ça" class="nav-link" data-scroll-target="#ça-doit-être-plus-simple-que-ça">1. Ça doit être plus simple que ça</a></li>
+  <li><a href="#la-surface-sait-tout" id="toc-la-surface-sait-tout" class="nav-link" data-scroll-target="#la-surface-sait-tout">2. La surface sait tout</a></li>
+  <li><a href="#une-machine-qui-construit-de-la-structure-à-partir-du-désordre" id="toc-une-machine-qui-construit-de-la-structure-à-partir-du-désordre" class="nav-link" data-scroll-target="#une-machine-qui-construit-de-la-structure-à-partir-du-désordre">3. Une machine qui construit de la structure à partir du désordre</a></li>
+  </ul></li>
+  <li><a href="#partie-ii-lexpérience" id="toc-partie-ii-lexpérience" class="nav-link" data-scroll-target="#partie-ii-lexpérience">Partie II · L’expérience</a>
+  <ul class="collapse">
+  <li><a href="#ce-que-jai-mesuré" id="toc-ce-que-jai-mesuré" class="nav-link" data-scroll-target="#ce-que-jai-mesuré">4. Ce que j’ai mesuré</a></li>
+  <li><a href="#ce-que-jai-trouvé" id="toc-ce-que-jai-trouvé" class="nav-link" data-scroll-target="#ce-que-jai-trouvé">5. Ce que j’ai trouvé</a></li>
+  <li><a href="#ce-qui-na-pas-marché" id="toc-ce-qui-na-pas-marché" class="nav-link" data-scroll-target="#ce-qui-na-pas-marché">6. Ce qui n’a pas marché</a></li>
+  <li><a href="#ce-que-cela-ne-montre-pas" id="toc-ce-que-cela-ne-montre-pas" class="nav-link" data-scroll-target="#ce-que-cela-ne-montre-pas">7. Ce que cela ne montre pas</a></li>
+  </ul></li>
+  <li><a href="#partie-iii-dépasser-la-limite" id="toc-partie-iii-dépasser-la-limite" class="nav-link" data-scroll-target="#partie-iii-dépasser-la-limite">Partie III · Dépasser la limite</a>
+  <ul class="collapse">
+  <li><a href="#voir-à-lintérieur-de-nimporte-quel-générateur" id="toc-voir-à-lintérieur-de-nimporte-quel-générateur" class="nav-link" data-scroll-target="#voir-à-lintérieur-de-nimporte-quel-générateur">8. Voir à l’intérieur de n’importe quel générateur</a></li>
+  <li><a href="#pas-besoin-dune-grosse-machine" id="toc-pas-besoin-dune-grosse-machine" class="nav-link" data-scroll-target="#pas-besoin-dune-grosse-machine">9. Pas besoin d’une grosse machine</a></li>
+  </ul></li>
+  <li><a href="#partie-iv-ce-que-lia-a-rendu-possible" id="toc-partie-iv-ce-que-lia-a-rendu-possible" class="nav-link" data-scroll-target="#partie-iv-ce-que-lia-a-rendu-possible">Partie IV · Ce que l’IA a rendu possible</a>
+  <ul class="collapse">
+  <li><a href="#un-partenaire-de-laboratoire-pas-un-oracle" id="toc-un-partenaire-de-laboratoire-pas-un-oracle" class="nav-link" data-scroll-target="#un-partenaire-de-laboratoire-pas-un-oracle">10. Un partenaire de laboratoire, pas un oracle</a></li>
+  <li><a href="#linnovation-est-dans-la-question" id="toc-linnovation-est-dans-la-question" class="nav-link" data-scroll-target="#linnovation-est-dans-la-question">11. L’innovation est dans la question</a></li>
+  </ul></li>
+  <li><a href="#partie-v-retour-au-début" id="toc-partie-v-retour-au-début" class="nav-link" data-scroll-target="#partie-v-retour-au-début">Partie V · Retour au début</a>
+  <ul class="collapse">
+  <li><a href="#un-très-bon-milieu" id="toc-un-très-bon-milieu" class="nav-link" data-scroll-target="#un-très-bon-milieu">12. Un très bon milieu</a></li>
+  <li><a href="#essayez-vous-même" id="toc-essayez-vous-même" class="nav-link" data-scroll-target="#essayez-vous-même">13. Essayez vous-même</a></li>
+  <li><a href="#pour-aller-plus-loin" id="toc-pour-aller-plus-loin" class="nav-link" data-scroll-target="#pour-aller-plus-loin">Pour aller plus loin</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Décidé dans le volume, écrit sur le bord</h1>
+<p class="subtitle lead">Une question de physique, un générateur d’images, et une soirée avec un partenaire de laboratoire IA</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">recherche</div>
+    <div class="quarto-category">physique</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Ce qu’un article de physique m’a appris sur la façon dont l’IA fabrique des images, une expérience menée en une soirée sur deux cœurs de CPU, et ce qu’un partenaire de laboratoire IA a rendu possible.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">16 octobre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, octobre 2026.</strong> La suite d’<a href="../../../fr/posts/2026-10-15-a-universe-without-a-bottom/index.html">Un univers sans fond</a>. Tout est ouvert&nbsp;: <a href="../../../posts/2026-10-16-decided-in-the-bulk/noise-to-boundaries.zip" download="noise-to-boundaries.zip">télécharger le code et les résultats</a> (zip, 2 Mo), <a href="https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries">les parcourir sur GitHub</a>, ou lire le <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf">document de travail</a> (PDF, 4 pages, en anglais). Les figures et le code sont en anglais. <em>Traduit de l’anglais&nbsp;: <a href="../../../posts/2026-10-16-decided-in-the-bulk/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Un article de physique sur la façon dont une structure apparaît à partir d’un désordre complet m’a fait poser une question que je pouvais vraiment tester&nbsp;: pendant qu’un générateur d’images IA transforme du bruit en image, où vit l’information de l’image, à l’intérieur d’une région ou sur son bord ? J’ai mené l’expérience en une soirée, sur deux cœurs de CPU, avec une IA comme partenaire de laboratoire. Les images terminées suivent une <em>loi d’aire</em>&nbsp;: l’information vit sur les bords. Mais en chemin, les grandes décisions sont d’abord prises sur toute l’image, et ne se posent que plus tard sur les contours. J’ai aussi trouvé une façon de mesurer cela à l’intérieur de n’importe quel générateur d’images, en n’utilisant que sa capacité à enlever du bruit, et je l’ai vérifiée contre des réponses exactes. Rien de tout cela n’est mon domaine. Ce sur quoi je veux insister, c’est comment cela a été possible.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Les chiffres manuscrits terminés suivent une loi d’aire (β = 1,07)&nbsp;: ce qu’une zone partage avec le reste de l’image croît avec son bord.</li>
+<li>Dans la phase bruitée du début, la vraie structure ajoute jusqu’à 2,4 fois plus d’information partagée qu’un témoin, et elle croît plutôt comme la taille de la zone. La structure est décidée dans le volume et écrite sur le bord.</li>
+<li>Le changement est progressif. Une «&nbsp;transition brutale&nbsp;» vue dans un premier essai était du bruit, et a disparu quand je l’ai répété.</li>
+<li>La même information peut être lue à partir des seules erreurs de débruitage (écart médian de 3&nbsp;% par rapport aux valeurs exactes), si bien que la méthode peut être appliquée à de vrais générateurs d’images entraînés.</li>
+<li>Un partenaire de laboratoire IA ne m’a pas donné les réponses. Il m’a permis de bien poser la question&nbsp;: construire, lancer, vérifier, critiquer, et jeter ce qui ne tient pas.</li>
+</ul>
+</div>
+</div>
+<section id="partie-i-du-cosmos-au-code" class="level1">
+<h1>Partie I · Du cosmos au code</h1>
+<section id="ça-doit-être-plus-simple-que-ça" class="level2">
+<h2 class="anchored" data-anchor-id="ça-doit-être-plus-simple-que-ça">1. Ça doit être plus simple que ça</h2>
+<p>J’ai récemment raconté la lecture d’un article de physique que je n’arrivais pas à suivre&nbsp;: <em>Holograms and Standard Models</em>, de Miyashita, Sekino et Susskind. Ma première réaction a été simple. Quelque chose ne va pas. Ça doit être plus facile. Je crois que l’univers est fondamentalement simple.</p>
+<p>Cet essai finissait en philosophie. Des grains dans des grains, le rien qui crée tout, et l’idée que le sens est au milieu.</p>
+<p>Celui-ci finit en expérience.</p>
+<p>Je suis architecte logiciel, pas physicien. Mais je revenais sans cesse à une idée de cet article, et un soir, je me suis posé une autre question&nbsp;: pourrais-je vraiment tester quelque chose ? Pas sur l’univers. Sur les systèmes d’IA avec lesquels je travaille tous les jours.</p>
+</section>
+<section id="la-surface-sait-tout" class="level2">
+<h2 class="anchored" data-anchor-id="la-surface-sait-tout">2. La surface sait tout</h2>
+<p>L’idée qui est restée est le <em>principe holographique</em>. Dans les années 1970, Bekenstein et Hawking ont découvert que l’information qu’un trou noir peut contenir dépend de l’aire de sa surface, et non de son volume. Doublez sa taille, et son information est multipliée par quatre, pas par huit.</p>
+<p>Les physiciens ont trouvé le même motif ailleurs. Dans beaucoup de systèmes, l’information partagée entre une région et tout ce qui l’entoure croît avec le bord de la région. Ils appellent cela une <em>loi d’aire</em>. Quand elle croît plutôt avec la taille de la région, c’est une <em>loi de volume</em>.</p>
+<p>Susskind et ses collègues vont plus loin. Ils construisent un petit monde de particules et de forces à partir d’un système à température infinie, l’état de désordre maximal, ce qui ressemble le plus à «&nbsp;rien&nbsp;» dans ce que permet la physique. De la structure à partir de rien, organisée sur une surface.</p>
+<p>Je ne pouvais pas vérifier leurs mathématiques. Mais leur question me semblait générale&nbsp;: <em>quand une structure apparaît à partir d’un désordre complet, où vit son information ?</em></p>
+</section>
+<section id="une-machine-qui-construit-de-la-structure-à-partir-du-désordre" class="level2">
+<h2 class="anchored" data-anchor-id="une-machine-qui-construit-de-la-structure-à-partir-du-désordre">3. Une machine qui construit de la structure à partir du désordre</h2>
+<p>Puis j’ai réalisé que je connaissais déjà une machine qui construit de la structure à partir du désordre.</p>
+<p>Les générateurs d’images comme Stable Diffusion sont des <em>modèles de diffusion</em>. Ils partent d’un bruit purement aléatoire, ce même état de désordre maximal, et enlèvent le bruit étape par étape jusqu’à ce qu’une image apparaisse. Un visage, un chat, un chiffre manuscrit.</p>
+<p>L’univers nous offre une seule exécution, vue de l’intérieur, surtout à travers un horizon. Un modèle de diffusion nous en offre autant que nous voulons, et nous pouvons l’arrêter à tout moment pour regarder.</p>
+<p>La question est donc devenue concrète. Pendant qu’une image se forme à partir du bruit, l’information partagée entre une zone de l’image et le reste croît-elle avec le bord de la zone, ou avec sa taille ? Aire ou volume ? Et cela change-t-il en chemin ?</p>
+</section>
+</section>
+<section id="partie-ii-lexpérience" class="level1">
+<h1>Partie II · L’expérience</h1>
+<section id="ce-que-jai-mesuré" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-jai-mesuré">4. Ce que j’ai mesuré</h2>
+<p>La mesure est simple à énoncer. Prenez une zone carrée d’une image. Demandez-vous à quel point connaître le reste de l’image vous renseigne sur cette zone. Les physiciens appellent cela l’<em>information mutuelle</em>. Puis agrandissez la zone et regardez comment ce nombre croît.</p>
+<p>S’il croît comme le bord de la zone, c’est une loi d’aire. S’il croît comme le nombre de pixels à l’intérieur, c’est une loi de volume. Je résume la croissance par un seul nombre, β, tiré de</p>
+<p><span class="math display">
+I(L) \propto L^{\beta},
+</span></p>
+<p>où <span class="math inline">L</span> est le côté de la zone en pixels&nbsp;: β proche de 1 veut dire loi d’aire, proche de 2 loi de volume.</p>
+<p>Je n’ai pas utilisé de réseau de neurones géant. J’ai utilisé quelque chose que je pouvais calculer exactement&nbsp;: un modèle statistique de chiffres manuscrits (le jeu de données classique MNIST) construit à partir de 40 pièces simples, quatre par chiffre. Il apprend une vraie structure ; sur des images qu’il n’a jamais vues, il est bien meilleur qu’un modèle simple. Et pour ce genre de modèle, chaque étape entre le bruit et l’image terminée peut être calculée précisément, sans bruit d’entraînement et sans approximation.</p>
+<p>La partie la plus importante est la comparaison. Pour chaque mesure, j’ai aussi construit un <em>témoin</em>&nbsp;: un modèle beaucoup plus simple, qui a exactement les mêmes corrélations entre pixels mais aucune vraie structure. Pas de traits, pas de chiffres, juste un flou statistique lisse. Tout ce que fait le vrai modèle et que le témoin ne fait pas vient d’une vraie structure. Sans ce témoin, je me serais trompé moi-même au moins deux fois.</p>
+</section>
+<section id="ce-que-jai-trouvé" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-jai-trouvé">5. Ce que j’ai trouvé</h2>
+<p><strong>Les chiffres terminés suivent une loi d’aire.</strong> À la fin de la génération, β vaut 1,07. L’information qu’une zone partage avec le reste de l’image croît avec son bord.</p>
+<p><strong>Mais en chemin, il se passe autre chose.</strong> Dans la phase bruitée du début, le vrai modèle porte jusqu’à 2,4 fois plus d’information partagée que le témoin, et cette information supplémentaire croît plutôt comme la <em>taille</em> de la zone que comme son bord. À mesure que l’image se précise, l’information supplémentaire se déplace vers les bords, et les deux courbes se rejoignent (Figure 1).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" class="img-fluid figure-img" alt="À gauche&nbsp;: neuf chiffres manuscrits générés. À droite&nbsp;: l'exposant bêta en fonction de la part du signal. Le modèle appris (bleu) reste bien au-dessus du témoin gaussien (orange) dans la phase bruitée ; les deux descendent vers 1,07 pour les chiffres terminés."></p>
+<figcaption><strong>Figure 1.</strong> À gauche&nbsp;: des chiffres générés par le modèle appris. À droite&nbsp;: l’exposant β le long du chemin de génération, du bruit fort (à gauche) à l’image terminée (à droite). Le vrai modèle (bleu) porte une information supplémentaire, de type volume, dans la phase bruitée, bien au-dessus du témoin aux mêmes corrélations entre pixels (orange). Les deux convergent vers une loi d’aire, β = 1,07 pour les chiffres terminés.</figcaption>
+</figure>
+</div>
+<p>Voici comment je le lis. Au début, le modèle décide les grandes choses&nbsp;: quel chiffre, à peu près où, dans quel sens il penche. C’est un fait qui concerne toute l’image, et chaque pixel en porte un petit indice, donc cela croît avec la taille. Plus tard, le modèle dessine les détails&nbsp;: les traits, les contours, là où le noir rencontre le blanc. Ce sont des choses locales, et elles vivent sur les bords.</p>
+<p>Ou, en une ligne&nbsp;: <strong>la structure est décidée dans le volume et écrite sur le bord.</strong></p>
+</section>
+<section id="ce-qui-na-pas-marché" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-na-pas-marché">6. Ce qui n’a pas marché</h2>
+<p>Je m’attendais à une bascule brutale, comme l’eau qui devient glace, à un moment précis. Un premier essai grossier semblait en montrer une. Quand je l’ai répété avec onze niveaux de bruit et trois exécutions indépendantes, le saut a disparu. Le changement est progressif (Figure 2). La «&nbsp;bascule brutale&nbsp;» était du bruit dans une seule exécution.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-10-16-decided-in-the-bulk/figures/fig02.png" class="img-fluid figure-img" alt="Deux panneaux avec barres d'erreur. a&nbsp;: l'exposant total descend progressivement d'environ 1,4 à 1,1, au-dessus du témoin. b&nbsp;: l'excès par rapport au témoin descend d'une valeur proche de la loi de volume, environ 1,7, vers la loi d'aire."></p>
+<figcaption><strong>Figure 2.</strong> La même mesure sur une grille fine de niveaux de bruit, répétée trois fois avec des ajustements de modèle et des échantillons indépendants (barres&nbsp;: ±2 écarts types). <strong>a.</strong> L’information totale converge progressivement vers une loi d’aire ; il n’y a pas de saut brutal. <strong>b.</strong> La part qui vient de la vraie structure, au-delà du témoin, commence près d’une loi de volume et va vers une loi d’aire à mesure que l’image se précise.</figcaption>
+</figure>
+</div>
+<p>Je le garde dans l’histoire parce que c’est exactement le genre d’erreur facile à publier et difficile à retirer.</p>
+</section>
+<section id="ce-que-cela-ne-montre-pas" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-cela-ne-montre-pas">7. Ce que cela ne montre pas</h2>
+<p>J’ai demandé une revue sévère de mes propres résultats, du genre qu’écrirait un relecteur. Voici ce qui tient moins bien que je le voudrais.</p>
+<ul>
+<li><strong>La loi d’aire seule n’est pas surprenante.</strong> Toute image dont les pixels sont surtout corrélés à leurs voisins donne une loi d’aire. Les physiciens le savent depuis des années. La nouveauté n’est pas la loi d’aire finale, mais la structure supplémentaire et la façon dont elle passe du volume au bord.</li>
+<li><strong>Cela décrit les données, pas le réseau.</strong> Comme j’ai tout calculé exactement, les résultats décrivent à quoi ressemblent des chiffres bruités à chaque étape, ce qui est pareil pour tout générateur parfait. Pour dire comment se comportent de vrais réseaux de neurones, il faut en tester un qui a été entraîné.</li>
+<li><strong>Les images sont minuscules.</strong> À 28×28 pixels, je ne peux comparer que des zones de 2 à 12 pixels de large. C’est moins d’un ordre de grandeur, et la bordure blanche de chaque chiffre déforme les grandes zones.</li>
+<li><strong>La physique est une analogie.</strong> La surface d’un trou noir et le bord d’une zone d’image ne sont pas la même chose. Le parallèle est suggestif, et testable, mais il ne prouve rien sur l’univers.</li>
+</ul>
+<p>Rien de tout cela ne rend le travail inutile. Cela me dit exactement quoi faire ensuite.</p>
+</section>
+</section>
+<section id="partie-iii-dépasser-la-limite" class="level1">
+<h1>Partie III · Dépasser la limite</h1>
+<section id="voir-à-lintérieur-de-nimporte-quel-générateur" class="level2">
+<h2 class="anchored" data-anchor-id="voir-à-lintérieur-de-nimporte-quel-générateur">8. Voir à l’intérieur de n’importe quel générateur</h2>
+<p>La deuxième limite me gênait le plus. Ma méthode exacte ne fonctionne que sur des modèles simples. Les vrais générateurs, ceux que les gens utilisent réellement, sont des réseaux de neurones géants où rien ne peut être calculé exactement.</p>
+<p>Puis je suis tombé sur un résultat de théorie de l’information, de 2005, de Guo, Shamai et Verdú. Il relie l’information à <em>la difficulté d’enlever du bruit</em>. Appliqué à ma question, il dit quelque chose que je trouve beau&nbsp;:</p>
+<blockquote class="blockquote">
+<p>L’information qu’une zone partage avec le reste de l’image est égale à ce que voir le reste vous aide à nettoyer cette zone, additionné sur tous les niveaux de bruit.</p>
+</blockquote>
+<p>En symboles, avec <span class="math inline">A</span> la zone, <span class="math inline">B</span> le reste de l’image et <span class="math inline">\text{mmse}</span> l’erreur du meilleur débruiteur possible à un rapport signal sur bruit <span class="math inline">\gamma</span> donné&nbsp;:</p>
+<p><span class="math display">
+I(A;B) = \frac{1}{2}\int_0^{\text{snr}} \Big[\, \text{mmse}_A(\gamma) + \text{mmse}_B(\gamma) - \text{mmse}_{A \cup B}(\gamma) \,\Big]\, d\gamma
+</span></p>
+<p>Cela compte, parce qu’enlever du bruit est exactement ce qu’un modèle de diffusion apprend à faire. En principe, on pourrait donc mesurer la carte de l’information de <em>n’importe quel</em> générateur simplement en lui demandant de débruiter une zone deux fois&nbsp;: une fois en ne voyant que la zone, une fois en voyant toute l’image.</p>
+<p>J’ai testé cela sur mon modèle de chiffres, où je connaissais déjà la réponse exacte. Les deux voies concordent, avec un écart médian de 3&nbsp;% sur 32 comparaisons (tailles de zone de 2 à 12 pixels, niveaux de bruit de fort à faible). Le plus grand écart était de 14&nbsp;%, sur une zone très petite et très bruitée (Figure 3).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../../../posts/2026-10-16-decided-in-the-bulk/figures/fig03.png" class="img-fluid figure-img" alt="Nuage de 32 points en échelle log-log, l'information tirée des erreurs de débruitage contre l'information mutuelle exacte, tous proches de la ligne pointillée de concordance parfaite."></p>
+<figcaption><strong>Figure 3.</strong> L’information mesurée à partir des seules erreurs de débruitage (vertical) contre la valeur exacte (horizontal), pour 32 combinaisons de taille de zone et de niveau de bruit. Les points sur la ligne pointillée concordent parfaitement. L’écart médian est de 3,1&nbsp;%.</figcaption>
+</figure>
+</div>
+<p>C’est la partie que je trouve la plus précieuse. Les calculs exacts deviennent une <em>vérité de référence</em> pour vérifier une méthode qui peut passer à l’échelle des vrais modèles. La prochaine étape est de la lancer sur un réseau de neurones entraîné. Il faut pour cela un modèle capable de débruiter avec une partie de l’image cachée, ce que beaucoup de générateurs d’images savent déjà faire.</p>
+</section>
+<section id="pas-besoin-dune-grosse-machine" class="level2">
+<h2 class="anchored" data-anchor-id="pas-besoin-dune-grosse-machine">9. Pas besoin d’une grosse machine</h2>
+<p>Tout ce qui est dans cet essai a tourné sur deux cœurs de CPU. Pas de GPU, pas de grappe dans le cloud, pas de modèle géant téléchargé. L’exécution la plus longue a pris environ sept minutes.</p>
+<p>À un moment, on m’a dit que la prochaine étape demandait un GPU. J’ai résisté&nbsp;: pourquoi une question aurait-elle besoin d’une grosse machine ? La réponse honnête était qu’une seule affirmation précise en a besoin, celle sur les réseaux de neurones entraînés. Tout le reste, les calculs exacts, les témoins, les exécutions répétées, tient sur un ordinateur portable. Une partie de la meilleure physique jamais faite était de la physique sur table. Une petite expérience bien contrôlée vaut mieux qu’une grande expérience bâclée.</p>
+</section>
+</section>
+<section id="partie-iv-ce-que-lia-a-rendu-possible" class="level1">
+<h1>Partie IV · Ce que l’IA a rendu possible</h1>
+<section id="un-partenaire-de-laboratoire-pas-un-oracle" class="level2">
+<h2 class="anchored" data-anchor-id="un-partenaire-de-laboratoire-pas-un-oracle">10. Un partenaire de laboratoire, pas un oracle</h2>
+<p>Je dois être transparent sur la façon dont cela a été fait. Je l’ai fait en une soirée avec Claude, l’IA d’Anthropic, comme partenaire de laboratoire. J’ai apporté les questions et l’obstination ; elle a écrit et lancé le code, cherché dans la littérature et, surtout, revu les résultats sévèrement quand je le lui demandais. Elle a aussi repéré ses propres erreurs&nbsp;: un modèle qui paraissait meilleur qu’il ne l’était, une légende de graphique qui exagérait un résultat, une «&nbsp;transition brutale&nbsp;» qui n’existait pas.</p>
+<p>Reprenez le chemin de cet essai et comptez les étapes qui m’auraient arrêté seul&nbsp;:</p>
+<ul>
+<li><strong>D’un sentiment à une question mesurable.</strong> «&nbsp;Ça doit être plus simple&nbsp;» n’est pas une hypothèse. La transformer en «&nbsp;l’information mutuelle croît-elle avec le bord ou avec la taille, et cela change-t-il le long du chemin de génération ?&nbsp;» a demandé une conversation, pas un diplôme.</li>
+<li><strong>D’une question à du code qui tourne.</strong> L’information mutuelle exacte pour un modèle de mélange de 784 pixels, des estimations de Monte-Carlo avec barres d’erreur, un témoin honnête. Chacun représente une semaine de lecture pour quelqu’un d’extérieur. Ici, chacun était un script que je pouvais lire, lancer et questionner en quelques minutes.</li>
+<li><strong>D’un résultat à un résultat auquel je fais confiance.</strong> Le modèle témoin, les trois exécutions indépendantes, la grille fine de niveaux de bruit&nbsp;: ils existent parce que je demandais sans cesse «&nbsp;comment est-ce que je pourrais me tromper ici ?&nbsp;», et les réponses revenaient sous forme d’expériences, pas d’opinions.</li>
+<li><strong>D’une impasse à une piste.</strong> La méthode qui fonctionne sur de vrais générateurs vient d’un article de théorie de l’information de 2005 dont je n’avais jamais entendu parler. Le trouver, comprendre ce qu’il dit de ma question et le tester contre les valeurs exactes, tout s’est passé dans la même soirée.</li>
+<li><strong>D’une affirmation à une affirmation plus petite et honnête.</strong> La revue sévère a fait descendre la loi d’aire de son piédestal et a laissé debout la partie la plus intéressante. La question du GPU a transformé «&nbsp;il faut une grosse machine&nbsp;» en «&nbsp;seule cette affirmation-là en a besoin&nbsp;».</li>
+</ul>
+<p>Aucune de ces étapes n’est de la science nouvelle en soi. Ce qui est nouveau, pour moi, c’est qu’elles peuvent s’enchaîner à la vitesse de la curiosité. La distance entre «&nbsp;je me demande si…&nbsp;» et «&nbsp;voici le graphique, voici le témoin, voici pourquoi c’est peut-être faux&nbsp;» se comptait en mois, et pour quelqu’un d’extérieur au domaine, elle était généralement infinie. Ce soir-là, elle se comptait en heures.</p>
+</section>
+<section id="linnovation-est-dans-la-question" class="level2">
+<h2 class="anchored" data-anchor-id="linnovation-est-dans-la-question">11. L’innovation est dans la question</h2>
+<p>C’est la partie de l’IA que je trouve la plus intéressante. Non pas qu’elle réponde, mais qu’elle permette à quelqu’un comme moi de <em>bien poser la question</em>&nbsp;: mener l’expérience, la vérifier, et jeter ce qui ne tient pas.</p>
+<p>On est tenté de dire que l’IA produira de nouvelles idées toute seule. Je ne pense pas que ce soit ce qui s’est passé ici. La question est venue de moi, en lisant un article que je n’arrivais pas à suivre et en refusant de le laisser tomber. La direction a changé trois fois à cause de choix de jugement&nbsp;: exiger un témoin, se méfier d’un saut qui semblait trop beau, refuser d’accepter qu’une question ait besoin d’une grosse machine. Ce que l’IA a supprimé, c’est le coût de chaque étape intermédiaire. Quand essayer une idée coûte des minutes au lieu de semaines, on en essaie davantage, on tue les mauvaises plus tôt, et les bonnes sont poussées plus loin qu’on ne les aurait jamais poussées seul.</p>
+<p>Cela change aussi ce que la rigueur veut dire pour quelqu’un d’extérieur. Le danger d’un partenaire rapide, c’est d’aller vite dans la mauvaise direction, et une IA sûre d’elle peut donner à un résultat faux l’air d’être terminé. La défense est la même que dans n’importe quel laboratoire&nbsp;: des témoins, des exécutions répétées, un relecteur payé pour être désagréable, et tout publier pour que d’autres puissent vérifier. L’IA peut aussi jouer le relecteur, si on le lui demande. Il faut le demander.</p>
+</section>
+</section>
+<section id="partie-v-retour-au-début" class="level1">
+<h1>Partie V · Retour au début</h1>
+<section id="un-très-bon-milieu" class="level2">
+<h2 class="anchored" data-anchor-id="un-très-bon-milieu">12. Un très bon milieu</h2>
+<p>Je suis parti d’un sentiment&nbsp;: l’univers doit être plus simple que cet article. Je le crois toujours. Mais je vois maintenant que simple ne veut pas dire facile, et ne veut pas dire achevé.</p>
+<p>Dans mon dernier essai, j’écrivais que «&nbsp;de rien à rien&nbsp;» oublie le milieu, et que le milieu, c’est tout. Cette expérience est une petite version de cette idée. Une machine part du bruit, de rien. Elle finit avec un chiffre, une chose terminée. Et entre les deux, il y a un moment où les grandes décisions sont prises partout à la fois, avant de se poser tranquillement sur les contours.</p>
+<p>Je ne sais pas si l’univers fonctionne ainsi. Je sais qu’une question posée un soir tranquille peut devenir quelque chose que l’on peut mesurer. Ce n’est la fin de rien. C’est un très bon milieu.</p>
+</section>
+<section id="essayez-vous-même" class="level2">
+<h2 class="anchored" data-anchor-id="essayez-vous-même">13. Essayez vous-même</h2>
+<p>Tout est ouvert. Vous pouvez recalculer chaque chiffre et chaque figure de cet essai sur un ordinateur portable ordinaire en une demi-heure environ.</p>
+<ul>
+<li><strong>Code et résultats&nbsp;:</strong> <a href="../../../posts/2026-10-16-decided-in-the-bulk/noise-to-boundaries.zip" download="noise-to-boundaries.zip">télécharger en zip</a>, ou <a href="https://github.com/scuenat/scuenat.github.io/tree/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries">parcourir sur GitHub</a>. Il contient tous les scripts, les fichiers de résultats, les figures, et un <code>run_all.sh</code> qui reproduit tout. La seule chose à télécharger est le jeu de données MNIST (environ 11 Mo) ; le <a href="https://github.com/scuenat/scuenat.github.io/blob/main/posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/README.md">README</a> donne le lien. Licence MIT.</li>
+<li><strong>Document de travail&nbsp;:</strong> <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/paper/From_Noise_to_Boundaries_Cuenat_2026.pdf"><em>From Noise to Boundaries: Area-Law Information Scaling Along the Diffusion Path</em></a>, une version technique de quatre pages, en anglais, avec les équations et les références.</li>
+<li><strong>Prérequis&nbsp;:</strong> Python avec NumPy, SciPy, scikit-learn et Matplotlib. Pas de GPU.</li>
+</ul>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Étape</th>
+<th>Script</th>
+<th>Ce qu’il fait</th>
+<th>Durée (2 cœurs de CPU)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/area_law_pilot.py"><code>area_law_pilot.py</code></a></td>
+<td>Vérification de la méthode sur des champs au comportement connu</td>
+<td>~15 s</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mixture_pilot.py"><code>mixture_pilot.py</code></a></td>
+<td>Données synthétiques à 16 classes contre leur témoin</td>
+<td>~20 s</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/digits_fit.py"><code>digits_fit.py</code></a>, <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/digits_mi.py"><code>digits_mi.py</code></a></td>
+<td>Petits chiffres 8×8</td>
+<td>~30 s</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_model.py"><code>mnist_model.py</code></a></td>
+<td>Ajuster le modèle MNIST à 40 pièces ; le vérifier sur des images non vues</td>
+<td>~40 s</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_mi.py"><code>mnist_mi.py</code></a></td>
+<td>MNIST le long de tout le chemin de génération (Figure 1)</td>
+<td>~5 min</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/mnist_fine.py"><code>mnist_fine.py</code></a></td>
+<td>Grille de bruit fine, trois exécutions indépendantes (Figure 2)</td>
+<td>~5 min</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td><a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/immse_validation.py"><code>immse_validation.py</code></a>, <a href="../../../posts/2026-10-16-decided-in-the-bulk/code/noise-to-boundaries/src/immse_compare.py"><code>immse_compare.py</code></a></td>
+<td>Information tirée des erreurs de débruitage contre les valeurs exactes (Figure 3)</td>
+<td>~7 min</td>
+</tr>
+</tbody>
+</table>
+<p>Si vous travaillez sur les modèles de diffusion, la théorie de l’information ou la physique de l’apprentissage, j’aimerais beaucoup avoir votre critique, en particulier sur la méthode des erreurs de débruitage et sur la façon de la tester sur un réseau entraîné. Et si vous êtes, comme moi, quelqu’un d’extérieur au domaine avec une question qui ne vous lâche pas&nbsp;: essayez. Vous n’avez peut-être pas besoin d’une plus grosse machine. Vous avez peut-être seulement besoin d’une plus petite expérience, et d’un bon partenaire pour la mener.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-15-a-universe-without-a-bottom/index.html">Un univers sans fond</a><br>
+La soirée avec un article de physique qui a lancé cette expérience.</p>
+</div>
+</section>
+<section id="pour-aller-plus-loin" class="level2">
+<h2 class="anchored" data-anchor-id="pour-aller-plus-loin">Pour aller plus loin</h2>
+<div class="small">
+<ul>
+<li>Bekenstein, J. D. (1973). Black holes and entropy. <em>Physical Review D</em>, 7(8), 2333–2346.</li>
+<li>Biroli, G., Bonnaire, T., de Bortoli, V., &amp; Mézard, M. (2024). <a href="https://arxiv.org/abs/2402.18491">Dynamical regimes of diffusion models</a>. <em>Nature Communications</em>, 15.</li>
+<li>Guo, D., Shamai, S., &amp; Verdú, S. (2005). Mutual information and minimum mean-square error in Gaussian channels. <em>IEEE Transactions on Information Theory</em>, 51(4), 1261–1282.</li>
+<li>LeCun, Y., Bottou, L., Bengio, Y., &amp; Haffner, P. (1998). Gradient-based learning applied to document recognition. <em>Proceedings of the IEEE</em>, 86(11), 2278–2324.</li>
+<li>Miyashita, S., Sekino, Y., &amp; Susskind, L. (2026). <a href="https://arxiv.org/abs/2607.05678">Holograms and Standard Models</a>. arXiv:2607.05678.</li>
+<li>Sclocchi, A., Favero, A., &amp; Wyart, M. (2025). <a href="https://arxiv.org/abs/2402.16991">A phase transition in diffusion models reveals the hierarchical nature of data</a>. <em>PNAS</em>.</li>
+</ul>
+</div>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Décidé dans le volume, écrit sur le bord},
+  date = {2026-10-16},
+  url = {https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/},
+  langid = {fr}
+}
+</code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Décidé dans le volume, écrit sur le
+bord.”</span> October 16. <a href="https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/">https://scuenat.github.io/fr/posts/2026-10-16-decided-in-the-bulk/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "About": ["À propos", "/fr/about.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
