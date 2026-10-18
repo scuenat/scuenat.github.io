@@ -31,6 +31,11 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 - Analytics: GoatCounter (https://scuenat.goatcounter.com)
 - Math: `$inline$` and `$$display$$` (KaTeX)
 
+## License
+
+- Essays, papers and figures: [CC BY 4.0](LICENSE-content.md)
+- Code: [MIT](LICENSE)
+
 ## Optional
 
 - **Comments:** set up https://giscus.app, then uncomment the block in `posts/_metadata.yml`
