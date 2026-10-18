@@ -1,0 +1,138 @@
+---
+title: "Fast AI"
+subtitle: "Apprendre lentement, une fois. Agir vite, à chaque fois."
+description: "Utiliser le grand modèle pour construire la mémoire, pas pour la remplacer. Laisser l'apprentissage profond percevoir et les arbres décider. Garder la boucle pour les exceptions."
+date: 2026-10-11T14:00
+categories: [essai, ia, automatisation]
+image: ../../../posts/2026-10-11-fast-ai/figures/fig03.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essai, octobre 2026.** Le code des figures est ici : [figs.py](../../../posts/2026-10-11-fast-ai/figs.py). Les figures sont en anglais. *Traduit de l'anglais : [version originale](../../../posts/2026-10-11-fast-ai/index.qmd).*
+:::
+
+**En bref.** Les experts apprennent lentement, une fois, puis agissent vite, par habitude. La plupart des automatisations par IA font aujourd'hui l'inverse : un agent raisonne à partir de zéro à chaque exécution, ce qui accumule les erreurs, coûte du temps et oublie ce qu'il a appris. Fast AI utilise le grand modèle avant la boucle, comme un compilateur : il construit une fois une mémoire structurée, puis des modèles rapides et explicables font tourner le processus. La boucle agentique est gardée pour les exceptions, et ce qu'elle y apprend devient la prochaine habitude.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## À retenir
+
+- Une boucle agentique interprète la tâche à chaque exécution. Fast AI la compile.
+- Utiliser le grand modèle pour construire la mémoire, un graphe de connaissances que les experts peuvent inspecter et corriger, pas pour la remplacer.
+- Laisser l'apprentissage profond percevoir et les arbres décider.
+- Garder la boucle pour les exceptions, et réinjecter ce qu'elle apprend dans la mémoire.
+- Cela ne vaut la peine que pour un travail qui se répète ; pour les problèmes ponctuels, l'agent est le bon outil.
+:::
+
+## 1. Apprendre est lent, les habitudes sont rapides
+
+Pensez à un comptable débutant pendant sa première semaine. Chaque facture est une petite enquête. Il la lit ligne par ligne, vérifie le contrat, cherche le fournisseur, demande à un collègue à quel budget elle appartient. Dix ans plus tard, la même personne jette un coup d'œil à une facture et sait. Elle n'est pas devenue un penseur plus rapide. Elle a transformé des années d'apprentissage lent en habitudes rapides.
+
+C'est ainsi que fonctionne l'expertise, chez les humains et chez la plupart des êtres vivants. Apprendre est lent et délibéré, et cela arrive rarement. Agir est rapide et presque automatique, et cela arrive en permanence. La partie lente construit une structure ; la partie rapide l'utilise. Quand quelque chose de vraiment nouveau apparaît, l'expert ralentit à nouveau, réfléchit, et si la leçon vaut la peine d'être gardée, elle devient une nouvelle habitude.
+
+![**Figure 1.** Schéma. L'effort qu'un expert consacre à un cas courant diminue à mesure que l'apprentissage lent devient habitude rapide. Quand quelque chose de vraiment nouveau apparaît, l'expert ralentit à nouveau, et la leçon devient la prochaine habitude.](../../../posts/2026-10-11-fast-ai/figures/fig01.png){fig-alt="Courbe de l'effort par facture en fonction des années d'expérience : élevé la première semaine, il tombe presque à zéro, avec trois pics brusques quand quelque chose de nouveau apparaît, jusqu'au simple coup d'œil dix ans plus tard."}
+
+J'appelle cette idée **Fast AI**. Non pas rapide parce que le matériel est rapide, mais rapide parce que la réflexion a déjà été faite.
+
+## 2. L'agent qui relit le manuel chaque matin
+
+Regardons maintenant comment nous construisons aujourd'hui l'automatisation avec l'IA.
+
+L'agent typique reçoit une tâche, lit le contexte, réfléchit à ce qu'il faut faire, appelle un outil, lit le résultat, réfléchit encore, appelle un autre outil, et continue jusqu'à ce qu'il estime la tâche terminée. C'est impressionnant à regarder. C'est aussi un employé qui arrive chaque matin sans mémoire et relit tout le manuel avant de toucher à quoi que ce soit.
+
+Pour les processus d'automatisation, cela a quatre coûts.
+
+- **Les erreurs s'accumulent.** Si chaque étape est juste 95 % du temps, une boucle de 20 étapes n'est entièrement juste qu'environ 36 % du temps (0,95 à la puissance 20). Les agents ajoutent des vérifications et des nouvelles tentatives pour compenser, ce qui ajoute des étapes, du temps et des coûts.
+- **C'est lent.** Chaque étape est un appel à un grand modèle qui prend des secondes. Un processus qui tourne dix mille fois par jour paie ce prix dix mille fois, pour un raisonnement presque identique à celui de la veille.
+- **Ce n'est pas reproductible.** Donnez deux fois la même entrée, et l'agent peut prendre un chemin différent. Dans un travail réglementé, la question n'est pas seulement « la réponse est-elle juste ? », mais « donnerait-il la même réponse demain, et pouvez-vous me montrer pourquoi ? ». Une boucle de raisonnement en texte libre est difficile à auditer et plus difficile encore à certifier.
+- **Rien ne s'accumule.** Ce que l'agent a compris lundi a disparu mardi, à moins que quelqu'un ne construise une mémoire autour. L'intelligence est dépensée, pas investie.
+
+![**Figure 2.** Les erreurs s'accumulent. La probabilité que chaque étape d'une boucle soit juste chute vite avec le nombre d'étapes. À 95 % par étape, une boucle de 20 étapes n'est entièrement juste que 36 % du temps.](../../../posts/2026-10-11-fast-ai/figures/fig02.png){fig-alt="Courbes de la probabilité que chaque étape soit juste en fonction du nombre d'étapes, pour 99 %, 95 % et 90 % par étape. La courbe à 95 % est marquée à 20 étapes : 36 % entièrement juste."}
+
+Rien de tout cela ne veut dire que les agents sont mauvais. Cela veut dire qu'ils sont le mauvais choix par défaut pour un travail qui se répète.
+
+## 3. Compiler, pas interpréter
+
+Les programmeurs connaissent bien cette distinction. Un interpréteur lit et exécute un programme ligne par ligne, à chaque exécution. Un compilateur lit le programme une fois, travaille dur pour le comprendre et l'optimiser, et produit quelque chose qui tourne vite et de façon identique, encore et encore.
+
+Une boucle agentique interprète la tâche à chaque exécution. Fast AI la compile.
+
+Dans cette vision, le meilleur rôle du modèle de langage dans l'automatisation n'est pas d'être dans la boucle. Il est de travailler avant la boucle, comme compilateur. Il fait une fois le travail lent et intelligent : lire, extraire, structurer, relier. Puis il s'efface, et quelque chose de rapide et simple fait tourner le processus.
+
+![**Figure 3.** Interpréter ou compiler. Une boucle agentique place le grand modèle dans chaque exécution. Fast AI l'utilise une fois, avant la boucle, pour construire une mémoire et des modèles rapides ; les exécutions qui suivent sont rapides, identiques et explicables.](../../../posts/2026-10-11-fast-ai/figures/fig03.png){fig-alt="Deux schémas. Interpréter : quatre exécutions qui répètent chacune lire, raisonner, appeler. Compiler : un grand modèle construit une fois une mémoire et des modèles rapides, suivis de cinq petites exécutions rapides et identiques."}
+
+## 4. La partie lente : une mémoire structurée
+
+En quoi le modèle de langage compile-t-il le domaine ? Ma réponse est un graphe de connaissances : une mémoire structurée des choses d'un domaine et de leurs relations.
+
+Les modèles de langage sont très bons pour le travail lent que cela demande. Donnez-leur des contrats, des règlements, des cas passés, des e-mails et les notes que laissent les experts, et ils peuvent extraire les entités et les relations cachées dans tout ce texte. Pour les factures fournisseurs, cela veut dire les fournisseurs, les contrats, les centres de coûts, les approbateurs, les produits et les liens entre eux : les factures de ce fournisseur vont sur ce budget, les montants au-dessus de cette limite demandent une seconde approbation, ce type de ligne a été contesté trois fois l'an dernier.
+
+![**Figure 4.** Un petit morceau de graphe de connaissances pour les factures fournisseurs. Chaque fait est un nœud ou un lien qu'une personne peut inspecter, corriger ou supprimer. Les noms et les valeurs sont fictifs.](../../../posts/2026-10-11-fast-ai/figures/fig04.png){fig-alt="Graphe de connaissances fait de boîtes et de liens nommés : fournisseur Acme AG, contrat 2025-114, centre de coûts Maintenance, une ligne « pièces de rechange », 3 litiges l'an dernier, une règle au-dessus de CHF 10 000 et l'approbateur Head of Ops."}
+
+Trois choses rendent le graphe plus précieux qu'une pile de documents ou qu'un long prompt.
+
+- **Il est explicite.** Chaque fait est un nœud et un lien qu'une personne peut inspecter, corriger ou supprimer. Les experts peuvent le valider, et ils devraient le faire, car l'extraction fait des erreurs.
+- **Il est stable.** Il ne change pas d'une exécution à l'autre, sauf si quelqu'un le modifie. La même question obtient les mêmes faits.
+- **Il s'accumule.** Chaque nouveau cas, chaque correction et chaque exception peuvent y être ajoutés. L'intelligence est investie, pas dépensée.
+
+C'est l'apprentissage lent de l'expert, mis par écrit.
+
+## 5. La partie rapide : arbres et réseaux ensemble
+
+Une fois la mémoire en place, la décision elle-même a rarement besoin d'un grand modèle de langage. Elle a besoin du bon modèle rapide, et Fast AI prend ici un second sens : c'est un hybride, pas de l'apprentissage profond partout.
+
+L'apprentissage profond est inégalé pour la perception : transformer des entrées brutes et désordonnées, comme des images, des documents scannés, du son ou du texte libre, en caractéristiques qui ont du sens. Les arbres de décision, et surtout les arbres boostés par gradient, sont souvent meilleurs pour décider : prendre un tableau de caractéristiques et produire un choix. Sur des données structurées en tableaux, qui décrivent la plupart des décisions d'entreprise, des ensembles d'arbres bien réglés égalent ou battent encore les réseaux profonds dans des comparaisons publiques soignées, tout en étant plus rapides, en demandant moins de données et en étant bien plus faciles à expliquer.
+
+Le partage naturel est donc :
+
+- **Les réseaux profonds perçoivent.** Ils lisent la facture scannée, la photo ou le texte d'une demande, et les transforment en caractéristiques.
+- **Le graphe de connaissances se souvient.** Il fournit ce que l'on sait de ces caractéristiques : cas passés, règles, contraintes.
+- **Les arbres décident.** Ils combinent les deux en une décision en quelques millisecondes, et peuvent montrer quelles caractéristiques l'ont déterminée.
+
+![**Figure 5.** L'hybride. Un réseau profond transforme l'entrée brute en caractéristiques, le graphe de connaissances ajoute ce que l'on sait d'elles, et un ensemble d'arbres prend la décision et en montre les raisons.](../../../posts/2026-10-11-fast-ai/figures/fig05.png){fig-alt="Flux de l'entrée brute vers le réseau profond (perçoit), puis les arbres (décident), puis la décision avec ses raisons, avec un graphe de connaissances qui fournit faits, historique et règles aux arbres."}
+
+Chaque partie fait ce qu'elle fait le mieux. Aucune n'a besoin de réfléchir à partir de zéro pour chaque cas.
+
+## 6. La boucle va là où elle a sa place
+
+Fast AI ne supprime pas la délibération. Il la déplace.
+
+Le chemin rapide traite les cas courants. Mais chaque modèle rapide devrait savoir quand il n'est pas sûr : un score de confiance faible, un cas qui ne ressemble à rien dans sa mémoire, une combinaison que le graphe n'a jamais vue. Ces cas, et seulement ceux-là, partent vers le chemin lent : un modèle de langage qui raisonne sur le problème, un agent qui explore les options, ou une personne.
+
+Et quand le chemin lent résout un nouveau cas, la réponse ne disparaît pas. Elle retourne dans le graphe de connaissances, et si elle se répète, les modèles rapides sont réentraînés avec elle. La délibération devient habitude. C'est à nouveau l'expert, qui ne ralentit que pour le vraiment nouveau, et qui en tire une leçon.
+
+![**Figure 6.** Chemin rapide et chemin lent. Les cas familiers sont décidés en quelques millisecondes. Les autres vont à un modèle de langage, à un agent ou à une personne ; leurs réponses retournent dans le graphe de connaissances, et celles qui se répètent servent à réentraîner les modèles rapides.](../../../posts/2026-10-11-fast-ai/figures/fig06.png){fig-alt="Flux d'un nouveau cas vers les modèles rapides. S'ils sont confiants, le chemin rapide le traite en quelques millisecondes. Sinon, le chemin lent (modèle de langage, agent ou personne) répond, le graphe de connaissances garde la réponse, et les cas répétés réentraînent les modèles rapides."}
+
+La boucle agentique ne disparaît donc pas. Elle cesse de tourner sur chaque cas et se met à tourner sur les exceptions, là où son intelligence rapporte.
+
+## 7. Un exemple : l'acheminement des factures fournisseurs
+
+Prenons une tâche courante dans tout service financier : décider quoi faire de chaque facture qui arrive. L'approuver, l'envoyer à la bonne personne, ou la signaler.
+
+**La manière agentique.** Un agent reçoit la facture, appelle un outil pour la lire, raisonne sur le fournisseur, cherche dans les contrats, raisonne sur le montant, consulte les règles d'approbation, propose un circuit, le vérifie et l'ajuste. Cela peut prendre une demi-minute, coûter une somme non négligeable, et donner un circuit légèrement différent la fois suivante. Expliquer pourquoi il a choisi cet approbateur demande de lire des pages de son raisonnement.
+
+**La manière Fast AI.** Des mois plus tôt, un modèle de langage a lu les contrats, les règlements et les décisions passées, et a construit un graphe des fournisseurs, des budgets, des limites et des approbateurs. L'équipe financière l'a relu. Maintenant, pour chaque nouvelle facture, un réseau lit le document, le graphe fournit le contrat et l'historique pertinents, et un ensemble d'arbres choisit un circuit en quelques millisecondes. Il explique son choix : fournisseur, montant par rapport au contrat, centre de coûts, litiges passés. Quand une facture ne ressemble à rien de connu, il le dit et la passe à une personne ou à un agent. Leur réponse enrichit le graphe.
+
+![**Figure 7.** Acheminer les factures fournisseurs, de deux manières. L'agent raisonne sur chaque facture à partir de zéro. Fast AI fait la lecture une fois, des mois plus tôt, puis achemine chaque facture en quelques millisecondes avec ses raisons, en ne passant que les cas inhabituels à une personne ou à un agent.](../../../posts/2026-10-11-fast-ai/figures/fig07.png){fig-alt="Deux chaînes. La manière agentique fait sept étapes de raisonnement pour chaque facture, environ une demi-minute chacune. La manière Fast AI construit une fois un graphe relu, puis un réseau et des arbres acheminent chaque facture en quelques millisecondes, avec leurs raisons."}
+
+Les deux utilisent l'IA. Une seule devient plus rapide et meilleure chaque mois.
+
+## 8. Ce que coûte Fast AI
+
+Cette approche a de vrais coûts, et il vaut la peine de les dire.
+
+- **Le graphe demande du travail.** Il faut repérer les erreurs d'extraction, et quelqu'un doit être responsable de la mémoire. Un fait faux dans le graphe est répété vite et avec assurance, ce qui est pire qu'une erreur lente.
+- **Il faut de la répétition.** Pour des tâches vraiment ponctuelles ou ouvertes, compiler n'a pas de sens. Il n'y a rien à réutiliser, et l'agent est le bon outil.
+- **Le monde dérive.** Nouveaux fournisseurs, nouvelles règles, nouveaux produits : un système rapide peut continuer à appliquer avec assurance de vieilles habitudes. Il lui faut un moniteur qui remarque quand ses décisions ne collent plus, comme [mon dernier essai](../../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.qmd) (en anglais) le défendait pour les tableaux de bord.
+- **Il faut de la conception.** Un agent se met en place en un après-midi. Un hybride de graphe, de réseaux et d'arbres demande de l'ingénierie. Ce coût initial est précisément l'apprentissage lent, et il n'est rentable que si le processus se répète assez.
+
+## 9. Conclusion
+
+Nous sommes tentés de placer le modèle le plus puissant au milieu de chaque processus, à réfléchir à chaque exécution. Pour les problèmes ouverts, c'est juste. Pour l'automatisation, c'est souvent comme demander à un expert chevronné de relire tout le manuel avant chaque tâche de routine.
+
+L'alternative est plus ancienne que l'IA. Apprendre lentement, une fois, et mettre par écrit ce que l'on a appris. Agir vite, avec des outils simples que l'on peut expliquer. Ne ralentir que quand quelque chose est vraiment nouveau, et transformer ce que l'on y apprend en prochaine habitude.
+
+Utiliser le grand modèle pour construire la mémoire, pas pour la remplacer. Laisser l'apprentissage profond percevoir et les arbres décider. Garder la boucle pour les exceptions. C'est cela, Fast AI : pas moins d'intelligence, mais une intelligence dépensée une fois et investie, au lieu d'être dépensée à nouveau à chaque exécution.
+
+::: {.small}
+*Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.*
+:::

@@ -25,6 +25,8 @@ website:
       - href: https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544
         text: Newsletter
     right:
+      - href: fr/index.qmd
+        text: FR
       - icon: rss
         href: index.xml
         aria-label: RSS feed
@@ -50,6 +52,39 @@ format:
     fig-align: center
     fig-cap-location: bottom
     link-external-newwindow: true
+    filters:
+      - lang-links.lua
+    include-after-body:
+      text: |
+        <script>
+        // Language switch: point FR/EN at this page's translation (see lang-links.lua),
+        // and on French pages translate the shared navbar labels.
+        (function () {
+          var fr = location.pathname.indexOf("/fr/") === 0;
+          var alt = document.querySelector('meta[name="alt-lang-url"]');
+          document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+            var t = sw.querySelector(".menu-text");
+            if (!t || t.textContent.trim() !== "FR") return;
+            sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+            t.textContent = fr ? "EN" : "FR";
+            sw.setAttribute("lang", fr ? "en" : "fr");
+            sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+          });
+          if (!fr) return;
+          var labels = { "Essays": ["Essais", "/fr/"], "About": ["À propos", "/fr/about.html"], "Follow": ["Suivre"] };
+          document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+            var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+            if (!m) return;
+            t.textContent = m[0];
+            if (m[1]) {
+              a.href = m[1];
+              var here = location.pathname.replace(/index\.html$/, "");
+              a.classList.toggle("active", here === m[1]);
+            }
+          });
+          document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+        })();
+        </script>
     include-in-header:
       text: |
         <link rel="preconnect" href="https://fonts.googleapis.com">
