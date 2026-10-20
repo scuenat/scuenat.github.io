@@ -1,4 +1,4 @@
-"""Figure for "Intent Is the Source". Same style as "The Interface Is Data"."""
+"""Figures for "Intent Is the Source". Same style as "The Interface Is Data"."""
 import re
 import numpy as np
 import matplotlib
@@ -149,7 +149,35 @@ def fig_ladder():
     fig.savefig(OUT + "fig01.png"); plt.close(fig)
 
 
+def fig_loop():
+    """The agent as a stochastic compiler: P = (I, T, K, G) -> code, checked by T, reviewed by a person."""
+    fig, ax = canvas(10.4, 4.7, 30.0, 13.4)
+    ins = [("I", "Intent", "what is wanted, in words", AMBER),
+           ("T", "Checks", "tests, types, properties", GREEN),
+           ("K", "Context", "repository, conventions", NAVY),
+           ("Γ", "Tools", "interfaces it may use", NAVY)]
+    ax.text(0.3, 12.8, "THE PROGRAM  P = (I, T, K, Γ)", fontsize=7.4, weight="semibold", color=WARM)
+    for i, (sym, t, s_, col) in enumerate(ins):
+        y = 9.5 - i * 2.75
+        card(ax, 0.3, y, 6.6, 2.35, f"{sym}  ·  {t}", s_, accent=col, fs=9.8, subfs=7.8)
+        arrow(ax, (7.0, y + 1.175), (8.85, 6.55), color="#b9c3cc", lw=1.2, z=1)
+    card(ax, 9.0, 4.9, 5.8, 3.3, "Agent", "a stochastic compiler\nc = A(P)", fill=NAVY, eyebrow="compile", subfs=8)
+    card(ax, 16.6, 4.9, 4.4, 3.3, "Code  c", "the output,\nstill readable", accent=MUTED, eyebrow="generated", subfs=8)
+    card(ax, 22.8, 7.9, 6.9, 3.0, "Check  T(c)", "run the tests,\ntypes and properties", accent=GREEN, eyebrow="automatic", subfs=8)
+    card(ax, 22.8, 2.2, 6.9, 3.0, "Review", "read the diff and\nthe decision log", accent=AMBER, eyebrow="a person", subfs=8)
+    arrow(ax, (14.9, 6.55), (16.5, 6.55), color=NAVY, lw=1.6)
+    arrow(ax, (21.1, 7.0), (22.7, 8.9), color=MUTED, lw=1.5)
+    arrow(ax, (26.25, 7.8), (26.25, 5.3), color=GREEN, lw=1.5)
+    ax.text(26.55, 6.55, "passes", fontsize=7.6, color=GREEN, va="center")
+    # feedback: failures go back to the agent; review refines I and T
+    arrow(ax, (22.7, 10.2), (12.6, 8.3), color=GREEN, lw=1.3, ls=(0, (4, 3)), rad=0.25)
+    pill(ax, 17.2, 10.55, "fails: try again", color=GREEN, fs=7.4)
+    arrow(ax, (22.7, 2.9), (7.0, 1.2), color=WARM, lw=1.4, ls=(0, (4, 3)), rad=-0.12)
+    pill(ax, 15.0, 1.2, "refine the intent, strengthen the checks", color=WARM, fs=7.6)
+    fig.savefig(OUT + "fig02.png"); plt.close(fig)
+
+
 if __name__ == "__main__":
     import os
     os.makedirs(OUT, exist_ok=True)
-    fig_ladder()
+    fig_ladder(); fig_loop()

@@ -1,37 +1,120 @@
 ---
 title: "Intent Is the Source"
-subtitle: "A one-page essay: agentic coding may be the next IDE, and the next programming language"
-description: "Every generation of programming turned what people used to write into something the machine generates. I argue that agentic coding is the next step: intent and tests become the source, code becomes the output, and the IDE becomes the loop in which we steer and review."
+subtitle: "A provocative position paper: agentic coding as the next IDE and the next programming language"
+description: "A deliberately provocative position paper. Every generation of programming turned what people used to write into something the machine generates. I argue that agentic coding is the next step: intent and checks become the source, code becomes an output, and the IDE becomes the loop in which we steer and review. I state the claim in a minimal formal way, give four arguments, and propose predictions that could prove it wrong."
 date: 2026-10-21
 draft: true
-toc: false
-categories: [essay, ai, agents, programming]
+citation: true
+google-scholar: true
+toc-depth: 2
+bibliography: references.bib
+categories: [paper, position, ai, agents, programming]
 image: figures/fig01.png
 resources:
   - figs.py
 ---
 
-::: {.callout-note appearance="simple"}
-**Short essay, October 2026.** One page, for a change. A follow-up to [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd). The figure is my own, drawn with [figs.py](figs.py).
+::: {.callout-warning appearance="simple"}
+**A provocative paper, on purpose.** This is a position paper, written to argue one side as strongly as I can, in the form of a short scientific paper. It states a thesis, defines its terms, gives arguments and evidence, and ends with predictions that could prove it wrong. It is not a neutral survey. A follow-up to [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd). Figures are my own, drawn with the code in [figs.py](figs.py).
 :::
 
-My claim is simple. The next IDE is not a better editor, and the next programming language is not a better syntax. Both are the agentic loop. What we write becomes intent and tests. Code becomes what the machine generates, the way assembly became what the compiler generates.
+**Abstract.** Each generation of programming has turned what people used to write into something the machine generates: machine code into the output of assemblers, assembly into the output of compilers, boilerplate into the output of frameworks. I argue that agentic coding, in which a language model plans, edits, runs and repairs code inside a loop, is the next step on this ladder, and a larger one than it looks. The thesis is that *the agentic loop is both the next IDE and the next programming language*. I define a program as a tuple $P = (I, T, K, \Gamma)$ of intent, executable checks, context and tools, and the agent as a *stochastic compiler* that is correct only up to the checks. From this definition follow four arguments (historical, structural, economic, empirical), one central consequence (the precision of the new language is the strength of its checks), and four predictions that can be measured within a few years. I end with the strongest objections, including Dijkstra's, and the evidence that currently cuts against me.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Claims
+
+1. **The language.** In agentic coding, the source is intent plus executable checks, plus the context and tools the agent may use. Code becomes an intermediate representation: still readable, rarely written.
+2. **The compiler.** The agent behaves as a compiler that is stochastic rather than deterministic, and correct only up to the checks it is given.
+3. **The precision.** The new language is exactly as precise as its checks. Tests and types become the type system of intent.
+4. **The IDE.** The development environment moves from an editor built for typing to a loop built for steering and reviewing: plan, diff, checks, decision log.
+5. **The test.** These claims predict measurable shifts in how professional software is written. If those shifts do not appear, the thesis is wrong.
+:::
+
+## 1. Introduction
+
+Programming languages are usually described by their syntax and semantics. A more useful description, for the argument here, is *what a person has to write* and *what the machine produces from it*. By that measure, the history of programming is a ladder. On each rung, people stopped writing one thing and started writing something more abstract, while the old thing kept existing as output.
 
 ![**Figure 1.** Schematic. Each generation of programming turned what people used to write into what the step above generates. The examples are illustrative.](figures/fig01.png){fig-alt="A staircase of six cards rising to the right: 1940s, machine code (10110000 01100001); 1950s, assembly (MOV AL, 61h); 1957, first compiler, FORTRAN (X = A + B * C); 1970s to 2000s, C, Java, Python (total = sum(items)); 2010s, frameworks (@get('/invoices')); now?, intent and tests ('route each invoice to its approver'), highlighted in amber. Caption: each step up, what people used to write becomes what the step above generates."}
 
-**This has happened before.** In the 1940s, people wrote machine code. Assemblers turned names into numbers. In 1957, FORTRAN turned formulas into assembly, and its authors had to prove that generated code could be nearly as fast as hand-written code, because nobody trusted it. They won: within a few years, most scientific programs were written in FORTRAN, and hand-written assembly retreated to the places that truly needed it. Each step up the ladder followed the same pattern: what people used to write became an *output*, still there, still inspectable, read only when something breaks.
+Since code-generating language models appeared [@chen2021], the obvious question has been whether they are a better autocomplete or something else. Andrej Karpathy framed neural networks as "Software 2.0" [@karpathy2017] and, more recently, described prompting models in English as a new kind of programming [@karpathy2025]. I take a narrower and more testable position. I do not claim that English replaces programming languages. I claim that the *unit a person writes* is changing from code to a bundle of intent and checks, and that the *environment a person works in* is changing from an editor to a loop. If both hold, then the agentic loop is, in the plain historical sense, the next language and the next IDE.
 
-**The new language is intent plus tests.** Watch someone work well with a coding agent. They do not type functions. They state what they want, name the constraints, give examples, point to the code that matters, and say how the result will be checked. That bundle *is* the program. The prose says what to do; the tests say what "done" means; the tools and interfaces the agent may use, described as data, say what it is allowed to touch. In Fred Brooks's terms, the person keeps the *essential* complexity of software, deciding what it must do, and hands the *accidental* complexity, how to say it in a particular language and framework, to the machine ([No Silver Bullet, 1987](https://en.wikipedia.org/wiki/No_Silver_Bullet)).
+## 2. Background
 
-**The new IDE is the loop.** The IDE we know was built around typing: an editor, autocomplete, a debugger. The agentic IDE is built around a cycle: state the intent, let the agent plan, edit and run the tests, then read the diff and steer. Its main panes are not the editor but the plan, the diff, the test results and a log of decisions. Typing code by hand becomes what writing assembly became: something you do when you must, and are glad you can.
+**The ladder.** When FORTRAN appeared in 1957, its designers faced deep scepticism that machine-generated code could approach hand-written assembly; much of their effort went into the optimiser, precisely to win that argument [@backus1978]. They won, and the pattern repeated with every later level of abstraction.
 
-**The strongest objection is old, and it is right about one thing.** In the late 1970s, Edsger Dijkstra called natural-language programming foolish, because natural language is too imprecise to say exactly what a machine must do ([EWD 667](https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html)). He is right that prose alone is not a program. But the new language is not prose alone. Its precision comes from the loop: tests that pass or fail, a repository with conventions, types the generated code must respect, and a person who reviews the result. That is how teams of people have always turned vague requests into exact software. The agent joins the team; the tests become the type system of intent.
+**Natural language as code.** The idea of programming in English is old. Jean Sammet discussed it in 1966 [@sammet1966]; Edsger Dijkstra called it foolish in the late 1970s, arguing that the precision of formal notation is a feature, not a burden [@dijkstra667]. Program synthesis research pursued the goal from specifications and examples for decades [@gulwani2017], with success in narrow domains.
 
-The evidence is still mixed, and I do not want to hide it. Agents now resolve a large share of real issues on benchmarks such as [SWE-bench](https://arxiv.org/abs/2310.06770). Yet a controlled study in 2025 found that experienced open-source developers were 19% *slower* with AI tools on their own repositories ([METR, 2025](https://arxiv.org/abs/2507.09089)). FORTRAN's first users also lost time before they gained it. A new language is judged by where its curve goes, not by its first year.
+**Agents that code.** Language models trained on code reached usable accuracy on small functions in 2021 [@chen2021]. Since then, agents that read a repository, edit files, run tests and iterate have been evaluated on real GitHub issues [@jimenez2024; @yang2024]. The productivity evidence is mixed: a controlled experiment found developers 55.8% faster on a small, well-specified task with an AI pair programmer [@peng2023], while a randomised study of experienced open-source developers on their own mature repositories found them 19% *slower* with early-2025 tools [@becker2025].
 
-**What follows if I am right.** The source of truth moves. We should version the intent and the tests next to the code, because they are what we will maintain. Code review should start with *what was asked* and only then look at the lines. Teaching should shift weight from syntax to specification, testing and judgement. And code itself does not disappear: like assembly, it stays the layer you can always read, and the one the machine is held to.
+## 3. A minimal definition
 
-Every generation of programmers was told that the next level of abstraction was a toy. Each time, the toy became the language. I think intent is next.
+I define a program, in the agentic sense, as a tuple
+
+$$
+P = (I,\; T,\; K,\; \Gamma),
+$$
+
+where $I$ is the **intent**, what is wanted, stated in words and examples; $T$ is a set of **executable checks** (tests, types, properties, linters) that a candidate implementation must pass; $K$ is the **context**, the repository and its conventions; and $\Gamma$ is the set of **tools** and interfaces the agent may use, described as data in the sense of [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd).
+
+An agent $A$ maps a program to code, $c = A(P)$. A classical compiler is deterministic and preserves meaning by construction. An agent does neither. It is a **stochastic compiler**: its output can vary between runs, and it is correct only in the weak sense that
+
+$$
+T(c) = \text{pass}.
+$$
+
+Call the **specification gap** of $P$ the set of behaviours that pass $T$ but are not what $I$ meant. The whole discipline of the new language is to make this gap small: by sharpening $I$, by strengthening $T$, and by having a person review what remains.
+
+![**Figure 2.** Schematic. The agent as a stochastic compiler. The program is the tuple of intent, checks, context and tools. The agent produces code, which is checked automatically and then reviewed by a person. Failed checks send the agent back; review refines the intent and strengthens the checks.](figures/fig02.png){fig-alt="Four input cards on the left: I, intent, what is wanted in words; T, checks, tests, types, properties; K, context, repository and conventions; Gamma, tools, interfaces it may use. They feed a dark card, Agent, a stochastic compiler, c = A(P). It produces Code c, the output, still readable, which goes to Check T(c), automatic. If it passes, it goes to Review by a person, reading the diff and the decision log. A dashed green arrow from Check back to the Agent says fails, try again. A dashed amber arrow from Review back to the inputs says refine the intent, strengthen the checks."}
+
+Under this definition, the concepts of the familiar toolchain map onto new ones.
+
+| Today | In the agentic loop |
+|---|---|
+| Source file | Intent, examples and checks: $(I, T)$ |
+| Compiler | Agent: $c = A(P)$, stochastic |
+| Type checker | Tests, types and properties: $T(c)$ |
+| Standard library | Tools and interfaces: $\Gamma$ |
+| Build configuration | Repository context and conventions: $K$ |
+| Debugger | Decision log and execution trace of the agent |
+| Code review | Review of intent first, then of the diff |
+| Editor | Plan, diff and checks panes; typing as fallback |
+
+: **Table 1.** The toolchain, translated. My own mapping.
+
+## 4. Four arguments
+
+**4.1 Historical.** Every previous rung of the ladder was resisted on the grounds that generated output was slower, less precise or less trustworthy than what experts wrote by hand [@backus1978]. Each time, the generated output improved, the cost of writing by hand stayed the same, and the line crossed. Nothing in the current situation suggests the pattern has stopped; the objections raised today are the same three.
+
+**4.2 Structural.** Brooks distinguished the *essential* complexity of software, deciding precisely what it must do, from its *accidental* complexity, the effort of expressing that decision in a particular language and toolset [@brooks1987]. Under the definition above, a person writes $I$ and $T$, which carry the essential complexity, and the agent handles the expression, which is accidental. This is the division of labour every abstraction has aimed for, achieved at a higher level than before. Tests, long promoted as a design discipline [@beck2002], become the main way to *state* that essential part.
+
+**4.3 Economic.** The cost of producing a correct change has three parts: writing it, checking it, and understanding it later. Agentic coding drives the first towards zero and leaves the other two. A rational team will therefore spend its people where the cost remains, on intent, checks and review, which is exactly the shift from editor to loop that the thesis predicts. The IDE follows the work: when typing is no longer the bottleneck, an environment organised around typing is the wrong shape.
+
+**4.4 Empirical.** Agents now resolve a meaningful share of real repository issues under controlled evaluation [@jimenez2024; @yang2024], a task that requires reading context, editing several files and passing existing tests: the full loop of Figure 2, not autocomplete. The negative result of @becker2025 is important and I return to it in §6, but it measures an early tool generation, on large mature repositories, with developers who had little experience of the new way of working. That is close to measuring FORTRAN in 1957 with assembly experts.
+
+## 5. Predictions
+
+A position paper should be falsifiable. If the thesis is right, the following should be observed in professional software over the next few years; if they are not, it is wrong.
+
+- **H1. Authorship shifts.** The share of merged changes whose code was primarily produced by an agent keeps rising in professional repositories, measurable from commit metadata and tool logs.
+- **H2. Checks grow relative to code.** In human-written lines, the ratio of tests, types and specifications to implementation rises.
+- **H3. Review becomes the main human cost.** Time spent reviewing and specifying exceeds time spent writing code, in the same teams that adopt agents.
+- **H4. Gains follow the strength of checks.** Productivity gains from agents are larger where $T$ is strong (well-tested code with clear conventions) than where it is weak, other things equal. This is the most direct test of claim 3.
+
+## 6. Objections
+
+**Natural language is too imprecise (Dijkstra).** This is right, and it is the most important objection. But the program in §3 is not prose alone. Its precision lives in $T$, in $K$ and in review, as it always has in teams where a person states a need and an engineer implements it. The objection becomes a design rule: wherever precision matters, state it as a check, not as a sentence.
+
+**A stochastic compiler cannot be trusted.** Deterministic compilers can be trusted because their meaning-preservation can be argued once. A stochastic compiler cannot; it must be checked every time. This raises the value of $T$ and of review, and it means that for code where checks are weak and errors are costly, the old way should remain. The thesis predicts a shift in the default, not the end of hand-written code.
+
+**Developers are slower, not faster [@becker2025].** If replications on strong-check repositories, with experienced users of current tools, continue to find slowdowns, H4 fails and so does much of this paper. I consider this the most likely way for me to be wrong.
+
+**Code is still the artefact that runs.** Yes, as assembly still runs. The thesis does not say code disappears; it says it stops being the thing people mainly write. Like assembly, it remains the layer that can always be read, and to which the machine is held.
+
+**Literate programming tried this.** Knuth argued that programs should be written for people first [@knuth1984]. Literate programming kept the person as the author of the code. The difference here is that the person is the author of the intent and the checks, and the code is derived.
+
+## 7. Conclusion
+
+Every generation of programmers was told that the next level of abstraction was a toy, and each time the toy became the language. I have argued, on purpose without hedging, that the agentic loop is the next such level: the source becomes intent plus checks, the compiler becomes a stochastic agent held to those checks, and the IDE becomes a place to steer and review. The definition makes one consequence precise. The new language is exactly as rigorous as its checks, so the craft of programming does not disappear; it moves into specification, testing and judgement. Four predictions make the claim testable. I expect to be partly wrong. I would rather be wrong in a way that can be measured.
 
 ::: {.read-next}
 **Read next** · [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd)
@@ -39,5 +122,10 @@ How MCP and the agentic loop change what we call an API.
 :::
 
 ::: {.small}
-*The views in this essay are my own and do not describe any product or plan of my employer.*
+*The views in this paper are my own and do not describe any product or plan of my employer.*
+:::
+
+## References
+
+::: {#refs}
 :::
