@@ -15,7 +15,228 @@
 <link>https://scuenat.github.io/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Tue, 20 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Wed, 21 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Intent Is the Source</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-warning">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>A provocative paper, on purpose.</strong> This is a position paper, written to argue one side as strongly as I can, in the form of a short scientific paper. It states a thesis, defines its terms, gives arguments and evidence, and ends with predictions that could prove it wrong. It is not a neutral survey. A follow-up to <a href="../../posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a>. Figures are my own, drawn with the code in <a href="figs.py">figs.py</a>.</p>
+</div>
+</div>
+</div>
+<p><strong>Abstract.</strong> Each generation of programming has turned what people used to write into something the machine generates: machine code into the output of assemblers, assembly into the output of compilers, boilerplate into the output of frameworks. I argue that agentic coding, in which a language model plans, edits, runs and repairs code inside a loop, is the next step on this ladder, and a larger one than it looks. The thesis is that <em>the agentic loop is both the next IDE and the next programming language</em>. I define a program as a tuple <img src="https://latex.codecogs.com/png.latex?P%20=%20(I,%20T,%20K,%20%5CGamma)"> of intent, executable checks, context and tools, and the agent as a <em>stochastic compiler</em> that is correct only up to the checks. From this definition follow four arguments (historical, structural, economic, empirical), one central consequence (the precision of the new language is the strength of its checks), and four predictions that can be measured within a few years. I end with the strongest objections, including Dijkstra’s, and the evidence that currently cuts against me.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Claims
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>The language.</strong> In agentic coding, the source is intent plus executable checks, plus the context and tools the agent may use. Code becomes an intermediate representation: still readable, rarely written.</li>
+<li><strong>The compiler.</strong> The agent behaves as a compiler that is stochastic rather than deterministic, and correct only up to the checks it is given.</li>
+<li><strong>The precision.</strong> The new language is exactly as precise as its checks. Tests and types become the type system of intent.</li>
+<li><strong>The IDE.</strong> The development environment moves from an editor built for typing to a loop built for steering and reviewing: plan, diff, checks, decision log.</li>
+<li><strong>The test.</strong> These claims predict measurable shifts in how professional software is written. If those shifts do not appear, the thesis is wrong.</li>
+</ol>
+</div>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
+<p>Programming languages are usually described by their syntax and semantics. A more useful description, for the argument here, is <em>what a person has to write</em> and <em>what the machine produces from it</em>. By that measure, the history of programming is a ladder. On each rung, people stopped writing one thing and started writing something more abstract, while the old thing kept existing as output.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic. Each generation of programming turned what people used to write into what the step above generates. The examples are illustrative."><img src="https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/figures/fig01.png" class="img-fluid figure-img" alt="A staircase of six cards rising to the right: 1940s, machine code (10110000 01100001); 1950s, assembly (MOV AL, 61h); 1957, first compiler, FORTRAN (X = A + B * C); 1970s to 2000s, C, Java, Python (total = sum(items)); 2010s, frameworks (@get('/invoices')); now?, intent and tests ('route each invoice to its approver'), highlighted in amber. Caption: each step up, what people used to write becomes what the step above generates."></a></p>
+<figcaption><strong>Figure 1.</strong> Schematic. Each generation of programming turned what people used to write into what the step above generates. The examples are illustrative.</figcaption>
+</figure>
+</div>
+<p>Since code-generating language models appeared <span class="citation" data-cites="chen2021">(<span class="nocase">Chen et al.</span> 2021)</span>, the obvious question has been whether they are a better autocomplete or something else. Andrej Karpathy framed neural networks as “Software 2.0” <span class="citation" data-cites="karpathy2017">(Karpathy 2017)</span> and, more recently, described prompting models in English as a new kind of programming <span class="citation" data-cites="karpathy2025">(Karpathy 2025)</span>. I take a narrower and more testable position. I do not claim that English replaces programming languages. I claim that the <em>unit a person writes</em> is changing from code to a bundle of intent and checks, and that the <em>environment a person works in</em> is changing from an editor to a loop. If both hold, then the agentic loop is, in the plain historical sense, the next language and the next IDE.</p>
+</section>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">2. Background</h2>
+<p><strong>The ladder.</strong> When FORTRAN appeared in 1957, its designers faced deep scepticism that machine-generated code could approach hand-written assembly; much of their effort went into the optimiser, precisely to win that argument <span class="citation" data-cites="backus1978">(Backus 1978)</span>. They won, and the pattern repeated with every later level of abstraction.</p>
+<p><strong>Natural language as code.</strong> The idea of programming in English is old. Jean Sammet discussed it in 1966 <span class="citation" data-cites="sammet1966">(Sammet 1966)</span>; Edsger Dijkstra called it foolish in the late 1970s, arguing that the precision of formal notation is a feature, not a burden <span class="citation" data-cites="dijkstra667">(Dijkstra, n.d.)</span>. Program synthesis research pursued the goal from specifications and examples for decades <span class="citation" data-cites="gulwani2017">(Gulwani et al. 2017)</span>, with success in narrow domains.</p>
+<p><strong>Agents that code.</strong> Language models trained on code reached usable accuracy on small functions in 2021 <span class="citation" data-cites="chen2021">(<span class="nocase">Chen et al.</span> 2021)</span>. Since then, agents that read a repository, edit files, run tests and iterate have been evaluated on real GitHub issues <span class="citation" data-cites="jimenez2024 yang2024">(Jimenez et al. 2024; <span class="nocase">Yang et al.</span> 2024)</span>. The productivity evidence is mixed: a controlled experiment found developers 55.8% faster on a small, well-specified task with an AI pair programmer <span class="citation" data-cites="peng2023">(Peng et al. 2023)</span>, while a randomised study of experienced open-source developers on their own mature repositories found them 19% <em>slower</em> with early-2025 tools <span class="citation" data-cites="becker2025">(Becker et al. 2025)</span>.</p>
+</section>
+<section id="a-minimal-definition" class="level2">
+<h2 class="anchored" data-anchor-id="a-minimal-definition">3. A minimal definition</h2>
+<p>I define a program, in the agentic sense, as a tuple</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP%20=%20(I,%5C;%20T,%5C;%20K,%5C;%20%5CGamma),%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?I"> is the <strong>intent</strong>, what is wanted, stated in words and examples; <img src="https://latex.codecogs.com/png.latex?T"> is a set of <strong>executable checks</strong> (tests, types, properties, linters) that a candidate implementation must pass; <img src="https://latex.codecogs.com/png.latex?K"> is the <strong>context</strong>, the repository and its conventions; and <img src="https://latex.codecogs.com/png.latex?%5CGamma"> is the set of <strong>tools</strong> and interfaces the agent may use, described as data in the sense of <a href="../../posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a>.</p>
+<p>An agent <img src="https://latex.codecogs.com/png.latex?A"> maps a program to code, <img src="https://latex.codecogs.com/png.latex?c%20=%20A(P)">. A classical compiler is deterministic and preserves meaning by construction. An agent does neither. It is a <strong>stochastic compiler</strong>: its output can vary between runs, and it is correct only in the weak sense that</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AT(c)%20=%20%5Ctext%7Bpass%7D.%0A"></p>
+<p>Call the <strong>specification gap</strong> of <img src="https://latex.codecogs.com/png.latex?P"> the set of behaviours that pass <img src="https://latex.codecogs.com/png.latex?T"> but are not what <img src="https://latex.codecogs.com/png.latex?I"> meant. The whole discipline of the new language is to make this gap small: by sharpening <img src="https://latex.codecogs.com/png.latex?I">, by strengthening <img src="https://latex.codecogs.com/png.latex?T">, and by having a person review what remains.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Schematic. The agent as a stochastic compiler. The program is the tuple of intent, checks, context and tools. The agent produces code, which is checked automatically and then reviewed by a person. Failed checks send the agent back; review refines the intent and strengthens the checks."><img src="https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/figures/fig02.png" class="img-fluid figure-img" alt="Four input cards on the left: I, intent, what is wanted in words; T, checks, tests, types, properties; K, context, repository and conventions; Gamma, tools, interfaces it may use. They feed a dark card, Agent, a stochastic compiler, c = A(P). It produces Code c, the output, still readable, which goes to Check T(c), automatic. If it passes, it goes to Review by a person, reading the diff and the decision log. A dashed green arrow from Check back to the Agent says fails, try again. A dashed amber arrow from Review back to the inputs says refine the intent, strengthen the checks."></a></p>
+<figcaption><strong>Figure 2.</strong> Schematic. The agent as a stochastic compiler. The program is the tuple of intent, checks, context and tools. The agent produces code, which is checked automatically and then reviewed by a person. Failed checks send the agent back; review refines the intent and strengthens the checks.</figcaption>
+</figure>
+</div>
+<p>Under this definition, the concepts of the familiar toolchain map onto new ones.</p>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> The toolchain, translated. My own mapping.</caption>
+<thead>
+<tr class="header">
+<th>Today</th>
+<th>In the agentic loop</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Source file</td>
+<td>Intent, examples and checks: <img src="https://latex.codecogs.com/png.latex?(I,%20T)"></td>
+</tr>
+<tr class="even">
+<td>Compiler</td>
+<td>Agent: <img src="https://latex.codecogs.com/png.latex?c%20=%20A(P)">, stochastic</td>
+</tr>
+<tr class="odd">
+<td>Type checker</td>
+<td>Tests, types and properties: <img src="https://latex.codecogs.com/png.latex?T(c)"></td>
+</tr>
+<tr class="even">
+<td>Standard library</td>
+<td>Tools and interfaces: <img src="https://latex.codecogs.com/png.latex?%5CGamma"></td>
+</tr>
+<tr class="odd">
+<td>Build configuration</td>
+<td>Repository context and conventions: <img src="https://latex.codecogs.com/png.latex?K"></td>
+</tr>
+<tr class="even">
+<td>Debugger</td>
+<td>Decision log and execution trace of the agent</td>
+</tr>
+<tr class="odd">
+<td>Code review</td>
+<td>Review of intent first, then of the diff</td>
+</tr>
+<tr class="even">
+<td>Editor</td>
+<td>Plan, diff and checks panes; typing as fallback</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="four-arguments" class="level2">
+<h2 class="anchored" data-anchor-id="four-arguments">4. Four arguments</h2>
+<p><strong>4.1 Historical.</strong> Every previous rung of the ladder was resisted on the grounds that generated output was slower, less precise or less trustworthy than what experts wrote by hand <span class="citation" data-cites="backus1978">(Backus 1978)</span>. Each time, the generated output improved, the cost of writing by hand stayed the same, and the line crossed. Nothing in the current situation suggests the pattern has stopped; the objections raised today are the same three.</p>
+<p><strong>4.2 Structural.</strong> Brooks distinguished the <em>essential</em> complexity of software, deciding precisely what it must do, from its <em>accidental</em> complexity, the effort of expressing that decision in a particular language and toolset <span class="citation" data-cites="brooks1987">(Brooks 1987)</span>. Under the definition above, a person writes <img src="https://latex.codecogs.com/png.latex?I"> and <img src="https://latex.codecogs.com/png.latex?T">, which carry the essential complexity, and the agent handles the expression, which is accidental. This is the division of labour every abstraction has aimed for, achieved at a higher level than before. Tests, long promoted as a design discipline <span class="citation" data-cites="beck2002">(Beck 2002)</span>, become the main way to <em>state</em> that essential part.</p>
+<p><strong>4.3 Economic.</strong> The cost of producing a correct change has three parts: writing it, checking it, and understanding it later. Agentic coding drives the first towards zero and leaves the other two. A rational team will therefore spend its people where the cost remains, on intent, checks and review, which is exactly the shift from editor to loop that the thesis predicts. The IDE follows the work: when typing is no longer the bottleneck, an environment organised around typing is the wrong shape.</p>
+<p><strong>4.4 Empirical.</strong> Agents now resolve a meaningful share of real repository issues under controlled evaluation <span class="citation" data-cites="jimenez2024 yang2024">(Jimenez et al. 2024; <span class="nocase">Yang et al.</span> 2024)</span>, a task that requires reading context, editing several files and passing existing tests: the full loop of Figure 2, not autocomplete. The negative result of <span class="citation" data-cites="becker2025">Becker et al. (2025)</span> is important and I return to it in §6, but it measures an early tool generation, on large mature repositories, with developers who had little experience of the new way of working. That is close to measuring FORTRAN in 1957 with assembly experts.</p>
+</section>
+<section id="predictions" class="level2">
+<h2 class="anchored" data-anchor-id="predictions">5. Predictions</h2>
+<p>A position paper should be falsifiable. If the thesis is right, the following should be observed in professional software over the next few years; if they are not, it is wrong.</p>
+<ul>
+<li><strong>H1. Authorship shifts.</strong> The share of merged changes whose code was primarily produced by an agent keeps rising in professional repositories, measurable from commit metadata and tool logs.</li>
+<li><strong>H2. Checks grow relative to code.</strong> In human-written lines, the ratio of tests, types and specifications to implementation rises.</li>
+<li><strong>H3. Review becomes the main human cost.</strong> Time spent reviewing and specifying exceeds time spent writing code, in the same teams that adopt agents.</li>
+<li><strong>H4. Gains follow the strength of checks.</strong> Productivity gains from agents are larger where <img src="https://latex.codecogs.com/png.latex?T"> is strong (well-tested code with clear conventions) than where it is weak, other things equal. This is the most direct test of claim 3.</li>
+</ul>
+</section>
+<section id="objections" class="level2">
+<h2 class="anchored" data-anchor-id="objections">6. Objections</h2>
+<p><strong>Natural language is too imprecise (Dijkstra).</strong> This is right, and it is the most important objection. But the program in §3 is not prose alone. Its precision lives in <img src="https://latex.codecogs.com/png.latex?T">, in <img src="https://latex.codecogs.com/png.latex?K"> and in review, as it always has in teams where a person states a need and an engineer implements it. The objection becomes a design rule: wherever precision matters, state it as a check, not as a sentence.</p>
+<p><strong>A stochastic compiler cannot be trusted.</strong> Deterministic compilers can be trusted because their meaning-preservation can be argued once. A stochastic compiler cannot; it must be checked every time. This raises the value of <img src="https://latex.codecogs.com/png.latex?T"> and of review, and it means that for code where checks are weak and errors are costly, the old way should remain. The thesis predicts a shift in the default, not the end of hand-written code.</p>
+<p><strong>Developers are slower, not faster <span class="citation" data-cites="becker2025">(Becker et al. 2025)</span>.</strong> If replications on strong-check repositories, with experienced users of current tools, continue to find slowdowns, H4 fails and so does much of this paper. I consider this the most likely way for me to be wrong.</p>
+<p><strong>Code is still the artefact that runs.</strong> Yes, as assembly still runs. The thesis does not say code disappears; it says it stops being the thing people mainly write. Like assembly, it remains the layer that can always be read, and to which the machine is held.</p>
+<p><strong>Literate programming tried this.</strong> Knuth argued that programs should be written for people first <span class="citation" data-cites="knuth1984">(Knuth 1984)</span>. Literate programming kept the person as the author of the code. The difference here is that the person is the author of the intent and the checks, and the code is derived.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>Every generation of programmers was told that the next level of abstraction was a toy, and each time the toy became the language. I have argued, on purpose without hedging, that the agentic loop is the next such level: the source becomes intent plus checks, the compiler becomes a stochastic agent held to those checks, and the IDE becomes a place to steer and review. The definition makes one consequence precise. The new language is exactly as rigorous as its checks, so the craft of programming does not disappear; it moves into specification, testing and judgement. Four predictions make the claim testable. I expect to be partly wrong. I would rather be wrong in a way that can be measured.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a> How MCP and the agentic loop change what we call an API.</p>
+</div>
+<div class="small">
+<p><em>The views in this paper are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-backus1978" class="csl-entry">
+Backus, John. 1978. <span>“The History of <span>FORTRAN</span> <span>I</span>, <span>II</span>, and <span>III</span>.”</span> <em>ACM SIGPLAN Notices</em> 13 (8): 165–80. <a href="https://doi.org/10.1145/960118.808380">https://doi.org/10.1145/960118.808380</a>.
+</div>
+<div id="ref-beck2002" class="csl-entry">
+Beck, Kent. 2002. <em>Test-Driven Development: By Example</em>. Addison-Wesley.
+</div>
+<div id="ref-becker2025" class="csl-entry">
+Becker, Joel, Nate Rush, Elizabeth Barnes, and David Rein. 2025. <span>“Measuring the Impact of Early-2025 <span>AI</span> on Experienced Open-Source Developer Productivity.”</span> <em>arXiv Preprint arXiv:2507.09089</em>. <a href="https://arxiv.org/abs/2507.09089">https://arxiv.org/abs/2507.09089</a>.
+</div>
+<div id="ref-brooks1987" class="csl-entry">
+Brooks, Frederick P. 1987. <span>“No Silver Bullet: Essence and Accidents of Software Engineering.”</span> <em>Computer</em> 20 (4): 10–19. <a href="https://doi.org/10.1109/MC.1987.1663532">https://doi.org/10.1109/MC.1987.1663532</a>.
+</div>
+<div id="ref-chen2021" class="csl-entry">
+<span class="nocase">Chen, Mark et al.</span> 2021. <span>“Evaluating Large Language Models Trained on Code.”</span> <em>arXiv Preprint arXiv:2107.03374</em>. <a href="https://arxiv.org/abs/2107.03374">https://arxiv.org/abs/2107.03374</a>.
+</div>
+<div id="ref-dijkstra667" class="csl-entry">
+Dijkstra, Edsger W. n.d. <em>On the Foolishness of <span>“Natural Language Programming”</span></em>. EWD 667, undated (late 1970s). <a href="https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html">https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html</a>.
+</div>
+<div id="ref-gulwani2017" class="csl-entry">
+Gulwani, Sumit, Oleksandr Polozov, and Rishabh Singh. 2017. <span>“Program Synthesis.”</span> <em>Foundations and Trends in Programming Languages</em> 4 (1–2): 1–119. <a href="https://doi.org/10.1561/2500000010">https://doi.org/10.1561/2500000010</a>.
+</div>
+<div id="ref-jimenez2024" class="csl-entry">
+Jimenez, Carlos E., John Yang, Alexander Wettig, et al. 2024. <span>“<span class="nocase">SWE-bench</span>: Can Language Models Resolve Real-World <span>GitHub</span> Issues?”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2310.06770">https://arxiv.org/abs/2310.06770</a>.
+</div>
+<div id="ref-karpathy2017" class="csl-entry">
+Karpathy, Andrej. 2017. <em>Software 2.0</em>. Medium. <a href="https://karpathy.medium.com/software-2-0-a64152b37c35">https://karpathy.medium.com/software-2-0-a64152b37c35</a>.
+</div>
+<div id="ref-karpathy2025" class="csl-entry">
+Karpathy, Andrej. 2025. <em>Software Is Changing (Again)</em>. Talk, Y Combinator AI Startup School.
+</div>
+<div id="ref-knuth1984" class="csl-entry">
+Knuth, Donald E. 1984. <span>“Literate Programming.”</span> <em>The Computer Journal</em> 27 (2): 97–111. <a href="https://doi.org/10.1093/comjnl/27.2.97">https://doi.org/10.1093/comjnl/27.2.97</a>.
+</div>
+<div id="ref-peng2023" class="csl-entry">
+Peng, Sida, Eirini Kalliamvakou, Peter Cihon, and Mert Demirer. 2023. <span>“The Impact of <span>AI</span> on Developer Productivity: Evidence from <span>GitHub</span> <span>Copilot</span>.”</span> <em>arXiv Preprint arXiv:2302.06590</em>. <a href="https://arxiv.org/abs/2302.06590">https://arxiv.org/abs/2302.06590</a>.
+</div>
+<div id="ref-sammet1966" class="csl-entry">
+Sammet, Jean E. 1966. <span>“The Use of <span>English</span> as a Programming Language.”</span> <em>Communications of the ACM</em> 9 (3): 228–30. <a href="https://doi.org/10.1145/365230.365274">https://doi.org/10.1145/365230.365274</a>.
+</div>
+<div id="ref-yang2024" class="csl-entry">
+<span class="nocase">Yang, John et al.</span> 2024. <span>“<span class="nocase">SWE-agent</span>: Agent-Computer Interfaces Enable Automated Software Engineering.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2405.15793">https://arxiv.org/abs/2405.15793</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Intent {Is} the {Source}},
+  date = {2026-10-21},
+  url = {https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/},
+  langid = {en}
+}
+</code></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Intent Is the Source.”</span> October 21.
+<a href="https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/">https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/</a>.
+</div></div></section></div> ]]></description>
+  <category>paper</category>
+  <category>position</category>
+  <category>ai</category>
+  <category>agents</category>
+  <category>programming</category>
+  <guid>https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/</guid>
+  <pubDate>Wed, 21 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-21-intent-is-the-source/figures/fig01.png" medium="image" type="image/png" height="59" width="144"/>
+</item>
 <item>
   <title>The Interface Is Data</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
