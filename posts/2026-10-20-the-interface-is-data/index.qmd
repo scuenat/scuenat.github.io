@@ -1,7 +1,7 @@
 ---
 title: "The Interface Is Data"
 subtitle: "How MCP and the agentic loop change what we call an API, and why the idea matters even without AI"
-description: "MCP is usually presented as a way to give AI models tools. I think it changes something older: what an API is. When a service describes itself as data that any caller reads at run time, tools can form a web, offer several levels of detail at once, and save a great deal of glue code. The idea has real weaknesses too, and serious alternatives."
+description: "MCP is usually presented as a way to give AI models tools. I think it changes something older: what an API is. When a service describes itself as data that any caller reads at run time, tools can form a web, offer several levels of detail at once, return whole programs, and save a great deal of glue code. The idea has real weaknesses too, and serious alternatives."
 date: 2026-10-20
 draft: true
 citation: true
@@ -18,7 +18,7 @@ resources:
 **Essay, October 2026.** A companion to [Fast AI](../2026-10-11-fast-ai/index.qmd), [An Ecosystem, Not an Oracle](../2026-10-17-an-ecosystem-not-an-oracle/index.qmd) and [The Junior Colleague](../2026-10-18-the-junior-colleague/index.qmd). All figures are my own, drawn with the code in [figs.py](figs.py). Where a figure uses someone else's numbers, the caption names the source. Where the numbers are my own illustrative assumptions, the caption says so.
 :::
 
-**In short.** The Model Context Protocol (MCP) is usually presented as a way to give AI models access to tools. I think it does something larger. It changes what we mean by an API. A classic API is a contract that a developer reads once and then turns into code. An MCP server describes itself as data that any caller reads when it makes the call: what each tool does, what it accepts and returns, and whether it is safe to retry. The agentic loop is what made this practical, because for the first time a general client can read the description and act on it. But the idea does not need AI. A workflow engine, a form generator, a test suite or a policy gateway can read the same description. Once interfaces are data, tools can be connected as a graph of any shape, the same capability can be offered at several levels of detail, and much of the glue code between systems disappears. MCP also has serious weaknesses: it fills the model's context, it opens new security holes, and plain prose is a weak contract. Some of the alternatives are better for parts of the job. My conclusion is that the lasting change is not the protocol. It is the habit of publishing an interface as data and choosing, case by case, when to bind to it.
+**In short.** The Model Context Protocol (MCP) is usually presented as a way to give AI models access to tools. I think it does something larger. It changes what we mean by an API. A classic API is a contract that a developer reads once and then turns into code. An MCP server describes itself as data that any caller reads when it makes the call: what each tool does, what it accepts and returns, and whether it is safe to retry. The agentic loop is what made this practical, because for the first time a general client can read the description and act on it. But the idea does not need AI. A workflow engine, a form generator, a test suite or a policy gateway can read the same description. Once interfaces are data, tools can be connected as a graph of any shape, the same capability can be offered at several levels of detail, and much of the glue code between systems disappears. Pushed one step further, a tool can be found by the meaning of its description and can return not data but a program: a sub-graph of other tools, checked and run by an executor, then kept as a new tool. Programs then live inside the process, as data. MCP also has serious weaknesses: it fills the model's context, it opens new security holes, and plain prose is a weak contract. Some of the alternatives are better for parts of the job. My conclusion is that the lasting change is not the protocol. It is the habit of publishing an interface as data and choosing, case by case, when to bind to it.
 
 ::: {.callout-tip appearance="simple" icon="false"}
 ## Key takeaways
@@ -28,6 +28,7 @@ resources:
 - **The idea does not need AI.** Of the six readers of a tool description I describe below, only one is a model.
 - **Described tools form a web.** A server can also be a client, so tools compose into hubs, meshes or layers. With $N$ clients and $M$ services, the adapters to write fall from $N \times M$ to $N + M$.
 - **Granularity becomes a choice for the caller.** One server can offer a whole capability, a few workflows, single tools and raw operations, and each caller picks its level.
+- **A tool can return a program.** Embed tool descriptions to find them by meaning, let a tool return a sub-graph of calls, check it and run it without a model, then store it as a new tool. The line between API, workflow and program becomes a matter of level.
 - **The case against MCP is real.** Tool descriptions crowd the model's context, poisoned descriptions and prompt injection are real attacks, prose is a weak contract, and code, CLIs or typed SDKs are often simpler.
 - **The SDK does not die; it moves.** Explore with an agent over described tools, then compile what repeats into typed code, the step I called Fast AI.
 :::
@@ -112,11 +113,59 @@ Described tools loosen this choice in two ways.
 
 The numbers show why this matters. Loading every schema of a large catalogue before the first call can cost tens of thousands of tokens, which are paid on every run and push useful context out of the window. In one workflow described by Anthropic, presenting the tools as files that the agent reads only when needed reduced the tokens used from 150,000 to 2,000, a reduction of 98.7% [@anthropic2025codeexec]. That is one example, not a benchmark, but the direction is clear: granularity is no longer only a property of the API. It is a choice made by the caller, at run time, based on what it needs.
 
-## 7. The case against MCP
+## 7. Tools that return programs
+
+So far, every tool in this essay has returned data. I want to push the idea one step further, because I think this is where the paradigm becomes really new: a tool can return a *program*, and that program can stay inside the process as data.
+
+### 7.1 A catalogue you search by meaning
+
+If a tool's description is data, it can be *embedded*: turned into a vector by the same kind of model used for semantic search [@reimers2019]. The catalogue then becomes a space in which tools that do similar things sit close together. A question, from a person, an agent or another tool, lands somewhere in that space, and its nearest neighbours are the few tools worth reading.
+
+![**Figure 9.** Schematic, with hand-placed positions. Tool descriptions as points in a space of meaning, grouped by what they do. A question is embedded in the same space; its five nearest tools are returned, and only their schemas are read.](figures/fig09.png){fig-alt="A map of 23 tools as dots grouped in five labelled clusters: invoices and payments, documents, people and rules, data, messages. An amber star marks the question 'who must approve this supplier invoice?', with a dashed circle around it and lines to its five nearest tools: pick_approver, assign_budget, route_invoice, get_supplier and rules_for. A panel on the right lists them: returned 5 of 23 tools; only their schemas are read."}
+
+None of this is speculative. ToolLLM and Gorilla used a retriever to pick a handful of APIs out of thousands [@qin2024; @patil2023], and the tool search in current agent platforms works the same way [@anthropic2025advtools; @gan2025]. ToolkenGPT goes further and gives each tool its own token embedding inside the model, so that calling a tool is no different from predicting a word [@hao2023].
+
+Embeddings give the web of §5 a second kind of edge. Schema edges say which tools *can* be chained, because one's output fits another's input. Embedding distance says which tools are *about* the same thing. Together they are enough to propose a plan without anyone drawing it.
+
+### 7.2 A tool whose result is a sub-graph
+
+Now the step that interests me most. Nothing in the idea of a tool requires its result to be plain data. A tool can return a small graph of *other* tool calls, with the arguments of each node wired to the outputs of the others.
+
+![**Figure 10.** Schematic. A tool whose result is a program. `plan_invoice_routing` does not route the invoice; it returns a graph of five tool calls. An executor checks the graph and runs it, in parallel where the dependencies allow, without a model. The `"returns": "graph"` format is my own convention; MCP does not define one.](figures/fig10.png){fig-alt="Left, a dark code panel titled plan_invoice_routing() result, with JSON: returns graph, name route_invoice@v3, five nodes (doc calls extract_invoice on $input.file; po calls match_po on $doc; rules calls rules_for on $doc.supplier; who calls pick_approver on $po and $rules; send calls notify to $who.approver), output $who, limits max_calls 8 and max_depth 2. Right, what the executor runs, no model in the loop: doc leads to po and rules in parallel, both lead to who, then send. Note: checked first, every tool exists, every reference fits its schema, no cycles, policy allows it, within limits."}
+
+In Figure 10, `plan_invoice_routing` does not do the work. It returns the recipe: extract the invoice; then, in parallel, match the purchase order and fetch the supplier's rules; then pick the approver; then notify them. An executor, which is ordinary code, checks the graph before running anything: every tool exists, every reference fits the schema it feeds, there is no cycle, the policy gateway accepts every node, and the whole stays within its limits. Then it runs the graph, with no model in the loop.
+
+Research on agents points the same way. ReWOO separates planning from execution: the model writes the whole plan once, instead of reasoning again after every observation [@xu2023rewoo]. LLMCompiler has the model emit a graph of function calls with their dependencies and runs the independent calls in parallel, which made runs faster and cheaper than step-by-step reasoning [@kim2024llmcompiler]. Code mode and programmatic tool calling let the model write the plan as code [@cloudflare2025codemode; @anthropic2025advtools].
+
+What changes in my proposal is *who* returns the plan. It need not be the model in the loop. It can be a tool like any other: written by a team, generated by a model and reviewed once, or retrieved from storage. The plan stops being a private thought of the agent and becomes part of the interface.
+
+### 7.3 Programs inside programs
+
+Since a node of a returned graph is just a tool call, it can itself be a tool that returns a graph.
+
+![**Figure 11.** Schematic. Programs nest. The process calls `route_invoice`, which returns a graph of four steps; one of them, `approve`, returns a graph of its own. The executor expands each level only when it is reached, within a maximum depth and a budget of calls.](figures/fig11.png){fig-alt="Three rows of cards. Level 1, the process: receive, route_invoice, archive. A shaded funnel from route_invoice opens to Level 2, a graph returned by route_invoice: extract, match_po, approve, notify. A second funnel from approve opens to Level 3, a graph returned by approve: rules_for, pick_approver, escalate?. Two tags at the top right: max depth 3, max 20 calls."}
+
+This gives the multiple levels of detail of §6 almost for free. Nobody has to design the levels in advance: each one expands only when it is reached, and only as far as needed. A caller that trusts `route_invoice` treats it as one step. A caller that must audit it can ask for the graph and inspect every level. The executor needs two limits to make sure the expansion ends: a maximum depth and a budget of calls.
+
+### 7.4 Keeping the programs
+
+The last step closes the loop with [Fast AI](../2026-10-11-fast-ai/index.qmd). A returned graph is data. It can be logged, compared with yesterday's, reviewed by a person, signed, versioned and stored. Once stored with a description, it is itself a tool: it gets embedded in the same catalogue, and the next search for "who must approve this supplier invoice?" finds the stored program before anything has to plan.
+
+![**Figure 12.** Schematic. Programs inside the process. Search finds the tools, a planner returns a sub-graph, the executor checks it and runs it, and the graph is kept. Published back as a tool, it is found first the next time, and planning is skipped.](figures/fig12.png){fig-alt="Five step cards in a row: Search, embeddings find the few tools that fit; Plan, a tool or a model returns a sub-graph; Check, schemas, policy, limits, no cycles; Run, an executor, no model needed; Keep, the graph is stored, named, versioned. The first two are marked slow, once; the last two fast, every time. A green line returns from Keep to Search, labelled published back as a tool: route_invoice@v3. Caption line: next time, search finds the stored program first, and the planning step is skipped."}
+
+Voyager, an agent that played Minecraft, worked this way: it stored every skill it learned as a program, indexed it by an embedding of its description, retrieved it when a similar task came up, and built new skills from old ones [@wang2023voyager]. Models that write their own tools and reuse them follow the same pattern [@cai2024latm].
+
+In a company, the same mechanism means that the programs which run the business live *inside the process*, as data you can inspect, rather than hidden in the code of each application or worked out again by an agent every morning. This is what I mean by embedding programs in the process. The process is a graph of tools. Some tools return graphs. Those graphs can be kept and become tools. The difference between an API, a workflow and a program becomes a matter of level, not of kind. Programmers will recognise an old idea from Lisp, where code and data share one form. Here, the shared form is the tool description.
+
+### 7.5 What it costs
+
+A tool that returns a program is a tool that returns code, and everything §8.1 says about poisoned descriptions applies with more force. The executor must treat every returned graph as untrusted. It should run only tools from an allowed list, check every reference against its schema, apply the policy to every node and not only to the first, enforce the limits, and never let a graph call a tool its caller could not call directly. Debugging is harder too: a failure can sit three levels down, in a graph nobody wrote by hand, so every expansion must be logged with where it came from. Finally, there is no standard. MCP has no "graph" result type, so today this is a convention on top of the protocol, or a job for a workflow engine. A shared format for returned plans would, I think, be one of the most useful next steps for the ecosystem.
+
+## 8. The case against MCP
 
 So far I have made the case for. It would be dishonest to stop there. MCP has drawn serious criticism, much of it fair, and for several jobs there are better options.
 
-### 7.1 Five objections
+### 8.1 Five objections
 
 **It is a wrapper over APIs that already exist.** Many MCP servers are thin layers over a REST API that already had an OpenAPI description. Adding a protocol, a server process and a new failure point to say the same thing again is not obviously progress. Critics argue that a model that can read OpenAPI, or a `--help` page, does not need MCP at all [@ronacher2025].
 
@@ -128,9 +177,9 @@ So far I have made the case for. It would be dishonest to stop there. MCP has dr
 
 **It is slower and less predictable than a function call.** An agent that reads descriptions, reasons and then calls is orders of magnitude slower and more expensive than compiled code calling a library, and it may take a different path on the same input. For processes that run ten thousand times a day, this is the wrong trade, as I argued in [Fast AI](../2026-10-11-fast-ai/index.qmd).
 
-### 7.2 The alternatives
+### 8.2 The alternatives
 
-![**Figure 9.** My own placement of the main ways to connect a caller to a service: when the interface is bound, and who reads it. Approaches in green were designed with agents in mind.](figures/fig09.png){fig-alt="Scatter map. Horizontal axis from bound when code is written to bound when the call is made; vertical axis from read by a person or a compiler to read by a model. Before agents, in blue: typed SDK and gRPC bottom left; OpenAPI with code generation; GraphQL introspection; REST hypermedia (HATEOAS) bottom right. Made for agents, in green: function calling, upper left of centre; code mode, top centre; CLI with help, lower right of centre; A2A, right; Agent Skills, top right. MCP highlighted in amber, upper right."}
+![**Figure 13.** My own placement of the main ways to connect a caller to a service: when the interface is bound, and who reads it. Approaches in green were designed with agents in mind.](figures/fig13.png){fig-alt="Scatter map. Horizontal axis from bound when code is written to bound when the call is made; vertical axis from read by a person or a compiler to read by a model. Before agents, in blue: typed SDK and gRPC bottom left; OpenAPI with code generation; GraphQL introspection; REST hypermedia (HATEOAS) bottom right. Made for agents, in green: function calling, upper left of centre; code mode, top centre; CLI with help, lower right of centre; A2A, right; Agent Skills, top right. MCP highlighted in amber, upper right."}
 
 - **OpenAPI plus function calling.** If a service already has a good OpenAPI description, it can be turned into function definitions for a model with no new protocol [@openapi2021; @openai2023fc]. This keeps one source of truth and the existing tooling for authentication, gateways and testing.
 - **Code as the interface.** Instead of asking the model to call tools one at a time, let it write a short program against a typed API and run it in a sandbox. Research found that agents acting through code solved more tasks than agents emitting JSON calls [@wang2024codeact]. Cloudflare's *Code Mode* turns MCP tools into a TypeScript API for exactly this reason [@cloudflare2025codemode], and Anthropic's code-execution approach does the same with files [@anthropic2025codeexec]. In this view, the SDK comes back, but its reader is now a model.
@@ -139,38 +188,39 @@ So far I have made the case for. It would be dishonest to stop there. MCP has dr
 - **Typed SDKs and RPC.** For hot paths, nothing beats a compiled call with types checked before the program runs.
 - **GraphQL.** Its introspection already lets a client ask what a service offers and choose exactly the fields it needs [@graphql2021]. It solved part of the granularity problem years ago, for data.
 
-### 7.3 My reading
+### 8.3 My reading
 
 Most of these alternatives share MCP's core idea: the interface is described in a form the caller reads, and the binding happens later than it used to. Code mode reads MCP descriptions and generates an SDK from them. Skills are descriptions in files. A2A publishes "agent cards". Even the critics who say "just use the CLI" are relying on `--help`, a self-description read at run time.
 
-So I do not think the lasting change is MCP the wire format. It may be replaced, merged with other protocols, or survive mainly as an internal standard behind gateways. The lasting change is the *practice*: publish every interface as data, rich enough for a model and precise enough for a machine, and let each caller decide when to bind to it. MCP is, for now, the most widely adopted way to do that, and its governance under a neutral foundation makes it a reasonable bet. But the objections in §7.1 are about real costs, and the right answer to several of them is to use something else for that part of the job.
+So I do not think the lasting change is MCP the wire format. It may be replaced, merged with other protocols, or survive mainly as an internal standard behind gateways. The lasting change is the *practice*: publish every interface as data, rich enough for a model and precise enough for a machine, and let each caller decide when to bind to it. MCP is, for now, the most widely adopted way to do that, and its governance under a neutral foundation makes it a reasonable bet. But the objections in §8.1 are about real costs, and the right answer to several of them is to use something else for that part of the job.
 
-## 8. Where the SDK survives
+## 9. Where the SDK survives
 
 Back to the original question: does this redefine the API and the SDK "to an extent" or "completely"? My answer is: completely at the edges, not in the core.
 
-![**Figure 10.** Schematic, with example tasks of my own. Where each kind of binding belongs, by how often the same call is made and how much the task varies. What an agent discovers in the upper left should be compiled into the lower right once it repeats.](figures/fig10.png){fig-alt="A two-dimensional map shaded from amber at the top left to green at the bottom right. Horizontal axis: how often the same call is made, from once to thousands a day. Vertical axis: how much the task varies, from same every time to different every time. Example points: a supplier's unusual question, top left; month-end exception; weekly report; nightly sync; route an invoice, 10,000 a day, bottom right. Region labels: agent loop over described tools at top left; described tools, called by code at bottom left; compiled path (typed SDK, fixed recipe, decision model) at bottom right. A dashed arrow, compile what repeats, runs from top left to bottom right."}
+![**Figure 14.** Schematic, with example tasks of my own. Where each kind of binding belongs, by how often the same call is made and how much the task varies. What an agent discovers in the upper left should be compiled into the lower right once it repeats.](figures/fig14.png){fig-alt="A two-dimensional map shaded from amber at the top left to green at the bottom right. Horizontal axis: how often the same call is made, from once to thousands a day. Vertical axis: how much the task varies, from same every time to different every time. Example points: a supplier's unusual question, top left; month-end exception; weekly report; nightly sync; route an invoice, 10,000 a day, bottom right. Region labels: agent loop over described tools at top left; described tools, called by code at bottom left; compiled path (typed SDK, fixed recipe, decision model) at bottom right. A dashed arrow, compile what repeats, runs from top left to bottom right."}
 
 At the edges, where integration happens, where a call is made rarely or differs every time, where a team needs to find and use another team's capability, the described interface wins. It is cheaper to build, easier to discover and works for model and script alike. Here I expect hand-written SDKs to become rare.
 
 In the core, where the same call runs thousands of times a day, the binding should happen early again: a typed client, a fixed recipe, a small decision model like the one in [The Junior Colleague](../2026-10-18-the-junior-colleague/index.qmd). The difference from before is where that code comes from. It does not need to start from a developer reading documentation. It can be generated from the same descriptions, or compiled from a path that an agent found and that people reviewed. The SDK becomes an *output* of the described interface, not its source.
 
-## 9. What would prove me wrong
+## 10. What would prove me wrong
 
 I would change my mind if:
 
 - tool descriptions stayed so unreliable that every serious integration still needed a person to read the documentation and write tests by hand, so the run-time binding saved nothing;
-- the security problems of §7.1 proved impossible to contain at reasonable cost, so that companies kept MCP to demos and read-only tools;
+- the security problems of §8.1 proved impossible to contain at reasonable cost, so that companies kept MCP to demos and read-only tools;
+- returned programs proved harder to secure, debug and govern than the hand-written code they replace;
 - the token cost of descriptions kept growing faster than the techniques that load them on demand;
 - integration time and maintenance, measured in real companies over a few years, did not fall for teams that publish their interfaces as data compared with teams that do not.
 
 The last one is the real test, and it can be measured.
 
-## 10. Conclusion
+## 11. Conclusion
 
 For decades, an API was a promise written for people. A developer read it, understood it, and turned it into code that was frozen until the next release. MCP and the agentic loop make a different arrangement possible: the promise is written as data, travels with the service, and is read by whoever calls it, at the moment of the call.
 
-That one shift has several consequences. The caller no longer needs AI to benefit. Tools can be connected into a web of whatever shape suits the organisation, with far less glue. The same capability can be offered at several levels of detail, and each caller chooses how much to read. And the expensive, exploratory work of figuring out how to combine tools can be done once by an agent, then compiled into something fast.
+That one shift has several consequences. The caller no longer needs AI to benefit. Tools can be connected into a web of whatever shape suits the organisation, with far less glue. The same capability can be offered at several levels of detail, and each caller chooses how much to read. Tools can be found by meaning, and can return programs that are checked, run and kept as new tools, so the logic of a process lives inside it as data. And the expensive, exploratory work of figuring out how to combine tools can be done once by an agent, then compiled into something fast.
 
 MCP may not be the protocol we use in ten years. Its weaknesses are real, and some of its alternatives are better at parts of the job. But I think the habit it is spreading will remain: an interface is not only something we read. It is data.
 

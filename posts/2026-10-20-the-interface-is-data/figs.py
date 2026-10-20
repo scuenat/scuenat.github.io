@@ -511,7 +511,7 @@ def fig_where():
     ax.tick_params(length=0, labelsize=8.4)
     for s in ax.spines.values():
         s.set_visible(False)
-    fig.savefig(OUT + "fig10.png"); plt.close(fig)
+    fig.savefig(OUT + "fig14.png"); plt.close(fig)
 
 
 def fig_alternatives():
@@ -549,11 +549,188 @@ def fig_alternatives():
     leg = [plt.Line2D([], [], marker="o", ls="", color=NAVY, label="before agents", markersize=7),
            plt.Line2D([], [], marker="o", ls="", color=GREEN, label="made for agents", markersize=7)]
     ax.legend(handles=leg, loc="lower right", bbox_to_anchor=(1.0, 0.18), fontsize=8)
+    fig.savefig(OUT + "fig13.png"); plt.close(fig)
+
+
+def fig_embedding_map():
+    """Tool descriptions as points in a space of meaning; a question finds its neighbours.
+    Positions are hand-placed for legibility: a schematic, not a real embedding."""
+    fig, ax = plt.subplots(figsize=(8.6, 4.8))
+    PURPLE = "#6c5b7b"
+    clusters = [
+        ("Invoices and payments", GREEN, (2.6, 7.35), {
+            "route_invoice": (3.4, 6.3), "pick_approver": (2.2, 4.9), "assign_budget": (2.0, 5.9),
+            "match_po": (2.4, 6.7), "pay_invoice": (0.9, 6.9), "dispute_invoice": (3.6, 7.0)}),
+        ("Documents", NAVY, (7.9, 7.35), {
+            "extract_invoice": (7.2, 6.4), "ocr_page": (8.2, 6.8), "summarise_pdf": (8.9, 6.1),
+            "archive": (7.6, 5.6), "sign_pdf": (8.6, 5.4)}),
+        ("People and rules", PURPLE, (1.9, 0.35), {
+            "rules_for": (2.9, 2.5), "org_chart": (1.3, 1.6), "who_is_absent": (2.2, 1.1),
+            "policy_text": (0.9, 2.6)}),
+        ("Data", MUTED, (7.3, 1.85), {
+            "get_supplier": (5.6, 4.4), "run_sql": (7.5, 3.5), "list_budgets": (7.5, 4.4),
+            "export_csv": (7.1, 2.6)}),
+        ("Messages", WARM, (9.3, 0.35), {
+            "notify": (8.6, 2.1), "send_mail": (9.6, 2.6), "post_chat": (10.0, 1.5),
+            "schedule_call": (8.9, 1.2)}),
+    ]
+    q = (3.9, 4.0)
+    near = ["pick_approver", "assign_budget", "rules_for", "route_invoice", "get_supplier"]
+    lab_off = {"pick_approver": (-0.25, 0, "right", "center"), "assign_budget": (0, 0.3, "center", "bottom"),
+               "rules_for": (0.25, 0, "left", "center"), "route_invoice": (0.25, -0.05, "left", "center"),
+               "get_supplier": (0, 0.32, "center", "bottom")}
+    for name, col, (lx, ly), pts in clusters:
+        ax.text(lx, ly, name.upper(), ha="center", fontsize=6.8, weight="semibold", color=col)
+        for t, (x, y) in pts.items():
+            hit = t in near
+            if hit:
+                ax.plot([q[0], x], [q[1], y], color=AMBER, lw=1.3, zorder=2, solid_capstyle="round")
+            ax.scatter(x, y, s=70 if hit else 28, color=col, edgecolor="white", lw=1.0, zorder=4,
+                       alpha=1 if hit else 0.45)
+            if hit:
+                dx, dy, ha, va = lab_off[t]
+                ax.text(x + dx, y + dy, t, ha=ha, va=va, fontsize=7.4, fontfamily=MONO, color=INK, zorder=5)
+    ax.add_patch(Circle(q, 2.75, fc=AMBER, ec="none", alpha=0.07, zorder=1))
+    ax.add_patch(Circle(q, 2.75, fc="none", ec=AMBER, lw=0.9, ls=(0, (3, 3)), zorder=1))
+    ax.scatter(*q, s=260, marker="*", color=AMBER, edgecolor=WARM, lw=1, zorder=6)
+    ax.text(q[0] + 0.3, q[1] - 0.45, "“who must approve this\nsupplier invoice?”", fontsize=8.4,
+            style="italic", color=WARM, va="top", zorder=6, linespacing=1.3,
+            bbox=dict(boxstyle="round,pad=0.25", fc=BG, ec="none", alpha=0.9))
+    X = 11.3
+    shadow(ax, X, 1.6, 4.1, 5.6, 0.25)
+    ax.add_patch(FancyBboxPatch((X, 1.6), 4.1, 5.6, boxstyle="round,pad=0,rounding_size=0.25",
+                                fc="white", ec=RULE, lw=0.9, zorder=3))
+    ax.text(X + 0.35, 6.7, "RETURNED: 5 OF 23 TOOLS", fontsize=6.8, weight="semibold", color=WARM, zorder=4)
+    for i, t in enumerate(near):
+        ax.text(X + 0.35, 6.0 - i * 0.75, f"{i + 1}", fontsize=7.8, color=MUTED, zorder=4)
+        ax.text(X + 0.8, 6.0 - i * 0.75, t, fontsize=7.8, fontfamily=MONO, color=INK, zorder=4)
+    ax.text(X + 0.35, 2.0, "only their schemas are read", fontsize=7.4, color=MUTED, style="italic", zorder=4)
+    ax.set_xlim(0.2, 15.6); ax.set_ylim(0.0, 7.8); ax.set_aspect("equal"); ax.axis("off")
     fig.savefig(OUT + "fig09.png"); plt.close(fig)
+
+
+GRAPH = """{
+  "returns": "graph",
+  "name": "route_invoice@v3",
+  "nodes": {
+    "doc":   { "tool": "extract_invoice",
+               "args": { "file": "$input.file" } },
+    "po":    { "tool": "match_po",
+               "args": { "invoice": "$doc" } },
+    "rules": { "tool": "rules_for",
+               "args": { "supplier": "$doc.supplier" } },
+    "who":   { "tool": "pick_approver",
+               "args": { "po": "$po", "rules": "$rules" } },
+    "send":  { "tool": "notify",
+               "args": { "to": "$who.approver" } }
+  },
+  "output": "$who",
+  "limits": { "max_calls": 8, "max_depth": 2 }
+}"""
+
+
+def fig_returned_graph():
+    """A tool whose result is a small program: a graph of tool calls, checked, then run."""
+    fig, ax = canvas(9.6, 5.4, 25.6, 14.2)
+    shadow(ax, 0.2, 0.3, 13.4, 13.6, r=0.35)
+    ax.add_patch(FancyBboxPatch((0.2, 0.3), 13.4, 13.6, boxstyle="round,pad=0,rounding_size=0.35",
+                                fc=DEEP, ec="none", zorder=2))
+    for i, c in enumerate(("#e06c5f", AMBER, "#5fb98a")):
+        ax.add_patch(Circle((0.75 + i * 0.45, 13.4), 0.13, fc=c, ec="none", zorder=3))
+    ax.text(13.2, 13.4, "plan_invoice_routing() → result", ha="right", va="center", fontsize=7.4,
+            color="#8592a3", fontfamily=MONO, zorder=3)
+    for i, line in enumerate(GRAPH.split("\n")):
+        _json_line(ax, 0.7, 12.65 - i * 0.6, line, 7.4)
+    # the graph it describes
+    X0 = 14.4
+    ax.text(X0 + 0.1, 13.55, "WHAT THE EXECUTOR RUNS", fontsize=7, weight="semibold", color=GREEN)
+    ax.text(X0 + 0.1, 13.0, "no model in the loop", fontsize=8, color=MUTED)
+    nodes = {"doc": (X0 + 5.4, 11.0, "extract_invoice"), "po": (X0 + 2.0, 8.2, "match_po"),
+             "rules": (X0 + 8.8, 8.2, "rules_for"), "who": (X0 + 5.4, 5.4, "pick_approver"),
+             "send": (X0 + 5.4, 2.6, "notify")}
+    W, H = 3.9, 1.5
+    for k, (x, y, t) in nodes.items():
+        card(ax, x - W / 2, y - H / 2, W, H, k, t, accent=GREEN if k != "send" else NAVY, fs=9.5,
+             subfs=7.6, mono_sub=True)
+    def link(a, b):
+        xa, ya, _ = nodes[a]; xb, yb, _ = nodes[b]
+        arrow(ax, (xa, ya - H / 2 - 0.08), (xb, yb + H / 2 + 0.12), color=GREEN, lw=1.5, z=6)
+    for a, b in [("doc", "po"), ("doc", "rules"), ("po", "who"), ("rules", "who"), ("who", "send")]:
+        link(a, b)
+    pill(ax, X0 + 5.4, 8.2, "in parallel", color=GREEN, fs=7.2)
+    ax.text(X0 + 0.1, 1.05, "checked first: every tool exists, every $ref fits its schema,\n"
+            "no cycles, policy allows it, within limits", fontsize=7.4, color=MUTED, va="center",
+            linespacing=1.35)
+    fig.savefig(OUT + "fig10.png"); plt.close(fig)
+
+
+def fig_recursion():
+    """A node can be a tool that returns a graph: programs nest, up to a fixed depth."""
+    fig, ax = canvas(9.0, 4.9, 24, 13.0)
+    def row(y, names, x0, gap, accent, expand=None, label=None):
+        pos = {}
+        for i, n in enumerate(names):
+            x = x0 + i * gap
+            hot = n == expand
+            card(ax, x, y, 3.4, 1.4, n, None, accent=AMBER if hot else accent, fs=8.6,
+                 fill="white", z=3)
+            pos[n] = (x, y)
+            if i:
+                arrow(ax, (x - gap + 3.5, y + 0.7), (x - 0.1, y + 0.7), color=accent, lw=1.3, z=5)
+        if label:
+            ax.text(0.2, y + 1.15, label[0], fontsize=9.5, weight="semibold", va="center")
+            ax.text(0.2, y + 0.75, label[1], fontsize=7.6, color=MUTED, va="top", linespacing=1.3)
+        return pos
+    p1 = row(10.6, ["receive", "route_invoice", "archive"], 6.2, 5.2, NAVY, expand="route_invoice",
+             label=("Level 1", "the process"))
+    p2 = row(6.0, ["extract", "match_po", "approve", "notify"], 4.4, 4.4, GREEN, expand="approve",
+             label=("Level 2", "a graph returned\nby route_invoice"))
+    p3 = row(1.4, ["rules_for", "pick_approver", "escalate?"], 8.8, 4.4, "#6c5b7b",
+             label=("Level 3", "a graph returned\nby approve"))
+    def funnel(src, dst_first, dst_last, y_src, y_dst):
+        xs, _ = src
+        for xa, xb in [(xs, dst_first[0]), (xs + 3.4, dst_last[0] + 3.4)]:
+            ax.plot([xa, xb], [y_src, y_dst + 1.45], color=AMBER, lw=1.0, ls=(0, (3, 2.5)), zorder=1)
+        ax.add_patch(plt.Polygon([(xs, y_src), (xs + 3.4, y_src), (dst_last[0] + 3.4, y_dst + 1.45),
+                                  (dst_first[0], y_dst + 1.45)], fc=AMBER_T, ec="none", alpha=0.55, zorder=0))
+    funnel(p1["route_invoice"], p2["extract"], p2["notify"], 10.6, 6.0)
+    funnel(p2["approve"], p3["rules_for"], p3["escalate?"], 6.0, 1.4)
+    pill(ax, 22.4, 12.2, "max depth 3", color=WARM, fs=7.4)
+    pill(ax, 22.4, 11.3, "max 20 calls", color=WARM, fs=7.4)
+    fig.savefig(OUT + "fig11.png"); plt.close(fig)
+
+
+def fig_program_loop():
+    """Programs inside the process: search, plan, check, run, keep; the kept graph becomes a tool."""
+    fig, ax = canvas(9.2, 3.9, 25.1, 10.4)
+    steps = [("Search", "embeddings find\nthe few tools that fit", AMBER),
+             ("Plan", "a tool or a model\nreturns a sub-graph", AMBER),
+             ("Check", "schemas, policy,\nlimits, no cycles", NAVY),
+             ("Run", "an executor,\nno model needed", GREEN),
+             ("Keep", "the graph is stored,\nnamed, versioned", GREEN)]
+    W, gap, y = 4.4, 5.0, 5.6
+    for i, (t, s, col) in enumerate(steps):
+        x = 0.3 + i * gap
+        card(ax, x, y, W, 2.6, t, s, accent=col, eyebrow=f"step {i + 1}", subfs=7.6)
+        if i < len(steps) - 1:
+            arrow(ax, (x + W + 0.1, y + 1.3), (x + gap - 0.1, y + 1.3), color=col)
+    # the loop back: the kept graph is published as a new tool
+    xl = 0.3 + 4 * gap + W / 2
+    ax.plot([xl, xl], [y - 0.1, 2.6], color=GREEN, lw=1.6, zorder=1)
+    ax.plot([xl, 0.3 + W / 2], [2.6, 2.6], color=GREEN, lw=1.6, zorder=1)
+    arrow(ax, (0.3 + W / 2, 2.6), (0.3 + W / 2, y - 0.1), color=GREEN, lw=1.6)
+    pill(ax, (xl + 0.3 + W / 2) / 2, 2.6, "published back as a tool: route_invoice@v3", color=GREEN,
+         fs=7.8, mono=False)
+    ax.text(12.3, 1.1, "next time, search finds the stored program first, and the planning step is skipped",
+            ha="center", fontsize=8.4, style="italic", color=INK)
+    ax.text(0.3, 8.85, "SLOW, ONCE", fontsize=7, weight="semibold", color=WARM)
+    ax.text(0.3 + 3 * gap, 8.85, "FAST, EVERY TIME", fontsize=7, weight="semibold", color=GREEN)
+    fig.savefig(OUT + "fig12.png"); plt.close(fig)
 
 
 if __name__ == "__main__":
     import os
     os.makedirs(OUT, exist_ok=True)
     fig_two_bindings(); fig_anatomy(); fig_many_readers(); fig_adapters(); fig_web()
-    fig_shapes(); fig_zoom(); fig_context(); fig_where(); fig_alternatives()
+    fig_shapes(); fig_zoom(); fig_context(); fig_embedding_map(); fig_returned_graph()
+    fig_recursion(); fig_program_loop(); fig_alternatives(); fig_where()
