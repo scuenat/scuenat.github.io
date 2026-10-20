@@ -1,0 +1,43 @@
+---
+title: "Intent Is the Source"
+subtitle: "A one-page essay: agentic coding may be the next IDE, and the next programming language"
+description: "Every generation of programming turned what people used to write into something the machine generates. I argue that agentic coding is the next step: intent and tests become the source, code becomes the output, and the IDE becomes the loop in which we steer and review."
+date: 2026-10-21
+draft: true
+toc: false
+categories: [essay, ai, agents, programming]
+image: figures/fig01.png
+resources:
+  - figs.py
+---
+
+::: {.callout-note appearance="simple"}
+**Short essay, October 2026.** One page, for a change. A follow-up to [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd). The figure is my own, drawn with [figs.py](figs.py).
+:::
+
+My claim is simple. The next IDE is not a better editor, and the next programming language is not a better syntax. Both are the agentic loop. What we write becomes intent and tests. Code becomes what the machine generates, the way assembly became what the compiler generates.
+
+![**Figure 1.** Schematic. Each generation of programming turned what people used to write into what the step above generates. The examples are illustrative.](figures/fig01.png){fig-alt="A staircase of six cards rising to the right: 1940s, machine code (10110000 01100001); 1950s, assembly (MOV AL, 61h); 1957, first compiler, FORTRAN (X = A + B * C); 1970s to 2000s, C, Java, Python (total = sum(items)); 2010s, frameworks (@get('/invoices')); now?, intent and tests ('route each invoice to its approver'), highlighted in amber. Caption: each step up, what people used to write becomes what the step above generates."}
+
+**This has happened before.** In the 1940s, people wrote machine code. Assemblers turned names into numbers. In 1957, FORTRAN turned formulas into assembly, and its authors had to prove that generated code could be nearly as fast as hand-written code, because nobody trusted it. They won: within a few years, most scientific programs were written in FORTRAN, and hand-written assembly retreated to the places that truly needed it. Each step up the ladder followed the same pattern: what people used to write became an *output*, still there, still inspectable, read only when something breaks.
+
+**The new language is intent plus tests.** Watch someone work well with a coding agent. They do not type functions. They state what they want, name the constraints, give examples, point to the code that matters, and say how the result will be checked. That bundle *is* the program. The prose says what to do; the tests say what "done" means; the tools and interfaces the agent may use, described as data, say what it is allowed to touch. In Fred Brooks's terms, the person keeps the *essential* complexity of software, deciding what it must do, and hands the *accidental* complexity, how to say it in a particular language and framework, to the machine ([No Silver Bullet, 1987](https://en.wikipedia.org/wiki/No_Silver_Bullet)).
+
+**The new IDE is the loop.** The IDE we know was built around typing: an editor, autocomplete, a debugger. The agentic IDE is built around a cycle: state the intent, let the agent plan, edit and run the tests, then read the diff and steer. Its main panes are not the editor but the plan, the diff, the test results and a log of decisions. Typing code by hand becomes what writing assembly became: something you do when you must, and are glad you can.
+
+**The strongest objection is old, and it is right about one thing.** In the late 1970s, Edsger Dijkstra called natural-language programming foolish, because natural language is too imprecise to say exactly what a machine must do ([EWD 667](https://www.cs.utexas.edu/~EWD/transcriptions/EWD06xx/EWD667.html)). He is right that prose alone is not a program. But the new language is not prose alone. Its precision comes from the loop: tests that pass or fail, a repository with conventions, types the generated code must respect, and a person who reviews the result. That is how teams of people have always turned vague requests into exact software. The agent joins the team; the tests become the type system of intent.
+
+The evidence is still mixed, and I do not want to hide it. Agents now resolve a large share of real issues on benchmarks such as [SWE-bench](https://arxiv.org/abs/2310.06770). Yet a controlled study in 2025 found that experienced open-source developers were 19% *slower* with AI tools on their own repositories ([METR, 2025](https://arxiv.org/abs/2507.09089)). FORTRAN's first users also lost time before they gained it. A new language is judged by where its curve goes, not by its first year.
+
+**What follows if I am right.** The source of truth moves. We should version the intent and the tests next to the code, because they are what we will maintain. Code review should start with *what was asked* and only then look at the lines. Teaching should shift weight from syntax to specification, testing and judgement. And code itself does not disappear: like assembly, it stays the layer you can always read, and the one the machine is held to.
+
+Every generation of programmers was told that the next level of abstraction was a toy. Each time, the toy became the language. I think intent is next.
+
+::: {.read-next}
+**Read next** · [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd)
+How MCP and the agentic loop change what we call an API.
+:::
+
+::: {.small}
+*The views in this essay are my own and do not describe any product or plan of my employer.*
+:::
