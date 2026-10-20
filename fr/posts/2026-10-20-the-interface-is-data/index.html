@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="MCP est d’ordinaire présenté comme un moyen de donner des outils aux modèles d’IA. Je pense qu’il change quelque chose de plus ancien : ce qu’est une API. Quand un service se décrit sous forme de données que tout appelant lit au moment de l’appel, les outils peuvent former une toile, offrir plusieurs niveaux de détail à la fois, renvoyer des programmes entiers et économiser beaucoup de code de liaison. L’idée a aussi de vraies faiblesses, et de sérieuses alternatives.">
+
+<title>L’interface est une donnée – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-81ce6521bd132de05aead987d95a862f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-3fb41e527c4996803e8d73e157bb8388.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-81ce6521bd132de05aead987d95a862f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/index.html">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-10-20-the-interface-is-data/index.html">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/index.html">
+<meta name="alt-lang-url" content="/posts/2026-10-20-the-interface-is-data/index.html">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="L’interface est une donnée – AI, Honestly">
+<meta property="og:description" content="MCP est d’ordinaire présenté comme un moyen de donner des outils aux modèles d’IA. Je pense qu’il change quelque chose de plus ancien : ce qu’est une API. Quand un service se décrit sous forme de données que tout appelant lit au moment de l’appel, les outils peuvent former une toile, offrir plusieurs niveaux de détail à la fois, renvoyer des programmes entiers et économiser beaucoup de code de liaison. L’idée a aussi de vraies faiblesses, et de sérieuses alternatives.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig05.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="1084">
+<meta property="og:image:width" content="1683">
+<meta name="twitter:title" content="L’interface est une donnée – AI, Honestly">
+<meta name="twitter:description" content="MCP est d’ordinaire présenté comme un moyen de donner des outils aux modèles d’IA. Je pense qu’il change quelque chose de plus ancien : ce qu’est une API. Quand un service se décrit sous forme de données que tout appelant lit au moment de l’appel, les outils peuvent former une toile, offrir plusieurs niveaux de détail à la fois, renvoyer des programmes entiers et économiser beaucoup de code de liaison. L’idée a aussi de vraies faiblesses, et de sérieuses alternatives.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig05.png">
+<meta name="twitter:image-height" content="1084">
+<meta name="twitter:image-width" content="1683">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#le-rituel-du-sdk" id="toc-le-rituel-du-sdk" class="nav-link active" data-scroll-target="#le-rituel-du-sdk">1. Le rituel du SDK</a></li>
+  <li><a href="#ce-que-mcp-change-la-description-est-lue-à-lexécution" id="toc-ce-que-mcp-change-la-description-est-lue-à-lexécution" class="nav-link" data-scroll-target="#ce-que-mcp-change-la-description-est-lue-à-lexécution">2. Ce que MCP change : la description est lue à l’exécution</a></li>
+  <li><a href="#un-vieux-rêve-enfin-avec-un-lecteur" id="toc-un-vieux-rêve-enfin-avec-un-lecteur" class="nav-link" data-scroll-target="#un-vieux-rêve-enfin-avec-un-lecteur">3. Un vieux rêve, enfin avec un lecteur</a></li>
+  <li><a href="#lidée-na-pas-besoin-dia" id="toc-lidée-na-pas-besoin-dia" class="nav-link" data-scroll-target="#lidée-na-pas-besoin-dia">4. L’idée n’a pas besoin d’IA</a></li>
+  <li><a href="#une-toile-doutils" id="toc-une-toile-doutils" class="nav-link" data-scroll-target="#une-toile-doutils">5. Une toile d’outils</a></li>
+  <li><a href="#la-granularité-à-la-demande" id="toc-la-granularité-à-la-demande" class="nav-link" data-scroll-target="#la-granularité-à-la-demande">6. La granularité à la demande</a></li>
+  <li><a href="#des-outils-qui-renvoient-des-programmes" id="toc-des-outils-qui-renvoient-des-programmes" class="nav-link" data-scroll-target="#des-outils-qui-renvoient-des-programmes">7. Des outils qui renvoient des programmes</a></li>
+  <li><a href="#les-arguments-contre-mcp" id="toc-les-arguments-contre-mcp" class="nav-link" data-scroll-target="#les-arguments-contre-mcp">8. Les arguments contre MCP</a></li>
+  <li><a href="#là-où-le-sdk-survit" id="toc-là-où-le-sdk-survit" class="nav-link" data-scroll-target="#là-où-le-sdk-survit">9. Là où le SDK survit</a></li>
+  <li><a href="#ce-qui-me-donnerait-tort" id="toc-ce-qui-me-donnerait-tort" class="nav-link" data-scroll-target="#ce-qui-me-donnerait-tort">10. Ce qui me donnerait tort</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">11. Conclusion</a></li>
+  <li><a href="#références" id="toc-références" class="nav-link" data-scroll-target="#références">Références</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">L’interface est une donnée</h1>
+<p class="subtitle lead">Comment MCP et la boucle agentique changent ce que nous appelons une API, et pourquoi l’idée compte même sans IA</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">agents</div>
+    <div class="quarto-category">architecture</div>
+    <div class="quarto-category">mcp</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    MCP est d’ordinaire présenté comme un moyen de donner des outils aux modèles d’IA. Je pense qu’il change quelque chose de plus ancien : ce qu’est une API. Quand un service se décrit sous forme de données que tout appelant lit au moment de l’appel, les outils peuvent former une toile, offrir plusieurs niveaux de détail à la fois, renvoyer des programmes entiers et économiser beaucoup de code de liaison. L’idée a aussi de vraies faiblesses, et de sérieuses alternatives.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">20 octobre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, octobre 2026.</strong> Le pendant de <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>, d’<a href="../../../fr/posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">Un écosystème, pas un oracle</a> et du <a href="../../../fr/posts/2026-10-18-the-junior-colleague/index.html">Collègue junior</a>. Toutes les figures sont de moi, dessinées avec le code de <a href="../../../posts/2026-10-20-the-interface-is-data/figs.py">figs.py</a>, et leurs libellés sont en anglais. Quand une figure utilise les chiffres de quelqu’un d’autre, la légende cite la source. Quand les chiffres sont mes propres hypothèses d’illustration, la légende le dit. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-20-the-interface-is-data/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Le Model Context Protocol (MCP) est d’ordinaire présenté comme un moyen de donner aux modèles d’IA l’accès à des outils. Je pense qu’il fait quelque chose de plus large. Il change ce que nous entendons par une API. Une API classique est un contrat qu’un développeur lit une fois, puis transforme en code. Un serveur MCP se décrit sous forme de données que tout appelant lit au moment où il fait l’appel : ce que fait chaque outil, ce qu’il accepte et renvoie, et s’il peut être relancé sans risque. C’est la boucle agentique qui a rendu cela praticable, car pour la première fois un client généraliste peut lire la description et agir en conséquence. Mais l’idée n’a pas besoin d’IA. Un moteur de workflow, un générateur de formulaires, une suite de tests ou une passerelle de règles peuvent lire la même description. Une fois que les interfaces sont des données, les outils peuvent être reliés en un graphe de n’importe quelle forme, une même capacité peut être offerte à plusieurs niveaux de détail, et une grande partie du code de liaison entre systèmes disparaît. Un pas plus loin, un outil peut être trouvé par le sens de sa description et peut renvoyer non pas des données, mais un programme : un sous-graphe d’autres outils, vérifié et exécuté par un exécuteur, puis conservé comme un nouvel outil. Les programmes vivent alors à l’intérieur du processus, sous forme de données. MCP a aussi de sérieuses faiblesses : il encombre le contexte du modèle, il ouvre de nouvelles failles de sécurité, et la prose est un contrat fragile. Certaines alternatives font mieux une partie du travail. Ma conclusion est que le changement durable n’est pas le protocole. C’est l’habitude de publier une interface sous forme de données et de choisir, au cas par cas, quand s’y lier.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>Points clés
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Une API était lue par des personnes et transformée en code.</strong> Un outil MCP est une donnée, lue par son appelant au moment de l’appel. Le changement essentiel n’est pas le format d’échange. C’est <em>le moment</em> où l’on se lie à l’interface.</li>
+<li><strong>L’idée est ancienne ; le lecteur est nouveau.</strong> Les services qui se décrivent eux-mêmes (WSDL, l’hypermédia REST) ont été proposés il y a vingt-cinq ans et ont largement échoué, parce qu’aucun client généraliste ne savait lire leurs descriptions. Un modèle de langage dans une boucle le sait.</li>
+<li><strong>L’idée n’a pas besoin d’IA.</strong> Des six lecteurs d’une description d’outil que je présente plus bas, un seul est un modèle.</li>
+<li><strong>Les outils décrits forment une toile.</strong> Un serveur peut aussi être un client, si bien que les outils se composent en étoile, en maillage ou en couches. Avec <span class="math inline">N</span> clients et <span class="math inline">M</span> services, le nombre d’adaptateurs à écrire passe de <span class="math inline">N \times M</span> à <span class="math inline">N + M</span>.</li>
+<li><strong>La granularité devient un choix de l’appelant.</strong> Un même serveur peut offrir une capacité entière, quelques workflows, des outils unitaires et des opérations brutes ; chaque appelant choisit son niveau.</li>
+<li><strong>Un outil peut renvoyer un programme.</strong> On encode les descriptions d’outils en vecteurs pour les trouver par le sens, un outil renvoie un sous-graphe d’appels, on le vérifie et on l’exécute sans modèle, puis on le stocke comme un nouvel outil. La frontière entre API, workflow et programme devient une question de niveau.</li>
+<li><strong>Les arguments contre MCP sont réels.</strong> Les descriptions d’outils encombrent le contexte, les descriptions empoisonnées et l’injection de prompt sont de vraies attaques, la prose est un contrat fragile, et le code, les outils en ligne de commande ou les SDK typés sont souvent plus simples.</li>
+<li><strong>Le SDK ne meurt pas ; il se déplace.</strong> On explore avec un agent sur des outils décrits, puis on compile ce qui se répète en code typé : l’étape que j’ai appelée Fast AI.</li>
+</ul>
+</div>
+</div>
+<section id="le-rituel-du-sdk" class="level2">
+<h2 class="anchored" data-anchor-id="le-rituel-du-sdk">1. Le rituel du SDK</h2>
+<p>Quiconque a relié deux systèmes d’entreprise connaît le rituel. On trouve la documentation de l’API de l’autre système. On la lit, en général deux fois. On installe son SDK pour son langage, ou on écrit un client s’il n’en existe pas. On fait correspondre ses objets aux siens, on gère ses erreurs, sa pagination, son authentification, ses limites de débit. On écrit des tests. Quelques mois plus tard, l’autre côté publie la version 3, et tout recommence.</p>
+<p>Le coût de ce rituel n’est dans aucune étape en particulier. Il est dans le nombre de fois où on le répète. Chaque paire de systèmes qui doivent se parler a besoin de son propre code de liaison, écrit par quelqu’un qui a lu la documentation des deux. Dans une entreprise de dix applications et cinquante services, cela fait beaucoup de liaison, et la plupart ne fait rien de plus intéressant que traduire une forme de données en une autre.</p>
+<p>Depuis trente ans, la réponse a été une meilleure documentation et une meilleure génération de code : WSDL au début des années 2000, puis Swagger et OpenAPI, puis les générateurs de clients typés. Ils ont aidé. Mais le contrat était toujours lu par une personne et figé dans le code avant que le programme ne tourne. Le programme lui-même ne savait jamais ce que le service pouvait faire. Il savait seulement ce que son développeur avait écrit.</p>
+</section>
+<section id="ce-que-mcp-change-la-description-est-lue-à-lexécution" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-mcp-change-la-description-est-lue-à-lexécution">2. Ce que MCP change : la description est lue à l’exécution</h2>
+<p>MCP a été publié par Anthropic en novembre 2024 comme un standard ouvert pour relier les applications d’IA à des données et à des outils <span class="citation" data-cites="anthropic2024mcp">(<a href="#ref-anthropic2024mcp" role="doc-biblioref">Anthropic 2024</a>)</span>. Techniquement, il est modeste. Les messages sont en JSON-RPC 2.0. Un serveur expose des <em>outils</em> (des actions), des <em>ressources</em> (des données à lire) et des <em>prompts</em> (des instructions réutilisables). Un client demande au serveur ce qu’il offre avec <code>tools/list</code> et appelle un outil avec <code>tools/call</code> <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025</a>)</span>. Le protocole dit ouvertement s’inspirer du Language Server Protocol, qui a résolu un problème semblable entre les éditeurs de code et les langages de programmation <span class="citation" data-cites="lsp2016">(<a href="#ref-lsp2016" role="doc-biblioref">Microsoft 2016</a>)</span>.</p>
+<p>L’essentiel est dans la réponse à <code>tools/list</code>. Chaque outil revient sous la forme d’une petite donnée : un nom, un titre lisible, une description en mots simples, un schéma JSON pour ses entrées et, depuis la révision de juin 2025, un schéma facultatif pour ses sorties et des <em>annotations</em> : des indications comme le fait que l’outil ne fait que lire, qu’il peut détruire quelque chose, ou qu’on peut l’appeler deux fois sans risque <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025</a>)</span>. Le serveur peut aussi prévenir le client que sa liste d’outils a changé.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma. Avec un SDK, une personne lit la documentation et fige l’interface dans le code, une fois par paire de systèmes. Avec des outils décrits, l’appelant lit l’interface comme une donnée au moment de l’appel."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig01.png" class="img-fluid figure-img" alt="Deux rangées de quatre cartes. En haut, avant, SDK, lié quand le code est écrit : une documentation lue par une personne, un développeur qui écrit la liaison, une bibliothèque cliente typée, le service ; des semaines par paire. En bas, après, outils décrits, lus au moment de l'appel : le service publie ses outils, tools/list renvoie noms, textes et schémas, n'importe quel appelant (un modèle, un script, un formulaire), tools/call vérifié par le schéma ; des secondes, à l'exécution."></a></p>
+<figcaption><strong>Figure 1.</strong> Schéma. Avec un SDK, une personne lit la documentation et fige l’interface dans le code, une fois par paire de systèmes. Avec des outils décrits, l’appelant lit l’interface comme une donnée au moment de l’appel.</figcaption>
+</figure>
+</div>
+<p>Aucun de ces champs n’est nouveau en soi. JSON Schema existe depuis plus de quinze ans, et OpenAPI porte déjà des descriptions. Le changement porte sur <em>le moment où l’on se lie à l’interface, et sur qui le fait</em>. Avec un SDK, la liaison se fait quand le code est écrit, dans la tête d’un développeur. Avec MCP, elle se fait au moment de l’appel, dans l’appelant. Le programme ne contient plus le savoir de ce que le service peut faire. Il le demande.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Une entrée d’une réponse à tools/list, avec les parties qu’utilisent différents lecteurs. Les champs suivent la spécification MCP (version 2025-06-18) ; l’outil de factures est mon propre exemple."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig02.png" class="img-fluid figure-img" alt="Un panneau de code sombre montre la description JSON d'un outil nommé route_invoice, avec un titre, une description, un schéma d'entrée avec invoice_id et amount_chf, un schéma de sortie avec budget et approver, et des annotations readOnlyHint false et idempotentHint true. Des traits relient cinq parties à des cartes : le nom, lu par tous ; la description, lue par un modèle ou une personne ; le schéma d'entrée, lu par un validateur ou un formulaire ; le schéma de sortie, lu par un planificateur ou un vérificateur de types ; les indications, lues par une passerelle de règles."></a></p>
+<figcaption><strong>Figure 2.</strong> Une entrée d’une réponse à <code>tools/list</code>, avec les parties qu’utilisent différents lecteurs. Les champs suivent la spécification MCP (version 2025-06-18) ; l’outil de factures est mon propre exemple.</figcaption>
+</figure>
+</div>
+<p>C’est pourquoi je dis que MCP est une façon de redéfinir l’API, au moins en partie. Une API était un document plus une bibliothèque. Ici, elle devient un <em>objet de données</em> qui voyage avec le service et qu’on peut interroger, filtrer, journaliser, versionner et comparer, comme n’importe quelle autre donnée.</p>
+</section>
+<section id="un-vieux-rêve-enfin-avec-un-lecteur" class="level2">
+<h2 class="anchored" data-anchor-id="un-vieux-rêve-enfin-avec-un-lecteur">3. Un vieux rêve, enfin avec un lecteur</h2>
+<p>Le rêve de services qui se décrivent eux-mêmes est ancien, et il vaut la peine de se rappeler pourquoi il a échoué.</p>
+<p>En 2000, la thèse de Roy Fielding a défini REST et l’une de ses contraintes, <em>l’hypermédia comme moteur de l’état de l’application</em> (HATEOAS) : un client devrait découvrir ce qu’il peut faire ensuite à partir des liens de chaque réponse, et non d’une documentation lue à l’avance <span class="citation" data-cites="fielding2000">(<a href="#ref-fielding2000" role="doc-biblioref">Fielding 2000</a>)</span>. Presque personne n’a construit de clients de cette façon. À la même époque, WSDL décrivait les services web dans un XML lisible par les machines <span class="citation" data-cites="w3c2001wsdl">(<a href="#ref-w3c2001wsdl" role="doc-biblioref">Christensen et al. 2001</a>)</span>, et les annuaires UDDI devaient permettre aux programmes de trouver des services par eux-mêmes. Les grands annuaires UDDI publics ont fermé en 2006.</p>
+<p>Ces idées n’ont pas échoué parce qu’elles étaient fausses. Elles ont échoué parce que le client manquait. Une description n’est utile que si quelque chose peut la lire et décider quoi faire. Un programme ordinaire ne peut pas lire « affecte une facture à un budget et à la personne qui l’approuve » et comprendre quand l’appeler. En pratique, c’est donc toujours un développeur qui lisait la description, et la liaison restait dans le code.</p>
+<p>La boucle agentique a fourni ce client. Un modèle de langage peut lire une description en mots simples, la rapprocher d’un objectif, remplir les arguments à partir du schéma, regarder le résultat et décider de la suite <span class="citation" data-cites="yao2023react schick2023">(<a href="#ref-yao2023react" role="doc-biblioref">Yao et al. 2023</a>; <a href="#ref-schick2023" role="doc-biblioref">Schick et al. 2023</a>)</span>. Le <em>function calling</em>, introduit par OpenAI en juin 2023 <span class="citation" data-cites="openai2023fc">(<a href="#ref-openai2023fc" role="doc-biblioref">OpenAI 2023</a>)</span>, a donné aux modèles une manière structurée de le faire, mais chaque application gardait sa propre liste de fonctions. Les travaux sur des agents qui choisissent parmi des milliers d’API réelles <span class="citation" data-cites="patil2023 qin2024">(<a href="#ref-patil2023" role="doc-biblioref">Patil et al. 2023</a>; <a href="#ref-qin2024" role="doc-biblioref"><span class="nocase">Qin et al.</span> 2024</a>)</span> ont montré à la fois la promesse et la difficulté. L’apport de MCP a été de sortir la description de l’application pour la placer dans le service, derrière un seul protocole. L’adoption a été rapide. En décembre 2025, quand Anthropic a confié MCP à la nouvelle Agentic AI Foundation, sous l’égide de la Linux Foundation, on comptait plus de 10 000 serveurs MCP publics actifs <span class="citation" data-cites="anthropic2025aaif">(<a href="#ref-anthropic2025aaif" role="doc-biblioref">Anthropic 2025b</a>)</span>.</p>
+</section>
+<section id="lidée-na-pas-besoin-dia" class="level2">
+<h2 class="anchored" data-anchor-id="lidée-na-pas-besoin-dia">4. L’idée n’a pas besoin d’IA</h2>
+<p>C’est la partie que je trouve la plus intéressante, et la plus souvent manquée. Dès qu’un service publie son interface sous forme de données, le modèle de langage devient un lecteur parmi d’autres.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Schéma. Une description d’outil, six lecteurs. Seul le modèle de langage a besoin d’IA ; les cinq autres travaillent sur les mêmes données avec du code ordinaire."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig03.png" class="img-fluid figure-img" alt="Une carte centrale sombre, description d'outil, données : noms, textes, schémas, indications. Six cartes autour, reliées par des flèches : modèle de langage, a besoin d'IA, choisit un outil et remplit ses arguments ; workflow ou script, sans IA, l'appelle par son nom ; générateur de formulaires, sans IA, construit un écran à partir du schéma d'entrée ; générateur de tests, sans IA, produit des appels valides et invalides à partir du schéma ; passerelle de règles, sans IA, autorise ou bloque un appel d'après ses indications ; catalogue, sans IA, recherche, documentation et usage."></a></p>
+<figcaption><strong>Figure 3.</strong> Schéma. Une description d’outil, six lecteurs. Seul le modèle de langage a besoin d’IA ; les cinq autres travaillent sur les mêmes données avec du code ordinaire.</figcaption>
+</figure>
+</div>
+<ul>
+<li>Un <strong>moteur de workflow</strong> ou un simple script peut appeler un outil par son nom, avec des arguments vérifiés par le schéma, sans jamais faire intervenir de modèle.</li>
+<li>Un <strong>générateur de formulaires</strong> peut construire un écran à partir du schéma d’entrée, pour qu’une personne puisse appeler le même outil à la main.</li>
+<li>Un <strong>générateur de tests</strong> peut produire des appels valides et invalides à partir des schémas, et vérifier que les sorties respectent le schéma de sortie.</li>
+<li>Une <strong>passerelle de règles</strong> peut lire les annotations et décider, par exemple, que les outils destructeurs exigent une approbation humaine.</li>
+<li>Un <strong>catalogue</strong> peut indexer tous les outils de l’entreprise, avec leur responsable, leur version et leur fréquence d’utilisation.</li>
+</ul>
+<p>Vu ainsi, MCP est moins un protocole d’IA qu’une façon <em>pilotée par les données</em> de construire des intégrations. L’interface est un enregistrement dans un catalogue. Le comportement du système (quels outils existent, qui peut les appeler, lesquels s’enchaînent) se modifie en changeant des données plutôt que du code. La boucle agentique est facultative. La description ne l’est pas.</p>
+<p>Cela compte pour l’argument de <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>. J’y soutenais que le grand modèle devrait faire une fois le travail lent d’exploration, et que ce qui se répète devrait être compilé en quelque chose de rapide et de fixe. Une interface pilotée par les données rend cette compilation facile : la recette qu’un agent a découverte peut être stockée comme une donnée (appeler <code>extract_invoice</code>, puis <code>match_po</code>, puis <code>pick_approver</code>) et rejouée par un moteur de workflow, sans aucun modèle.</p>
+</section>
+<section id="une-toile-doutils" class="level2">
+<h2 class="anchored" data-anchor-id="une-toile-doutils">5. Une toile d’outils</h2>
+<p>La deuxième conséquence est structurelle. Dans MCP, les rôles de client et de serveur ne sont pas figés : un serveur peut lui-même être le client d’autres serveurs. Un serveur « bureau des factures » peut exposer un seul outil, <code>route_invoice</code>, et le réaliser en appelant un serveur ERP, un serveur de documents et un modèle de décision. Une passerelle peut rassembler de nombreux serveurs derrière un seul catalogue et ajouter, en un seul endroit, l’identité, les règles et la journalisation.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. L’arithmétique de la liaison. Avec un adaptateur par paire, le travail croît comme N \times M ; avec un adaptateur par côté, comme N + M. Un simple dénombrement, pas une mesure."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig04.png" class="img-fluid figure-img" alt="Graphique en lignes du nombre d'adaptateurs à écrire et à maintenir selon le nombre de services à relier, de 0 à 50. Avec un adaptateur par paire, 10 clients en demandent 500 pour 50 services, 5 clients en demandent 250. Avec un par côté, 10 clients en demandent 60, 5 clients 55. L'écart entre les lignes est ombré et légendé : la liaison que personne n'a à écrire."></a></p>
+<figcaption><strong>Figure 4.</strong> L’arithmétique de la liaison. Avec un adaptateur par paire, le travail croît comme <span class="math inline">N \times M</span> ; avec un adaptateur par côté, comme <span class="math inline">N + M</span>. Un simple dénombrement, pas une mesure.</figcaption>
+</figure>
+</div>
+<p>Le premier gain est une simple arithmétique, celle-là même qui a motivé le Language Server Protocol. Si <span class="math inline">N</span> clients doivent chacun parler à <span class="math inline">M</span> services, écrire un adaptateur par paire coûte <span class="math inline">N \times M</span> adaptateurs. Si chaque client parle un seul protocole et que chaque service publie une seule description, cela coûte <span class="math inline">N + M</span>. Avec dix clients et cinquante services, cela fait 60 adaptateurs au lieu de 500. Chaque adaptateur est un vrai travail : lire, coder, tester et surtout maintenir quand l’un des deux côtés change. Je soupçonne que c’est là, bien plus que dans tout ce qui touche à l’IA, que se trouve l’essentiel du temps gagné.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Schéma. Une toile d’outils. Des clients, avec ou sans modèle, atteignent les serveurs par une passerelle. Le bureau des factures est à la fois serveur et client. Les liens verts en pointillés ne sont pas configurés à la main : on peut les calculer en faisant correspondre le schéma de sortie d’un outil au schéma d’entrée d’un autre."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig05.png" class="img-fluid figure-img" alt="Schéma de réseau. Trois clients à gauche : un assistant, un modèle dans une boucle ; un moteur de workflow, sans modèle ; un script nocturne, sans modèle. Ils appellent une carte sombre, la passerelle (un catalogue, identité, règles, journaux). La passerelle appelle un bureau des factures, serveur et client (route_invoice), un serveur de messagerie et un serveur de graphe de connaissances. Le bureau des factures appelle l'ERP (match_po), les documents (extract_invoice) et un modèle de décision (pick_approver). Des crochets verts en pointillés relient les documents à l'ERP, avec l'étiquette Invoice, et le graphe de connaissances au modèle de décision, avec l'étiquette Rules."></a></p>
+<figcaption><strong>Figure 5.</strong> Schéma. Une toile d’outils. Des clients, avec ou sans modèle, atteignent les serveurs par une passerelle. Le bureau des factures est à la fois serveur et client. Les liens verts en pointillés ne sont pas configurés à la main : on peut les calculer en faisant correspondre le schéma de sortie d’un outil au schéma d’entrée d’un autre.</figcaption>
+</figure>
+</div>
+<p>Le second gain est moins évident. Quand chaque outil déclare la forme de ce qu’il accepte et de ce qu’il renvoie, les liens entre outils deviennent quelque chose qu’on peut <em>calculer</em>. Si <code>extract_invoice</code> renvoie un objet qui convient à l’entrée de <code>match_po</code>, les deux peuvent s’enchaîner, et un planificateur, humain ou machine, peut le voir sans lire une ligne de code. Le graphe des compositions possibles est un sous-produit des descriptions. C’est ce que j’entends par une toile d’outils : non pas un schéma d’intégration figé dessiné par un architecte, mais un graphe qu’on peut interroger, dans lequel on peut chercher des chemins et repérer les liens manquants.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Schéma. Les mêmes outils, organisés selon trois formes. Comme chaque nœud parle le même protocole, la forme est un choix de déploiement, pas une réécriture."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig06.png" class="img-fluid figure-img" alt="Trois petits schémas de réseau. Étoile : un nœud central de passerelle avec des clients et des serveurs autour. Maillage : des serveurs reliés entre eux en un réseau irrégulier, avec un nœud composite orange. Couches : un nœud agent vert en haut, deux nœuds composites orange au milieu, quatre nœuds de serveurs élémentaires en bas."></a></p>
+<figcaption><strong>Figure 6.</strong> Schéma. Les mêmes outils, organisés selon trois formes. Comme chaque nœud parle le même protocole, la forme est un choix de déploiement, pas une réécriture.</figcaption>
+</figure>
+</div>
+<p>Et le graphe peut prendre la forme dont l’organisation a besoin. Une <em>étoile</em> place l’identité et les règles en un seul endroit, ce que la plupart des entreprises voudront pour tout ce qui touche à l’argent ou aux données personnelles. Un <em>maillage</em> laisse les équipes relier directement leurs serveurs, sans goulet central. Des <em>couches</em> empilent des outils élémentaires sous des outils composites, et des outils composites sous des agents eux-mêmes exposés comme des outils. Comme chaque nœud parle le même protocole, passer d’une forme à l’autre est une affaire de configuration. C’est le bénéfice de la communication croisée : des équipes qui n’ont jamais coordonné leurs API peuvent tout de même trouver et appeler les outils des autres, par un seul catalogue, dans un seul format.</p>
+</section>
+<section id="la-granularité-à-la-demande" class="level2">
+<h2 class="anchored" data-anchor-id="la-granularité-à-la-demande">6. La granularité à la demande</h2>
+<p>Tout concepteur d’API se heurte à la question du grain. Trop fin, et les appelants font des dizaines d’appels bavards pour faire une seule chose. Trop gros, et les appelants ne peuvent rien faire que le concepteur n’ait prévu. Dans le monde des SDK, le concepteur choisit un grain et tout le monde vit avec.</p>
+<p>Les outils décrits assouplissent ce choix de deux façons.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig07.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Schéma. Une même capacité offerte à quatre grains, d’un agent utilisé comme un seul outil jusqu’aux opérations brutes en dessous. Chaque appelant choisit le niveau dont il a besoin."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig07.png" class="img-fluid figure-img" alt="Quatre bandes empilées qui s'élargissent vers le bas comme une pyramide. Capacité, un agent utilisé comme un outil : invoices.handle(task). Workflows, quelques étapes, un résultat : route_invoice, dispute_invoice, close_month. Outils, une action chacun : extract, match_po, assign_budget, pick_approver, notify. Opérations, l'API en dessous : GET /po/{id}, POST /approvals, GET /budgets, PUT /invoices/{id}, POST /mail. Flèches à droite : zoomer, plus de contrôle, plus d'appels ; dézoomer, moins d'appels, plus de confiance."></a></p>
+<figcaption><strong>Figure 7.</strong> Schéma. Une même capacité offerte à quatre grains, d’un agent utilisé comme un seul outil jusqu’aux opérations brutes en dessous. Chaque appelant choisit le niveau dont il a besoin.</figcaption>
+</figure>
+</div>
+<p><strong>D’abord, un même serveur peut publier plusieurs niveaux à la fois.</strong> Tout en haut, une capacité entière exposée comme un seul outil : « traiter cette tâche de facture », réalisée par un agent. En dessous, quelques workflows qui produisent chacun un résultat. Plus bas, des actions unitaires. Tout en bas, les opérations brutes de l’API sous-jacente. Un modèle puissant qui traite un cas inhabituel voudra peut-être les outils fins. Un moteur de workflow voudra le workflow. L’agent d’une autre équipe ne voudra peut-être que la capacité. Comme chaque niveau n’est qu’une donnée de plus dans le même catalogue, offrir les quatre coûte peu. Les conseils d’Anthropic pour écrire des outils destinés aux agents vont dans le même sens : moins d’outils, plus parlants, qui correspondent à la façon dont une tâche se fait réellement, plutôt qu’une fine enveloppe autour de chaque point d’accès <span class="citation" data-cites="anthropic2025tools">(<a href="#ref-anthropic2025tools" role="doc-biblioref">Anthropic 2025e</a>)</span>.</p>
+<p><strong>Ensuite, l’appelant peut choisir quelle part de la description il lit.</strong> C’est la <em>divulgation progressive</em> : d’abord les noms, puis les descriptions des outils qui semblent pertinents, puis leurs schémas complets, puis, si nécessaire, leur documentation ou leur code. Les Agent Skills appliquent cette idée aux instructions : un modèle ne voit que le nom et le résumé d’une compétence jusqu’à ce qu’il la juge pertinente, et alors seulement il lit le reste <span class="citation" data-cites="anthropic2025skills">(<a href="#ref-anthropic2025skills" role="doc-biblioref">Anthropic 2025c</a>)</span>. La recherche d’outils fait de même pour les grands catalogues : les outils ne sont chargés que lorsqu’une recherche les trouve <span class="citation" data-cites="anthropic2025advtools gan2025">(<a href="#ref-anthropic2025advtools" role="doc-biblioref">Anthropic 2025d</a>; <a href="#ref-gan2025" role="doc-biblioref">Gan et Sun 2025</a>)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig08.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. Ce qu’un appelant lit avant d’agir. À gauche : un catalogue de 200 outils, en supposant environ 10 tokens par nom, 50 par nom et description, et 450 par schéma complet ; des valeurs d’illustration de mon cru. À droite : un workflow décrit par Anthropic, où présenter les outils comme des fichiers lus à la demande a réduit les tokens utilisés de 150 000 à 2 000 [@anthropic2025codeexec]."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig08.png" class="img-fluid figure-img" alt="À gauche, diagramme en barres pour un catalogue de 200 outils (illustratif) : noms seuls 2 000 tokens ; noms et descriptions 10 000 ; tous les schémas 90 000 ; les noms puis 3 schémas à la demande 3 350. À droite, barres horizontales rapportées par Anthropic : toutes les définitions d'outils chargées d'emblée 150 000 tokens ; outils lus comme des fichiers au besoin 2 000 ; moins 98,7 %."></a></p>
+<figcaption><strong>Figure 8.</strong> Ce qu’un appelant lit avant d’agir. À gauche : un catalogue de 200 outils, en supposant environ 10 tokens par nom, 50 par nom et description, et 450 par schéma complet ; des valeurs d’illustration de mon cru. À droite : un workflow décrit par Anthropic, où présenter les outils comme des fichiers lus à la demande a réduit les tokens utilisés de 150 000 à 2 000 <span class="citation" data-cites="anthropic2025codeexec">(<a href="#ref-anthropic2025codeexec" role="doc-biblioref">Anthropic 2025a</a>)</span>.</figcaption>
+</figure>
+</div>
+<p>Les chiffres montrent pourquoi c’est important. Charger tous les schémas d’un grand catalogue avant le premier appel peut coûter des dizaines de milliers de tokens, payés à chaque exécution, et qui chassent le contexte utile de la fenêtre. Dans un workflow décrit par Anthropic, présenter les outils comme des fichiers que l’agent ne lit qu’au besoin a réduit les tokens utilisés de 150 000 à 2 000, soit une baisse de 98,7 % <span class="citation" data-cites="anthropic2025codeexec">(<a href="#ref-anthropic2025codeexec" role="doc-biblioref">Anthropic 2025a</a>)</span>. C’est un exemple, pas une mesure de référence, mais la direction est claire : la granularité n’est plus seulement une propriété de l’API. C’est un choix fait par l’appelant, à l’exécution, selon ce dont il a besoin.</p>
+</section>
+<section id="des-outils-qui-renvoient-des-programmes" class="level2">
+<h2 class="anchored" data-anchor-id="des-outils-qui-renvoient-des-programmes">7. Des outils qui renvoient des programmes</h2>
+<p>Jusqu’ici, chaque outil de cet essai renvoyait des données. Je veux pousser l’idée un pas plus loin, car je pense que c’est là que le paradigme devient vraiment nouveau : un outil peut renvoyer un <em>programme</em>, et ce programme peut rester à l’intérieur du processus, sous forme de données.</p>
+<section id="un-catalogue-quon-interroge-par-le-sens" class="level3">
+<h3 class="anchored" data-anchor-id="un-catalogue-quon-interroge-par-le-sens">7.1 Un catalogue qu’on interroge par le sens</h3>
+<p>Si la description d’un outil est une donnée, on peut la <em>plonger</em> dans un espace vectoriel : la transformer en vecteur avec le même genre de modèle que celui de la recherche sémantique <span class="citation" data-cites="reimers2019">(<a href="#ref-reimers2019" role="doc-biblioref">Reimers et Gurevych 2019</a>)</span>. Le catalogue devient alors un espace où les outils qui font des choses semblables sont proches les uns des autres. Une question, venue d’une personne, d’un agent ou d’un autre outil, tombe quelque part dans cet espace, et ses plus proches voisins sont les quelques outils qui valent la peine d’être lus.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig09.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure 9. Schéma, avec des positions placées à la main. Les descriptions d’outils comme des points dans un espace de sens, regroupés selon ce qu’ils font. Une question est plongée dans le même espace ; ses cinq outils les plus proches sont renvoyés, et seuls leurs schémas sont lus."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig09.png" class="img-fluid figure-img" alt="Une carte de 23 outils sous forme de points répartis en cinq groupes : factures et paiements, documents, personnes et règles, données, messages. Une étoile orange marque la question « qui doit approuver cette facture fournisseur ? », entourée d'un cercle en pointillés et reliée à ses cinq outils les plus proches : pick_approver, assign_budget, route_invoice, get_supplier et rules_for. Un panneau à droite les liste : 5 outils renvoyés sur 23 ; seuls leurs schémas sont lus."></a></p>
+<figcaption><strong>Figure 9.</strong> Schéma, avec des positions placées à la main. Les descriptions d’outils comme des points dans un espace de sens, regroupés selon ce qu’ils font. Une question est plongée dans le même espace ; ses cinq outils les plus proches sont renvoyés, et seuls leurs schémas sont lus.</figcaption>
+</figure>
+</div>
+<p>Rien de cela n’est spéculatif. ToolLLM et Gorilla utilisaient déjà un moteur de recherche pour choisir une poignée d’API parmi des milliers <span class="citation" data-cites="qin2024 patil2023">(<a href="#ref-qin2024" role="doc-biblioref"><span class="nocase">Qin et al.</span> 2024</a>; <a href="#ref-patil2023" role="doc-biblioref">Patil et al. 2023</a>)</span>, et la recherche d’outils des plateformes d’agents actuelles fonctionne de la même façon <span class="citation" data-cites="anthropic2025advtools gan2025">(<a href="#ref-anthropic2025advtools" role="doc-biblioref">Anthropic 2025d</a>; <a href="#ref-gan2025" role="doc-biblioref">Gan et Sun 2025</a>)</span>. ToolkenGPT va plus loin et donne à chaque outil son propre vecteur de token dans le modèle, si bien qu’appeler un outil ne diffère pas de prédire un mot <span class="citation" data-cites="hao2023">(<a href="#ref-hao2023" role="doc-biblioref">Hao et al. 2023</a>)</span>.</p>
+<p>Ces vecteurs donnent à la toile du §5 un second type de lien. Les liens de schéma disent quels outils <em>peuvent</em> s’enchaîner, parce que la sortie de l’un convient à l’entrée de l’autre. La distance entre vecteurs dit quels outils <em>parlent</em> de la même chose. Ensemble, ils suffisent à proposer un plan sans que personne ne le dessine.</p>
+</section>
+<section id="un-outil-dont-le-résultat-est-un-sous-graphe" class="level3">
+<h3 class="anchored" data-anchor-id="un-outil-dont-le-résultat-est-un-sous-graphe">7.2 Un outil dont le résultat est un sous-graphe</h3>
+<p>Voici maintenant le pas qui m’intéresse le plus. Rien dans l’idée d’outil n’exige que son résultat soit une simple donnée. Un outil peut renvoyer un petit graphe d’appels à <em>d’autres</em> outils, où les arguments de chaque nœud sont branchés sur les sorties des autres.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig10.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure 10. Schéma. Un outil dont le résultat est un programme. plan_invoice_routing n’achemine pas la facture ; il renvoie un graphe de cinq appels d’outils. Un exécuteur vérifie le graphe et l’exécute, en parallèle là où les dépendances le permettent, sans modèle. Le format &quot;returns&quot;: &quot;graph&quot; est une convention de mon cru ; MCP n’en définit pas."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig10.png" class="img-fluid figure-img" alt="À gauche, un panneau de code sombre intitulé plan_invoice_routing() result, avec du JSON : returns graph, name route_invoice@v3, cinq nœuds (doc appelle extract_invoice sur $input.file ; po appelle match_po sur $doc ; rules appelle rules_for sur $doc.supplier ; who appelle pick_approver sur $po et $rules ; send appelle notify vers $who.approver), output $who, limites max_calls 8 et max_depth 2. À droite, ce que l'exécuteur lance, sans modèle dans la boucle : doc mène à po et rules en parallèle, qui mènent tous deux à who, puis à send. Note : vérifié d'abord, chaque outil existe, chaque référence respecte son schéma, pas de cycle, les règles l'autorisent, dans les limites."></a></p>
+<figcaption><strong>Figure 10.</strong> Schéma. Un outil dont le résultat est un programme. <code>plan_invoice_routing</code> n’achemine pas la facture ; il renvoie un graphe de cinq appels d’outils. Un exécuteur vérifie le graphe et l’exécute, en parallèle là où les dépendances le permettent, sans modèle. Le format <code>"returns": "graph"</code> est une convention de mon cru ; MCP n’en définit pas.</figcaption>
+</figure>
+</div>
+<p>Dans la figure 10, <code>plan_invoice_routing</code> ne fait pas le travail. Il renvoie la recette : extraire la facture ; puis, en parallèle, rapprocher le bon de commande et chercher les règles du fournisseur ; puis choisir l’approbateur ; puis le prévenir. Un exécuteur, qui est du code ordinaire, vérifie le graphe avant de lancer quoi que ce soit : chaque outil existe, chaque référence respecte le schéma qu’elle alimente, il n’y a pas de cycle, la passerelle de règles accepte chaque nœud, et l’ensemble reste dans ses limites. Puis il exécute le graphe, sans modèle dans la boucle.</p>
+<p>La recherche sur les agents va dans le même sens. ReWOO sépare la planification de l’exécution : le modèle écrit le plan entier une fois, au lieu de raisonner à nouveau après chaque observation <span class="citation" data-cites="xu2023rewoo">(<a href="#ref-xu2023rewoo" role="doc-biblioref">Xu et al. 2023</a>)</span>. LLMCompiler fait produire au modèle un graphe d’appels de fonctions avec leurs dépendances et exécute en parallèle les appels indépendants, ce qui a rendu les exécutions plus rapides et moins chères qu’un raisonnement pas à pas <span class="citation" data-cites="kim2024llmcompiler">(<a href="#ref-kim2024llmcompiler" role="doc-biblioref">Kim et al. 2024</a>)</span>. Le <em>code mode</em> et l’appel d’outils par programme laissent le modèle écrire le plan sous forme de code <span class="citation" data-cites="cloudflare2025codemode anthropic2025advtools">(<a href="#ref-cloudflare2025codemode" role="doc-biblioref">Varda et Pai 2025</a>; <a href="#ref-anthropic2025advtools" role="doc-biblioref">Anthropic 2025d</a>)</span>.</p>
+<p>Ce que ma proposition change, c’est <em>qui</em> renvoie le plan. Ce n’est pas forcément le modèle de la boucle. Cela peut être un outil comme un autre : écrit par une équipe, généré par un modèle puis relu une fois, ou retrouvé dans un stockage. Le plan cesse d’être une pensée privée de l’agent et devient une partie de l’interface.</p>
+</section>
+<section id="des-programmes-dans-des-programmes" class="level3">
+<h3 class="anchored" data-anchor-id="des-programmes-dans-des-programmes">7.3 Des programmes dans des programmes</h3>
+<p>Puisqu’un nœud d’un graphe renvoyé n’est qu’un appel d’outil, il peut lui-même être un outil qui renvoie un graphe.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure 11. Schéma. Les programmes s’emboîtent. Le processus appelle route_invoice, qui renvoie un graphe de quatre étapes ; l’une d’elles, approve, renvoie son propre graphe. L’exécuteur ne déplie chaque niveau que lorsqu’il l’atteint, dans une profondeur maximale et un budget d’appels."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig11.png" class="img-fluid figure-img" alt="Trois rangées de cartes. Niveau 1, le processus : receive, route_invoice, archive. Un entonnoir ombré part de route_invoice vers le niveau 2, un graphe renvoyé par route_invoice : extract, match_po, approve, notify. Un second entonnoir part d'approve vers le niveau 3, un graphe renvoyé par approve : rules_for, pick_approver, escalate?. Deux étiquettes en haut à droite : profondeur maximale 3, 20 appels au plus."></a></p>
+<figcaption><strong>Figure 11.</strong> Schéma. Les programmes s’emboîtent. Le processus appelle <code>route_invoice</code>, qui renvoie un graphe de quatre étapes ; l’une d’elles, <code>approve</code>, renvoie son propre graphe. L’exécuteur ne déplie chaque niveau que lorsqu’il l’atteint, dans une profondeur maximale et un budget d’appels.</figcaption>
+</figure>
+</div>
+<p>On obtient ainsi presque gratuitement les multiples niveaux de détail du §6. Personne n’a à concevoir les niveaux à l’avance : chacun se déplie seulement quand on l’atteint, et seulement aussi loin que nécessaire. Un appelant qui fait confiance à <code>route_invoice</code> le traite comme une seule étape. Un appelant qui doit l’auditer peut demander le graphe et en inspecter chaque niveau. L’exécuteur a besoin de deux limites pour que le dépliement s’arrête : une profondeur maximale et un budget d’appels.</p>
+</section>
+<section id="garder-les-programmes" class="level3">
+<h3 class="anchored" data-anchor-id="garder-les-programmes">7.4 Garder les programmes</h3>
+<p>La dernière étape referme la boucle avec <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>. Un graphe renvoyé est une donnée. On peut le journaliser, le comparer à celui d’hier, le faire relire par une personne, le signer, le versionner et le stocker. Une fois stocké avec une description, il est lui-même un outil : il est plongé dans le même catalogue, et la prochaine recherche de « qui doit approuver cette facture fournisseur ? » trouve le programme stocké avant que quoi que ce soit n’ait à planifier.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig12.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure 12. Schéma. Des programmes à l’intérieur du processus. La recherche trouve les outils, un planificateur renvoie un sous-graphe, l’exécuteur le vérifie et l’exécute, et le graphe est conservé. Republié comme un outil, il est trouvé en premier la fois suivante, et la planification est sautée."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig12.png" class="img-fluid figure-img" alt="Cinq cartes d'étapes en rangée : Search, les vecteurs trouvent les quelques outils qui conviennent ; Plan, un outil ou un modèle renvoie un sous-graphe ; Check, schémas, règles, limites, pas de cycle ; Run, un exécuteur, sans modèle ; Keep, le graphe est stocké, nommé, versionné. Les deux premières sont marquées lentes, une fois ; les deux dernières rapides, à chaque fois. Une ligne verte revient de Keep à Search, avec l'étiquette « republié comme outil : route_invoice@v3 ». En dessous : la fois suivante, la recherche trouve d'abord le programme stocké, et la planification est sautée."></a></p>
+<figcaption><strong>Figure 12.</strong> Schéma. Des programmes à l’intérieur du processus. La recherche trouve les outils, un planificateur renvoie un sous-graphe, l’exécuteur le vérifie et l’exécute, et le graphe est conservé. Republié comme un outil, il est trouvé en premier la fois suivante, et la planification est sautée.</figcaption>
+</figure>
+</div>
+<p>Voyager, un agent qui jouait à Minecraft, fonctionnait ainsi : il stockait chaque compétence apprise sous forme de programme, l’indexait par un vecteur de sa description, la retrouvait quand une tâche semblable se présentait, et construisait de nouvelles compétences à partir des anciennes <span class="citation" data-cites="wang2023voyager">(<a href="#ref-wang2023voyager" role="doc-biblioref">Wang et al. 2023</a>)</span>. Les modèles qui écrivent leurs propres outils et les réutilisent suivent le même schéma <span class="citation" data-cites="cai2024latm">(<a href="#ref-cai2024latm" role="doc-biblioref">Cai et al. 2024</a>)</span>.</p>
+<p>Dans une entreprise, le même mécanisme signifie que les programmes qui font tourner l’activité vivent <em>à l’intérieur du processus</em>, comme des données qu’on peut inspecter, plutôt que cachés dans le code de chaque application ou recalculés par un agent chaque matin. C’est ce que j’entends par intégrer des programmes dans le processus. Le processus est un graphe d’outils. Certains outils renvoient des graphes. Ces graphes peuvent être conservés et devenir des outils. La différence entre une API, un workflow et un programme devient une question de niveau, pas de nature. Les programmeurs reconnaîtront une vieille idée de Lisp, où le code et les données ont la même forme. Ici, la forme commune est la description d’outil.</p>
+</section>
+<section id="ce-que-cela-coûte" class="level3">
+<h3 class="anchored" data-anchor-id="ce-que-cela-coûte">7.5 Ce que cela coûte</h3>
+<p>Un outil qui renvoie un programme est un outil qui renvoie du code, et tout ce que le §8.1 dit des descriptions empoisonnées s’applique avec plus de force encore. L’exécuteur doit traiter chaque graphe renvoyé comme non fiable. Il ne devrait lancer que des outils d’une liste autorisée, vérifier chaque référence contre son schéma, appliquer les règles à chaque nœud et pas seulement au premier, faire respecter les limites, et ne jamais laisser un graphe appeler un outil que son appelant ne pourrait pas appeler directement. Le débogage est aussi plus difficile : une panne peut se trouver trois niveaux plus bas, dans un graphe que personne n’a écrit à la main, si bien que chaque dépliement doit être journalisé avec sa provenance. Enfin, il n’existe pas de standard. MCP n’a pas de type de résultat « graphe » ; aujourd’hui, c’est donc une convention par-dessus le protocole, ou le travail d’un moteur de workflow. Un format commun pour les plans renvoyés serait, je crois, l’une des prochaines étapes les plus utiles pour l’écosystème.</p>
+</section>
+</section>
+<section id="les-arguments-contre-mcp" class="level2">
+<h2 class="anchored" data-anchor-id="les-arguments-contre-mcp">8. Les arguments contre MCP</h2>
+<p>Jusqu’ici, j’ai plaidé pour. Il serait malhonnête de m’arrêter là. MCP a fait l’objet de critiques sérieuses, en grande partie justes, et pour plusieurs tâches il existe de meilleures options.</p>
+<section id="cinq-objections" class="level3">
+<h3 class="anchored" data-anchor-id="cinq-objections">8.1 Cinq objections</h3>
+<p><strong>C’est une enveloppe autour d’API qui existent déjà.</strong> Beaucoup de serveurs MCP sont de fines couches au-dessus d’une API REST qui avait déjà une description OpenAPI. Ajouter un protocole, un processus serveur et un nouveau point de panne pour redire la même chose n’est pas forcément un progrès. Des critiques soutiennent qu’un modèle capable de lire OpenAPI, ou une page <code>--help</code>, n’a pas du tout besoin de MCP <span class="citation" data-cites="ronacher2025">(<a href="#ref-ronacher2025" role="doc-biblioref">Ronacher 2025</a>)</span>.</p>
+<p><strong>Il encombre le contexte du modèle.</strong> Chaque description d’outil chargée par un agent coûte des tokens à chaque appel, et la précision du choix du bon outil baisse à mesure que la liste s’allonge <span class="citation" data-cites="gan2025">(<a href="#ref-gan2025" role="doc-biblioref">Gan et Sun 2025</a>)</span>. Dans l’article analysé dans <a href="../../../fr/posts/2026-10-18-the-junior-colleague/index.html">Le collègue junior</a>, chaque tâche proposait 68 outils, dont 31 quasi-doublons des outils principaux, justement parce que les grands catalogues désordonnés sont ce que les agents rencontrent en pratique <span class="citation" data-cites="zhu2026">(<a href="#ref-zhu2026" role="doc-biblioref"><span class="nocase">Zhu et al.</span> 2026</a>)</span>. La divulgation progressive aide, mais c’est une mécanique supplémentaire que le protocole ne prévoyait pas à l’origine.</p>
+<p><strong>Il ouvre de nouvelles failles de sécurité.</strong> Une description d’outil est un texte que le modèle lit et auquel il fait confiance. Un serveur malveillant ou compromis peut y cacher des instructions : c’est l’<em>empoisonnement d’outil</em> <span class="citation" data-cites="invariant2025">(<a href="#ref-invariant2025" role="doc-biblioref">Invariant Labs 2025</a>)</span>. Tout outil qui renvoie du contenu venu de l’extérieur peut porter une <em>injection de prompt indirecte</em> <span class="citation" data-cites="greshake2023">(<a href="#ref-greshake2023" role="doc-biblioref">Greshake et al. 2023</a>)</span>. Simon Willison a nommé la combinaison dangereuse la <em>triade létale</em> : un agent qui a accès à des données privées, qui est exposé à du contenu non fiable et qui dispose d’un moyen d’envoyer des données à l’extérieur <span class="citation" data-cites="willison2025">(<a href="#ref-willison2025" role="doc-biblioref">Willison 2025</a>)</span>. Brancher de nombreux serveurs MCP sur un même agent permet d’assembler cette combinaison par accident. Les études de l’écosystème MCP recensent ces menaces et d’autres, comme les collisions de noms entre serveurs ou les installateurs impossibles à vérifier <span class="citation" data-cites="hou2025">(<a href="#ref-hou2025" role="doc-biblioref">Hou et al. 2025</a>)</span>. La spécification elle-même avertit que les annotations sont des indications et qu’il ne faut pas s’y fier quand elles viennent d’un serveur inconnu <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025</a>)</span>.</p>
+<p><strong>La prose est un contrat fragile.</strong> Un schéma dit que <code>amount_chf</code> est un nombre. Il ne dit pas si la TVA est comprise, si appeler l’outil deux fois crée deux approbations, ni ce qui se passe si le budget est clôturé. Un SDK typé ne le dit pas non plus, mais il va en général de pair avec un développeur qui a lu la documentation et écrit des tests. Quand le lecteur est un modèle, la description <em>est</em> la documentation, et ses lacunes deviennent des erreurs à l’exécution au lieu de questions à la conception. La gestion des versions est aussi plus faible : un serveur peut changer ses outils entre deux appels.</p>
+<p><strong>C’est plus lent et moins prévisible qu’un appel de fonction.</strong> Un agent qui lit des descriptions, raisonne puis appelle est plus lent et plus cher de plusieurs ordres de grandeur que du code compilé qui appelle une bibliothèque, et il peut prendre un chemin différent pour la même entrée. Pour des processus qui tournent dix mille fois par jour, c’est le mauvais compromis, comme je l’ai soutenu dans <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>.</p>
+</section>
+<section id="les-alternatives" class="level3">
+<h3 class="anchored" data-anchor-id="les-alternatives">8.2 Les alternatives</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig13.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Figure 13. Mon propre placement des principales façons de relier un appelant à un service : quand on se lie à l’interface, et qui la lit. Les approches en vert ont été conçues en pensant aux agents."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig13.png" class="img-fluid figure-img" alt="Carte en nuage de points. Axe horizontal : de lié quand le code est écrit à lié au moment de l'appel ; axe vertical : de lu par une personne ou un compilateur à lu par un modèle. Avant les agents, en bleu : SDK typé et gRPC en bas à gauche ; OpenAPI avec génération de code ; introspection GraphQL ; hypermédia REST (HATEOAS) en bas à droite. Conçues pour les agents, en vert : function calling, en haut à gauche du centre ; code mode, en haut au centre ; ligne de commande avec --help, en bas à droite du centre ; A2A, à droite ; Agent Skills, en haut à droite. MCP mis en évidence en orange, en haut à droite."></a></p>
+<figcaption><strong>Figure 13.</strong> Mon propre placement des principales façons de relier un appelant à un service : quand on se lie à l’interface, et qui la lit. Les approches en vert ont été conçues en pensant aux agents.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>OpenAPI plus <em>function calling</em>.</strong> Si un service a déjà une bonne description OpenAPI, on peut la transformer en définitions de fonctions pour un modèle, sans nouveau protocole <span class="citation" data-cites="openapi2021 openai2023fc">(<a href="#ref-openapi2021" role="doc-biblioref">OpenAPI Initiative 2021</a>; <a href="#ref-openai2023fc" role="doc-biblioref">OpenAI 2023</a>)</span>. On garde ainsi une seule source de vérité et l’outillage existant pour l’authentification, les passerelles et les tests.</li>
+<li><strong>Le code comme interface.</strong> Au lieu de demander au modèle d’appeler les outils un par un, on le laisse écrire un court programme contre une API typée et l’exécuter dans un bac à sable. Des travaux ont montré que des agents qui agissent par du code résolvent plus de tâches que des agents qui émettent des appels JSON <span class="citation" data-cites="wang2024codeact">(<a href="#ref-wang2024codeact" role="doc-biblioref">Wang et al. 2024</a>)</span>. Le <em>Code Mode</em> de Cloudflare transforme les outils MCP en API TypeScript exactement pour cette raison <span class="citation" data-cites="cloudflare2025codemode">(<a href="#ref-cloudflare2025codemode" role="doc-biblioref">Varda et Pai 2025</a>)</span>, et l’approche d’exécution de code d’Anthropic fait de même avec des fichiers <span class="citation" data-cites="anthropic2025codeexec">(<a href="#ref-anthropic2025codeexec" role="doc-biblioref">Anthropic 2025a</a>)</span>. Dans cette vision, le SDK revient, mais son lecteur est désormais un modèle.</li>
+<li><strong>Les outils en ligne de commande et les compétences.</strong> Un bon outil en ligne de commande se décrit déjà lui-même par <code>--help</code>, se compose par des tubes, et les modèles en ont vu d’innombrables à l’entraînement. Associé à de courts fichiers d’instructions lus à la demande <span class="citation" data-cites="anthropic2025skills">(<a href="#ref-anthropic2025skills" role="doc-biblioref">Anthropic 2025c</a>)</span>, il couvre une grande partie de ce pour quoi les développeurs utilisent MCP, sans serveur à faire tourner <span class="citation" data-cites="ronacher2025">(<a href="#ref-ronacher2025" role="doc-biblioref">Ronacher 2025</a>)</span>.</li>
+<li><strong>Les protocoles d’agent à agent.</strong> Quand ce qui se trouve de l’autre côté est lui-même un agent doté de son propre jugement, un protocole de tâches entre pairs, comme A2A de Google, convient mieux qu’une liste d’outils <span class="citation" data-cites="google2025a2a ehtesham2025">(<a href="#ref-google2025a2a" role="doc-biblioref">Google 2025</a>; <a href="#ref-ehtesham2025" role="doc-biblioref">Ehtesham et al. 2025</a>)</span>.</li>
+<li><strong>Les SDK typés et le RPC.</strong> Pour les chemins critiques, rien ne vaut un appel compilé dont les types sont vérifiés avant l’exécution.</li>
+<li><strong>GraphQL.</strong> Son introspection permet déjà à un client de demander ce qu’offre un service et de choisir exactement les champs dont il a besoin <span class="citation" data-cites="graphql2021">(<a href="#ref-graphql2021" role="doc-biblioref">GraphQL Foundation 2021</a>)</span>. Il a résolu une partie du problème de la granularité il y a des années, pour les données.</li>
+</ul>
+</section>
+<section id="ma-lecture" class="level3">
+<h3 class="anchored" data-anchor-id="ma-lecture">8.3 Ma lecture</h3>
+<p>La plupart de ces alternatives partagent l’idée centrale de MCP : l’interface est décrite sous une forme que l’appelant lit, et la liaison se fait plus tard qu’avant. Le <em>code mode</em> lit les descriptions MCP et en génère un SDK. Les compétences sont des descriptions dans des fichiers. A2A publie des « cartes d’agent ». Même les critiques qui disent « utilisez simplement la ligne de commande » s’appuient sur <code>--help</code>, une auto-description lue à l’exécution.</p>
+<p>Je ne pense donc pas que le changement durable soit MCP en tant que format d’échange. Il pourra être remplacé, fusionné avec d’autres protocoles, ou survivre surtout comme un standard interne derrière des passerelles. Le changement durable est la <em>pratique</em> : publier chaque interface sous forme de données, assez riches pour un modèle et assez précises pour une machine, et laisser chaque appelant décider quand s’y lier. MCP est, pour l’instant, la façon la plus largement adoptée de le faire, et sa gouvernance par une fondation neutre en fait un pari raisonnable. Mais les objections du §8.1 portent sur des coûts réels, et la bonne réponse à plusieurs d’entre elles est d’utiliser autre chose pour cette partie du travail.</p>
+</section>
+</section>
+<section id="là-où-le-sdk-survit" class="level2">
+<h2 class="anchored" data-anchor-id="là-où-le-sdk-survit">9. Là où le SDK survit</h2>
+<p>Retour à la question de départ : est-ce que cela redéfinit l’API et le SDK « dans une certaine mesure » ou « complètement » ? Ma réponse : complètement en périphérie, pas au cœur.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-20-the-interface-is-data/figures/fig14.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Figure 14. Schéma, avec des exemples de tâches de mon cru. Où chaque type de liaison a sa place, selon la fréquence d’un même appel et la variabilité de la tâche. Ce qu’un agent découvre en haut à gauche devrait être compilé en bas à droite dès que cela se répète."><img src="../../../posts/2026-10-20-the-interface-is-data/figures/fig14.png" class="img-fluid figure-img" alt="Une carte à deux dimensions, ombrée de l'orange en haut à gauche au vert en bas à droite. Axe horizontal : fréquence d'un même appel, d'une fois à des milliers par jour. Axe vertical : variabilité de la tâche, de toujours la même à différente à chaque fois. Exemples : la question inhabituelle d'un fournisseur, en haut à gauche ; une exception de clôture mensuelle ; un rapport hebdomadaire ; une synchronisation nocturne ; acheminer une facture, 10 000 par jour, en bas à droite. Zones : boucle d'agent sur des outils décrits, en haut à gauche ; outils décrits, appelés par du code, en bas à gauche ; chemin compilé (SDK typé, recette fixe, modèle de décision), en bas à droite. Une flèche en pointillés, compiler ce qui se répète, va du haut à gauche vers le bas à droite."></a></p>
+<figcaption><strong>Figure 14.</strong> Schéma, avec des exemples de tâches de mon cru. Où chaque type de liaison a sa place, selon la fréquence d’un même appel et la variabilité de la tâche. Ce qu’un agent découvre en haut à gauche devrait être compilé en bas à droite dès que cela se répète.</figcaption>
+</figure>
+</div>
+<p>En périphérie, là où se fait l’intégration, là où un appel est rare ou différent à chaque fois, là où une équipe a besoin de trouver et d’utiliser la capacité d’une autre, l’interface décrite l’emporte. Elle est moins chère à construire, plus facile à découvrir, et convient au modèle comme au script. Là, je m’attends à ce que les SDK écrits à la main deviennent rares.</p>
+<p>Au cœur, là où le même appel tourne des milliers de fois par jour, la liaison devrait de nouveau se faire tôt : un client typé, une recette fixe, un petit modèle de décision comme celui du <a href="../../../fr/posts/2026-10-18-the-junior-colleague/index.html">Collègue junior</a>. La différence avec avant tient à l’origine de ce code. Il n’a pas besoin de partir d’un développeur qui lit une documentation. Il peut être généré à partir des mêmes descriptions, ou compilé à partir d’un chemin qu’un agent a trouvé et que des personnes ont relu. Le SDK devient un <em>produit</em> de l’interface décrite, et non sa source.</p>
+</section>
+<section id="ce-qui-me-donnerait-tort" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-me-donnerait-tort">10. Ce qui me donnerait tort</h2>
+<p>Je changerais d’avis si :</p>
+<ul>
+<li>les descriptions d’outils restaient si peu fiables que toute intégration sérieuse exigerait encore qu’une personne lise la documentation et écrive les tests à la main, si bien que la liaison à l’exécution ne ferait rien gagner ;</li>
+<li>les problèmes de sécurité du §8.1 se révélaient impossibles à contenir à un coût raisonnable, si bien que les entreprises cantonneraient MCP aux démonstrations et aux outils en lecture seule ;</li>
+<li>les programmes renvoyés se révélaient plus difficiles à sécuriser, à déboguer et à gouverner que le code écrit à la main qu’ils remplacent ;</li>
+<li>le coût en tokens des descriptions continuait de croître plus vite que les techniques qui les chargent à la demande ;</li>
+<li>le temps d’intégration et de maintenance, mesuré dans de vraies entreprises sur quelques années, ne baissait pas pour les équipes qui publient leurs interfaces sous forme de données par rapport à celles qui ne le font pas.</li>
+</ul>
+<p>La dernière condition est le vrai test, et elle peut se mesurer.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">11. Conclusion</h2>
+<p>Pendant des décennies, une API a été une promesse écrite pour des personnes. Un développeur la lisait, la comprenait et la transformait en code, figé jusqu’à la version suivante. MCP et la boucle agentique rendent possible un autre arrangement : la promesse est écrite sous forme de données, voyage avec le service, et est lue par celui qui appelle, au moment de l’appel.</p>
+<p>Ce seul déplacement a plusieurs conséquences. L’appelant n’a plus besoin d’IA pour en profiter. Les outils peuvent être reliés en une toile de la forme qui convient à l’organisation, avec bien moins de liaison. Une même capacité peut être offerte à plusieurs niveaux de détail, et chaque appelant choisit quelle part il lit. Les outils peuvent être trouvés par le sens, et peuvent renvoyer des programmes qui sont vérifiés, exécutés et conservés comme de nouveaux outils, si bien que la logique d’un processus vit en lui, sous forme de données. Et le travail coûteux d’exploration, qui consiste à trouver comment combiner les outils, peut être fait une fois par un agent, puis compilé en quelque chose de rapide.</p>
+<p>MCP ne sera peut-être pas le protocole que nous utiliserons dans dix ans. Ses faiblesses sont réelles, et certaines de ses alternatives font mieux une partie du travail. Mais je pense que l’habitude qu’il répand restera : une interface n’est pas seulement quelque chose que l’on lit. C’est une donnée.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a> Pourquoi le grand modèle devrait construire la mémoire une fois, au lieu de raisonner à chaque exécution.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-anthropic2024mcp" class="csl-entry" role="listitem">
+Anthropic. 2024. <em>Introducing the Model Context Protocol</em>. <a href="https://www.anthropic.com/news/model-context-protocol">https://www.anthropic.com/news/model-context-protocol</a>.
+</div>
+<div id="ref-anthropic2025codeexec" class="csl-entry" role="listitem">
+Anthropic. 2025a. <em>Code execution with <span>MCP</span>: building more efficient agents</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/code-execution-with-mcp">https://www.anthropic.com/engineering/code-execution-with-mcp</a>.
+</div>
+<div id="ref-anthropic2025aaif" class="csl-entry" role="listitem">
+Anthropic. 2025b. <em>Donating the Model Context Protocol and establishing the Agentic AI Foundation</em>. <a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation">https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation</a>.
+</div>
+<div id="ref-anthropic2025skills" class="csl-entry" role="listitem">
+Anthropic. 2025c. <em>Equipping agents for the real world with Agent Skills</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a>.
+</div>
+<div id="ref-anthropic2025advtools" class="csl-entry" role="listitem">
+Anthropic. 2025d. <em>Introducing advanced tool use on the Claude Developer Platform</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/advanced-tool-use">https://www.anthropic.com/engineering/advanced-tool-use</a>.
+</div>
+<div id="ref-anthropic2025tools" class="csl-entry" role="listitem">
+Anthropic. 2025e. <em>Writing effective tools for agents, with agents</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/writing-tools-for-agents">https://www.anthropic.com/engineering/writing-tools-for-agents</a>.
+</div>
+<div id="ref-cai2024latm" class="csl-entry" role="listitem">
+Cai, Tianle, Xuezhi Wang, Tengyu Ma, Xinyun Chen, et Denny Zhou. 2024. <span>«&nbsp;Large Language Models as Tool Makers&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2305.17126">https://arxiv.org/abs/2305.17126</a>.
+</div>
+<div id="ref-w3c2001wsdl" class="csl-entry" role="listitem">
+Christensen, Erik, Francisco Curbera, Greg Meredith, et Sanjiva Weerawarana. 2001. <em>Web Services Description Language (<span>WSDL</span>) 1.1</em>. W3C Note. <a href="https://www.w3.org/TR/wsdl">https://www.w3.org/TR/wsdl</a>.
+</div>
+<div id="ref-ehtesham2025" class="csl-entry" role="listitem">
+Ehtesham, Abul, Aditi Singh, Gaurav Kumar Gupta, et Saket Kumar. 2025. <span>«&nbsp;A Survey of Agent Interoperability Protocols: Model Context Protocol (<span>MCP</span>), Agent Communication Protocol (<span>ACP</span>), Agent-to-Agent Protocol (<span>A2A</span>), and Agent Network Protocol (<span>ANP</span>)&nbsp;»</span>. <em>arXiv preprint arXiv:2505.02279</em>. <a href="https://arxiv.org/abs/2505.02279">https://arxiv.org/abs/2505.02279</a>.
+</div>
+<div id="ref-fielding2000" class="csl-entry" role="listitem">
+Fielding, Roy Thomas. 2000. <span>«&nbsp;Architectural Styles and the Design of Network-based Software Architectures&nbsp;»</span>. Thèse de doctorat, University of California, Irvine. <a href="https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">https://ics.uci.edu/~fielding/pubs/dissertation/top.htm</a>.
+</div>
+<div id="ref-gan2025" class="csl-entry" role="listitem">
+Gan, Tiantian, et Qiyao Sun. 2025. <span>«&nbsp;<span>RAG-MCP</span>: Mitigating Prompt Bloat in <span>LLM</span> Tool Selection via Retrieval-Augmented Generation&nbsp;»</span>. <em>arXiv preprint arXiv:2505.03275</em>. <a href="https://arxiv.org/abs/2505.03275">https://arxiv.org/abs/2505.03275</a>.
+</div>
+<div id="ref-google2025a2a" class="csl-entry" role="listitem">
+Google. 2025. <em>Announcing the <span>Agent2Agent</span> Protocol (<span>A2A</span>)</em>. Google for Developers Blog. <a href="https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/">https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/</a>.
+</div>
+<div id="ref-graphql2021" class="csl-entry" role="listitem">
+GraphQL Foundation. 2021. <em><span>GraphQL</span> Specification, October 2021 edition</em>. <a href="https://spec.graphql.org/October2021/">https://spec.graphql.org/October2021/</a>.
+</div>
+<div id="ref-greshake2023" class="csl-entry" role="listitem">
+Greshake, Kai, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, et Mario Fritz. 2023. <span>«&nbsp;Not What You’ve Signed Up For: Compromising Real-World <span>LLM</span>-Integrated Applications with Indirect Prompt Injection&nbsp;»</span>. <em>ACM Workshop on Artificial Intelligence and Security (AISec)</em>. <a href="https://arxiv.org/abs/2302.12173">https://arxiv.org/abs/2302.12173</a>.
+</div>
+<div id="ref-hao2023" class="csl-entry" role="listitem">
+Hao, Shibo, Tianyang Liu, Zhen Wang, et Zhiting Hu. 2023. <span>«&nbsp;<span>ToolkenGPT</span>: Augmenting Frozen Language Models with Massive Tools via Tool Embeddings&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2305.11554">https://arxiv.org/abs/2305.11554</a>.
+</div>
+<div id="ref-hou2025" class="csl-entry" role="listitem">
+Hou, Xinyi, Yanjie Zhao, Shenao Wang, et Haoyu Wang. 2025. <span>«&nbsp;Model Context Protocol (<span>MCP</span>): Landscape, Security Threats, and Future Research Directions&nbsp;»</span>. <em>arXiv preprint arXiv:2503.23278</em>. <a href="https://arxiv.org/abs/2503.23278">https://arxiv.org/abs/2503.23278</a>.
+</div>
+<div id="ref-invariant2025" class="csl-entry" role="listitem">
+Invariant Labs. 2025. <em><span>MCP</span> Security Notification: Tool Poisoning Attacks</em>. <a href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks</a>.
+</div>
+<div id="ref-kim2024llmcompiler" class="csl-entry" role="listitem">
+Kim, Sehoon, Suhong Moon, Ryan Tabrizi, et al. 2024. <span>«&nbsp;An <span>LLM</span> Compiler for Parallel Function Calling&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2312.04511">https://arxiv.org/abs/2312.04511</a>.
+</div>
+<div id="ref-lsp2016" class="csl-entry" role="listitem">
+Microsoft. 2016. <em>Language Server Protocol</em>. <a href="https://microsoft.github.io/language-server-protocol/">https://microsoft.github.io/language-server-protocol/</a>.
+</div>
+<div id="ref-mcpspec2025" class="csl-entry" role="listitem">
+Model Context Protocol. 2025. <em>Model Context Protocol Specification, version 2025-06-18</em>. <a href="https://modelcontextprotocol.io/specification/2025-06-18">https://modelcontextprotocol.io/specification/2025-06-18</a>.
+</div>
+<div id="ref-openai2023fc" class="csl-entry" role="listitem">
+OpenAI. 2023. <em>Function calling and other <span>API</span> updates</em>. <a href="https://openai.com/index/function-calling-and-other-api-updates/">https://openai.com/index/function-calling-and-other-api-updates/</a>.
+</div>
+<div id="ref-openapi2021" class="csl-entry" role="listitem">
+OpenAPI Initiative. 2021. <em>OpenAPI Specification, version 3.1.0</em>. <a href="https://spec.openapis.org/oas/v3.1.0">https://spec.openapis.org/oas/v3.1.0</a>.
+</div>
+<div id="ref-patil2023" class="csl-entry" role="listitem">
+Patil, Shishir G., Tianjun Zhang, Xin Wang, et Joseph E. Gonzalez. 2023. <span>«&nbsp;Gorilla: Large Language Model Connected with Massive <span>APIs</span>&nbsp;»</span>. <em>arXiv preprint arXiv:2305.15334</em>. <a href="https://arxiv.org/abs/2305.15334">https://arxiv.org/abs/2305.15334</a>.
+</div>
+<div id="ref-qin2024" class="csl-entry" role="listitem">
+<span class="nocase">Qin, Yujia et al.</span> 2024. <span>«&nbsp;<span>ToolLLM</span>: Facilitating Large Language Models to Master 16000+ Real-world <span>APIs</span>&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2307.16789">https://arxiv.org/abs/2307.16789</a>.
+</div>
+<div id="ref-reimers2019" class="csl-entry" role="listitem">
+Reimers, Nils, et Iryna Gurevych. 2019. <span>«&nbsp;Sentence-<span>BERT</span>: Sentence Embeddings using <span>Siamese</span> <span>BERT</span>-Networks&nbsp;»</span>. <em>Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/1908.10084">https://arxiv.org/abs/1908.10084</a>.
+</div>
+<div id="ref-ronacher2025" class="csl-entry" role="listitem">
+Ronacher, Armin. 2025. <em>Tools: Code Is All You Need</em>. <a href="https://lucumr.pocoo.org/2025/7/3/tools/">https://lucumr.pocoo.org/2025/7/3/tools/</a>.
+</div>
+<div id="ref-schick2023" class="csl-entry" role="listitem">
+Schick, Timo, Jane Dwivedi-Yu, Roberto Dessı̀, et al. 2023. <span>«&nbsp;Toolformer: Language Models Can Teach Themselves to Use Tools&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2302.04761">https://arxiv.org/abs/2302.04761</a>.
+</div>
+<div id="ref-cloudflare2025codemode" class="csl-entry" role="listitem">
+Varda, Kenton, et Sunil Pai. 2025. <em>Code Mode: the better way to use <span>MCP</span></em>. Cloudflare Blog. <a href="https://blog.cloudflare.com/code-mode/">https://blog.cloudflare.com/code-mode/</a>.
+</div>
+<div id="ref-wang2023voyager" class="csl-entry" role="listitem">
+Wang, Guanzhi, Yuqi Xie, Yunfan Jiang, et al. 2023. <span>«&nbsp;Voyager: An Open-Ended Embodied Agent with Large Language Models&nbsp;»</span>. <em>arXiv preprint arXiv:2305.16291</em>. <a href="https://arxiv.org/abs/2305.16291">https://arxiv.org/abs/2305.16291</a>.
+</div>
+<div id="ref-wang2024codeact" class="csl-entry" role="listitem">
+Wang, Xingyao, Yangyi Chen, Lifan Yuan, et al. 2024. <span>«&nbsp;Executable Code Actions Elicit Better <span>LLM</span> Agents&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2402.01030">https://arxiv.org/abs/2402.01030</a>.
+</div>
+<div id="ref-willison2025" class="csl-entry" role="listitem">
+Willison, Simon. 2025. <em>The lethal trifecta for <span>AI</span> agents: private data, untrusted content, and external communication</em>. <a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/</a>.
+</div>
+<div id="ref-xu2023rewoo" class="csl-entry" role="listitem">
+Xu, Binfeng, Zhiyuan Peng, Bowen Lei, Subhabrata Mukherjee, Yuchen Liu, et Dongkuan Xu. 2023. <span>«&nbsp;<span>ReWOO</span>: Decoupling Reasoning from Observations for Efficient Augmented Language Models&nbsp;»</span>. <em>arXiv preprint arXiv:2305.18323</em>. <a href="https://arxiv.org/abs/2305.18323">https://arxiv.org/abs/2305.18323</a>.
+</div>
+<div id="ref-yao2023react" class="csl-entry" role="listitem">
+Yao, Shunyu, Jeffrey Zhao, Dian Yu, et al. 2023. <span>«&nbsp;<span>ReAct</span>: Synergizing Reasoning and Acting in Language Models&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2210.03629">https://arxiv.org/abs/2210.03629</a>.
+</div>
+<div id="ref-zhu2026" class="csl-entry" role="listitem">
+<span class="nocase">Zhu et al.</span> 2026. <span>«&nbsp;<span>JevAgentHarness</span>: Benchmarking, Deploying and Training Decision Models That Share Control with <span>LLMs</span>&nbsp;»</span>. <em>arXiv preprint arXiv:2610.21412</em>. <a href="https://arxiv.org/abs/2610.21412">https://arxiv.org/abs/2610.21412</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {L’interface est une donnée},
+  date = {2026-10-20},
+  url = {https://scuenat.github.io/fr/posts/2026-10-20-the-interface-is-data/},
+  langid = {fr}
+}
+</code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“L’interface est une donnée.”</span>
+October 20. <a href="https://scuenat.github.io/fr/posts/2026-10-20-the-interface-is-data/">https://scuenat.github.io/fr/posts/2026-10-20-the-interface-is-data/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "About": ["À propos", "/fr/about.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

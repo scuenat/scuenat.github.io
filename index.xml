@@ -15,7 +15,402 @@
 <link>https://scuenat.github.io/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Sun, 18 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 20 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>The Interface Is Data</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essay, October 2026.</strong> A companion to <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>, <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a> and <a href="../../posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a>. All figures are my own, drawn with the code in <a href="figs.py">figs.py</a>. Where a figure uses someone else’s numbers, the caption names the source. Where the numbers are my own illustrative assumptions, the caption says so.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> The Model Context Protocol (MCP) is usually presented as a way to give AI models access to tools. I think it does something larger. It changes what we mean by an API. A classic API is a contract that a developer reads once and then turns into code. An MCP server describes itself as data that any caller reads when it makes the call: what each tool does, what it accepts and returns, and whether it is safe to retry. The agentic loop is what made this practical, because for the first time a general client can read the description and act on it. But the idea does not need AI. A workflow engine, a form generator, a test suite or a policy gateway can read the same description. Once interfaces are data, tools can be connected as a graph of any shape, the same capability can be offered at several levels of detail, and much of the glue code between systems disappears. Pushed one step further, a tool can be found by the meaning of its description and can return not data but a program: a sub-graph of other tools, checked and run by an executor, then kept as a new tool. Programs then live inside the process, as data. MCP also has serious weaknesses: it fills the model’s context, it opens new security holes, and plain prose is a weak contract. Some of the alternatives are better for parts of the job. My conclusion is that the lasting change is not the protocol. It is the habit of publishing an interface as data and choosing, case by case, when to bind to it.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>An API used to be read by people and turned into code.</strong> An MCP tool is a piece of data, read by its caller at the moment of the call. The key change is not the wire format. It is <em>when</em> the interface is bound.</li>
+<li><strong>The idea is old; the reader is new.</strong> Self-describing services (WSDL, REST hypermedia) were proposed twenty-five years ago and mostly failed, because no general client could read the descriptions. A language model in a loop can.</li>
+<li><strong>The idea does not need AI.</strong> Of the six readers of a tool description I describe below, only one is a model.</li>
+<li><strong>Described tools form a web.</strong> A server can also be a client, so tools compose into hubs, meshes or layers. With <img src="https://latex.codecogs.com/png.latex?N"> clients and <img src="https://latex.codecogs.com/png.latex?M"> services, the adapters to write fall from <img src="https://latex.codecogs.com/png.latex?N%20%5Ctimes%20M"> to <img src="https://latex.codecogs.com/png.latex?N%20+%20M">.</li>
+<li><strong>Granularity becomes a choice for the caller.</strong> One server can offer a whole capability, a few workflows, single tools and raw operations, and each caller picks its level.</li>
+<li><strong>A tool can return a program.</strong> Embed tool descriptions to find them by meaning, let a tool return a sub-graph of calls, check it and run it without a model, then store it as a new tool. The line between API, workflow and program becomes a matter of level.</li>
+<li><strong>The case against MCP is real.</strong> Tool descriptions crowd the model’s context, poisoned descriptions and prompt injection are real attacks, prose is a weak contract, and code, CLIs or typed SDKs are often simpler.</li>
+<li><strong>The SDK does not die; it moves.</strong> Explore with an agent over described tools, then compile what repeats into typed code, the step I called Fast AI.</li>
+</ul>
+</div>
+</div>
+<section id="the-ritual-of-the-sdk" class="level2">
+<h2 class="anchored" data-anchor-id="the-ritual-of-the-sdk">1. The ritual of the SDK</h2>
+<p>Anyone who has connected two business systems knows the ritual. You find the documentation of the other system’s API. You read it, usually twice. You install its SDK for your language, or write a client if none exists. You map its objects to yours, handle its errors, its paging, its authentication, its rate limits. You write tests. Months later, the other side publishes version 3, and you start again.</p>
+<p>The cost of this ritual is not in any single step. It is in the number of times we repeat it. Every pair of systems that must talk needs its own piece of glue, written by a person who has read the documentation of both. In a company with ten applications and fifty services, that is a lot of glue, and most of it does nothing more interesting than translate one shape of data into another.</p>
+<p>For thirty years the answer has been better documentation and better code generation: WSDL in the early 2000s, then Swagger and OpenAPI, then typed client generators. They helped. But the contract was still read by a person and bound into code before the program ran. The program itself never knew what the service could do. It only knew what its developer had written down.</p>
+</section>
+<section id="what-mcp-changes-the-description-is-read-at-run-time" class="level2">
+<h2 class="anchored" data-anchor-id="what-mcp-changes-the-description-is-read-at-run-time">2. What MCP changes: the description is read at run time</h2>
+<p>MCP was published by Anthropic in November 2024 as an open standard for connecting AI applications to data and tools <span class="citation" data-cites="anthropic2024mcp">(Anthropic 2024)</span>. Technically it is modest. Messages are JSON-RPC 2.0. A server exposes <em>tools</em> (actions), <em>resources</em> (data to read) and <em>prompts</em> (reusable instructions). A client asks the server what it offers with <code>tools/list</code> and calls a tool with <code>tools/call</code> <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025)</span>. The protocol says openly that it takes inspiration from the Language Server Protocol, which solved a similar problem between code editors and programming languages <span class="citation" data-cites="lsp2016">(Microsoft 2016)</span>.</p>
+<p>What matters is in the answer to <code>tools/list</code>. Each tool comes back as a small piece of data: a name, a human-readable title, a description in plain words, a JSON Schema for its input, and since the June 2025 revision, an optional schema for its output and <em>annotations</em>: hints such as whether the tool only reads, whether it can destroy something, whether it is safe to call twice <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025)</span>. The server can also tell the client that its list of tools has changed.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic. With an SDK, a person reads the documentation and binds the interface into code, once per pair of systems. With described tools, the caller reads the interface as data when it makes the call."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig01.png" class="img-fluid figure-img" alt="Two rows of four cards. Top row, labelled Before, SDK, bound when the code is written: documentation read by a person, a developer who writes the glue, a typed client library, the service; weeks per pair. Bottom row, labelled After, described tools, read when the call is made: the service publishes its tools, tools/list returns names, text and schemas, any caller (a model, a script, a form), tools/call checked against the schema; seconds, at run time."></a></p>
+<figcaption><strong>Figure 1.</strong> Schematic. With an SDK, a person reads the documentation and binds the interface into code, once per pair of systems. With described tools, the caller reads the interface as data when it makes the call.</figcaption>
+</figure>
+</div>
+<p>None of these fields is new on its own. JSON Schema has existed for more than fifteen years, and OpenAPI already carries descriptions. The change is <em>when the interface is bound, and by whom</em>. With an SDK, the binding happens when the code is written, in the head of a developer. With MCP, it happens when the call is made, inside the caller. The program no longer contains the knowledge of what the service can do. It asks.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. One entry of a tools/list answer, with the parts that different readers use. The fields follow the MCP specification (version 2025-06-18); the invoice tool is my own example."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig02.png" class="img-fluid figure-img" alt="A dark code panel shows the JSON description of a tool named route_invoice, with a title, a description, an input schema with invoice_id and amount_chf, an output schema with budget and approver, and annotations readOnlyHint false and idempotentHint true. Leader lines link five parts to cards: name, read by everyone; description, read by a model or a person; input schema, read by a validator or a form; output schema, read by a planner or a type checker; hints, read by a policy gateway."></a></p>
+<figcaption><strong>Figure 2.</strong> One entry of a <code>tools/list</code> answer, with the parts that different readers use. The fields follow the MCP specification (version 2025-06-18); the invoice tool is my own example.</figcaption>
+</figure>
+</div>
+<p>This is why I say MCP is a way to redefine the API, at least in part. An API was a document plus a library. Here it becomes a <em>data object</em> that travels with the service, can be queried, filtered, logged, versioned and compared, like any other data.</p>
+</section>
+<section id="an-old-dream-finally-with-a-reader" class="level2">
+<h2 class="anchored" data-anchor-id="an-old-dream-finally-with-a-reader">3. An old dream, finally with a reader</h2>
+<p>The dream of services that describe themselves is old, and it is worth remembering why it failed.</p>
+<p>In 2000, Roy Fielding’s dissertation defined REST and one of its constraints, <em>hypermedia as the engine of application state</em> (HATEOAS): a client should discover what it can do next from the links in each response, not from documentation read in advance <span class="citation" data-cites="fielding2000">(Fielding 2000)</span>. Almost nobody built clients that way. Around the same time, WSDL described web services in machine-readable XML <span class="citation" data-cites="w3c2001wsdl">(Christensen et al. 2001)</span>, and UDDI registries were supposed to let programs find services on their own. The large public UDDI registries closed in 2006.</p>
+<p>These ideas did not fail because they were wrong. They failed because the client was missing. A description is only useful if something can read it and decide what to do. A conventional program cannot read “assigns an invoice to a budget and to the person who approves it” and work out when to call it. So in practice a developer always read the description, and the binding stayed in the code.</p>
+<p>The agentic loop supplied that client. A language model can read a description in plain words, match it to a goal, fill in the arguments from the schema, look at the result and decide what to do next <span class="citation" data-cites="yao2023react schick2023">(Yao et al. 2023; Schick et al. 2023)</span>. Function calling, introduced by OpenAI in June 2023 <span class="citation" data-cites="openai2023fc">(OpenAI 2023)</span>, gave models a structured way to do this, but each application still carried its own list of functions. Research on agents that choose among thousands of real APIs <span class="citation" data-cites="patil2023 qin2024">(Patil et al. 2023; <span class="nocase">Qin et al.</span> 2024)</span> showed both the promise and the difficulty. MCP’s contribution was to move the description out of the application and into the service, behind one protocol. Adoption was quick. By December 2025, when Anthropic gave MCP to the new Agentic AI Foundation under the Linux Foundation, it counted more than 10,000 active public MCP servers <span class="citation" data-cites="anthropic2025aaif">(Anthropic 2025b)</span>.</p>
+</section>
+<section id="the-idea-does-not-need-ai" class="level2">
+<h2 class="anchored" data-anchor-id="the-idea-does-not-need-ai">4. The idea does not need AI</h2>
+<p>This is the part I find most interesting, and most often missed. Once a service publishes its interface as data, the language model becomes just one of its readers.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Schematic. One tool description, six readers. Only the language model needs AI; the other five work from the same data with ordinary code."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig03.png" class="img-fluid figure-img" alt="A central dark card, Tool description, data: names, text, schemas, hints. Six cards around it with arrows: Language model, needs AI, chooses a tool and fills its arguments; Workflow or script, no AI, calls it by name; Form generator, no AI, renders a screen from the input schema; Test generator, no AI, builds valid and invalid calls from the schema; Policy gateway, no AI, allows or blocks a call from its hints; Catalogue, no AI, search, docs and usage."></a></p>
+<figcaption><strong>Figure 3.</strong> Schematic. One tool description, six readers. Only the language model needs AI; the other five work from the same data with ordinary code.</figcaption>
+</figure>
+</div>
+<ul>
+<li>A <strong>workflow engine</strong> or a plain script can call a tool by name, with arguments checked against the schema, and never involve a model.</li>
+<li>A <strong>form generator</strong> can build a screen from the input schema, so a person can call the same tool by hand.</li>
+<li>A <strong>test generator</strong> can produce valid and invalid calls from the schemas and check that the outputs match the output schema.</li>
+<li>A <strong>policy gateway</strong> can read the annotations and decide, for example, that destructive tools require a human approval.</li>
+<li>A <strong>catalogue</strong> can index every tool in the company, with its owner, its version and how often it is used.</li>
+</ul>
+<p>Seen this way, MCP is less an AI protocol than a <em>data-driven</em> way of building integrations. The interface is a record in a catalogue. The behaviour of the system, which tools exist, who may call them, which ones chain together, can be changed by changing data rather than code. The agentic loop is optional. The description is not.</p>
+<p>This matters for the argument I made in <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>. There I argued that the large model should do the slow, exploratory work once, and that what repeats should be compiled into something fast and fixed. A data-driven interface makes that compilation easy: the recipe an agent discovered can be stored as data (call <code>extract_invoice</code>, then <code>match_po</code>, then <code>pick_approver</code>) and replayed by a workflow engine with no model at all.</p>
+</section>
+<section id="a-web-of-tools" class="level2">
+<h2 class="anchored" data-anchor-id="a-web-of-tools">5. A web of tools</h2>
+<p>The second consequence is structural. In MCP, the roles of client and server are not fixed: a server can itself be a client of other servers. An “invoice desk” server can expose a single tool, <code>route_invoice</code>, and implement it by calling an ERP server, a document server and a decision model. A gateway can collect many servers behind one catalogue and add identity, policy and logging in one place.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. The arithmetic of glue. With one adapter per pair, the work grows as N \times M; with one adapter per side, as N + M. Plain counting, not a measurement."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig04.png" class="img-fluid figure-img" alt="Line chart of adapters to write and maintain against services to connect, from 0 to 50. With one adapter per pair, 10 clients need 500 adapters at 50 services, 5 clients need 250. With one per side, 10 clients need 60, 5 clients need 55. The gap between the lines is shaded and labelled: the glue nobody has to write."></a></p>
+<figcaption><strong>Figure 4.</strong> The arithmetic of glue. With one adapter per pair, the work grows as <img src="https://latex.codecogs.com/png.latex?N%20%5Ctimes%20M">; with one adapter per side, as <img src="https://latex.codecogs.com/png.latex?N%20+%20M">. Plain counting, not a measurement.</figcaption>
+</figure>
+</div>
+<p>The first gain is simple arithmetic, the same one that motivated the Language Server Protocol. If <img src="https://latex.codecogs.com/png.latex?N"> clients must each talk to <img src="https://latex.codecogs.com/png.latex?M"> services, writing one adapter per pair costs <img src="https://latex.codecogs.com/png.latex?N%20%5Ctimes%20M"> adapters. If every client speaks one protocol and every service publishes one description, it costs <img src="https://latex.codecogs.com/png.latex?N%20+%20M">. With ten clients and fifty services, that is 60 adapters instead of 500. Each adapter is real work: reading, coding, testing, and above all maintaining it when either side changes. I suspect this, more than anything AI-related, is where most of the time is saved.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Schematic. A web of tools. Clients, with or without a model, reach servers through a gateway. The invoice desk is both a server and a client. The dashed green links are not configured by hand: they can be computed by matching one tool’s output schema to another tool’s input schema."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig05.png" class="img-fluid figure-img" alt="Network diagram. Three clients on the left: Assistant, a model in a loop; Workflow engine, no model; Nightly script, no model. They call a dark Gateway card (one catalogue, identity, policy, logs). The gateway calls an Invoice desk server and client (route_invoice), a Mail server and a Knowledge graph server. The Invoice desk calls ERP (match_po), Documents (extract_invoice) and Decision model (pick_approver). Dashed green brackets link Documents to ERP labelled Invoice, and Knowledge graph to Decision model labelled Rules."></a></p>
+<figcaption><strong>Figure 5.</strong> Schematic. A web of tools. Clients, with or without a model, reach servers through a gateway. The invoice desk is both a server and a client. The dashed green links are not configured by hand: they can be computed by matching one tool’s output schema to another tool’s input schema.</figcaption>
+</figure>
+</div>
+<p>The second gain is less obvious. When every tool declares the shape of what it accepts and returns, the connections between tools become something you can <em>compute</em>. If <code>extract_invoice</code> returns an object that fits the input of <code>match_po</code>, the two can be chained, and a planner, human or machine, can see this without reading any code. The graph of possible compositions is a by-product of the descriptions. This is what I mean by a web of tools: not a fixed integration diagram drawn by an architect, but a graph that can be queried, searched for paths, and checked for missing links.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Schematic. The same tools, arranged in three shapes. Because every node speaks the same protocol, the shape is a deployment choice, not a rewrite."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig06.png" class="img-fluid figure-img" alt="Three small network diagrams. Hub: one central gateway node with clients and servers around it. Mesh: servers connected to each other in an irregular network, one composite node in amber. Layers: a green agent node at the top, two amber composite nodes in the middle, four atomic server nodes at the bottom."></a></p>
+<figcaption><strong>Figure 6.</strong> Schematic. The same tools, arranged in three shapes. Because every node speaks the same protocol, the shape is a deployment choice, not a rewrite.</figcaption>
+</figure>
+</div>
+<p>And the graph can take whatever shape the organisation needs. A <em>hub</em> puts identity and policy in one place, which most companies will want for anything that touches money or personal data. A <em>mesh</em> lets teams connect their servers directly, with no central bottleneck. <em>Layers</em> stack atomic tools under composite tools, and composite tools under agents that are themselves exposed as tools. Because every node speaks the same protocol, moving from one shape to another is a matter of configuration. This is the cross-communication benefit: teams that never coordinated their APIs can still find and call each other’s tools, through one catalogue, in one format.</p>
+</section>
+<section id="granularity-on-demand" class="level2">
+<h2 class="anchored" data-anchor-id="granularity-on-demand">6. Granularity on demand</h2>
+<p>Every API designer faces the question of grain. Too fine, and callers make dozens of chatty calls to do one thing. Too coarse, and callers cannot do anything the designer did not foresee. In the SDK world, the designer picks one grain and everybody lives with it.</p>
+<p>Described tools loosen this choice in two ways.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig07.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Schematic. One capability offered at four grains, from an agent used as a single tool down to the raw operations underneath. Each caller picks the level it needs."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig07.png" class="img-fluid figure-img" alt="Four stacked bands that widen downward like a pyramid. Capability, one agent used as a tool: invoices.handle(task). Workflows, a few steps, one result: route_invoice, dispute_invoice, close_month. Tools, one action each: extract, match_po, assign_budget, pick_approver, notify. Operations, the API underneath: GET /po/{id}, POST /approvals, GET /budgets, PUT /invoices/{id}, POST /mail. Arrows on the right: zoom in, more control, more calls; zoom out, fewer calls, more trust."></a></p>
+<figcaption><strong>Figure 7.</strong> Schematic. One capability offered at four grains, from an agent used as a single tool down to the raw operations underneath. Each caller picks the level it needs.</figcaption>
+</figure>
+</div>
+<p><strong>First, the same server can publish several levels at once.</strong> At the top, a whole capability exposed as one tool: “handle this invoice task”, implemented by an agent. Below it, a few workflows that each deliver one result. Below those, single actions. At the bottom, the raw operations of the underlying API. A strong model working on an unusual case may want the fine tools. A workflow engine wants the workflow. Another team’s agent may only want the capability. Because each level is just more data in the same catalogue, offering all four costs little. Anthropic’s advice on writing tools for agents points the same way: fewer, more meaningful tools that match how a task is really done, rather than a thin wrapper around every endpoint <span class="citation" data-cites="anthropic2025tools">(Anthropic 2025e)</span>.</p>
+<p><strong>Second, the caller can choose how much of the description to read.</strong> This is <em>progressive disclosure</em>: first the names, then the descriptions of the tools that look relevant, then their full schemas, then, if needed, their documentation or code. Agent Skills apply this idea to instructions: a model sees only a skill’s name and summary until it decides the skill is relevant, and only then reads the rest <span class="citation" data-cites="anthropic2025skills">(Anthropic 2025c)</span>. Tool search does the same for large tool catalogues: tools are loaded only when a search finds them <span class="citation" data-cites="anthropic2025advtools gan2025">(Anthropic 2025d; Gan and Sun 2025)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig08.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. What a caller reads before it acts. Left: a catalogue of 200 tools, assuming about 10 tokens per name, 50 per name and description, and 450 per full schema; my own illustrative values. Right: one workflow reported by Anthropic, where presenting tools as files read on demand reduced the tokens used from 150,000 to 2,000 [@anthropic2025codeexec]."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig08.png" class="img-fluid figure-img" alt="Left, bar chart for a catalogue of 200 tools (illustrative): names only 2,000 tokens; names and descriptions 10,000; every schema 90,000; names then 3 schemas on demand 3,350. Right, horizontal bars reported by Anthropic: every tool definition loaded up front 150,000 tokens; tools read as files when needed 2,000; minus 98.7%."></a></p>
+<figcaption><strong>Figure 8.</strong> What a caller reads before it acts. Left: a catalogue of 200 tools, assuming about 10 tokens per name, 50 per name and description, and 450 per full schema; my own illustrative values. Right: one workflow reported by Anthropic, where presenting tools as files read on demand reduced the tokens used from 150,000 to 2,000 <span class="citation" data-cites="anthropic2025codeexec">(Anthropic 2025a)</span>.</figcaption>
+</figure>
+</div>
+<p>The numbers show why this matters. Loading every schema of a large catalogue before the first call can cost tens of thousands of tokens, which are paid on every run and push useful context out of the window. In one workflow described by Anthropic, presenting the tools as files that the agent reads only when needed reduced the tokens used from 150,000 to 2,000, a reduction of 98.7% <span class="citation" data-cites="anthropic2025codeexec">(Anthropic 2025a)</span>. That is one example, not a benchmark, but the direction is clear: granularity is no longer only a property of the API. It is a choice made by the caller, at run time, based on what it needs.</p>
+</section>
+<section id="tools-that-return-programs" class="level2">
+<h2 class="anchored" data-anchor-id="tools-that-return-programs">7. Tools that return programs</h2>
+<p>So far, every tool in this essay has returned data. I want to push the idea one step further, because I think this is where the paradigm becomes really new: a tool can return a <em>program</em>, and that program can stay inside the process as data.</p>
+<section id="a-catalogue-you-search-by-meaning" class="level3">
+<h3 class="anchored" data-anchor-id="a-catalogue-you-search-by-meaning">7.1 A catalogue you search by meaning</h3>
+<p>If a tool’s description is data, it can be <em>embedded</em>: turned into a vector by the same kind of model used for semantic search <span class="citation" data-cites="reimers2019">(Reimers and Gurevych 2019)</span>. The catalogue then becomes a space in which tools that do similar things sit close together. A question, from a person, an agent or another tool, lands somewhere in that space, and its nearest neighbours are the few tools worth reading.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig09.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure 9. Schematic, with hand-placed positions. Tool descriptions as points in a space of meaning, grouped by what they do. A question is embedded in the same space; its five nearest tools are returned, and only their schemas are read."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig09.png" class="img-fluid figure-img" alt="A map of 23 tools as dots grouped in five labelled clusters: invoices and payments, documents, people and rules, data, messages. An amber star marks the question 'who must approve this supplier invoice?', with a dashed circle around it and lines to its five nearest tools: pick_approver, assign_budget, route_invoice, get_supplier and rules_for. A panel on the right lists them: returned 5 of 23 tools; only their schemas are read."></a></p>
+<figcaption><strong>Figure 9.</strong> Schematic, with hand-placed positions. Tool descriptions as points in a space of meaning, grouped by what they do. A question is embedded in the same space; its five nearest tools are returned, and only their schemas are read.</figcaption>
+</figure>
+</div>
+<p>None of this is speculative. ToolLLM and Gorilla used a retriever to pick a handful of APIs out of thousands <span class="citation" data-cites="qin2024 patil2023">(<span class="nocase">Qin et al.</span> 2024; Patil et al. 2023)</span>, and the tool search in current agent platforms works the same way <span class="citation" data-cites="anthropic2025advtools gan2025">(Anthropic 2025d; Gan and Sun 2025)</span>. ToolkenGPT goes further and gives each tool its own token embedding inside the model, so that calling a tool is no different from predicting a word <span class="citation" data-cites="hao2023">(Hao et al. 2023)</span>.</p>
+<p>Embeddings give the web of §5 a second kind of edge. Schema edges say which tools <em>can</em> be chained, because one’s output fits another’s input. Embedding distance says which tools are <em>about</em> the same thing. Together they are enough to propose a plan without anyone drawing it.</p>
+</section>
+<section id="a-tool-whose-result-is-a-sub-graph" class="level3">
+<h3 class="anchored" data-anchor-id="a-tool-whose-result-is-a-sub-graph">7.2 A tool whose result is a sub-graph</h3>
+<p>Now the step that interests me most. Nothing in the idea of a tool requires its result to be plain data. A tool can return a small graph of <em>other</em> tool calls, with the arguments of each node wired to the outputs of the others.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig10.png" class="lightbox" data-gallery="quarto-lightbox-gallery-10" title="Figure 10. Schematic. A tool whose result is a program. plan_invoice_routing does not route the invoice; it returns a graph of five tool calls. An executor checks the graph and runs it, in parallel where the dependencies allow, without a model. The &quot;returns&quot;: &quot;graph&quot; format is my own convention; MCP does not define one."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig10.png" class="img-fluid figure-img" alt="Left, a dark code panel titled plan_invoice_routing() result, with JSON: returns graph, name route_invoice@v3, five nodes (doc calls extract_invoice on $input.file; po calls match_po on $doc; rules calls rules_for on $doc.supplier; who calls pick_approver on $po and $rules; send calls notify to $who.approver), output $who, limits max_calls 8 and max_depth 2. Right, what the executor runs, no model in the loop: doc leads to po and rules in parallel, both lead to who, then send. Note: checked first, every tool exists, every reference fits its schema, no cycles, policy allows it, within limits."></a></p>
+<figcaption><strong>Figure 10.</strong> Schematic. A tool whose result is a program. <code>plan_invoice_routing</code> does not route the invoice; it returns a graph of five tool calls. An executor checks the graph and runs it, in parallel where the dependencies allow, without a model. The <code>"returns": "graph"</code> format is my own convention; MCP does not define one.</figcaption>
+</figure>
+</div>
+<p>In Figure 10, <code>plan_invoice_routing</code> does not do the work. It returns the recipe: extract the invoice; then, in parallel, match the purchase order and fetch the supplier’s rules; then pick the approver; then notify them. An executor, which is ordinary code, checks the graph before running anything: every tool exists, every reference fits the schema it feeds, there is no cycle, the policy gateway accepts every node, and the whole stays within its limits. Then it runs the graph, with no model in the loop.</p>
+<p>Research on agents points the same way. ReWOO separates planning from execution: the model writes the whole plan once, instead of reasoning again after every observation <span class="citation" data-cites="xu2023rewoo">(Xu et al. 2023)</span>. LLMCompiler has the model emit a graph of function calls with their dependencies and runs the independent calls in parallel, which made runs faster and cheaper than step-by-step reasoning <span class="citation" data-cites="kim2024llmcompiler">(Kim et al. 2024)</span>. Code mode and programmatic tool calling let the model write the plan as code <span class="citation" data-cites="cloudflare2025codemode anthropic2025advtools">(Varda and Pai 2025; Anthropic 2025d)</span>.</p>
+<p>What changes in my proposal is <em>who</em> returns the plan. It need not be the model in the loop. It can be a tool like any other: written by a team, generated by a model and reviewed once, or retrieved from storage. The plan stops being a private thought of the agent and becomes part of the interface.</p>
+</section>
+<section id="programs-inside-programs" class="level3">
+<h3 class="anchored" data-anchor-id="programs-inside-programs">7.3 Programs inside programs</h3>
+<p>Since a node of a returned graph is just a tool call, it can itself be a tool that returns a graph.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig11.png" class="lightbox" data-gallery="quarto-lightbox-gallery-11" title="Figure 11. Schematic. Programs nest. The process calls route_invoice, which returns a graph of four steps; one of them, approve, returns a graph of its own. The executor expands each level only when it is reached, within a maximum depth and a budget of calls."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig11.png" class="img-fluid figure-img" alt="Three rows of cards. Level 1, the process: receive, route_invoice, archive. A shaded funnel from route_invoice opens to Level 2, a graph returned by route_invoice: extract, match_po, approve, notify. A second funnel from approve opens to Level 3, a graph returned by approve: rules_for, pick_approver, escalate?. Two tags at the top right: max depth 3, max 20 calls."></a></p>
+<figcaption><strong>Figure 11.</strong> Schematic. Programs nest. The process calls <code>route_invoice</code>, which returns a graph of four steps; one of them, <code>approve</code>, returns a graph of its own. The executor expands each level only when it is reached, within a maximum depth and a budget of calls.</figcaption>
+</figure>
+</div>
+<p>This gives the multiple levels of detail of §6 almost for free. Nobody has to design the levels in advance: each one expands only when it is reached, and only as far as needed. A caller that trusts <code>route_invoice</code> treats it as one step. A caller that must audit it can ask for the graph and inspect every level. The executor needs two limits to make sure the expansion ends: a maximum depth and a budget of calls.</p>
+</section>
+<section id="keeping-the-programs" class="level3">
+<h3 class="anchored" data-anchor-id="keeping-the-programs">7.4 Keeping the programs</h3>
+<p>The last step closes the loop with <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>. A returned graph is data. It can be logged, compared with yesterday’s, reviewed by a person, signed, versioned and stored. Once stored with a description, it is itself a tool: it gets embedded in the same catalogue, and the next search for “who must approve this supplier invoice?” finds the stored program before anything has to plan.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig12.png" class="lightbox" data-gallery="quarto-lightbox-gallery-12" title="Figure 12. Schematic. Programs inside the process. Search finds the tools, a planner returns a sub-graph, the executor checks it and runs it, and the graph is kept. Published back as a tool, it is found first the next time, and planning is skipped."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig12.png" class="img-fluid figure-img" alt="Five step cards in a row: Search, embeddings find the few tools that fit; Plan, a tool or a model returns a sub-graph; Check, schemas, policy, limits, no cycles; Run, an executor, no model needed; Keep, the graph is stored, named, versioned. The first two are marked slow, once; the last two fast, every time. A green line returns from Keep to Search, labelled published back as a tool: route_invoice@v3. Caption line: next time, search finds the stored program first, and the planning step is skipped."></a></p>
+<figcaption><strong>Figure 12.</strong> Schematic. Programs inside the process. Search finds the tools, a planner returns a sub-graph, the executor checks it and runs it, and the graph is kept. Published back as a tool, it is found first the next time, and planning is skipped.</figcaption>
+</figure>
+</div>
+<p>Voyager, an agent that played Minecraft, worked this way: it stored every skill it learned as a program, indexed it by an embedding of its description, retrieved it when a similar task came up, and built new skills from old ones <span class="citation" data-cites="wang2023voyager">(Wang et al. 2023)</span>. Models that write their own tools and reuse them follow the same pattern <span class="citation" data-cites="cai2024latm">(Cai et al. 2024)</span>.</p>
+<p>In a company, the same mechanism means that the programs which run the business live <em>inside the process</em>, as data you can inspect, rather than hidden in the code of each application or worked out again by an agent every morning. This is what I mean by embedding programs in the process. The process is a graph of tools. Some tools return graphs. Those graphs can be kept and become tools. The difference between an API, a workflow and a program becomes a matter of level, not of kind. Programmers will recognise an old idea from Lisp, where code and data share one form. Here, the shared form is the tool description.</p>
+</section>
+<section id="what-it-costs" class="level3">
+<h3 class="anchored" data-anchor-id="what-it-costs">7.5 What it costs</h3>
+<p>A tool that returns a program is a tool that returns code, and everything §8.1 says about poisoned descriptions applies with more force. The executor must treat every returned graph as untrusted. It should run only tools from an allowed list, check every reference against its schema, apply the policy to every node and not only to the first, enforce the limits, and never let a graph call a tool its caller could not call directly. Debugging is harder too: a failure can sit three levels down, in a graph nobody wrote by hand, so every expansion must be logged with where it came from. Finally, there is no standard. MCP has no “graph” result type, so today this is a convention on top of the protocol, or a job for a workflow engine. A shared format for returned plans would, I think, be one of the most useful next steps for the ecosystem.</p>
+</section>
+</section>
+<section id="the-case-against-mcp" class="level2">
+<h2 class="anchored" data-anchor-id="the-case-against-mcp">8. The case against MCP</h2>
+<p>So far I have made the case for. It would be dishonest to stop there. MCP has drawn serious criticism, much of it fair, and for several jobs there are better options.</p>
+<section id="five-objections" class="level3">
+<h3 class="anchored" data-anchor-id="five-objections">8.1 Five objections</h3>
+<p><strong>It is a wrapper over APIs that already exist.</strong> Many MCP servers are thin layers over a REST API that already had an OpenAPI description. Adding a protocol, a server process and a new failure point to say the same thing again is not obviously progress. Critics argue that a model that can read OpenAPI, or a <code>--help</code> page, does not need MCP at all <span class="citation" data-cites="ronacher2025">(Ronacher 2025)</span>.</p>
+<p><strong>It crowds the model’s context.</strong> Every tool description an agent loads costs tokens on every call, and accuracy in choosing the right tool falls as the list grows <span class="citation" data-cites="gan2025">(Gan and Sun 2025)</span>. In the paper I analysed in <a href="../../posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a>, each task offered 68 tools, 31 of them near-duplicates of the core ones, precisely because large, messy catalogues are what agents face in practice <span class="citation" data-cites="zhu2026">(<span class="nocase">Zhu et al.</span> 2026)</span>. Progressive disclosure helps, but it is extra machinery that the protocol did not originally provide.</p>
+<p><strong>It opens new security holes.</strong> A tool description is text that the model reads and trusts. A malicious or compromised server can hide instructions in it, a <em>tool-poisoning</em> attack <span class="citation" data-cites="invariant2025">(Invariant Labs 2025)</span>. Any tool that returns content from the outside world can carry an <em>indirect prompt injection</em> <span class="citation" data-cites="greshake2023">(Greshake et al. 2023)</span>. Simon Willison named the dangerous combination the <em>lethal trifecta</em>: an agent with access to private data, exposure to untrusted content, and a way to send data out <span class="citation" data-cites="willison2025">(Willison 2025)</span>. Connecting many MCP servers to one agent makes that combination easy to assemble by accident. Surveys of the MCP ecosystem list these and other threats, such as name collisions between servers and installers that cannot be verified <span class="citation" data-cites="hou2025">(Hou et al. 2025)</span>. The specification itself warns that annotations are hints and should not be trusted from an unknown server <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025)</span>.</p>
+<p><strong>Prose is a weak contract.</strong> A schema says that <code>amount_chf</code> is a number. It does not say whether it includes VAT, whether calling the tool twice creates two approvals, or what happens if the budget is closed. A typed SDK does not say this either, but it is usually paired with a developer who read the documentation and wrote tests. When the reader is a model, the description <em>is</em> the documentation, and its gaps become errors at run time instead of questions at design time. Versioning is also weaker: a server can change its tools between two calls.</p>
+<p><strong>It is slower and less predictable than a function call.</strong> An agent that reads descriptions, reasons and then calls is orders of magnitude slower and more expensive than compiled code calling a library, and it may take a different path on the same input. For processes that run ten thousand times a day, this is the wrong trade, as I argued in <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>.</p>
+</section>
+<section id="the-alternatives" class="level3">
+<h3 class="anchored" data-anchor-id="the-alternatives">8.2 The alternatives</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig13.png" class="lightbox" data-gallery="quarto-lightbox-gallery-13" title="Figure 13. My own placement of the main ways to connect a caller to a service: when the interface is bound, and who reads it. Approaches in green were designed with agents in mind."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig13.png" class="img-fluid figure-img" alt="Scatter map. Horizontal axis from bound when code is written to bound when the call is made; vertical axis from read by a person or a compiler to read by a model. Before agents, in blue: typed SDK and gRPC bottom left; OpenAPI with code generation; GraphQL introspection; REST hypermedia (HATEOAS) bottom right. Made for agents, in green: function calling, upper left of centre; code mode, top centre; CLI with help, lower right of centre; A2A, right; Agent Skills, top right. MCP highlighted in amber, upper right."></a></p>
+<figcaption><strong>Figure 13.</strong> My own placement of the main ways to connect a caller to a service: when the interface is bound, and who reads it. Approaches in green were designed with agents in mind.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>OpenAPI plus function calling.</strong> If a service already has a good OpenAPI description, it can be turned into function definitions for a model with no new protocol <span class="citation" data-cites="openapi2021 openai2023fc">(OpenAPI Initiative 2021; OpenAI 2023)</span>. This keeps one source of truth and the existing tooling for authentication, gateways and testing.</li>
+<li><strong>Code as the interface.</strong> Instead of asking the model to call tools one at a time, let it write a short program against a typed API and run it in a sandbox. Research found that agents acting through code solved more tasks than agents emitting JSON calls <span class="citation" data-cites="wang2024codeact">(Wang et al. 2024)</span>. Cloudflare’s <em>Code Mode</em> turns MCP tools into a TypeScript API for exactly this reason <span class="citation" data-cites="cloudflare2025codemode">(Varda and Pai 2025)</span>, and Anthropic’s code-execution approach does the same with files <span class="citation" data-cites="anthropic2025codeexec">(Anthropic 2025a)</span>. In this view, the SDK comes back, but its reader is now a model.</li>
+<li><strong>Command-line tools and skills.</strong> A well-made CLI already describes itself through <code>--help</code>, composes through pipes, and is something models have seen countless times in training. Paired with short instruction files that are read on demand <span class="citation" data-cites="anthropic2025skills">(Anthropic 2025c)</span>, it covers much of what developers use MCP for, with no server to run <span class="citation" data-cites="ronacher2025">(Ronacher 2025)</span>.</li>
+<li><strong>Agent-to-agent protocols.</strong> When the thing on the other side is itself an agent with its own judgement, a protocol for tasks between peers, such as Google’s A2A, fits better than a list of tools <span class="citation" data-cites="google2025a2a ehtesham2025">(Google 2025; Ehtesham et al. 2025)</span>.</li>
+<li><strong>Typed SDKs and RPC.</strong> For hot paths, nothing beats a compiled call with types checked before the program runs.</li>
+<li><strong>GraphQL.</strong> Its introspection already lets a client ask what a service offers and choose exactly the fields it needs <span class="citation" data-cites="graphql2021">(GraphQL Foundation 2021)</span>. It solved part of the granularity problem years ago, for data.</li>
+</ul>
+</section>
+<section id="my-reading" class="level3">
+<h3 class="anchored" data-anchor-id="my-reading">8.3 My reading</h3>
+<p>Most of these alternatives share MCP’s core idea: the interface is described in a form the caller reads, and the binding happens later than it used to. Code mode reads MCP descriptions and generates an SDK from them. Skills are descriptions in files. A2A publishes “agent cards”. Even the critics who say “just use the CLI” are relying on <code>--help</code>, a self-description read at run time.</p>
+<p>So I do not think the lasting change is MCP the wire format. It may be replaced, merged with other protocols, or survive mainly as an internal standard behind gateways. The lasting change is the <em>practice</em>: publish every interface as data, rich enough for a model and precise enough for a machine, and let each caller decide when to bind to it. MCP is, for now, the most widely adopted way to do that, and its governance under a neutral foundation makes it a reasonable bet. But the objections in §8.1 are about real costs, and the right answer to several of them is to use something else for that part of the job.</p>
+</section>
+</section>
+<section id="where-the-sdk-survives" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-sdk-survives">9. Where the SDK survives</h2>
+<p>Back to the original question: does this redefine the API and the SDK “to an extent” or “completely”? My answer is: completely at the edges, not in the core.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig14.png" class="lightbox" data-gallery="quarto-lightbox-gallery-14" title="Figure 14. Schematic, with example tasks of my own. Where each kind of binding belongs, by how often the same call is made and how much the task varies. What an agent discovers in the upper left should be compiled into the lower right once it repeats."><img src="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig14.png" class="img-fluid figure-img" alt="A two-dimensional map shaded from amber at the top left to green at the bottom right. Horizontal axis: how often the same call is made, from once to thousands a day. Vertical axis: how much the task varies, from same every time to different every time. Example points: a supplier's unusual question, top left; month-end exception; weekly report; nightly sync; route an invoice, 10,000 a day, bottom right. Region labels: agent loop over described tools at top left; described tools, called by code at bottom left; compiled path (typed SDK, fixed recipe, decision model) at bottom right. A dashed arrow, compile what repeats, runs from top left to bottom right."></a></p>
+<figcaption><strong>Figure 14.</strong> Schematic, with example tasks of my own. Where each kind of binding belongs, by how often the same call is made and how much the task varies. What an agent discovers in the upper left should be compiled into the lower right once it repeats.</figcaption>
+</figure>
+</div>
+<p>At the edges, where integration happens, where a call is made rarely or differs every time, where a team needs to find and use another team’s capability, the described interface wins. It is cheaper to build, easier to discover and works for model and script alike. Here I expect hand-written SDKs to become rare.</p>
+<p>In the core, where the same call runs thousands of times a day, the binding should happen early again: a typed client, a fixed recipe, a small decision model like the one in <a href="../../posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a>. The difference from before is where that code comes from. It does not need to start from a developer reading documentation. It can be generated from the same descriptions, or compiled from a path that an agent found and that people reviewed. The SDK becomes an <em>output</em> of the described interface, not its source.</p>
+</section>
+<section id="what-would-prove-me-wrong" class="level2">
+<h2 class="anchored" data-anchor-id="what-would-prove-me-wrong">10. What would prove me wrong</h2>
+<p>I would change my mind if:</p>
+<ul>
+<li>tool descriptions stayed so unreliable that every serious integration still needed a person to read the documentation and write tests by hand, so the run-time binding saved nothing;</li>
+<li>the security problems of §8.1 proved impossible to contain at reasonable cost, so that companies kept MCP to demos and read-only tools;</li>
+<li>returned programs proved harder to secure, debug and govern than the hand-written code they replace;</li>
+<li>the token cost of descriptions kept growing faster than the techniques that load them on demand;</li>
+<li>integration time and maintenance, measured in real companies over a few years, did not fall for teams that publish their interfaces as data compared with teams that do not.</li>
+</ul>
+<p>The last one is the real test, and it can be measured.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">11. Conclusion</h2>
+<p>For decades, an API was a promise written for people. A developer read it, understood it, and turned it into code that was frozen until the next release. MCP and the agentic loop make a different arrangement possible: the promise is written as data, travels with the service, and is read by whoever calls it, at the moment of the call.</p>
+<p>That one shift has several consequences. The caller no longer needs AI to benefit. Tools can be connected into a web of whatever shape suits the organisation, with far less glue. The same capability can be offered at several levels of detail, and each caller chooses how much to read. Tools can be found by meaning, and can return programs that are checked, run and kept as new tools, so the logic of a process lives inside it as data. And the expensive, exploratory work of figuring out how to combine tools can be done once by an agent, then compiled into something fast.</p>
+<p>MCP may not be the protocol we use in ten years. Its weaknesses are real, and some of its alternatives are better at parts of the job. But I think the habit it is spreading will remain: an interface is not only something we read. It is data.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> Why the large model should build the memory once, instead of reasoning through every run.</p>
+</div>
+<div class="small">
+<p><em>The views in this essay are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-anthropic2024mcp" class="csl-entry">
+Anthropic. 2024. <em>Introducing the Model Context Protocol</em>. <a href="https://www.anthropic.com/news/model-context-protocol">https://www.anthropic.com/news/model-context-protocol</a>.
+</div>
+<div id="ref-anthropic2025codeexec" class="csl-entry">
+Anthropic. 2025a. <em>Code Execution with <span>MCP</span>: Building More Efficient Agents</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/code-execution-with-mcp">https://www.anthropic.com/engineering/code-execution-with-mcp</a>.
+</div>
+<div id="ref-anthropic2025aaif" class="csl-entry">
+Anthropic. 2025b. <em>Donating the Model Context Protocol and Establishing the Agentic AI Foundation</em>. <a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation">https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation</a>.
+</div>
+<div id="ref-anthropic2025skills" class="csl-entry">
+Anthropic. 2025c. <em>Equipping Agents for the Real World with Agent Skills</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a>.
+</div>
+<div id="ref-anthropic2025advtools" class="csl-entry">
+Anthropic. 2025d. <em>Introducing Advanced Tool Use on the Claude Developer Platform</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/advanced-tool-use">https://www.anthropic.com/engineering/advanced-tool-use</a>.
+</div>
+<div id="ref-anthropic2025tools" class="csl-entry">
+Anthropic. 2025e. <em>Writing Effective Tools for Agents, with Agents</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/writing-tools-for-agents">https://www.anthropic.com/engineering/writing-tools-for-agents</a>.
+</div>
+<div id="ref-cai2024latm" class="csl-entry">
+Cai, Tianle, Xuezhi Wang, Tengyu Ma, Xinyun Chen, and Denny Zhou. 2024. <span>“Large Language Models as Tool Makers.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2305.17126">https://arxiv.org/abs/2305.17126</a>.
+</div>
+<div id="ref-w3c2001wsdl" class="csl-entry">
+Christensen, Erik, Francisco Curbera, Greg Meredith, and Sanjiva Weerawarana. 2001. <em>Web Services Description Language (<span>WSDL</span>) 1.1</em>. W3C Note. <a href="https://www.w3.org/TR/wsdl">https://www.w3.org/TR/wsdl</a>.
+</div>
+<div id="ref-ehtesham2025" class="csl-entry">
+Ehtesham, Abul, Aditi Singh, Gaurav Kumar Gupta, and Saket Kumar. 2025. <span>“A Survey of Agent Interoperability Protocols: Model Context Protocol (<span>MCP</span>), Agent Communication Protocol (<span>ACP</span>), Agent-to-Agent Protocol (<span>A2A</span>), and Agent Network Protocol (<span>ANP</span>).”</span> <em>arXiv Preprint arXiv:2505.02279</em>. <a href="https://arxiv.org/abs/2505.02279">https://arxiv.org/abs/2505.02279</a>.
+</div>
+<div id="ref-fielding2000" class="csl-entry">
+Fielding, Roy Thomas. 2000. <span>“Architectural Styles and the Design of Network-Based Software Architectures.”</span> PhD thesis, University of California, Irvine. <a href="https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">https://ics.uci.edu/~fielding/pubs/dissertation/top.htm</a>.
+</div>
+<div id="ref-gan2025" class="csl-entry">
+Gan, Tiantian, and Qiyao Sun. 2025. <span>“<span>RAG-MCP</span>: Mitigating Prompt Bloat in <span>LLM</span> Tool Selection via Retrieval-Augmented Generation.”</span> <em>arXiv Preprint arXiv:2505.03275</em>. <a href="https://arxiv.org/abs/2505.03275">https://arxiv.org/abs/2505.03275</a>.
+</div>
+<div id="ref-google2025a2a" class="csl-entry">
+Google. 2025. <em>Announcing the <span>Agent2Agent</span> Protocol (<span>A2A</span>)</em>. Google for Developers Blog. <a href="https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/">https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/</a>.
+</div>
+<div id="ref-graphql2021" class="csl-entry">
+GraphQL Foundation. 2021. <em><span>GraphQL</span> Specification, October 2021 Edition</em>. <a href="https://spec.graphql.org/October2021/">https://spec.graphql.org/October2021/</a>.
+</div>
+<div id="ref-greshake2023" class="csl-entry">
+Greshake, Kai, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, and Mario Fritz. 2023. <span>“Not What You’ve Signed up for: Compromising Real-World <span>LLM</span>-Integrated Applications with Indirect Prompt Injection.”</span> <em>ACM Workshop on Artificial Intelligence and Security (AISec)</em>. <a href="https://arxiv.org/abs/2302.12173">https://arxiv.org/abs/2302.12173</a>.
+</div>
+<div id="ref-hao2023" class="csl-entry">
+Hao, Shibo, Tianyang Liu, Zhen Wang, and Zhiting Hu. 2023. <span>“<span>ToolkenGPT</span>: Augmenting Frozen Language Models with Massive Tools via Tool Embeddings.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2305.11554">https://arxiv.org/abs/2305.11554</a>.
+</div>
+<div id="ref-hou2025" class="csl-entry">
+Hou, Xinyi, Yanjie Zhao, Shenao Wang, and Haoyu Wang. 2025. <span>“Model Context Protocol (<span>MCP</span>): Landscape, Security Threats, and Future Research Directions.”</span> <em>arXiv Preprint arXiv:2503.23278</em>. <a href="https://arxiv.org/abs/2503.23278">https://arxiv.org/abs/2503.23278</a>.
+</div>
+<div id="ref-invariant2025" class="csl-entry">
+Invariant Labs. 2025. <em><span>MCP</span> Security Notification: Tool Poisoning Attacks</em>. <a href="https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks">https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks</a>.
+</div>
+<div id="ref-kim2024llmcompiler" class="csl-entry">
+Kim, Sehoon, Suhong Moon, Ryan Tabrizi, et al. 2024. <span>“An <span>LLM</span> Compiler for Parallel Function Calling.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2312.04511">https://arxiv.org/abs/2312.04511</a>.
+</div>
+<div id="ref-lsp2016" class="csl-entry">
+Microsoft. 2016. <em>Language Server Protocol</em>. <a href="https://microsoft.github.io/language-server-protocol/">https://microsoft.github.io/language-server-protocol/</a>.
+</div>
+<div id="ref-mcpspec2025" class="csl-entry">
+Model Context Protocol. 2025. <em>Model Context Protocol Specification, Version 2025-06-18</em>. <a href="https://modelcontextprotocol.io/specification/2025-06-18">https://modelcontextprotocol.io/specification/2025-06-18</a>.
+</div>
+<div id="ref-openai2023fc" class="csl-entry">
+OpenAI. 2023. <em>Function Calling and Other <span>API</span> Updates</em>. <a href="https://openai.com/index/function-calling-and-other-api-updates/">https://openai.com/index/function-calling-and-other-api-updates/</a>.
+</div>
+<div id="ref-openapi2021" class="csl-entry">
+OpenAPI Initiative. 2021. <em>OpenAPI Specification, Version 3.1.0</em>. <a href="https://spec.openapis.org/oas/v3.1.0">https://spec.openapis.org/oas/v3.1.0</a>.
+</div>
+<div id="ref-patil2023" class="csl-entry">
+Patil, Shishir G., Tianjun Zhang, Xin Wang, and Joseph E. Gonzalez. 2023. <span>“Gorilla: Large Language Model Connected with Massive <span>APIs</span>.”</span> <em>arXiv Preprint arXiv:2305.15334</em>. <a href="https://arxiv.org/abs/2305.15334">https://arxiv.org/abs/2305.15334</a>.
+</div>
+<div id="ref-qin2024" class="csl-entry">
+<span class="nocase">Qin, Yujia et al.</span> 2024. <span>“<span>ToolLLM</span>: Facilitating Large Language Models to Master 16000+ Real-World <span>APIs</span>.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2307.16789">https://arxiv.org/abs/2307.16789</a>.
+</div>
+<div id="ref-reimers2019" class="csl-entry">
+Reimers, Nils, and Iryna Gurevych. 2019. <span>“Sentence-<span>BERT</span>: Sentence Embeddings Using <span>Siamese</span> <span>BERT</span>-Networks.”</span> <em>Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/1908.10084">https://arxiv.org/abs/1908.10084</a>.
+</div>
+<div id="ref-ronacher2025" class="csl-entry">
+Ronacher, Armin. 2025. <em>Tools: Code Is All You Need</em>. <a href="https://lucumr.pocoo.org/2025/7/3/tools/">https://lucumr.pocoo.org/2025/7/3/tools/</a>.
+</div>
+<div id="ref-schick2023" class="csl-entry">
+Schick, Timo, Jane Dwivedi-Yu, Roberto Dessı̀, et al. 2023. <span>“Toolformer: Language Models Can Teach Themselves to Use Tools.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2302.04761">https://arxiv.org/abs/2302.04761</a>.
+</div>
+<div id="ref-cloudflare2025codemode" class="csl-entry">
+Varda, Kenton, and Sunil Pai. 2025. <em>Code Mode: The Better Way to Use <span>MCP</span></em>. Cloudflare Blog. <a href="https://blog.cloudflare.com/code-mode/">https://blog.cloudflare.com/code-mode/</a>.
+</div>
+<div id="ref-wang2023voyager" class="csl-entry">
+Wang, Guanzhi, Yuqi Xie, Yunfan Jiang, et al. 2023. <span>“Voyager: An Open-Ended Embodied Agent with Large Language Models.”</span> <em>arXiv Preprint arXiv:2305.16291</em>. <a href="https://arxiv.org/abs/2305.16291">https://arxiv.org/abs/2305.16291</a>.
+</div>
+<div id="ref-wang2024codeact" class="csl-entry">
+Wang, Xingyao, Yangyi Chen, Lifan Yuan, et al. 2024. <span>“Executable Code Actions Elicit Better <span>LLM</span> Agents.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2402.01030">https://arxiv.org/abs/2402.01030</a>.
+</div>
+<div id="ref-willison2025" class="csl-entry">
+Willison, Simon. 2025. <em>The Lethal Trifecta for <span>AI</span> Agents: Private Data, Untrusted Content, and External Communication</em>. <a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/</a>.
+</div>
+<div id="ref-xu2023rewoo" class="csl-entry">
+Xu, Binfeng, Zhiyuan Peng, Bowen Lei, Subhabrata Mukherjee, Yuchen Liu, and Dongkuan Xu. 2023. <span>“<span>ReWOO</span>: Decoupling Reasoning from Observations for Efficient Augmented Language Models.”</span> <em>arXiv Preprint arXiv:2305.18323</em>. <a href="https://arxiv.org/abs/2305.18323">https://arxiv.org/abs/2305.18323</a>.
+</div>
+<div id="ref-yao2023react" class="csl-entry">
+Yao, Shunyu, Jeffrey Zhao, Dian Yu, et al. 2023. <span>“<span>ReAct</span>: Synergizing Reasoning and Acting in Language Models.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2210.03629">https://arxiv.org/abs/2210.03629</a>.
+</div>
+<div id="ref-zhu2026" class="csl-entry">
+<span class="nocase">Zhu et al.</span> 2026. <span>“<span>JevAgentHarness</span>: Benchmarking, Deploying and Training Decision Models That Share Control with <span>LLMs</span>.”</span> <em>arXiv Preprint arXiv:2610.21412</em>. <a href="https://arxiv.org/abs/2610.21412">https://arxiv.org/abs/2610.21412</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {The {Interface} {Is} {Data}},
+  date = {2026-10-20},
+  url = {https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/},
+  langid = {en}
+}
+</code></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“The Interface Is Data.”</span> October
+20. <a href="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/">https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/</a>.
+</div></div></section></div> ]]></description>
+  <category>essay</category>
+  <category>ai</category>
+  <category>agents</category>
+  <category>architecture</category>
+  <category>mcp</category>
+  <guid>https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/</guid>
+  <pubDate>Tue, 20 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig05.png" medium="image" type="image/png" height="93" width="144"/>
+</item>
 <item>
   <title>The Junior Colleague</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
