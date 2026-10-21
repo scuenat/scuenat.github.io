@@ -192,7 +192,7 @@ def fig_layers():
         ("Verification", "the agent proves its work: tests, build, screenshot", "machine", NAVY),
         ("Required CI", "the same checks on every change, no exceptions", "machine", NAVY),
         ("AI review", "a reviewer agent with fresh context, rounds capped", "machine", NAVY),
-        ("Security review", "a dedicated pass for security risks", "machine", NAVY),
+        ("Security review", "a dedicated pass; open findings block the merge", "blocking", NAVY),
         ("Human approval", "zero, one or two people, set by risk", "people", AMBER),
         ("Merge queue + flags", "merge in order, switch off without a revert", "release", GREEN),
     ]
@@ -232,9 +232,9 @@ def fig_layers():
     # the tiers set layer 5
     y5 = top - 4 * (h + gap) + h / 2
     arrow(ax, (rx - 0.15, 9.1), (x0 + w + 0.15, y5), color=WARM, lw=1.4, ls=(0, (4, 3)), rad=-0.15)
-    ax.text(rx, 1.75, "Whoever prompted the change owns it and is a required reviewer.",
-            fontsize=7.4, color=INK, weight="semibold")
-    ax.text(rx, 0.95, "An agent's approval never replaces a human one.", fontsize=7.4, color=MUTED)
+    ax.text(rx, 3.3, "Whoever prompted the change owns it\nand is a required reviewer.",
+            fontsize=9, color=INK, weight="semibold", va="top", linespacing=1.35)
+    ax.text(rx, 1.3, "An agent's approval never replaces a human one.", fontsize=8.4, color=MUTED, va="top")
     fig.savefig(OUT + "fig02.png"); plt.close(fig)
 
 
@@ -280,11 +280,11 @@ def fig_intent():
     pill(ax, 8.0, 8.4, "agents follow it", color=NAVY, fs=7.6)
     arrow(ax, (22.6, 6.55), (22.6, 10.25), color=AMBER, lw=1.6)
     pill(ax, 22.6, 8.4, "review checks the diff against it", color=WARM, fs=7.6)
-    ax.text(15.3, 8.4, "the team reads, discusses\nand evolves the top", ha="center", va="center",
-            fontsize=7.4, color=MUTED, style="italic", linespacing=1.35)
+    ax.text(15.3, 8.4, "a change to the intent\nalways goes to a person", ha="center", va="center",
+            fontsize=8.2, color=INK, weight="semibold", linespacing=1.35)
     # abstractions leak: in an incident someone goes deep
     arrow(ax, (31.9, 16.6), (31.9, 1.2), color=RED, lw=1.4, ls=(0, (4, 3)))
-    ax.text(32.25, 8.9, "incident: someone goes deep", rotation=-90, fontsize=7.2, color=RED,
+    ax.text(32.45, 8.9, "incident: someone goes deep", rotation=-90, fontsize=9, color=RED,
             va="center", ha="center", weight="medium")
     fig.savefig(OUT + "fig03.png"); plt.close(fig)
 
