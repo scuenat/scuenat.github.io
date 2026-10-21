@@ -15,7 +15,111 @@
 <link>https://scuenat.github.io/fr/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Wed, 21 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Thu, 22 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Relire l’intention, pas le diff</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-10-22-review-the-intent-not-the-diff/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Analyse, octobre 2026.</strong> Une analyse de l’article de l’équipe Claude Code <a href="https://claude.dev/blog/solving-code-review-at-anthropic/"><em>Solving code review at Anthropic</em></a>, lue à la lumière de mon article <a href="../../../fr/posts/2026-10-21-intent-is-the-source/index.html">L’intention est la source</a>. Sauf mention contraire, les chiffres viennent de cet article. Les figures sont de moi, dessinées avec le code de <a href="../../../posts/2026-10-22-review-the-intent-not-the-diff/figs.py">figs.py</a>, et leurs libellés sont en anglais. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<section id="le-goulot-sest-déplacé" class="level2">
+<h2 class="anchored" data-anchor-id="le-goulot-sest-déplacé">Le goulot s’est déplacé</h2>
+<p>Dès qu’une équipe adopte le codage agentique, le code cesse d’être le goulot d’étranglement. La revue prend sa place. Les PR s’accumulent, tout le monde hésite à les approuver, et la vitesse gagnée à écrire le code se perd à attendre que quelqu’un le lise.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-22-review-the-intent-not-the-diff/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma. Quand les gens écrivent chaque ligne, l’écriture est l’étape lente et la revue suit le rythme. Quand les agents écrivent, les changements arrivent en quelques minutes et la file se forme devant le relecteur."><img src="https://scuenat.github.io/posts/2026-10-22-review-the-intent-not-the-diff/figures/fig01.png" class="img-fluid figure-img" alt="Deux chaînes. Avant : une large carte ambre Write marquée goulot, des jours de frappe, puis une PR à la fois vers Review par une personne, puis Merge. Avec des agents : une carte Write étroite, quelques minutes, puis une pile de petites PR qui attendent un lecteur, puis une carte ambre Review marquée goulot, puis Merge."></a></p>
+<figcaption><strong>Figure 1.</strong> Schéma. Quand les gens écrivent chaque ligne, l’écriture est l’étape lente et la revue suit le rythme. Quand les agents écrivent, les changements arrivent en quelques minutes et la file se forme devant le relecteur.</figcaption>
+</figure>
+</div>
+<p>L’équipe Claude Code d’Anthropic, où Claude écrit environ 90 % du code, a récemment expliqué comment elle a traité ce problème. Entre juin et septembre, le nombre de PR fusionnées a plus que doublé, tandis que la part des PR annulées a baissé de plus de 40 %. L’équipe n’a pas supprimé la revue. Elle a confié l’essentiel de la lecture aux machines et dirigé l’attention humaine vers le risque.</p>
+</section>
+<section id="six-couches-et-un-classificateur" class="level2">
+<h2 class="anchored" data-anchor-id="six-couches-et-un-classificateur">Six couches et un classificateur</h2>
+<p>Leur approche empile six couches de vérifications, avec un retour arrière rapide en dessous : la vérification, l’intégration continue obligatoire, la revue par IA, la revue de sécurité, l’approbation humaine, et une file de fusion avec des feature flags.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-22-review-the-intent-not-the-diff/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Schéma, mon dessin du dispositif décrit dans l’article. Un changement traverse six couches de vérifications, avec un retour arrière rapide en dessous. Un classificateur de risque lit chaque changement et décide combien de personnes il faut à la couche 5."><img src="https://scuenat.github.io/posts/2026-10-22-review-the-intent-not-the-diff/figures/fig02.png" class="img-fluid figure-img" alt="À gauche : six couches empilées, Verification, Required CI, AI review, Security review (bloquante), Human approval (des personnes, en surbrillance), Merge queue et flags (mise en production), au-dessus d'une base sombre Fast rollback. À droite : un classificateur de risque, qui lit le changement et non l'auteur, alimente trois niveaux : risque faible, fusion sans humain si la revue automatique passe ; risque moyen, une personne ; risque élevé, deux personnes. Une flèche pointillée relie les niveaux à Human approval. Une note dit que la personne qui a demandé le changement en est responsable et fait partie des relecteurs obligatoires, et que l'approbation d'un agent ne remplace jamais celle d'un humain."></a></p>
+<figcaption><strong>Figure 2.</strong> Schéma, mon dessin du dispositif décrit dans l’article. Un changement traverse six couches de vérifications, avec un retour arrière rapide en dessous. Un classificateur de risque lit chaque changement et décide combien de personnes il faut à la couche 5.</figcaption>
+</figure>
+</div>
+<p>Quelques principes tiennent l’ensemble :</p>
+<ol type="1">
+<li><strong>La revue commence avant que la PR existe.</strong> Elle tourne en continu, plus comme un correcteur orthographique que comme un contrôle final. Quand un humain regarde, Claude a en général déjà relu et corrigé le changement au moins une fois.</li>
+<li><strong>L’agent doit prouver son travail.</strong> Des tests, un build, ou une capture d’écran comparée à la maquette. Il montre un résultat au lieu d’affirmer qu’il a fini, et un sous-agent relit le diff avec un contexte neuf.</li>
+<li><strong>Le risque est évalué changement par changement.</strong> Un classificateur lit le changement, pas l’auteur, et fixe le niveau. Les changements à faible risque sont fusionnés sans humain si la revue automatique passe. Un risque moyen demande une personne, un risque élevé en demande deux.</li>
+<li><strong>La responsabilité reste humaine.</strong> La personne qui a demandé un changement en est responsable et fait partie des relecteurs obligatoires. L’approbation d’un agent ne remplace jamais celle d’un humain.</li>
+<li><strong>Le relecteur continue d’apprendre.</strong> Les incidents passés deviennent des évaluations quotidiennes, le bruit se mesure à la façon dont les gens réagissent aux commentaires, et le nombre de tours de revue est plafonné pour que l’agent auteur et l’agent relecteur convergent au lieu de tourner en boucle.</li>
+</ol>
+<p>C’est un système réfléchi, et je suis largement d’accord avec lui.</p>
+</section>
+<section id="ce-que-montrent-les-chiffres" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-montrent-les-chiffres">Ce que montrent les chiffres</h2>
+<p>Les résultats sont solides, mais ils viennent d’une seule équipe qui se mesure elle-même. Le nombre de PR fusionnées peut doubler parce que les changements sont devenus plus petits ; ce chiffre dit donc davantage sur le rythme que sur la quantité de travail produite. Une annulation n’est aussi qu’une mesure de la qualité parmi d’autres : un bug corrigé par un nouveau changement, ou désactivé derrière un flag, n’apparaît jamais comme une annulation. Ce que les chiffres montrent bien, c’est le point qui compte le plus. Le rythme des fusions a fortement augmenté, et la qualité, selon cette mesure, s’est améliorée au lieu de se dégrader.</p>
+</section>
+<section id="ce-que-la-revue-faisait-discrètement" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-la-revue-faisait-discrètement">Ce que la revue faisait discrètement</h2>
+<p>La revue des PR n’a jamais servi qu’à attraper des bugs. Elle construisait aussi une compréhension partagée du code. C’est en lisant les diffs des autres que les équipes apprenaient l’architecture, intégraient les conventions et remarquaient quand quelqu’un s’en écartait.</p>
+<p>Cet effet secondaire a en grande partie disparu. Anthropic écrit que personne dans l’équipe n’a un modèle mental complet de Claude Code, et que, selon elle, personne n’en a besoin.</p>
+<p>Je suis à moitié d’accord. Tout le monde n’a pas besoin de chaque détail. Mais chacun devrait comprendre les grands principes de l’architecture, les interfaces et les conventions. Des canaux Slack ouverts, et la possibilité de demander à Claude d’expliquer un bout de code à la demande, sont utiles, mais ce n’est pas la réponse finale.</p>
+</section>
+<section id="abandonner-encore-une-chose" class="level2">
+<h2 class="anchored" data-anchor-id="abandonner-encore-une-chose">Abandonner encore une chose</h2>
+<p>C’est ici que j’irais plus loin. Il faut abandonner l’idée que la compréhension partagée doit venir de la lecture du code.</p>
+<p>La revue des PR était un canal de connaissance accidentel. On apprenait le système comme un sous-produit de la vérification du travail des autres. Cela fonctionnait quand les humains écrivaient chaque ligne à vitesse humaine. À la vitesse des agents, cela ne peut pas suivre, et vouloir le préserver relève de la nostalgie.</p>
+<p>Nous l’avons déjà fait. Nous avons cessé de lire l’assembleur il y a des décennies, et nous n’avons pas cessé de comprendre nos systèmes. Nous avons déplacé la compréhension d’un niveau d’abstraction vers le haut. Le code prend le même chemin.</p>
+<p>La comparaison a une limite, et elle compte. Nous avons pu cesser de lire l’assembleur parce que les compilateurs sont déterministes : une fois qu’on leur faisait confiance, cette confiance tenait. Les agents ne le sont pas. Dans <a href="../../../fr/posts/2026-10-21-intent-is-the-source/index.html">L’intention est la source</a>, je les ai appelés des compilateurs stochastiques, corrects seulement au regard de leurs vérifications. Monter d’un niveau n’est donc sûr que si le niveau supérieur peut être vérifié. Une intention écrite seulement en prose ne suffirait pas.</p>
+</section>
+<section id="la-couche-dintention" class="level2">
+<h2 class="anchored" data-anchor-id="la-couche-dintention">La couche d’intention</h2>
+<p>Rendons plutôt la compréhension partagée délibérée. Les humains possèdent l’intention : les décisions d’architecture, les contrats d’interface, les invariants et les conventions. Les agents possèdent l’implémentation. La revue vérifie l’une par rapport à l’autre.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-22-review-the-intent-not-the-diff/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Schéma. La couche d’intention est ce que l’équipe lit, discute et fait évoluer ensemble ; chaque partie vit dans un artefact que les agents peuvent suivre et que les relecteurs peuvent faire respecter. Un changement de l’intention passe toujours par une personne. L’implémentation, en dessous, est volumineuse, change vite et se lit à la demande. Lors d’un incident, quelqu’un descend encore dans le détail."><img src="https://scuenat.github.io/posts/2026-10-22-review-the-intent-not-the-diff/figures/fig03.png" class="img-fluid figure-img" alt="Deux bandes. En haut, l'intention, possédée par les personnes : quatre cartes, Decisions (pourquoi c'est construit ainsi, dans de courts registres de décision), Contracts (ce que promet chaque partie, interfaces typées et tests), Invariants (ce qui doit toujours être vrai, propriétés et assertions), Conventions (notre façon de faire, instructions pour les agents et linters). En bas, l'implémentation, possédée par les agents : six fichiers de code dessinés en lignes grises. Une flèche bleue vers le bas : les agents la suivent ; une flèche ambre vers le haut : la revue vérifie le diff par rapport à elle. Entre les deux : un changement de l'intention passe toujours par une personne. Une flèche rouge pointillée à droite va du haut vers le bas : lors d'un incident, quelqu'un descend dans le détail."></a></p>
+<figcaption><strong>Figure 3.</strong> Schéma. La couche d’intention est ce que l’équipe lit, discute et fait évoluer ensemble ; chaque partie vit dans un artefact que les agents peuvent suivre et que les relecteurs peuvent faire respecter. Un changement de l’intention passe toujours par une personne. L’implémentation, en dessous, est volumineuse, change vite et se lit à la demande. Lors d’un incident, quelqu’un descend encore dans le détail.</figcaption>
+</figure>
+</div>
+<p>La couche d’intention devient l’artefact que l’équipe lit, discute et fait évoluer ensemble. Elle est assez courte pour que chacun la garde en tête, et assez explicite pour que les agents puissent la suivre et que les relecteurs puissent la faire respecter. Les conventions vivent dans les instructions des agents et dans les linters. Les contrats vivent dans des interfaces typées et des tests. Les décisions vivent dans de courts registres qui expliquent le pourquoi.</p>
+<p>Cela indique aussi quand une personne doit lire. Un changement qui se contente d’implémenter une intention existante peut être vérifié par des machines : les tests passent, les contrats tiennent, les linters restent silencieux. Un changement qui modifie l’intention passe toujours par une personne, quelle que soit sa taille. Cela couvre un nouveau contrat, un invariant affaibli ou une décision renversée. Cela couvre aussi l’échec discret le plus courant des agents de code : un agent qui modifie un test jusqu’à ce qu’il passe a changé l’intention, il ne l’a pas implémentée.</p>
+<p>La même règle empêche la couche d’intention de dériver, comme le font d’habitude les documents de conception. Le code est vérifié par rapport à elle à chaque changement, et elle ne peut pas changer sans que quelqu’un décide qu’elle le doit. Tout ne peut pas être vérifié par une machine. Les contrats, les invariants et les conventions, oui. Les décisions sont de la prose ; c’est donc le relecteur IA et les personnes qui vérifient qu’un changement les respecte encore. La règle s’accorde bien avec le dispositif d’Anthropic : leur classificateur de risque pourrait traiter tout changement de la couche d’intention comme à risque élevé, par définition.</p>
+</section>
+<section id="là-où-ça-casse" class="level2">
+<h2 class="anchored" data-anchor-id="là-où-ça-casse">Là où ça casse</h2>
+<p>Les abstractions fuient. Lors d’un incident, quelqu’un doit encore descendre dans le code. Cette compétence s’émousse quand personne ne s’en sert ; les équipes devront donc l’entretenir volontairement : exercices d’incident, rotation de la personne qui suit un bug à la main, lecture de temps en temps du code derrière un registre de décision.</p>
+<p>Le but n’est pas que personne ne lise le code. Le but est que personne n’ait besoin de tout lire pour savoir comment le système fonctionne.</p>
+<p>Posséder le pourquoi. Déléguer le comment. Relire l’intention, pas le diff.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-21-intent-is-the-source/index.html">L’intention est la source</a> Pourquoi le codage agentique est le prochain IDE et le prochain langage de programmation.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cette analyse sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section></div> ]]></description>
+  <category>analyse</category>
+  <category>ia</category>
+  <category>agents</category>
+  <category>programmation</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-10-22-review-the-intent-not-the-diff/</guid>
+  <pubDate>Thu, 22 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-22-review-the-intent-not-the-diff/figures/fig01.png" medium="image" type="image/png" height="71" width="144"/>
+</item>
 <item>
   <title>L’intention est la source</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
