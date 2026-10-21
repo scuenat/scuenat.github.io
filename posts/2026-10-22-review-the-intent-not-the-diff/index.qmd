@@ -1,0 +1,78 @@
+---
+title: "Review the Intent, Not the Diff"
+subtitle: "An analysis of how the Claude Code team solved code review, and the one thing I would let go of"
+description: "Once a team adopts agentic coding, review becomes the bottleneck. An analysis of how the Claude Code team at Anthropic moved most of the reading to machines and pointed human attention at risk, and an argument that shared understanding should no longer depend on reading diffs: humans own the intent, agents own the implementation, and review checks one against the other."
+date: 2026-10-22
+draft: true
+categories: [analysis, ai, agents, programming]
+image: figures/fig01.png
+resources:
+  - figs.py
+---
+
+::: {.callout-note appearance="simple"}
+**Analysis, October 2026.** An analysis of the Claude Code team's post [*Solving code review at Anthropic*](https://claude.dev/blog/solving-code-review-at-anthropic/), read in the light of my earlier paper [Intent Is the Source](../2026-10-21-intent-is-the-source/index.qmd). Unless stated otherwise, numbers come from that post. Figures are my own, drawn with the code in [figs.py](figs.py).
+:::
+
+## The bottleneck moved
+
+Once a team adopts agentic coding, code stops being the bottleneck. Review takes its place. PRs pile up, everyone is nervous to approve them, and the speed you gained writing code is lost waiting for someone to read it.
+
+![**Figure 1.** Schematic. When people write every line, writing is the slow step and review keeps up. When agents write, changes arrive in minutes and the queue forms in front of the reader.](figures/fig01.png){fig-alt="Two pipelines. Before: a wide amber Write card marked bottleneck, days of typing, then one PR at a time to Review by a person, then Merge. With agents: a narrow Write card, minutes, then a pile of small PR cards waiting for a reader, then an amber Review card marked bottleneck, then Merge."}
+
+The Claude Code team at Anthropic, where Claude writes roughly 90% of the code, recently shared how they handled this. Between June and September, their merged PRs more than doubled while the share of reverted PRs fell by over 40%. They did not remove review. They moved most of the reading to machines and pointed human attention at the risk.
+
+## Six layers and a classifier
+
+Their approach stacks six layers of checks with fast rollback underneath: verification, required CI, AI review, security review, human approval, and a merge queue with feature flags.
+
+![**Figure 2.** Schematic, my drawing of the setup described in the post. A change falls through six layers of checks, with fast rollback underneath. A risk classifier reads each change and decides how many people layer 5 needs.](figures/fig02.png){fig-alt="Left: six stacked layers, Verification, Required CI, AI review, Security review (machine), Human approval (people, highlighted), Merge queue and flags (release), over a dark Fast rollback foundation. Right: a Risk classifier that reads the change, not the author, feeds three tiers: low risk merges if automated review passes with no human, medium risk needs one person, high risk needs two. A dashed arrow from the tiers points to Human approval. A note says whoever prompted the change owns it and is a required reviewer, and an agent's approval never replaces a human one."}
+
+A few principles hold it together:
+
+1. **Review happens before the PR exists.** It runs continuously, more like a spellchecker than a gate at the end. By the time a human looks, Claude has usually reviewed and fixed the change at least once.
+2. **The agent must prove its work.** Tests, a build, or a screenshot compared against the design. It shows output instead of claiming it is done, and a subagent reviews the diff with fresh context.
+3. **Risk is assessed per change.** A classifier reads the change, not the author, and sets the tier. Low-risk changes merge without a human if automated review passes. Medium risk needs one person, high risk needs two.
+4. **Accountability stays human.** Whoever prompted a change owns it and counts as a required reviewer. An agent's approval never replaces a human one.
+5. **The reviewer keeps learning.** Past incidents become daily evals, noise is measured by how people react to comments, and review rounds are capped so author and reviewer agents converge instead of looping.
+
+It is a thoughtful system, and I largely agree with it.
+
+## What review quietly did
+
+PR review was never only about catching bugs. It also built a shared understanding of the codebase. Reading each other's diffs is how teams learned the architecture, absorbed the conventions, and noticed when someone was drifting from them.
+
+That side effect is now mostly gone. Anthropic writes that nobody on the team keeps a complete mental model of Claude Code, "and we don't think anyone needs to."
+
+I half agree. Not everyone needs every detail. But everyone should understand the main architectural patterns, the interfaces and the conventions. Open Slack channels and asking Claude to explain bits of code on demand are useful, but they are not the final answer.
+
+## Let go of one more thing
+
+Here is where I would push further. We need to let go of the belief that shared understanding has to come from reading code.
+
+PR review was an accidental knowledge channel. You learned the system as a by-product of checking someone else's work. That worked when humans wrote every line at human speed. At agentic speed it cannot scale, and trying to preserve it is nostalgia, not strategy.
+
+We have done this before. We stopped reading assembly decades ago, and we did not stop understanding our systems. We moved understanding up a level of abstraction. Code is heading the same way.
+
+## The intent layer
+
+So make shared understanding deliberate. Humans own the intent: architecture decisions, interface contracts, invariants and conventions. Agents own the implementation. Review checks one against the other.
+
+![**Figure 3.** Schematic. The intent layer is what the team reads, discusses and evolves together; each part lives in an artefact that agents can follow and reviewers can enforce. The implementation below is large, changes fast and is read on demand. In an incident, someone still goes deep.](figures/fig03.png){fig-alt="Two bands. Top, intent, owned by people: four cards, Decisions (why it is built this way, lives in short decision records), Contracts (what each part promises, typed interfaces and tests), Invariants (what must always hold, properties and assertions), Conventions (how we do things here, agent instructions and linters). Bottom, implementation, owned by agents: six code files drawn as grey lines. A navy arrow down says agents follow it; an amber arrow up says review checks the diff against it. A dashed red arrow on the right runs from top to bottom: incident, someone goes deep."}
+
+The intent layer becomes the artifact the team reads, discusses and evolves together. It is short enough that everyone can hold it in their head, and explicit enough that agents can follow it and reviewers can enforce it. Conventions live in agent instructions and linters. Contracts live in typed interfaces and tests. Decisions live in short records that explain the why.
+
+## Abstractions leak
+
+The honest caveat: abstractions leak. When an incident hits, someone still has to go deep into the code. The goal is not that nobody reads code. The goal is that nobody needs to read all of it to know how the system works.
+
+Own the why. Delegate the how. Review the intent, not the diff.
+
+::: {.read-next}
+**Read next** · [Intent Is the Source](../2026-10-21-intent-is-the-source/index.qmd)
+Why agentic coding is the next IDE and the next programming language.
+:::
+
+::: {.small}
+*The views in this analysis are my own and do not describe any product or plan of my employer.*
+:::
