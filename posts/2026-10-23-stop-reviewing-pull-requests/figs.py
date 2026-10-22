@@ -1,7 +1,7 @@
 """Figures for "Stop Reviewing Pull Requests". Same style as "Intent Is the Source".
 
 Figures 1 and 2 are schematics of my own. Figure 3 plots the break-even condition of the
-cost model in section 3; its three positions are illustrative, not measured. Figure 4 is a
+cost model in section 3; its three positions are illustrative, not measured. Figures 4 and 5 are a
 small Monte Carlo simulation with the parameters in P (Table 2 of the paper); running this
 file prints the numbers used in Table 3.
 """
@@ -230,7 +230,7 @@ def fig_cost_curve():
     curves = [
         ("Steep curve, as usually cited (Boehm, 1981)", [1, 3, 10, 30, 100], MUTED, (0, (4, 3))),
         ("Flattened by practice (Beck, 1999)", [1, 1.6, 2.4, 3.5, 6], NAVY, "-"),
-        ("Agentic session, fast rollback", [1, 1.15, 1.3, 1.6, 2.4], GREEN, "-"),
+        ("Agentic session, fast rollback (assumed)", [1, 1.15, 1.3, 1.6, 2.4], GREEN, "-"),
     ]
     for name, ys, col, ls in curves:
         ax.plot(x, ys, color=col, lw=2.2, ls=ls, marker="o", ms=5, mfc="white", mew=1.6, zorder=3)
@@ -355,9 +355,11 @@ def sim_lead_times(lam_day, gate, rng, days=60, warm=10):
     return lt[arr > warm * P["day"]]
 
 
-def sim_defects(gate, audit, rng, runs=300):
-    """Latent defects in main, day by day. Returns (runs x days) counts and the ages at fix."""
-    h = P["h_users"] + (P["h_audit"] if audit else 0.0)
+def sim_defects(gate, audit, rng, runs=300, h_audit=None, d=None):
+    """Latent defects in main, day by day: those live in main during the day, before that day's
+    detections. Returns (runs x days) counts and the ages at fix."""
+    h = P["h_users"] + ((P["h_audit"] if h_audit is None else h_audit) if audit else 0.0)
+    d = P["d"] if d is None else d
     out = np.zeros((runs, P["days"]))
     ages = []
     for r in range(runs):
@@ -365,8 +367,9 @@ def sim_defects(gate, audit, rng, runs=300):
         for t in range(P["days"]):
             k = rng.binomial(rng.poisson(P["lam"]), P["p_defect"])
             if gate:
-                k = rng.binomial(k, 1 - P["d"])
+                k = rng.binomial(k, 1 - d)
             live += [t] * k
+            out[r, t] = len(live)
             keep = []
             for t0 in live:
                 if rng.random() < h:
@@ -374,7 +377,6 @@ def sim_defects(gate, audit, rng, runs=300):
                 else:
                     keep.append(t0)
             live = keep
-            out[r, t] = len(live)
     return out, np.array(ages)
 
 
@@ -403,7 +405,7 @@ def fig_simulation():
     a1.set_yticks([0.1, 0.5, 1, 4, 8, 24]); a1.set_yticklabels(["6 min", "30 min", "1 h", "4 h", "1 day", "3 days"])
     a1.set_xlim(4, 74)
     a1.set_xlabel("Changes per day"); a1.set_ylabel("Time from ready to merged (working time)")
-    a1.set_title("(a) Waiting grows with volume", loc="left", fontsize=10, weight="semibold")
+    a1.set_title("(a) The gate adds waiting, more at high volume", loc="left", fontsize=10, weight="semibold")
     tidy(a1)
 
     # (b) latent defects in main
@@ -422,7 +424,7 @@ def fig_simulation():
         nudge = {"No gate, daily audit (proposed)": 1.6, "Gate and daily audit": 0.2}.get(lab, 0)
         a2.text(days[-1] + 1, m[-10:].mean() + nudge, lab, color=WARM if col == AMBER else col, fontsize=8, weight="semibold", va="center")
         summary.append((lab, out[:, 20:].mean(), np.median(ages), ages.mean()))
-    a2.set_xlim(0, 95); a2.set_ylim(0, 25)
+    a2.set_xlim(0, 95); a2.set_ylim(0, 28)
     a2.set_xlabel("Working day"); a2.set_ylabel("Latent defects in main")
     a2.set_title(f"(b) Defects waiting to be found, λ = {P['lam']} per day", loc="left", fontsize=10,
                  weight="semibold")
@@ -440,7 +442,54 @@ def fig_simulation():
         print(f"{lab:36s} latent {mean_latent:5.1f}  age at fix median {med_age:4.1f} d, mean {mean_age:4.1f} d")
 
 
+# ---------- figure 5: how good must the audit be? ----------
+def fig_sensitivity():
+    """Latent defects without a gate but with an audit, relative to a gate without an audit.
+    By Little's law the ratio is h_users / ((1 - d) * (h_users + h_audit)), so the proposal
+    leaves fewer latent defects as soon as h_audit > h_users * d / (1 - d)."""
+    rng = np.random.default_rng(7)
+    hu = P["h_users"]
+    fig, ax = plt.subplots(figsize=(9.0, 5.0))
+    ha = np.linspace(0, 0.6, 300)
+    ax.fill_between([0, 0.6], 0.08, 1, color=GREEN_T, zorder=0, lw=0)
+    ax.plot([0, 0.6], [1, 1], color=INK, lw=1.2, zorder=2)
+    ax.text(0.612, 1, "today: gate, no audit", ha="left", va="center", fontsize=8, color=INK,
+            weight="semibold")
+    ax.text(0.598, 0.1, "the proposal leaves fewer latent defects than today", ha="right",
+            va="bottom", fontsize=8.4, color=GREEN, weight="semibold")
+    for dd, col in ((0.25, NAVY), (0.5, GREEN), (0.75, WARM)):
+        ax.plot(ha, hu / ((1 - dd) * (hu + ha)), color=col, lw=2.2, zorder=3)
+        be = hu * dd / (1 - dd)
+        ax.scatter([be], [1], s=46, color="white", edgecolor=col, lw=1.8, zorder=5)
+        ax.annotate(f"{be:.2f}", (be, 1), xytext=(0, -15), textcoords="offset points", ha="center",
+                    fontsize=7.6, color=col, weight="semibold")
+        ax.text(0.612, hu / ((1 - dd) * (hu + 0.6)), f"reviewer catches d = {dd:.2f}", color=col,
+                fontsize=8, weight="semibold", ha="left", va="center")
+    # simulated check for d = 0.5
+    base, _ = sim_defects(True, False, rng, runs=150)
+    base = base[:, 20:].mean()
+    sx = np.array([0.0, 0.05, 0.1, 0.2, 0.3, 0.5])
+    sy = [sim_defects(False, True, rng, runs=150, h_audit=h)[0][:, 20:].mean() / base for h in sx]
+    ax.scatter(sx, sy, marker="D", s=22, color=GREEN, zorder=6)
+    ax.text(0.33, 0.66, "◆ simulation, d = 0.5", color=GREEN, fontsize=7.8)
+    ax.plot([P["h_audit"]] * 2, [0.08, 5], color=MUTED, lw=0.9, ls=(0, (3, 3)))
+    ax.text(P["h_audit"] - 0.008, 3.2, "value used in Figure 4", color=MUTED, fontsize=7.4, rotation=90,
+            ha="right", va="center")
+    ax.set_yscale("log"); ax.set_ylim(0.08, 5)
+    ax.set_yticks([0.1, 0.25, 0.5, 1, 2, 4]); ax.set_yticklabels(["0.1×", "0.25×", "0.5×", "1×", "2×", "4×"])
+    ax.set_xlim(0, 0.8); ax.set_xticks(np.arange(0, 0.61, 0.1))
+    ax.spines["bottom"].set_bounds(0, 0.6)
+    ax.set_xlabel("Daily chance that the audit finds a given latent defect, h_audit\n"
+                  f"(users and monitoring find it with chance {hu:.2f} per day)")
+    ax.set_ylabel("Latent defects, no gate with audit,\nrelative to gate without audit")
+    tidy(ax, grid_axis="y")
+    ax.grid(False)
+    ax.hlines([0.1, 0.25, 0.5, 2, 4], 0, 0.6, color=RULE, lw=0.8, zorder=0.5)
+    ax.spines["left"].set_color(MUTED)
+    fig.savefig(OUT + "fig05.png"); plt.close(fig)
+
+
 if __name__ == "__main__":
     import os
     os.makedirs(OUT, exist_ok=True)
-    fig_gate_to_loop(); fig_cost_curve(); fig_break_even(); fig_simulation()
+    fig_gate_to_loop(); fig_cost_curve(); fig_break_even(); fig_simulation(); fig_sensitivity()
