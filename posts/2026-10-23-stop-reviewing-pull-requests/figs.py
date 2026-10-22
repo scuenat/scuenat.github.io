@@ -319,11 +319,14 @@ P = dict(
     servers=3,          # reviewer capacity, full-time equivalents
     p_defect=0.05,      # residual defect probability per change after automated checks
     d=0.5,              # share of residual defects a reviewer catches (generous)
-    h_users=0.10,       # daily chance an escaped defect is found by users or monitoring
+    h_users=0.10,       # daily chance an escaped defect is found by users
     h_audit=0.50,       # extra daily chance the nightly audit finds it
-    lam=40,             # changes per day for panel (b)
+    lam=40,             # changes per day
     days=60,
     audit_hours=1.0,    # team hours per day spent on the audit report
+    q_irr=0.05,         # share of changes that carry an irreversible step
+    d_thin=0.5,         # share of defective irreversible steps the thin gate stops (same as d)
+    thin_min=10,        # minutes per thin-gate decision
 )
 
 
@@ -390,43 +393,73 @@ def sim_defects(gate, audit, rng, runs=300, h_audit=None, d=None, c=1.0):
     return out, np.array(ages)
 
 
+def sim_incidents(stop, rng, runs=300):
+    """Irreversible incidents per month (20 working days): defective irreversible steps that run
+    before anyone stops them. `stop` is the share stopped before the act (0 without any gate).
+    The nightly audit cannot help here: the harm is done when the step runs."""
+    n = rng.poisson(P["lam"] * P["q_irr"], (runs, P["days"]))
+    bad = rng.binomial(n, P["p_defect"])
+    hits = rng.binomial(bad, 1 - stop)
+    per_month = hits.sum(1) / P["days"] * 20
+    return per_month.mean(), per_month.std(ddof=1) / np.sqrt(runs)
+
+
 def fig_simulation():
-    """Latent defects in main under four policies, at 40 changes a day."""
+    """Five policies at 40 changes a day: latent defects in main, irreversible incidents per
+    month, and people time per day."""
     rng = np.random.default_rng(2026)
-    pol = [(False, False, "No gate, no audit", RED, 0),
-           (True, False, "Gate (today)", NAVY, 16),
-           (False, True, "Audit, no gate (proposed)", GREEN, 1),
-           (True, True, "Gate and audit", AMBER, 17)]
-    vals = []
-    for gate, audit, lab, col, hrs in pol:
+    thin_h = P["lam"] * P["q_irr"] * P["thin_min"] / 60
+    rev_h = P["lam"] * (P["rev_mean"] + P["p_round2"] * P["rev2_mean"])
+    pol = [  # label, gate on every change, audit, thin gate, colour
+        ("No gate, no audit", False, False, False, RED),
+        ("Gate on every change (today)", True, False, False, NAVY),
+        ("Audit only", False, True, False, MUTED),
+        ("Audit and thin gate (proposed)", False, True, True, GREEN),
+        ("Gate on every change and audit", True, True, False, AMBER),
+    ]
+    rows = []
+    for lab, gate, audit, thin, col in pol:
         out, ages = sim_defects(gate, audit, rng)
-        run_means = out[:, 20:].mean(1)
-        vals.append((lab, out[:, 20:].mean(), col, hrs, np.median(ages), run_means.std(ddof=1) / np.sqrt(len(run_means))))
-    fig, ax = plt.subplots(figsize=(9.0, 3.9))
-    ys = np.arange(len(vals))[::-1]
-    for yv, (lab, v, col, hrs, _, _) in zip(ys, vals):
-        ax.barh(yv, v, color=col, height=0.62, zorder=3)
-        ax.text(v + 0.3, yv, f"{v:.1f}", va="center", fontsize=10.5, weight="semibold", color=INK)
-        ax.text(23.2, yv, f"{hrs} h" if hrs else "0 h", va="center", ha="right", fontsize=10,
-                color=WARM if hrs > 2 else MUTED, weight="semibold")
-    ax.text(23.2, len(vals) - 0.35, "people time\nper day", ha="right", va="bottom", fontsize=8, color=MUTED)
-    ax.set_yticks(ys); ax.set_yticklabels([v[0] for v in vals], fontsize=10)
-    ax.set_xlim(0, 23.5); ax.set_ylim(-0.6, len(vals) - 0.1)
-    ax.set_xticks([0, 5, 10, 15, 20])
-    ax.set_xlabel("Defects waiting to be found in the main branch (average)")
-    tidy(ax, grid_axis="x")
-    ax.spines["left"].set_visible(False)
+        rm = out[:, 20:].mean(1)
+        stop = P["d"] if gate else (P["d_thin"] if thin else 0.0)
+        inc, inc_se = sim_incidents(stop, rng)
+        hrs = (rev_h if gate else 0) + (P["audit_hours"] if audit else 0) + (thin_h if thin else 0)
+        rows.append(dict(lab=lab, col=col, latent=rm.mean(), latent_se=rm.std(ddof=1) / np.sqrt(len(rm)),
+                         inc=inc, inc_se=inc_se, hrs=hrs, age=np.median(ages)))
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.4, 4.3), sharey=True,
+                                 gridspec_kw=dict(wspace=0.08, width_ratios=[1.35, 1]))
+    ys = np.arange(len(rows))[::-1]
+    for yv, r in zip(ys, rows):
+        a1.barh(yv, r["latent"], color=r["col"], height=0.62, zorder=3)
+        a1.text(r["latent"] + 0.3, yv, f"{r['latent']:.1f}", va="center", fontsize=10, weight="semibold")
+        a2.barh(yv, r["inc"], color=r["col"], height=0.62, zorder=3)
+        a2.text(r["inc"] + 0.04, yv, f"{r['inc']:.1f}", va="center", fontsize=10, weight="semibold")
+        h = r["hrs"]
+        a2.text(3.55, yv, (f"{h:.0f} h" if abs(h - round(h)) < 0.05 else f"{h:.1f} h") if h >= 1 else f"{h * 60:.0f} min" if h > 0 else "0 h",
+                va="center", ha="right", fontsize=10, weight="semibold", color=WARM if h > 2 else GREEN if r["col"] == GREEN else MUTED)
+    a2.text(3.55, len(rows) - 0.4, "people time\nper day", ha="right", va="bottom", fontsize=8, color=MUTED)
+    a1.set_yticks(ys); a1.set_yticklabels([r["lab"] for r in rows], fontsize=9.6)
+    a1.set_xlim(0, 22.5); a2.set_xlim(0, 3.6)
+    a1.set_ylim(-0.6, len(rows) - 0.1)
+    a1.set_title("Defects waiting to be found", loc="left", fontsize=10, weight="semibold")
+    a2.set_title("Irreversible incidents per month", loc="left", fontsize=10, weight="semibold")
+    a1.set_xticks([0, 5, 10, 15, 20]); a2.set_xticks([0, 1, 2])
+    for ax in (a1, a2):
+        tidy(ax, grid_axis="x")
+        ax.spines["left"].set_visible(False)
     fig.savefig(OUT + "fig05.png"); plt.close(fig)
 
     # numbers for Table 3
     lt_g = np.concatenate([sim_lead_times(P["lam"], True, rng) for _ in range(20)])
     lt_n = np.concatenate([sim_lead_times(P["lam"], False, rng) for _ in range(20)])
-    rev_h = P["lam"] * (P["rev_mean"] + P["p_round2"] * P["rev2_mean"])
     print(f"lead time at lam={P['lam']}: gate median {np.median(lt_g):.2f} h, p90 {np.percentile(lt_g, 90):.2f} h;"
           f" no gate median {np.median(lt_n):.2f} h, p90 {np.percentile(lt_n, 90):.2f} h")
-    print(f"reviewer hours per day with gate: {rev_h:.1f}; utilisation {rev_h / (P['servers'] * P['day']):.2f}")
-    for lab, v, _, _, med_age, se in vals:
-        print(f"{lab:28s} latent {v:5.1f} (s.e. {se:.2f})  median age at fix {med_age:4.1f} d")
+    print(f"reviewer hours per day with gate: {rev_h:.1f}; thin gate: {thin_h * 60:.0f} min")
+    for r in rows:
+        print(f"{r['lab']:32s} latent {r['latent']:5.1f} (s.e. {r['latent_se']:.2f})  incidents/month "
+              f"{r['inc']:.2f} (s.e. {r['inc_se']:.2f})  people {r['hrs']:.2f} h  age {r['age']:.0f} d")
+    for dt in (0.5, 0.8):
+        print(f"thin gate stopping {dt:.0%}: incidents/month {sim_incidents(dt, rng, runs=2000)[0]:.2f}")
 
 
 # ---------- figure 6: how much must the audit see? ----------
