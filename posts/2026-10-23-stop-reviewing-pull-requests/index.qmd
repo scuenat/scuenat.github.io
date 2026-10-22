@@ -18,7 +18,7 @@ resources:
 **A provocative paper, on purpose.** This is a position paper in the form of a short scientific paper: a thesis, a model, a simulation, and predictions that could prove it wrong. It argues one side as strongly as I can. It follows [Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd), which kept review and changed its object; this paper asks whether we need the review at all. Figures are my own, drawn and simulated with the code in [figs.py](figs.py).
 :::
 
-**Abstract.** Human approval of every pull request became standard when code was written by hand, reviewers were the main check, and defects found late were expensive. I model the review gate as an investment that pays when $p \cdot d \cdot \Delta C > r$: the chance a change still carries a defect after automated checks, times the share a reviewer catches, times the late-fix cost avoided, must exceed the cost of the gate. Agentic coding shrinks the late-fix cost of most changes but not of all: harm that cannot be reverted keeps it high. The model therefore yields a rule rather than a ban: *approve what you cannot undo; watch everything else*. Watching means rules enforced in every session and a daily audit of the whole codebase. In a simulation of a team merging 40 changes a day, adding the gate on top of the audit costs about 10 engineer-hours for each day of latent defects it prevents. Without the gate, the audit leaves fewer latent defects than today's practice whenever it can see more kinds of defect than a reviewer would have caught, and finds them quickly enough. I give four predictions and a protocol to test them.
+**Abstract.** Human approval of every pull request became standard when code was written by hand, reviewers were the main check, and defects found late were expensive. I model the review gate as an investment that pays when $p \cdot d \cdot \Delta C > r$: the chance a change still carries a defect after automated checks, times the share a reviewer catches, times the late-fix cost avoided, must exceed the cost of the gate. Agentic coding shrinks the late-fix cost of most changes but not of all: harm that cannot be reverted keeps it high. The model therefore yields a rule rather than a ban: *approve what you cannot undo; watch everything else*. Watching means rules enforced in every session and a daily audit of the whole codebase. The gate that remains should be thin and late: it sits at the point of no return rather than at the merge, asks five questions answered with evidence, and is kept rare by making more things undoable. In a simulation of a team merging 40 changes a day, adding the gate on top of the audit costs about 10 engineer-hours for each day of latent defects it prevents. Without the gate, the audit leaves fewer latent defects than today's practice whenever it can see more kinds of defect than a reviewer would have caught, and finds them quickly enough. I give five predictions and a protocol to test them.
 
 ::: {.callout-tip appearance="simple" icon="false"}
 ## Claims
@@ -26,8 +26,9 @@ resources:
 1. **The rule.** Approve what you cannot undo. Watch everything else.
 2. **Why.** A gate pays only when $p \cdot d \cdot \Delta C > r$. Cheap fixes and fast rollback make $\Delta C$ small, except where harm survives a revert.
 3. **Watching.** Rules every session must follow, merge on green, and a daily audit whose report drives the team's work.
-4. **The condition.** Watching beats approving only if the audit reaches far enough and fast enough: $c > d \, (1 + h_{\text{users}} / h_{\text{audit}})$.
-5. **The test.** Teams that adopt the rule should fail no more often and find defects sooner. If they do not, the thesis is wrong.
+4. **The gate that remains.** Thin and late: at the point of no return, a few questions with evidence, rarely needed. It guards the act, not the code.
+5. **The condition.** Watching beats approving only if the audit reaches far enough and fast enough: $c > d \, (1 + h_{\text{users}} / h_{\text{audit}})$.
+6. **The test.** Teams that adopt the rule should fail no more often and find defects sooner. If they do not, the thesis is wrong.
 :::
 
 ## 1. Introduction
@@ -38,9 +39,9 @@ The usual answer is that this would end in chaos. I do not think so, and the rea
 
 Agentic coding changes the price on both sides. Rules can be enforced inside every session instead of at its end. A fix takes an agent minutes, and a flag can switch a change off in seconds. Making a correction is cheap now, and I believe that is what changes the whole picture. Human attention stays expensive, and the gate spends it on every change, whether or not that change needed it.
 
-Correction is not cheap everywhere. Deleted data, leaked credentials or money sent to the wrong account cannot be taken back by a revert. That distinction gives the paper its rule: **approve what you cannot undo; watch everything else.**
+Correction is not cheap everywhere. Deleted data, leaked credentials or money sent to the wrong account cannot be taken back by a revert. That distinction gives the paper its rule: **approve what you cannot undo; watch everything else.** Where approval remains, it must come late and stay small, or it brings little.
 
-![**Figure 1.** Today, every change waits for a person. In the proposal, a change that can be undone merges when the checks pass; one that cannot waits for a person. Every night, an audit of the whole codebase tells the team what to fix and which rules to tighten.](figures/fig01.png){fig-alt="Two bands. Top, today, a person approves every change: Write, Checks, A person approves (highlighted, every change waits here), Merge. Bottom, proposed, approve what you cannot undo, watch everything else: Write with rules, Checks, Can it be undone? If no, a person approves; if yes, Merge. From Merge, an arrow labelled every night leads to Daily audit of the whole codebase, then to The team fixes what matters and tightens the rules, and back up to Write."}
+![**Figure 1.** Today, every change waits for a person. In the proposal, everything merges when the checks pass. Only an action that cannot be undone waits, late, at a thin gate where a person decides; everything else is released. Every night, an audit of the whole codebase tells the team what to fix and which rules to tighten.](figures/fig01.png){fig-alt="Two bands. Top, today, a person approves every change: Write, Checks, A person approves (highlighted, every change waits here), Merge. Bottom, proposed, approve what you cannot undo, watch everything else: Write with rules, Checks, Merge (everything merges), then Point of no return? If yes, Thin gate, a person decides, then Release; if no, straight to Release. From Release, an arrow labelled every night leads to Daily audit of the whole codebase, then to The team fixes what matters and tightens the rules, and back up to Write."}
 
 ## 2. Background: what review was for
 
@@ -66,7 +67,7 @@ $$
 C_{\text{late}} \approx c_{\text{fix}} + k \, \tau .
 $$ {#eq-late}
 
-**What agents change.** Session rules can lower $p$: an agent can be made to add tests for every changed behaviour, keep coverage of changed lines above a threshold, and follow a conventions file, and checks delivered while code is written are the ones developers act on [@sadowski2018cacm]. This is not automatic, since code written with AI assistants can be less secure than code written without them [@pearce2022; @perry2023]; the simulation in §5 therefore keeps $p$ the same under every policy. Meanwhile $r$ does not fall: careful review proceeds at a few hundred lines an hour [@kemerer2009], volume rises, and waiting grows roughly as $\rho/(1-\rho)$ with reviewer utilisation $\rho$ [@kingman1961].
+**What agents change.** Session rules can lower $p$: an agent can be made to add tests for every changed behaviour, keep coverage of changed lines above a threshold, and follow a conventions file, and checks delivered while code is written are the ones developers act on [@sadowski2018cacm]. This is not automatic, since code written with AI assistants can be less secure than code written without them [@pearce2022; @perry2023]; the simulation in §6 therefore keeps $p$ the same under every policy. Meanwhile $r$ does not fall: careful review proceeds at a few hundred lines an hour [@kemerer2009], volume rises, and waiting grows roughly as $\rho/(1-\rho)$ with reviewer utilisation $\rho$ [@kingman1961].
 
 **The main assumption.** The term that moves most is $\Delta C$, and it rests on one assumption, which I state openly. *Assumption A: for most defects, an agent can produce a correct fix within an hour of the report, and a flag or a rollback can stop the harm within minutes.* Under A, $c_{\text{fix}}$ is small, flags cap $k$ [@humble2010], and an audit caps $\tau$. Some evidence points this way: agents resolve a meaningful share of real repository issues under controlled evaluation [@jimenez2024], and the best-performing teams studied in @forsgren2018 already restored service in under an hour. None of it measures agent-made fixes in production, so prediction H3 tests A directly.
 
@@ -78,9 +79,9 @@ $$ {#eq-late}
 
 ## 4. The rule in practice
 
-**What cannot be undone.** A change is a one-way door [@bezos2016] when its harm survives a revert: data destroyed or exposed, money moved, credentials or signing keys changed, a public interface released to people outside the team, a message sent to customers. The list is explicit, versioned, and part of the session contract; a change that touches it waits for a person. A second case belongs to the same category. A session that has followed instructions from outside the team, such as an outsider's issue or a web page, can be steered by that content [@greshake2023], and a planted backdoor or a leaked secret cannot be undone either. Such a session's changes wait for a person too. Reading a library's documentation is data, not an instruction; what matters is whether outsiders could direct the agent.
+**What cannot be undone.** A change is a one-way door [@bezos2016] when its harm survives a revert: data destroyed or exposed, money moved, credentials or signing keys changed, a public interface released to people outside the team, a message sent to customers. The list is explicit, versioned, and part of the session contract. Code that touches it merges like any other; its irreversible step waits at the thin gate described in §5. A second case belongs to the same category. A session that has followed instructions from outside the team, such as an outsider's issue or a web page, can be steered by that content [@greshake2023], and a planted backdoor or a leaked secret cannot be undone either. The contract records where each session's instructions came from, so that such sessions are flagged automatically. Reading a library's documentation is data, not an instruction; what matters is whether outsiders could direct the agent.
 
-**What watching means.** Everything else merges on green and is watched at three points (Figure 1, Table 1). Before the merge, a *session contract* that every session follows, enforced by the agent and by CI. After the merge, *flags and monitoring* in production. And once a day, an *audit* that reads the whole codebase and the production signals, not the latest diff, and writes a short report that the team reads instead of forty diffs. When the same problem keeps appearing in the report, the team turns it into a rule, so that the contract gradually absorbs what reviewers used to write in comments.
+**What watching means.** Every change merges on green, and everything that is not a one-way door is released without waiting for anyone. It is watched at three points (Figure 1, Table 1). Before the merge, a *session contract* that every session follows, enforced by the agent and by CI. After the merge, *flags and monitoring* in production. And once a day, an *audit* that reads the whole codebase and the production signals, not the latest diff, and writes a short report that the team reads instead of forty diffs. When the same problem keeps appearing in the report, the team turns it into a rule, so that the contract gradually absorbs what reviewers used to write in comments.
 
 **What the audit sees that a pre-merge check cannot.** Fast checks belong in the contract. The audit is for four things a per-change check cannot do: *slow* checks such as mutation testing and fuzzing; patterns *across* changes, where two correct changes conflict or an architecture rule erodes one step at a time; *production* signals since yesterday's merges; and *trends* that people can judge before any rule encodes them. A per-change reviewer cannot see the second and third kind either.
 
@@ -92,7 +93,7 @@ $$ {#eq-late}
 | Conventions | Conventions file, linters and types pass | Drift from conventions and architecture rules |
 | Intent | A change to a contract or invariant updates its decision record | Decision records changed since yesterday |
 | Production | User-facing behaviour behind a flag | Errors and performance since the last merges |
-| One-way doors | Listed paths, and sessions steered from outside, wait for a person | Every change to a listed path |
+| One-way doors | Listed actions wait at the thin gate; sessions steered from outside are flagged | Gate load: share of changes reaching it, minutes per decision |
 
 : **Table 1.** A minimal session contract and audit. Thresholds and exact checks are for each team to set; the split is the point. What can be decided per change is enforced by machines; what needs judgement is batched once a day for people.
 
@@ -100,9 +101,25 @@ Two rules in the table close known gaps. The integrity rule stops the most commo
 
 **Who is accountable.** The person who starts a session owns what it merges. Steering the agent and looking at its output is part of writing, and it stays. What disappears is the second person whose approval was required before the change could land.
 
-**Intent changes.** In the previous essay I wrote that a change to the intent should always go to a person before it merges. The rule refines that position. A change to a contract or an invariant that can be reverted merges like any other, but never silently: it updates its decision record, and the team reads it the next morning. Only intent that guards a one-way door still waits for approval.
+**Intent changes.** In the previous essay I wrote that a change to the intent should always go to a person before it merges. The rule refines that position. A change to a contract or an invariant that can be reverted merges like any other, but never silently: it updates its decision record, and the team reads it the next morning. Only intent that guards a one-way door still meets the thin gate.
 
-## 5. A simulation
+## 5. The thin gate
+
+The rule keeps one human gate. Where it sits and how much it asks decide whether it is worth having. A gate placed early and made thick, with a person reading every diff of every risky change, brings little. A gate placed late and kept thin keeps almost all of the value that is left.
+
+**Late: at the point of no return, not at the merge.** Merging is reversible. Code that touches a one-way door can be merged safely as long as it has not run: behind a flag, or as a migration not yet applied. The irreversible act comes later: running the migration, rotating the key, sending the message, turning on the flag that moves money. That is where the gate belongs, for three reasons. The person judges what will actually run, with real data and configuration, rather than code that may still change. The approval cannot go stale, since nothing changes between the decision and the act. And the rest of the work keeps flowing: the gate holds back one action, not the team.
+
+**Thin: a few questions with evidence, not a diff.** Reading code is slow, and reviews get shallower as changes grow [@kemerer2009]. At the point of no return, the questions are few and concrete (Figure 4). What exactly cannot be undone? What did a rehearsal, such as a dry run on a copy of production, show? How many people or systems are affected, and can the action be staged? What is the way back, and has it been tested? Who asked for it, and did any instruction come from outside the team? The agent prepares the answers; the person checks them and chooses to go, to stage the action, or to stop. Releasing in stages, region by region or to a small share of users first, is standard practice when the effect of a change is uncertain [@beyer2016].
+
+![**Figure 4.** Schematic of a thin gate, with an illustrative example. The person answers five questions from evidence the agent prepared, instead of reading a diff. The gate is late, thin and rare.](figures/fig04.png){fig-alt="Left, a decision card headed point of no return: drop column customers.legacy_email. Five rows of question and evidence: what cannot be undone, deletes 1,284,301 stored values in production; evidence, dry run on last night's copy, no reads in 30 days; blast radius, one table, three services, can run region by region; way back, backup taken 02:00, restore tested 02:20; who asked, team ticket, no instructions from outside the team. Three buttons: Go, Stage it, Stop. Right, three notes: Late, at the point of no return, not at the merge, the person judges what will actually run. Thin, five questions, the agent prepares the evidence, nobody reads the diff, minutes not hours. Rare, a few changes reach it, keep it thin by making more things undoable, not by adding people."}
+
+In the terms of @eq-break-even, a thin, late gate raises $d$, because the person examines specific evidence about the one thing that matters, and lowers $r$, because the decision takes minutes and is rarely needed. It also sits where $\Delta C$ is largest. A thick, early gate does the opposite on all three counts.
+
+One case needs more than five questions: a session steered from outside the team. There the danger hides in the code itself, so a person reads the diff, or, better, the work is redone in a session the team steers.
+
+**Rare: keep it thin on purpose.** Gates grow. Every incident adds an item to the list, and a list that grows long enough turns the thin gate back into the old one, approved by tired people who no longer read. Two habits keep it thin. Track its load: the share of changes that reach it and the minutes each decision takes. And when the same kind of action keeps reaching it, make that kind undoable instead of adding approvers: soft deletes instead of deletes, schema changes that expand before they contract [@ambler2006], keys that can be rolled back, releases region by region. Each piece of reversibility moves a class of changes from "approve" to "watch". The best gate is one with less and less to do.
+
+## 6. A simulation
 
 I simulated a team under four policies: a gate without an audit (today's common practice), an audit without a gate (the proposal), both, and neither. The parameters (Table 2) are chosen rather than measured and, where I had to choose, generous to review.
 
@@ -115,14 +132,14 @@ I simulated a team under four policies: a gate without an audit (today's common 
 | Reviewer capacity | 3 full-time equivalents, first come first served, no batching |
 | Residual defect probability, $p$ | 0.05 per change, under every policy |
 | Share caught by a reviewer, $d$ | 0.5 |
-| Daily chance users or monitoring find a latent defect, $h_{\text{users}}$ | 0.10 |
-| Daily chance the audit finds a defect it can see, $h_{\text{audit}}$ | 0.50 (varied in Figure 5) |
-| Share of defects the audit can see, $c$ | 1 (varied in Figure 5) |
+| Daily chance users find a latent defect, $h_{\text{users}}$ | 0.10 |
+| Daily chance the audit finds a defect it can see, $h_{\text{audit}}$ | 0.50 (varied in Figure 6) |
+| Share of defects the audit can see, $c$ | 1 (varied in Figure 6) |
 | Horizon | 60 working days, 300 runs |
 
-: **Table 2.** Simulation parameters. The review queue is optimistic for the gate: reviewers start as soon as they are free. A value of $d = 0.5$ is high for functional defects given what review is known to find [@mantyla2009; @czerwonka2015].
+: **Table 2.** Simulation parameters. The audit includes production signals, so monitoring counts as part of the watch, not as users. The review queue is optimistic for the gate: reviewers start as soon as they are free. A value of $d = 0.5$ is high for functional defects given what review is known to find [@mantyla2009; @czerwonka2015].
 
-![**Figure 4.** Simulation at 40 changes a day, parameters in Table 2. Bars show the average number of defects waiting to be found in the main branch; the right column shows the review time each policy costs per day. Removing the gate without an audit is the chaos case; the audit, not the gate, does most of the work.](figures/fig04.png){fig-alt="Horizontal bar chart of defects waiting to be found in the main branch. No gate, no audit: 19.2, 0 hours of review per day. Gate (today): 9.7, 16 hours. Audit, no gate (proposed): 3.3, 1 hour. Gate and audit: 1.6, 17 hours."}
+![**Figure 5.** Simulation at 40 changes a day, parameters in Table 2. Bars show the average number of defects waiting to be found in the main branch; the right column shows the people time each policy costs per day. Removing the gate without an audit is the chaos case; the audit, not the gate, does most of the work.](figures/fig05.png){fig-alt="Horizontal bar chart of defects waiting to be found in the main branch. No gate, no audit: 19.2, 0 hours of people time per day. Gate (today): 9.7, 16 hours. Audit, no gate (proposed): 3.3, 1 hour. Gate and audit: 1.6, 17 hours."}
 
 | Policy | Median time to merge (90th pct.) | Reviewer hours per day | Latent defects in main | Median age of a defect when found |
 |---|---|---|---|---|
@@ -131,11 +148,11 @@ I simulated a team under four policies: a gate without an audit (today's common 
 | Gate and daily audit | 1.1 h (4.1 h) | about 17 | 1.6 | 1 day |
 | No gate, no audit | 0.4 h (0.7 h) | 0 | 19.2 | 6 days |
 
-: **Table 3.** Simulation results at 40 changes a day. Latent defects are those present in main during a day, averaged over days 21 to 60. Run `python figs.py` to reproduce them.
+: **Table 3.** Simulation results at 40 changes a day. Latent defects are those present in main during a day, averaged over days 21 to 60; their standard errors are 0.15 or less. Run `python figs.py` to reproduce them.
 
 **Chaos is real, but it is not the proposal.** Removing the gate and adding nothing doubles the latent defects of today's practice. The critics are right about that policy; they are wrong that it is the only alternative to the gate.
 
-**The price of the gate.** Holding the audit fixed, adding the gate lowers latent defects from 3.3 to 1.6 for 16 reviewer-hours a day: about **10 engineer-hours for every day of latent defects it prevents**. That number turns @eq-break-even into a question any team can answer: does a latent defect in this part of the system cost more than 10 engineer-hours for each day it lives? For a reversible defect in an internal tool, rarely. For a payment flow, easily, and that is a one-way door.
+**The price of the gate.** Holding the audit fixed, adding the gate lowers latent defects from 3.3 to 1.6 for 16 reviewer-hours a day: about **10 engineer-hours for every day of latent defects it prevents** (16 h ÷ 1.7 ≈ 9.4). That number turns @eq-break-even into a question any team can answer: does a latent defect in this part of the system cost more than 10 engineer-hours for each day it lives? For a reversible defect in an internal tool, rarely. For a payment flow, easily, and that is a one-way door with its own thin gate.
 
 **Speed and reach of the watch.** By Little's law [@little1961], latent defects equal the rate at which they enter times how long they stay. A gate removes at most the factor $(1-d)$, here a half; an audit shortens the stay, here by a factor of six. That is why the proposal beats today's practice in Table 3. But the audit is not equally good at everything. If it can see only a share $c$ of defects, the rest are found only by users, and the proposal beats today's practice when
 
@@ -143,11 +160,11 @@ $$
 c > d \left(1 + \frac{h_{\text{users}}}{h_{\text{audit}}}\right).
 $$ {#eq-watch}
 
-The condition has a plain reading: *the watch must see more kinds of defect than a reviewer would have caught, and the slower it is, the more it must see.* With the values of Table 2, an audit that sees every defect must find it with a daily chance above 0.10, an audit that finds them in about two days must see at least 60% of them, and one that takes about five days must see 75% (Figure 5). If a team's defects are mostly of a kind no machine can notice, the rule fails for that team, and @eq-watch says so before any harm is done: measure $c$ first.
+The condition has a plain reading: *the watch must see more kinds of defect than a reviewer would have caught, and the slower it is, the more it must see.* With the values of Table 2, an audit that sees every defect must find it with a daily chance above 0.10, an audit that finds them in about two days must see at least 60% of them, and one that takes about five days must see 75% (Figure 6). If a team's defects are mostly of a kind no machine can notice, the rule fails for that team, and @eq-watch says so before any harm is done: measure $c$ first. Where the measured share falls below the bound, keep reviewing changes to that part of the code until the watch improves.
 
-![**Figure 5.** How much must the audit see? Defects waiting to be found without a gate but with an audit, compared with today's gate, against the share of defects the audit can see, for $d = 0.5$. Below the black line, the proposal does better than today. An audit that finds what it can see in about two days must see at least 60% of defects; one that takes about five days must see 75%. Lines follow @eq-watch; the simulation agrees within 0.04.](figures/fig05.png){fig-alt="Chart with horizontal axis share of defects the audit can see, 0 to 100%, and vertical axis defects waiting to be found compared with today, 0 to 2x. A black horizontal line at 1x is labelled today: a person approves every change; the area below is shaded green, better than today. Two falling lines start at 2x: audit finds them in about 2 days crosses 1x at 60% and ends near 0.33x; audit finds them in about 5 days crosses 1x at 75% and ends near 0.67x."}
+![**Figure 6.** How much must the audit see? Defects waiting to be found without a gate but with an audit, compared with today's gate, against the share of defects the audit can see, for $d = 0.5$. Below the black line, the proposal does better than today; circles mark the thresholds. Lines follow @eq-watch; the simulation agrees within 0.04.](figures/fig06.png){fig-alt="Chart with horizontal axis share of defects the audit can see, 0 to 100%, and vertical axis defects waiting to be found compared with today, 0 to 2x. A black horizontal line at 1x is labelled today: a person approves every change; the area below is shaded green, better than today. Two falling lines start at 2x: audit finds them in about 2 days crosses 1x at 60% and ends near 0.33x; audit finds them in about 5 days crosses 1x at 75% and ends near 0.67x."}
 
-## 6. Predictions and a test protocol
+## 7. Predictions and a test protocol
 
 Speed is not a useful test, since removing a gate obviously speeds up merging. The thesis stands or falls on quality and on its assumptions. For teams that adopt the rule, compared with similar teams that keep the gate:
 
@@ -155,10 +172,11 @@ Speed is not a useful test, since removing a gate obviously speeds up merging. T
 - **H2. The watch sees far enough.** The share of defects found first by the audit or monitoring rather than by users, an estimate of $c$, exceeds the bound of @eq-watch, and the median age of a defect when found falls.
 - **H3. Fixes are cheap (Assumption A).** For defects found by the audit, the median time from report to merged fix is under one working hour, and a flag or rollback contains the harm before the fix lands.
 - **H4. The report is used.** At least half of the audit's findings are fixed or explicitly dismissed within a week. An audit nobody reads turns the proposal into the chaos case.
+- **H5. The gate stays thin.** The share of changes that reach the thin gate and the minutes per decision stay small, and fall over time as more actions are made undoable.
 
-**Protocol.** A stepped-wedge design fits within an organisation: teams adopt the rule one at a time, in random order, over several months, so that every team is observed under both policies and calendar effects are controlled. One-way doors keep their approval throughout. H1 is a pre-registered non-inferiority test; H2 to H4 and lead time are secondary outcomes, measured from repository, pipeline and incident logs rather than self-reports, since teams cannot be blinded. If H1 fails, or H2 or H3 fails, the thesis is wrong for the teams studied.
+**Protocol.** A stepped-wedge design fits within an organisation: teams adopt the rule one at a time, in random order, over several months, so that every team is observed under both policies and calendar effects are controlled. The thin gate stays in place throughout. H1 is a pre-registered non-inferiority test; H2 to H5 and lead time are secondary outcomes, measured from repository, pipeline and incident logs rather than self-reports, since teams cannot be blinded. If H1 fails, or H2 or H3 fails, the thesis is wrong for the teams studied.
 
-## 7. Objections and limitations
+## 8. Objections and limitations
 
 **"Review demonstrably reduces defects" [@mcintosh2014].** Compared with no review, on code written by hand, yes. The relevant comparison is review against watching, which is what H1 and H2 test. The recommendation of peer review in @forsgren2018 rests on data that predate agents; extending it is an extrapolation, and I state it as one.
 
@@ -170,13 +188,13 @@ Speed is not a useful test, since removing a gate obviously speeds up merging. T
 
 **Loss of skill.** Automation leaves people responsible for rare, hard cases while removing the routine practice that prepares them [@bainbridge1983]. With fewer people reading code daily, teams must keep that skill on purpose: reading the audit's findings in the code, tracing incidents by hand, rotating who does it.
 
-**Limits of the model.** It is linear and treats defects as independent. It holds $d$ constant, although reviewers tire and large changes get shallower reviews, and it ignores what reviewers learn by reviewing. The parameters are chosen, not measured, and describe one team at one rate. The direction of the result holds wherever @eq-watch holds; its magnitude does not transfer. The paper also assumes that writing code is no longer the bottleneck, and the evidence on how much AI speeds up experienced developers is mixed [@becker2025].
+**Limits of the model.** It is linear and treats defects as independent. It counts defects without weighting them by harm: if reviewers mainly catch the severe ones, the comparison is biased against the gate, which is why the severe, irreversible cases keep a gate of their own. It counts the audit as an hour of reading, ignoring its compute cost and its false alarms, which H4 partly captures. It holds $d$ constant, although reviewers tire and large changes get shallower reviews, and it ignores what reviewers learn by reviewing. The parameters are chosen, not measured, and describe one team at one rate. The direction of the result holds wherever @eq-watch holds; its magnitude does not transfer. The paper also assumes that writing code is no longer the bottleneck, and the evidence on how much AI speeds up experienced developers is mixed [@becker2025].
 
-## 8. Conclusion
+## 9. Conclusion
 
 The pull request review was a good answer to a question that has changed. It was the right control while late defects were expensive and a person's reading was the main check. With agentic coding, rules run inside every session, most defects are cheap to fix the next day, and the one step that has not become faster is the person reading the diff.
 
-I have argued that the review gate should stop being the default. What keeps a codebase healthy is how quickly defects are found and how cheaply they are undone, not whether someone looked at each change before it merged. Where harm cannot be undone, a person still decides. Where a machine cannot see, the team should measure that before it lets go.
+I have argued that the review gate should stop being the default. What keeps a codebase healthy is how quickly defects are found and how cheaply they are undone, not whether someone looked at each change before it merged. Where harm cannot be undone, a person still decides, late and briefly, at the point of no return: the gate guards the act, not the code. Where a machine cannot see, the team should measure that before it lets go.
 
 This means giving up control of each change. In return, we can simplify our processes instead of adding layers to protect a kind of control that, in the past, was the only kind available. Approve what you cannot undo. Watch everything else.
 

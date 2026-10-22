@@ -1,9 +1,9 @@
 """Figures for "Stop Reviewing Pull Requests". Same style as "Intent Is the Source".
 
 Figures 1 and 2 are schematics of my own. Figure 3 plots the break-even condition of the
-cost model in section 3; its three positions are illustrative, not measured. Figures 4 and 5 are a
-small Monte Carlo simulation with the parameters in P (Table 2 of the paper); running this
-file prints the numbers used in Table 3.
+cost model in section 3; its three positions are illustrative, not measured. Figure 4 is a
+schematic with an illustrative example. Figures 5 and 6 come from a small Monte Carlo simulation
+with the parameters in P (Table 2 of the paper); running this file prints the numbers in Table 3.
 """
 import re
 import numpy as np
@@ -176,26 +176,31 @@ def fig_gate_to_loop():
                                 fc=SAND_T, ec="none", zorder=0.5))
     heading(ax, 0.95, 11.25, "PROPOSED", "Approve what you cannot undo. Watch everything else.", color=WARM)
     y = 6.0
-    card(ax, 0.95, y, 7.0, 2.9, "Write", "with rules", accent=NAVY, fs=11, subfs=8.4)
-    card(ax, 9.6, y, 7.0, 2.9, "Checks", None, accent=NAVY, fs=11)
-    card(ax, 18.25, y, 7.0, 2.9, "Can it be undone?", None, accent=NAVY, fs=10.5)
-    card(ax, 26.9, y + 1.6, 5.1, 2.3, "A person", "approves", accent=AMBER, fill=AMBER_T, fs=10, subfs=8)
-    card(ax, 26.9, y - 1.0, 5.1, 2.3, "Merge", None, accent=GREEN, fs=11)
-    arrow(ax, (8.05, y + 1.45), (9.5, y + 1.45), lw=1.6)
-    arrow(ax, (16.7, y + 1.45), (18.15, y + 1.45), lw=1.6)
-    arrow(ax, (25.35, y + 2.1), (26.8, y + 2.75), color=WARM, lw=1.6)
-    arrow(ax, (25.35, y + 0.8), (26.8, y + 0.15), color=GREEN, lw=1.6)
-    ax.text(26.05, y + 3.0, "no", color=WARM, fontsize=8.5, weight="semibold", ha="center")
-    ax.text(26.05, y - 0.35, "yes", color=GREEN, fontsize=8.5, weight="semibold", ha="center")
+    card(ax, 0.95, y, 5.4, 2.9, "Write", "with rules", accent=NAVY, fs=11, subfs=8.4)
+    card(ax, 7.45, y, 4.8, 2.9, "Checks", None, accent=NAVY, fs=11)
+    card(ax, 13.35, y, 4.4, 2.9, "Merge", None, accent=GREEN, fs=11)
+    card(ax, 18.85, y, 6.3, 2.9, "Point of no return?", None, accent=NAVY, fs=10.5)
+    card(ax, 26.4, y + 1.6, 5.6, 2.3, "Thin gate", "a person decides", accent=AMBER, fill=AMBER_T,
+         fs=10.5, subfs=8)
+    card(ax, 26.4, y - 1.0, 5.6, 2.3, "Release", None, accent=GREEN, fs=11)
+    arrow(ax, (6.45, y + 1.45), (7.35, y + 1.45), lw=1.6)
+    arrow(ax, (12.35, y + 1.45), (13.25, y + 1.45), color=GREEN, lw=1.6)
+    arrow(ax, (17.85, y + 1.45), (18.75, y + 1.45), color=GREEN, lw=1.6)
+    arrow(ax, (25.25, y + 2.1), (26.3, y + 2.75), color=WARM, lw=1.6)
+    arrow(ax, (25.25, y + 0.8), (26.3, y + 0.15), color=GREEN, lw=1.6)
+    ax.text(25.75, y + 3.05, "yes", color=WARM, fontsize=8.5, weight="semibold", ha="center")
+    ax.text(25.75, y - 0.4, "no", color=GREEN, fontsize=8.5, weight="semibold", ha="center")
+    arrow(ax, (32.1, y + 2.75), (32.1, y + 0.15), color=WARM, lw=1.4, rad=-0.45)
+    pill(ax, 15.55, y - 0.35, "everything merges", color=GREEN, fs=7.4)
     # the loop
     yb = 1.0
-    card(ax, 18.25, yb, 13.75, 2.5, "Daily audit of the whole codebase", None, accent=AMBER, fs=10.5)
+    card(ax, 18.85, yb, 13.15, 2.5, "Daily audit of the whole codebase", None, accent=AMBER, fs=10.5)
     card(ax, 0.95, yb, 15.65, 2.5, "The team fixes what matters and tightens the rules", None,
          accent=AMBER, fs=10.5)
-    arrow(ax, (18.15, yb + 1.25), (16.7, yb + 1.25), color=WARM, lw=1.6)
-    arrow(ax, (4.45, yb + 2.6), (4.45, y - 0.1), color=WARM, lw=1.6)
-    arrow(ax, (29.45, y - 1.1), (29.45, yb + 2.6), color=WARM, lw=1.6, ls=(0, (4, 3)))
-    pill(ax, 29.45, (yb + 2.6 + y - 1.1) / 2, "every night", color=WARM, fs=7.4)
+    arrow(ax, (18.75, yb + 1.25), (16.7, yb + 1.25), color=WARM, lw=1.6)
+    arrow(ax, (3.65, yb + 2.6), (3.65, y - 0.1), color=WARM, lw=1.6)
+    arrow(ax, (29.2, y - 1.1), (29.2, yb + 2.6), color=WARM, lw=1.6, ls=(0, (4, 3)))
+    pill(ax, 29.2, (yb + 2.6 + y - 1.1) / 2, "every night", color=WARM, fs=7.4)
     fig.savefig(OUT + "fig01.png"); plt.close(fig)
 
 
@@ -259,7 +264,50 @@ def fig_break_even():
     fig.savefig(OUT + "fig03.png"); plt.close(fig)
 
 
-# ---------- figure 4: simulation ----------
+# ---------- figure 4: the thin gate ----------
+def fig_thin_gate():
+    """What a person sees at the point of no return: five questions, answered with evidence the
+    agent prepared, and three choices. The example is illustrative."""
+    fig, ax = canvas(11.2, 6.0, 34.5, 17.7)
+    x0, w, top = 0.4, 20.4, 17.2
+    shadow(ax, x0, 0.4, w, top - 0.4, r=0.35, z=1)
+    ax.add_patch(FancyBboxPatch((x0, 0.4), w, top - 0.4, boxstyle="round,pad=0,rounding_size=0.35",
+                                fc="white", ec=RULE, lw=0.9, zorder=2))
+    ax.add_patch(FancyBboxPatch((x0, top - 2.6), w, 2.6, boxstyle="round,pad=0,rounding_size=0.35",
+                                fc=AMBER_T, ec="none", zorder=2.5))
+    ax.text(x0 + 0.7, top - 0.75, "POINT OF NO RETURN", fontsize=7.2, weight="semibold", color=WARM, zorder=4)
+    ax.text(x0 + 0.7, top - 1.7, "Drop column customers.legacy_email", fontsize=13, weight="semibold",
+            color=INK, zorder=4, va="center")
+    rows = [("What cannot be undone?", "deletes 1,284,301 stored values in production"),
+            ("Evidence", "dry run on last night's copy: no reads in 30 days"),
+            ("Blast radius", "one table, three services; can run region by region"),
+            ("Way back", "backup taken 02:00, restore tested 02:20"),
+            ("Who asked", "team ticket; no instructions from outside the team")]
+    for i, (q, a) in enumerate(rows):
+        yy = top - 3.7 - i * 2.05
+        ax.text(x0 + 0.7, yy, q, fontsize=10.8, weight="semibold", color=INK, va="center", zorder=4)
+        ax.text(x0 + 0.7, yy - 0.8, a, fontsize=9.4, color=MUTED, va="center", fontfamily=MONO, zorder=4)
+        if i < len(rows) - 1:
+            ax.plot([x0 + 0.7, x0 + w - 0.7], [yy - 1.35] * 2, color=RULE, lw=0.8, zorder=3)
+    for k, (lab, col) in enumerate((("Go", GREEN), ("Stage it", NAVY), ("Stop", RED))):
+        bx = x0 + 0.7 + k * 4.4
+        ax.add_patch(FancyBboxPatch((bx, 1.0), 3.8, 1.25, boxstyle="round,pad=0,rounding_size=0.3",
+                                    fc=col, ec="none", zorder=4))
+        ax.text(bx + 1.9, 1.62, lab, color="white", fontsize=10.5, weight="semibold", ha="center",
+                va="center", zorder=5)
+    notes = [("LATE", "At the point of no return,\nnot at the merge. The person\njudges what will actually run.", WARM),
+             ("THIN", "Five questions. The agent\nprepares the evidence; nobody\nreads the diff. Minutes, not hours.", NAVY),
+             ("RARE", "A few changes reach it. Keep it\nthin by making more things\nundoable, not by adding people.", GREEN)]
+    for i, (h, t, col) in enumerate(notes):
+        yy = top - 0.6 - i * 5.6
+        ax.add_patch(FancyBboxPatch((22.0, yy - 4.3), 0.12, 4.1, boxstyle="round,pad=0,rounding_size=0.05",
+                                    fc=col, ec="none", zorder=3))
+        ax.text(22.6, yy - 0.5, h, fontsize=12, weight="bold", color=col, va="center")
+        ax.text(22.6, yy - 1.25, t, fontsize=10.2, color=INK, va="top", linespacing=1.45)
+    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+
+
+# ---------- figures 5 and 6: simulation ----------
 # Parameters (Table 2 in the paper). Time in working hours; one working day = 8 h.
 P = dict(
     day=8.0,
@@ -352,22 +400,23 @@ def fig_simulation():
     vals = []
     for gate, audit, lab, col, hrs in pol:
         out, ages = sim_defects(gate, audit, rng)
-        vals.append((lab, out[:, 20:].mean(), col, hrs, np.median(ages)))
+        run_means = out[:, 20:].mean(1)
+        vals.append((lab, out[:, 20:].mean(), col, hrs, np.median(ages), run_means.std(ddof=1) / np.sqrt(len(run_means))))
     fig, ax = plt.subplots(figsize=(9.0, 3.9))
     ys = np.arange(len(vals))[::-1]
-    for yv, (lab, v, col, hrs, _) in zip(ys, vals):
+    for yv, (lab, v, col, hrs, _, _) in zip(ys, vals):
         ax.barh(yv, v, color=col, height=0.62, zorder=3)
         ax.text(v + 0.3, yv, f"{v:.1f}", va="center", fontsize=10.5, weight="semibold", color=INK)
         ax.text(23.2, yv, f"{hrs} h" if hrs else "0 h", va="center", ha="right", fontsize=10,
                 color=WARM if hrs > 2 else MUTED, weight="semibold")
-    ax.text(23.2, len(vals) - 0.35, "review time\nper day", ha="right", va="bottom", fontsize=8, color=MUTED)
+    ax.text(23.2, len(vals) - 0.35, "people time\nper day", ha="right", va="bottom", fontsize=8, color=MUTED)
     ax.set_yticks(ys); ax.set_yticklabels([v[0] for v in vals], fontsize=10)
     ax.set_xlim(0, 23.5); ax.set_ylim(-0.6, len(vals) - 0.1)
     ax.set_xticks([0, 5, 10, 15, 20])
     ax.set_xlabel("Defects waiting to be found in the main branch (average)")
     tidy(ax, grid_axis="x")
     ax.spines["left"].set_visible(False)
-    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+    fig.savefig(OUT + "fig05.png"); plt.close(fig)
 
     # numbers for Table 3
     lt_g = np.concatenate([sim_lead_times(P["lam"], True, rng) for _ in range(20)])
@@ -376,11 +425,11 @@ def fig_simulation():
     print(f"lead time at lam={P['lam']}: gate median {np.median(lt_g):.2f} h, p90 {np.percentile(lt_g, 90):.2f} h;"
           f" no gate median {np.median(lt_n):.2f} h, p90 {np.percentile(lt_n, 90):.2f} h")
     print(f"reviewer hours per day with gate: {rev_h:.1f}; utilisation {rev_h / (P['servers'] * P['day']):.2f}")
-    for lab, v, _, _, med_age in vals:
-        print(f"{lab:28s} latent {v:5.1f}  median age at fix {med_age:4.1f} d")
+    for lab, v, _, _, med_age, se in vals:
+        print(f"{lab:28s} latent {v:5.1f} (s.e. {se:.2f})  median age at fix {med_age:4.1f} d")
 
 
-# ---------- figure 5: how much must the audit see? ----------
+# ---------- figure 6: how much must the audit see? ----------
 def fig_sensitivity():
     """Latent defects without a gate but with an audit, relative to today's gate, against the
     share c of defects the audit can see. Break-even at c = d * (1 + h_users / h_audit)."""
@@ -412,10 +461,10 @@ def fig_sensitivity():
     ax.set_xlabel("Share of defects the audit can see")
     ax.set_ylabel("Defects waiting to be found,\ncompared with today")
     tidy(ax)
-    fig.savefig(OUT + "fig05.png"); plt.close(fig)
+    fig.savefig(OUT + "fig06.png"); plt.close(fig)
 
 
 if __name__ == "__main__":
     import os
     os.makedirs(OUT, exist_ok=True)
-    fig_gate_to_loop(); fig_cost_curve(); fig_break_even(); fig_simulation(); fig_sensitivity()
+    fig_gate_to_loop(); fig_cost_curve(); fig_break_even(); fig_thin_gate(); fig_simulation(); fig_sensitivity()
