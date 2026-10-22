@@ -108,6 +108,10 @@ function Meta(meta)
     if exists(root .. "/" .. other) then
       data[fr and "translationOfWork" or "workTranslation"] = { ["@id"] = SITE .. clean(other) }
     end
+  elseif rel == "agentic-coding.qmd" or rel == "fr/agentic-coding.qmd" then
+    data = { ["@context"] = "https://schema.org", ["@type"] = "CollectionPage", name = title,
+             description = description, url = url, inLanguage = lang, author = AUTHOR,
+             isPartOf = { ["@type"] = "Blog", name = SITE_NAME, url = SITE } }
   elseif rel == "about.qmd" or rel == "fr/about.qmd" then
     data = { ["@context"] = "https://schema.org", ["@type"] = "ProfilePage", url = url,
              inLanguage = lang, mainEntity = AUTHOR }

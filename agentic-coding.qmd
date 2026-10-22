@@ -1,0 +1,59 @@
+---
+title: "Agentic Coding"
+subtitle: "A series in five steps: what the agent decides, what it connects to, what we write, how we check, and when a person must still approve"
+description: "Five essays and papers on agentic coding, in order: decision models, MCP and the API, intent as source, reviewing intent, and the end of routine code review."
+image: posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png
+toc: false
+---
+
+When agents write most of the code, what is left for people to do? These five pieces answer one part of that question each. Read in order, they follow the agent outwards: from the choices it makes inside its loop, to the systems it reaches, to the source we give it, to the way we check its work, and finally to the one place where a person must still say yes.
+
+They were written a few days apart in October 2026 and each stands on its own, but every step builds on the one before.
+
+## 1. The agent: most of its work is routine choice
+
+**[The Junior Colleague](posts/2026-10-18-the-junior-colleague/index.qmd)** · *analysis*
+
+Most of an agent's calls to a large model end in a multiple-choice pick: which tool, which argument, stop or continue. A recent paper shows that a small decision model, trained on the agent's own states and trusted only when it is sure, can make a good share of these picks in milliseconds without losing a single task. The large model is kept for what is new, and for teaching.
+
+*Takeaway: an agent is mostly a junior colleague doing routine work, which can be measured, delegated and improved.*
+
+## 2. The tools: the interface becomes data
+
+**[The Interface Is Data](posts/2026-10-20-the-interface-is-data/index.qmd)** · *essay*
+
+MCP is usually presented as a way to give models tools. It changes something older: what an API is. When a service describes itself as data that any caller reads at run time, tools form a web, offer several levels of detail at once, can return whole programs, and save a great deal of glue code, with or without AI.
+
+*Takeaway: the contract between systems moves from documents read by developers to data read by programs.*
+
+## 3. The source: intent and checks, not code
+
+**[Intent Is the Source](posts/2026-10-21-intent-is-the-source/index.qmd)** · *position paper*
+
+Every generation of programming turned what people used to write into something the machine generates. Agentic coding is the next step: intent and executable checks become the source, code becomes an output, and the agent is a stochastic compiler, correct only up to its checks.
+
+*Takeaway: the new language is exactly as precise as its tests.*
+
+## 4. The review: check the intent, not the diff
+
+**[Review the Intent, Not the Diff](posts/2026-10-22-review-the-intent-not-the-diff/index.qmd)** · *analysis*
+
+Once agents write the code, review becomes the bottleneck. The Claude Code team at Anthropic moved most of the reading to machines and pointed human attention at risk. One more thing should go: the belief that shared understanding must come from reading diffs. People own the intent, agents own the implementation, and review checks one against the other.
+
+*Takeaway: make the intent layer explicit, short and enforceable, and let it carry the team's understanding.*
+
+## 5. The gate: approve what you cannot undo
+
+**[Stop Reviewing Pull Requests](posts/2026-10-23-stop-reviewing-pull-requests/index.qmd)** · *position paper*
+
+A cost model and a simulation show that a human gate on every change no longer pays for itself when fixes are cheap. Rules in every session and a daily audit of the whole codebase replace it. The approval that remains is thin and late: a few questions, with evidence, at the point of no return.
+
+*Takeaway: approve what you cannot undo; watch everything else.*
+
+## The thread
+
+Each step moves people up one level. We stop making routine choices and teach a fast model to make them. We stop writing glue code and publish interfaces as data. We stop writing code and write intent and checks. We stop reading diffs and own the intent. And we stop approving changes, except the ones that cannot be undone.
+
+What remains is the part that was always the job: deciding what should be built, stating it precisely enough to be checked, and taking responsibility for what cannot be taken back.
+
+The series continues the ideas of [Fast AI](posts/2026-10-11-fast-ai/index.qmd), which argued that AI should learn slowly, once, and act fast every time. Objections are welcome: several of these pieces exist because of one.

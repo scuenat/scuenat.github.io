@@ -1,0 +1,59 @@
+---
+title: "Le codage agentique"
+subtitle: "Une série en cinq étapes : ce que l'agent décide, ce à quoi il se connecte, ce que nous écrivons, comment nous vérifions, et quand une personne doit encore approuver"
+description: "Cinq textes sur le codage agentique, dans l'ordre : modèles de décision, MCP et l'API, l'intention comme source, relire l'intention, fin de la revue systématique."
+image: ../posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png
+toc: false
+---
+
+Quand les agents écrivent l'essentiel du code, que reste-t-il à faire aux personnes ? Ces cinq textes répondent chacun à une partie de la question. Lus dans l'ordre, ils suivent l'agent vers l'extérieur : des choix qu'il fait dans sa boucle, aux systèmes qu'il atteint, à la source que nous lui donnons, à la façon dont nous vérifions son travail, et enfin au seul endroit où une personne doit encore dire oui.
+
+Ils ont été écrits à quelques jours d'intervalle en octobre 2026 et chacun se lit seul, mais chaque étape s'appuie sur la précédente.
+
+## 1. L'agent : l'essentiel de son travail est un choix de routine
+
+**[Le collègue junior](posts/2026-10-18-the-junior-colleague/index.qmd)** · *analyse*
+
+La plupart des appels d'un agent à un grand modèle se terminent par un choix parmi quelques options : quel outil, quel argument, s'arrêter ou continuer. Un article récent montre qu'un petit modèle de décision, entraîné sur les propres états de l'agent et utilisé seulement quand il est sûr de lui, peut faire une bonne part de ces choix en quelques millisecondes sans perdre une seule tâche. Le grand modèle est gardé pour ce qui est nouveau, et pour enseigner.
+
+*À retenir : un agent est surtout un collègue junior qui fait un travail de routine, que l'on peut mesurer, déléguer et améliorer.*
+
+## 2. Les outils : l'interface devient une donnée
+
+**[L'interface est une donnée](posts/2026-10-20-the-interface-is-data/index.qmd)** · *essai*
+
+MCP est généralement présenté comme un moyen de donner des outils aux modèles. Il change quelque chose de plus ancien : ce qu'est une API. Quand un service se décrit sous forme de données que tout appelant lit à l'exécution, les outils forment un réseau, offrent plusieurs niveaux de détail à la fois, peuvent renvoyer des programmes entiers et économisent beaucoup de code d'assemblage, avec ou sans IA.
+
+*À retenir : le contrat entre systèmes passe de documents lus par des développeurs à des données lues par des programmes.*
+
+## 3. La source : l'intention et les vérifications, pas le code
+
+**[L'intention est la source](posts/2026-10-21-intent-is-the-source/index.qmd)** · *article de position*
+
+Chaque génération de la programmation a transformé ce que les gens écrivaient en quelque chose que la machine génère. Le codage agentique est l'étape suivante : l'intention et les vérifications exécutables deviennent la source, le code devient un produit, et l'agent est un compilateur stochastique, correct seulement au regard de ses vérifications.
+
+*À retenir : le nouveau langage est exactement aussi précis que ses tests.*
+
+## 4. La revue : vérifier l'intention, pas le diff
+
+**[Relire l'intention, pas le diff](posts/2026-10-22-review-the-intent-not-the-diff/index.qmd)** · *analyse*
+
+Dès que les agents écrivent le code, la revue devient le goulot d'étranglement. L'équipe Claude Code d'Anthropic a confié l'essentiel de la lecture aux machines et dirigé l'attention humaine vers le risque. Une chose de plus devrait disparaître : l'idée que la compréhension partagée doit venir de la lecture des diffs. Les personnes possèdent l'intention, les agents l'implémentation, et la revue vérifie l'une par rapport à l'autre.
+
+*À retenir : rendre la couche d'intention explicite, courte et applicable, et lui confier la compréhension de l'équipe.*
+
+## 5. La barrière : approuver ce qu'on ne peut pas défaire
+
+**[Arrêtez de relire les pull requests](posts/2026-10-23-stop-reviewing-pull-requests/index.qmd)** · *article de position*
+
+Un modèle de coût et une simulation montrent qu'une barrière humaine sur chaque modification n'est plus rentable quand les corrections sont bon marché. Des règles dans chaque session et un audit quotidien de l'ensemble du code la remplacent. L'approbation qui reste est légère et tardive : quelques questions, avec des preuves, au point de non-retour.
+
+*À retenir : approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.*
+
+## Le fil
+
+Chaque étape fait monter les personnes d'un niveau. Nous cessons de faire les choix de routine et apprenons à un modèle rapide à les faire. Nous cessons d'écrire du code d'assemblage et publions les interfaces comme des données. Nous cessons d'écrire du code et écrivons l'intention et les vérifications. Nous cessons de lire les diffs et possédons l'intention. Et nous cessons d'approuver les modifications, sauf celles qui ne peuvent pas être défaites.
+
+Ce qui reste est la partie qui a toujours été le métier : décider de ce qui doit être construit, l'énoncer assez précisément pour pouvoir le vérifier, et répondre de ce qui ne peut pas être repris.
+
+La série prolonge les idées de [Fast AI](posts/2026-10-11-fast-ai/index.qmd), qui soutenait que l'IA devrait apprendre lentement, une fois, et agir vite, à chaque fois. Les objections sont les bienvenues : plusieurs de ces textes existent grâce à l'une d'elles.
