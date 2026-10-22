@@ -15,7 +15,463 @@
 <link>https://scuenat.github.io/fr/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Thu, 22 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 23 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Arrêtez de relire les pull requests</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-10-23-stop-reviewing-pull-requests/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-warning">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Un article provocateur, à dessein.</strong> Un article de position sous la forme d’un court article scientifique : une thèse, un modèle, une simulation et des prédictions qui pourraient lui donner tort. Il fait suite à <a href="../../../fr/posts/2026-10-22-review-the-intent-not-the-diff/index.html">Relire l’intention, pas le diff</a>, qui gardait la revue en changeant son objet ; celui-ci demande si la revue est encore nécessaire. Les figures sont de moi, dessinées et simulées avec le code de <a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/figs.py">figs.py</a>, et leurs libellés sont en anglais. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>Résumé.</strong> L’approbation humaine de chaque pull request est devenue la norme quand le code était écrit à la main et que les défauts trouvés tard coûtaient cher. Je modélise la barrière de revue comme un investissement rentable lorsque <img src="https://latex.codecogs.com/png.latex?p%20%5Ccdot%20d%20%5Ccdot%20%5CDelta%20C%20%3E%20r"> : la probabilité qu’une modification contienne encore un défaut après les vérifications automatiques, multipliée par la part qu’un relecteur détecte et par le coût de correction tardive évité, doit dépasser le coût de la barrière. Le codage agentique réduit le coût de correction tardive de la plupart des modifications, mais pas lorsque le dommage survit à un retour arrière. Le modèle donne donc une règle plutôt qu’une interdiction : <em>approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste</em>. Surveiller signifie des règles dans chaque session et un audit quotidien de l’ensemble du code. L’approbation qui reste est une barrière légère placée tard, au point de non-retour, plutôt qu’à la fusion. Dans une simulation d’une équipe qui fusionne 40 modifications par jour, l’audit et la barrière légère laissent un tiers des défauts latents d’aujourd’hui et le même nombre d’incidents irréversibles, pour environ 80 minutes de temps humain par jour au lieu de 16 heures. J’énonce les conditions dans lesquelles ce résultat tient et cinq prédictions pour le tester.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>Thèses
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>La règle.</strong> Approuvez ce que vous ne pouvez pas défaire. Surveillez tout le reste.</li>
+<li><strong>Pourquoi.</strong> Une barrière n’est rentable que si <img src="https://latex.codecogs.com/png.latex?p%20%5Ccdot%20d%20%5Ccdot%20%5CDelta%20C%20%3E%20r">. Des corrections bon marché et des retours arrière rapides rendent <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C"> petit, sauf là où le dommage survit à un retour arrière.</li>
+<li><strong>Surveiller.</strong> Des règles que chaque session doit suivre, la fusion dès que les vérifications passent, et un audit quotidien dont le rapport oriente le travail de l’équipe.</li>
+<li><strong>La barrière qui reste.</strong> Légère et tardive : au point de non-retour, quelques questions avec des preuves, rarement sollicitée. Elle garde l’acte, pas le code.</li>
+<li><strong>La condition.</strong> Surveiller vaut mieux qu’approuver seulement si l’audit voit assez loin et assez vite : <img src="https://latex.codecogs.com/png.latex?c%20%3E%20d%20%5C,%20(1%20+%20h_%7B%5Ctext%7Busers%7D%7D%20/%20h_%7B%5Ctext%7Baudit%7D%7D)">.</li>
+<li><strong>Le test.</strong> Les équipes qui adoptent la règle ne devraient pas échouer plus souvent et devraient trouver les défauts plus tôt. Sinon, la thèse est fausse.</li>
+</ol>
+</div>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
+<p>Pour la plupart des modifications, personne ne devrait avoir à approuver la pull request. On répond d’habitude que ce serait le chaos. Je ne le crois pas, et la raison est économique. La revue est un contrôle, et tout contrôle a un prix. Nous le payions parce que la barrière était l’endroit le moins cher pour attraper un défaut : quelques minutes en revue contre des jours une fois arrivé chez les utilisateurs.</p>
+<p>Le codage agentique change le prix des deux côtés. Les règles peuvent être appliquées à l’intérieur de chaque session plutôt qu’à sa fin. Une correction prend quelques minutes à un agent, et un drapeau de fonctionnalité peut désactiver une modification en quelques secondes. Corriger est devenu bon marché, et je crois que c’est ce qui change toute la donne. L’attention humaine reste chère, et la barrière la dépense sur chaque modification, qu’elle en ait besoin ou non.</p>
+<p>Corriger n’est pas bon marché partout. Des données supprimées, des identifiants divulgués ou de l’argent envoyé au mauvais compte ne se récupèrent pas par un retour arrière. D’où la règle : <strong>approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.</strong> Là où l’approbation demeure, elle doit venir tard et rester légère, sinon elle n’apporte pas grand-chose.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Aujourd’hui, chaque modification attend une personne. Dans la proposition, tout est fusionné dès que les vérifications passent. Seule une action qui ne peut pas être défaite attend, tard, à une barrière légère où une personne décide ; tout le reste est mis en production. Chaque nuit, un audit de l’ensemble du code indique à l’équipe quoi corriger et quelles règles resserrer."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png" class="img-fluid figure-img" alt="Deux bandes. En haut, aujourd'hui, une personne approuve chaque modification : écrire, vérifications, une personne approuve (en surbrillance, chaque modification attend ici), fusion. En bas, la proposition, approuvez ce que vous ne pouvez pas défaire, surveillez tout le reste : écrire avec des règles, vérifications, fusion (tout est fusionné), puis point de non-retour ? Si oui, barrière légère, une personne décide, puis mise en production ; sinon, directement la mise en production. De la mise en production, une flèche marquée chaque nuit mène à l'audit quotidien de l'ensemble du code, puis à l'équipe qui corrige ce qui compte et resserre les règles, et remonte vers l'écriture."></a></p>
+<figcaption><strong>Figure 1.</strong> Aujourd’hui, chaque modification attend une personne. Dans la proposition, tout est fusionné dès que les vérifications passent. Seule une action qui ne peut pas être défaite attend, tard, à une barrière légère où une personne décide ; tout le reste est mis en production. Chaque nuit, un audit de l’ensemble du code indique à l’équipe quoi corriger et quelles règles resserrer.</figcaption>
+</figure>
+</div>
+</section>
+<section id="contexte-à-quoi-servait-la-revue" class="level2">
+<h2 class="anchored" data-anchor-id="contexte-à-quoi-servait-la-revue">2. Contexte : à quoi servait la revue</h2>
+<p><strong>Les inspections.</strong> L’inspection formelle du code est née chez IBM dans les années 1970 comme étape d’élimination des défauts <span class="citation" data-cites="fagan1976">(Fagan 1976)</span>, justifiée par l’idée qu’un défaut coûte un à deux ordres de grandeur de plus à corriger en exploitation qu’en développement <span class="citation" data-cites="boehm1981">(Boehm 1981)</span>. Le fondement empirique de cette courbe est plus mince que sa célébrité <span class="citation" data-cites="bossavit2015">(Bossavit 2015)</span>, et les pratiques agiles ont soutenu que l’intégration et les tests automatisés l’aplatissent <span class="citation" data-cites="beck1999">(Beck 1999)</span>.</p>
+<p><strong>Ce que trouve la revue moderne.</strong> La revue légère a remplacé les inspections dans la plupart des équipes <span class="citation" data-cites="rigby2013">(Rigby et Bird 2013)</span>. Chez Microsoft, les développeurs citaient la recherche de défauts comme première motivation, mais la plupart des commentaires portaient sur l’amélioration et la compréhension du code <span class="citation" data-cites="bacchelli2013">(Bacchelli et Bird 2013)</span> ; une étude ultérieure s’intitulait <em>Code Reviews Do Not Find Bugs</em> <span class="citation" data-cites="czerwonka2015">(Czerwonka et al. 2015)</span>. Environ trois quarts des problèmes trouvés concernent l’évolutivité plutôt que le comportement <span class="citation" data-cites="mantyla2009 beller2014">(Mäntylä et Lassenius 2009; Beller et al. 2014)</span>. Chez Google, on valorisait surtout l’apprentissage, le respect des normes, le filtrage et la prévention des accidents <span class="citation" data-cites="sadowski2018">(Sadowski, Söderberg, et al. 2018)</span>.</p>
+<p><strong>Les arguments pour la revue.</strong> Dans trois projets open source, les composants peu relus avaient plus de défauts après publication <span class="citation" data-cites="mcintosh2014">(McIntosh et al. 2014)</span>, et une lecture attentive améliore la qualité <span class="citation" data-cites="kemerer2009">(Kemerer et Paulk 2009)</span>. Sur l’approbation, la plus grande enquête sur la performance de livraison a montré qu’une approbation externe ralentissait la livraison sans réduire les modifications en échec, et recommandait plutôt une revue légère par les pairs <span class="citation" data-cites="forsgren2018">(Forsgren et al. 2018)</span>.</p>
+<p><strong>La revue agentique aujourd’hui.</strong> L’équipe Claude Code d’Anthropic laisse déjà les modifications à faible risque être fusionnées sans personne lorsque la revue automatique réussit, et rapporte plus de modifications fusionnées et moins de retours arrière <span class="citation" data-cites="anthropic2026review">(Claude Code team, Anthropic 2026)</span>. La règle proposée ici remplace leur score de risque par une question plus simple et fait de l’absence d’approbation la règle par défaut.</p>
+</section>
+<section id="un-modèle-de-coût-de-la-barrière" class="level2">
+<h2 class="anchored" data-anchor-id="un-modèle-de-coût-de-la-barrière">3. Un modèle de coût de la barrière</h2>
+<p>Considérons une modification. Soit <img src="https://latex.codecogs.com/png.latex?p"> la probabilité qu’elle contienne encore un défaut après toutes les vérifications automatiques ; <img src="https://latex.codecogs.com/png.latex?d"> la part de ces défauts qu’un relecteur humain détecte ; <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C%20=%20C_%7B%5Ctext%7Blate%7D%7D%20-%20C_%7B%5Ctext%7Breview%7D%7D"> le coût évité en l’attrapant en revue ; et <img src="https://latex.codecogs.com/png.latex?r"> le coût complet de la barrière pour une modification, lecture, attente et changements de contexte compris. La barrière est rentable lorsque</p>
+<p><span id="eq-break-even"><img src="https://latex.codecogs.com/png.latex?%0Ap%20%5C,%20d%20%5C,%20%5CDelta%20C%20%3E%20r%20.%0A%5Ctag%7B1%7D"></span></p>
+<p>Le coût tardif est le travail de correction plus le dommage causé tant que le défaut vit. Si le dommage s’accumule à un taux <img src="https://latex.codecogs.com/png.latex?k"> et que le défaut est trouvé après un temps <img src="https://latex.codecogs.com/png.latex?%5Ctau">,</p>
+<p><span id="eq-late"><img src="https://latex.codecogs.com/png.latex?%0AC_%7B%5Ctext%7Blate%7D%7D%20%5Capprox%20c_%7B%5Ctext%7Bfix%7D%7D%20+%20k%20%5C,%20%5Ctau%20.%0A%5Ctag%7B2%7D"></span></p>
+<p><strong>Ce que changent les agents.</strong> Les règles de session peuvent faire baisser <img src="https://latex.codecogs.com/png.latex?p"> : on peut exiger d’un agent qu’il ajoute des tests pour chaque comportement modifié, qu’il garde la couverture des lignes modifiées au-dessus d’un seuil et qu’il suive un fichier de conventions, et les vérifications délivrées pendant l’écriture sont celles sur lesquelles les développeurs agissent <span class="citation" data-cites="sadowski2018cacm">(Sadowski, Aftandilian, et al. 2018)</span>. Ce n’est pas automatique, car le code écrit avec des assistants d’IA peut être moins sûr <span class="citation" data-cites="pearce2022 perry2023">(Pearce et al. 2022; Perry et al. 2023)</span> ; la simulation garde donc <img src="https://latex.codecogs.com/png.latex?p"> identique pour toutes les politiques. Pendant ce temps, <img src="https://latex.codecogs.com/png.latex?r"> ne baisse pas : une revue attentive avance à quelques centaines de lignes par heure <span class="citation" data-cites="kemerer2009">(Kemerer et Paulk 2009)</span>, le volume augmente, et l’attente croît à peu près comme <img src="https://latex.codecogs.com/png.latex?%5Crho/(1-%5Crho)"> avec le taux d’occupation des relecteurs <img src="https://latex.codecogs.com/png.latex?%5Crho"> <span class="citation" data-cites="kingman1961">(Kingman 1961)</span>.</p>
+<p><strong>L’hypothèse principale.</strong> Le terme qui bouge le plus est <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C">. <em>Hypothèse A : pour la plupart des défauts, un agent peut produire une correction juste dans l’heure qui suit le signalement, et un drapeau ou un retour arrière peut arrêter le dommage en quelques minutes.</em> Sous A, <img src="https://latex.codecogs.com/png.latex?c_%7B%5Ctext%7Bfix%7D%7D"> est petit, les drapeaux plafonnent <img src="https://latex.codecogs.com/png.latex?k"> <span class="citation" data-cites="humble2010">(Humble et Farley 2010)</span> et un audit plafonne <img src="https://latex.codecogs.com/png.latex?%5Ctau">. Les agents résolvent une part significative de vrais tickets de dépôts dans des évaluations contrôlées <span class="citation" data-cites="jimenez2024">(Jimenez et al. 2024)</span>, et les meilleures équipes étudiées par <span class="citation" data-cites="forsgren2018">Forsgren et al. (2018)</span> rétablissaient déjà le service en moins d’une heure ; aucune de ces données ne mesure les corrections faites par des agents en production, si bien que la prédiction H3 teste A directement.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Schéma. Avant les agents, un défaut coûtait d’autant plus cher à corriger qu’il était trouvé tard, une courbe dont la forme exacte est contestée [@bossavit2015]. Avec les agents, sous l’hypothèse A, une correction tardive coûte à peine plus qu’une correction précoce. Le dommage irréversible reste cher."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig02.png" class="img-fluid figure-img" alt="Graphique en échelle logarithmique du coût de correction, de 1x à 100x, selon le moment où le défaut est trouvé : pendant l'écriture, en revue, le lendemain, des mois plus tard. Une ligne grise en pointillés, avant les agents, monte de 1x à 100x. Une ligne verte, avec les agents (supposé), ne monte que de 1x à environ 2,4x. Une ligne rouge, irréversible, commence à 40x le lendemain et reste haute."></a></p>
+<figcaption><strong>Figure 2.</strong> Schéma. Avant les agents, un défaut coûtait d’autant plus cher à corriger qu’il était trouvé tard, une courbe dont la forme exacte est contestée <span class="citation" data-cites="bossavit2015">(Bossavit 2015)</span>. Avec les agents, sous l’hypothèse A, une correction tardive coûte à peine plus qu’une correction précoce. Le dommage irréversible reste cher.</figcaption>
+</figure>
+</div>
+<p><strong>D’où vient la règle.</strong> L’hypothèse A n’aplatit la courbe des coûts que pour le dommage qu’un retour arrière efface. Quand le dommage persiste après un retour arrière, <img src="https://latex.codecogs.com/png.latex?k%5Ctau"> reste grand si vite que le défaut soit trouvé, et la barrière reste rentable (le point rouge de la figure 3). Tout le reste glisse sous la ligne d’équilibre. Le modèle ne dit pas « ne relisez jamais » ; il dit exactement où la revue reste rentable.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. La condition d’équilibre de l’équation&nbsp;1, pour d = 0,5. La revue n’est rentable que si les défauts sont probables et les corrections tardives coûteuses. Les agents font passer les modifications ordinaires dans la zone verte ; celles qui ne peuvent pas être défaites restent dans la zone orange. Les positions sont illustratives, non mesurées."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig03.png" class="img-fluid figure-img" alt="Graphique avec en abscisse le coût d'une correction tardive rapporté au coût d'une revue, et en ordonnée la probabilité qu'une modification contienne encore un défaut, tous deux croissants. Une diagonale sépare une zone orange en haut à droite, la revue est rentable, d'une zone verte en bas à gauche, la revue coûte plus qu'elle ne rapporte. Un point marqué avant les agents se trouve dans la zone orange ; une flèche courbe le relie à un point marqué avec les agents dans la zone verte. Un point rouge marqué irréversible se trouve dans la zone orange."></a></p>
+<figcaption><strong>Figure 3.</strong> La condition d’équilibre de l’équation&nbsp;1, pour <img src="https://latex.codecogs.com/png.latex?d%20=%200,5">. La revue n’est rentable que si les défauts sont probables et les corrections tardives coûteuses. Les agents font passer les modifications ordinaires dans la zone verte ; celles qui ne peuvent pas être défaites restent dans la zone orange. Les positions sont illustratives, non mesurées.</figcaption>
+</figure>
+</div>
+</section>
+<section id="la-règle-en-pratique" class="level2">
+<h2 class="anchored" data-anchor-id="la-règle-en-pratique">4. La règle en pratique</h2>
+<p><strong>Ce qui ne peut pas être défait.</strong> Une modification est une porte à sens unique <span class="citation" data-cites="bezos2016">(Bezos 2016)</span> lorsque son dommage survit à un retour arrière : données détruites ou exposées, argent transféré, identifiants ou clés de signature modifiés, interface publique livrée hors de l’équipe, message envoyé aux clients. La liste est explicite, versionnée et fait partie du contrat de session. Le code qui la touche est fusionné comme les autres ; son étape irréversible attend à la barrière légère (§5). Les sessions pilotées depuis l’extérieur de l’équipe entrent dans la même catégorie : le ticket d’un inconnu ou une page web peut diriger un agent <span class="citation" data-cites="greshake2023">(Greshake et al. 2023)</span>, et une porte dérobée implantée ou un secret divulgué ne peuvent pas être défaits non plus. Le contrat enregistre d’où viennent les instructions de chaque session, si bien que ces sessions sont signalées automatiquement.</p>
+<p><strong>Ce que signifie surveiller.</strong> Chaque modification est fusionnée dès que les vérifications passent, et tout ce qui n’est pas une porte à sens unique est mis en production sans attendre. La surveillance s’exerce à trois endroits (tableau 1) : avant la fusion, par un <em>contrat de session</em> appliqué par l’agent et l’intégration continue ; après, par des <em>drapeaux et une supervision</em> en production ; et une fois par jour, par un <em>audit</em> qui lit l’ensemble du code et les signaux de production et rédige un court rapport que l’équipe lit au lieu de quarante diffs. Quand un problème revient, l’équipe en fait une règle, si bien que le contrat absorbe peu à peu ce que les relecteurs écrivaient en commentaires.</p>
+<p><strong>Ce que l’audit voit et qu’une vérification avant fusion ne voit pas.</strong> Les vérifications rapides vont dans le contrat. L’audit ajoute les vérifications <em>lentes</em>, comme le test par mutation et le fuzzing, les motifs <em>transversaux</em> à plusieurs modifications, les signaux de <em>production</em> depuis les fusions de la veille, et les <em>tendances</em> que des personnes peuvent juger avant qu’une règle ne les encode. Un relecteur qui lit une modification à la fois ne voit pas non plus les deuxième et troisième catégories.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 1.</strong> Un contrat de session et un audit minimaux. Les seuils et les vérifications exactes appartiennent à chaque équipe ; c’est la répartition qui compte. Ce qui peut être décidé modification par modification est appliqué par des machines ; ce qui demande du jugement est regroupé une fois par jour pour des personnes.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Contrat de session (chaque modification, bloquant)</th>
+<th>Audit quotidien (tout le code, consultatif)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tests</td>
+<td>Tests ajoutés ou mis à jour pour chaque comportement modifié</td>
+<td>Score de mutation par module, et son évolution</td>
+</tr>
+<tr class="even">
+<td>Couverture</td>
+<td>Couverture des lignes modifiées ≥ seuil ; la couverture totale ne baisse jamais</td>
+<td>Points chauds non testés : code souvent modifié et peu testé</td>
+</tr>
+<tr class="odd">
+<td>Intégrité</td>
+<td>Aucun test supprimé ni assertion affaiblie sans décision liée</td>
+<td>Tests affaiblis ou ignorés, par session</td>
+</tr>
+<tr class="even">
+<td>Conventions</td>
+<td>Fichier de conventions, linters et types respectés</td>
+<td>Écarts aux conventions et aux règles d’architecture</td>
+</tr>
+<tr class="odd">
+<td>Intention</td>
+<td>Une modification d’un contrat ou d’un invariant met à jour son registre de décision</td>
+<td>Registres de décision modifiés depuis la veille</td>
+</tr>
+<tr class="even">
+<td>Production</td>
+<td>Comportement visible par les utilisateurs derrière un drapeau</td>
+<td>Erreurs et performances depuis les dernières fusions</td>
+</tr>
+<tr class="odd">
+<td>Portes à sens unique</td>
+<td>Les actions listées attendent à la barrière légère ; les sessions pilotées de l’extérieur sont signalées</td>
+<td>Charge de la barrière : part des modifications qui l’atteignent, minutes par décision</td>
+</tr>
+</tbody>
+</table>
+<p>La règle d’intégrité empêche l’échec le plus courant des agents de code, celui qui modifie un test jusqu’à ce qu’il passe. La couverture est associée au test par mutation, parce que la couverture seule mesure mal la qualité des tests <span class="citation" data-cites="inozemtseva2014">(Inozemtseva et Holmes 2014)</span> et devient une cible dès qu’elle est imposée <span class="citation" data-cites="strathern1997">(Strathern 1997)</span> ; le test par mutation mesure si les tests remarquent un changement de comportement <span class="citation" data-cites="papadakis2019">(Papadakis et al. 2019)</span>.</p>
+<p><strong>Qui est responsable.</strong> La personne qui lance une session est responsable de ce qu’elle fusionne. Piloter l’agent et regarder ce qu’il produit fait partie de l’écriture, et cela demeure. Ce qui disparaît, c’est la seconde personne dont l’approbation était exigée.</p>
+<p><strong>Les changements d’intention.</strong> L’essai précédent envoyait chaque changement d’intention à une personne avant la fusion. La règle affine cette position : une modification d’un contrat ou d’un invariant qui peut être annulée est fusionnée, mais jamais en silence. Elle met à jour son registre de décision, et l’équipe la lit le lendemain matin. Seule l’intention qui garde une porte à sens unique passe par la barrière légère.</p>
+</section>
+<section id="la-barrière-légère" class="level2">
+<h2 class="anchored" data-anchor-id="la-barrière-légère">5. La barrière légère</h2>
+<p>L’endroit où se trouve la barrière restante et ce qu’elle demande décident si elle en vaut la peine. Une barrière placée tôt et rendue lourde, avec une personne qui lit chaque diff de chaque modification risquée, apporte peu. Une barrière placée tard et gardée légère conserve l’essentiel de la valeur qui reste.</p>
+<p><strong>Tardive : au point de non-retour, pas à la fusion.</strong> Fusionner est réversible ; le code qui touche une porte à sens unique est sans danger tant qu’il ne s’exécute pas. L’acte irréversible vient plus tard : lancer la migration, changer la clé, envoyer le message, activer le drapeau qui déplace de l’argent. C’est là que la barrière doit se trouver. La personne juge ce qui va réellement s’exécuter, avec les vraies données et la vraie configuration ; l’approbation ne peut pas devenir caduque ; et la barrière retient une action, pas l’équipe.</p>
+<p><strong>Légère : quelques questions avec des preuves, pas un diff.</strong> Lire du code est lent, et les revues deviennent plus superficielles à mesure que les modifications grossissent <span class="citation" data-cites="kemerer2009">(Kemerer et Paulk 2009)</span>. Au point de non-retour, cinq questions suffisent (figure 4). Qu’est-ce qui, exactement, ne peut pas être défait ? Qu’a montré une répétition, comme une exécution à blanc sur une copie de la production ? Qu’est-ce qui est touché, et l’action peut-elle être échelonnée ? Quel est le chemin du retour, et a-t-il été testé ? Qui l’a demandé, et une instruction est-elle venue de l’extérieur de l’équipe ? L’agent prépare les réponses ; la personne les vérifie et choisit d’y aller, d’échelonner l’action ou de l’arrêter. Les déploiements échelonnés sont une pratique courante quand l’effet d’une modification est incertain <span class="citation" data-cites="beyer2016">(Beyer et al. 2016)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Schéma d’une barrière légère, avec un exemple illustratif. La personne répond à cinq questions à partir des preuves préparées par l’agent, au lieu de lire un diff. La barrière est tardive, légère et rare."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig04.png" class="img-fluid figure-img" alt="À gauche, une carte de décision intitulée point de non-retour : supprimer la colonne customers.legacy_email. Cinq lignes de questions et de preuves : ce qui ne peut pas être défait, supprime 1 284 301 valeurs stockées en production ; preuves, exécution à blanc sur la copie de la nuit, aucune lecture en 30 jours ; périmètre, une table, trois services, exécutable région par région ; chemin du retour, sauvegarde faite à 02:00, restauration testée à 02:20 ; qui l'a demandé, ticket de l'équipe, aucune instruction venue de l'extérieur. Trois boutons : Go, Stage it, Stop. À droite, trois notes : tardive, au point de non-retour, pas à la fusion, la personne juge ce qui va réellement s'exécuter ; légère, cinq questions, l'agent prépare les preuves, personne ne lit le diff, des minutes et non des heures ; rare, peu de modifications l'atteignent, on la garde légère en rendant plus de choses réversibles, pas en ajoutant des personnes."></a></p>
+<figcaption><strong>Figure 4.</strong> Schéma d’une barrière légère, avec un exemple illustratif. La personne répond à cinq questions à partir des preuves préparées par l’agent, au lieu de lire un diff. La barrière est tardive, légère et rare.</figcaption>
+</figure>
+</div>
+<p>Dans les termes de l’équation&nbsp;1, une barrière légère et tardive augmente <img src="https://latex.codecogs.com/png.latex?d">, parce que la personne examine des preuves sur la seule chose qui compte, diminue <img src="https://latex.codecogs.com/png.latex?r">, parce que la décision prend quelques minutes et est rarement nécessaire, et se place là où <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C"> est le plus grand. Une barrière lourde et précoce fait l’inverse sur les trois plans. Un cas demande plus que cinq questions : une session pilotée de l’extérieur de l’équipe, où le danger se cache dans le code lui-même. Une personne lit alors le diff ou, mieux, le travail est refait dans une session que l’équipe pilote.</p>
+<p><strong>Rare : la garder légère à dessein.</strong> Les barrières grossissent. Chaque incident ajoute un élément à la liste, et une liste assez longue refait de la barrière légère l’ancienne, approuvée par des personnes fatiguées qui ne lisent plus. Il faut mesurer sa charge : la part des modifications qui l’atteignent et les minutes par décision. Quand le même genre d’action revient sans cesse, il faut le rendre réversible plutôt qu’ajouter des approbateurs : suppressions logiques, modifications de schéma qui s’étendent avant de se contracter <span class="citation" data-cites="ambler2006">(Ambler et Sadalage 2006)</span>, clés que l’on peut rétablir, déploiements région par région. Chaque gain de réversibilité fait passer une catégorie de modifications d’« approuver » à « surveiller ». La meilleure barrière est celle qui a de moins en moins à faire.</p>
+</section>
+<section id="une-simulation" class="level2">
+<h2 class="anchored" data-anchor-id="une-simulation">6. Une simulation</h2>
+<p>J’ai simulé une équipe sous cinq politiques : une barrière sur chaque modification (la pratique courante aujourd’hui), ni barrière ni audit, un audit seul, l’audit avec la barrière légère (la proposition), et une barrière sur chaque modification avec l’audit. Chaque modification peut contenir un défaut réversible ; une sur vingt porte aussi une étape irréversible, elle-même susceptible d’être défectueuse. Une étape irréversible défectueuse qui s’exécute sans être arrêtée est un <em>incident irréversible</em> : l’audit nocturne arrive trop tard pour elle. Les paramètres (tableau 2) sont choisis plutôt que mesurés et, quand il fallait choisir, favorables à la revue.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 2.</strong> Paramètres de la simulation. L’audit inclut les signaux de production : la supervision fait partie de la surveillance, pas des utilisateurs. La file de revue est optimiste pour la barrière : les relecteurs commencent dès qu’ils sont libres. Une valeur <img src="https://latex.codecogs.com/png.latex?d%20=%200,5"> est élevée pour des défauts fonctionnels, vu ce que la revue est connue pour trouver <span class="citation" data-cites="mantyla2009 czerwonka2015">(Mäntylä et Lassenius 2009; Czerwonka et al. 2015)</span>.</caption>
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Paramètre</th>
+<th>Valeur</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Modifications par jour, <img src="https://latex.codecogs.com/png.latex?%5Clambda"></td>
+<td>40</td>
+</tr>
+<tr class="even">
+<td>Vérifications automatiques (intégration continue et revue par IA)</td>
+<td>log-normale, moyenne 24 min</td>
+</tr>
+<tr class="odd">
+<td>Tours de revue</td>
+<td>premier log-normal, moyenne 20 min, coefficient de variation 1 ; un second, moyenne 10 min, pour 40 % des modifications après 2 h de délai de l’auteur</td>
+</tr>
+<tr class="even">
+<td>Capacité de revue</td>
+<td>3 équivalents temps plein, premier arrivé premier servi, sans regroupement</td>
+</tr>
+<tr class="odd">
+<td>Probabilité de défaut résiduel, <img src="https://latex.codecogs.com/png.latex?p"></td>
+<td>0,05 par modification, pour toutes les politiques</td>
+</tr>
+<tr class="even">
+<td>Part détectée par un relecteur, <img src="https://latex.codecogs.com/png.latex?d"></td>
+<td>0,5</td>
+</tr>
+<tr class="odd">
+<td>Chance quotidienne que les utilisateurs trouvent un défaut latent, <img src="https://latex.codecogs.com/png.latex?h_%7B%5Ctext%7Busers%7D%7D"></td>
+<td>0,10</td>
+</tr>
+<tr class="even">
+<td>Chance quotidienne que l’audit trouve un défaut qu’il peut voir, <img src="https://latex.codecogs.com/png.latex?h_%7B%5Ctext%7Baudit%7D%7D"></td>
+<td>0,50 (variée dans la figure 6)</td>
+</tr>
+<tr class="odd">
+<td>Part des défauts que l’audit peut voir, <img src="https://latex.codecogs.com/png.latex?c"></td>
+<td>1 (variée dans la figure 6)</td>
+</tr>
+<tr class="even">
+<td>Modifications avec une étape irréversible</td>
+<td>5 %, défectueuses avec la probabilité <img src="https://latex.codecogs.com/png.latex?p"></td>
+</tr>
+<tr class="odd">
+<td>Part des étapes défectueuses arrêtées par la barrière légère</td>
+<td>0,5, comme une revue complète (0,8 testé)</td>
+</tr>
+<tr class="even">
+<td>Temps par décision à la barrière légère</td>
+<td>10 min</td>
+</tr>
+<tr class="odd">
+<td>Horizon</td>
+<td>60 jours ouvrés, 300 exécutions</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Simulation à 40 modifications par jour, paramètres du tableau 2. À gauche : défauts en attente d’être trouvés dans la branche principale. À droite : incidents irréversibles par mois, avec le temps humain que chaque politique coûte par jour. L’audit fait l’essentiel du travail sur les défauts réversibles ; la barrière légère fait le travail sur les défauts irréversibles."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig05.png" class="img-fluid figure-img" alt="Deux graphiques en barres horizontales pour cinq politiques. Défauts en attente d'être trouvés : ni barrière ni audit 19,2 ; barrière sur chaque modification (aujourd'hui) 9,7 ; audit seul 3,3 ; audit et barrière légère (proposition) 3,3 ; barrière sur chaque modification et audit 1,6. Incidents irréversibles par mois : 2,0 ; 1,0 ; 2,0 ; 1,0 ; 1,0. Temps humain par jour : 0 h, 16 h, 1 h, 1,3 h, 17 h."></a></p>
+<figcaption><strong>Figure 5.</strong> Simulation à 40 modifications par jour, paramètres du tableau 2. À gauche : défauts en attente d’être trouvés dans la branche principale. À droite : incidents irréversibles par mois, avec le temps humain que chaque politique coûte par jour. L’audit fait l’essentiel du travail sur les défauts réversibles ; la barrière légère fait le travail sur les défauts irréversibles.</figcaption>
+</figure>
+</div>
+<table class="caption-top table">
+<caption><strong>Tableau 3.</strong> Résultats de la simulation à 40 modifications par jour. Les défauts latents sont ceux présents dans la branche principale au cours d’une journée, en moyenne sur les jours 21 à 60. Les erreurs types sont de 0,15 au plus pour les défauts latents et de 0,05 au plus pour les incidents. Lancez <code>python figs.py</code> pour les reproduire.</caption>
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Politique</th>
+<th>Délai médian jusqu’à la fusion (90e centile)</th>
+<th>Temps humain par jour</th>
+<th>Défauts latents dans la branche principale</th>
+<th>Incidents irréversibles par mois</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ni barrière ni audit</td>
+<td>0,4 h (0,7 h)</td>
+<td>0</td>
+<td>19,2</td>
+<td>2,0</td>
+</tr>
+<tr class="even">
+<td>Barrière sur chaque modification (aujourd’hui)</td>
+<td>1,1 h (4,0 h)</td>
+<td>16 h</td>
+<td>9,7</td>
+<td>1,0</td>
+</tr>
+<tr class="odd">
+<td>Audit seul</td>
+<td>0,4 h (0,7 h)</td>
+<td>1 h</td>
+<td>3,3</td>
+<td>2,0</td>
+</tr>
+<tr class="even">
+<td>Audit et barrière légère (proposition)</td>
+<td>0,4 h (0,7 h)</td>
+<td>1 h 20 min</td>
+<td>3,3</td>
+<td>1,0</td>
+</tr>
+<tr class="odd">
+<td>Barrière sur chaque modification et audit</td>
+<td>1,1 h (4,0 h)</td>
+<td>17 h</td>
+<td>1,6</td>
+<td>1,0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Le chaos existe, mais ce n’est pas la proposition.</strong> Sans barrière ni audit, les défauts latents doublent, et les incidents irréversibles aussi. Les critiques ont raison sur cette politique, pas sur l’alternative.</p>
+<p><strong>Chaque mécanisme fait un travail.</strong> L’audit seul ramène les défauts latents à un tiers de ceux d’aujourd’hui, mais laisse les incidents irréversibles au niveau du chaos, parce qu’un audit nocturne les trouve après le dommage. La barrière légère ramène les incidents au niveau d’aujourd’hui, pour 20 minutes par jour. Ensemble, ils font mieux que la pratique actuelle sur les défauts réversibles et autant qu’elle sur les irréversibles, pour un douzième du temps humain. Si les preuves présentées à la barrière légère lui permettent d’arrêter 80 % des étapes défectueuses au lieu de 50 %, les incidents tombent à 0,4 par mois, bien en dessous d’aujourd’hui.</p>
+<p><strong>Le prix de la barrière complète.</strong> Ajouter à l’audit une barrière sur chaque modification fait passer les défauts latents de 3,3 à 1,6 sans réduire les incidents irréversibles, pour 16 heures par jour : environ <strong>10 heures d’ingénieur pour chaque jour de défaut latent évité</strong> (16 h ÷ 1,7 ≈ 9,4). Un défaut latent dans cette partie du système coûte-t-il plus de 10 heures d’ingénieur par jour ? Pour un défaut réversible dans un outil interne, rarement. Pour un flux de paiement, facilement, et c’est une porte à sens unique avec sa propre barrière légère.</p>
+<p><strong>Vitesse et portée de la surveillance.</strong> Selon la loi de Little <span class="citation" data-cites="little1961">(Little 1961)</span>, le nombre de défauts latents est égal au rythme auquel ils entrent multiplié par la durée de leur séjour. Une barrière retire au mieux le facteur <img src="https://latex.codecogs.com/png.latex?(1-d)">, ici une moitié ; un audit raccourcit le séjour, ici d’un facteur six. Mais l’audit peut ne voir qu’une part <img src="https://latex.codecogs.com/png.latex?c"> des défauts, le reste étant trouvé par les utilisateurs. La proposition fait alors mieux que la pratique actuelle lorsque</p>
+<p><span id="eq-watch"><img src="https://latex.codecogs.com/png.latex?%0Ac%20%3E%20d%20%5Cleft(1%20+%20%5Cfrac%7Bh_%7B%5Ctext%7Busers%7D%7D%7D%7Bh_%7B%5Ctext%7Baudit%7D%7D%7D%5Cright).%0A%5Ctag%7B3%7D"></span></p>
+<p>En clair, <em>la surveillance doit voir plus de sortes de défauts qu’un relecteur n’en aurait attrapé, et plus elle est lente, plus elle doit en voir.</em> Avec les valeurs du tableau 2, un audit qui trouve ce qu’il voit en deux jours environ doit voir au moins 60 % des défauts, et un audit qui met cinq jours, 75 % (figure 6). Si les défauts d’une équipe sont surtout d’un genre qu’aucune machine ne remarque, la règle échoue pour cette équipe, et l’équation&nbsp;3 le dit avant tout dommage. Mesurez <img src="https://latex.codecogs.com/png.latex?c"> d’abord et, là où cette part reste sous le seuil, continuez à relire les modifications de cette partie du code jusqu’à ce que la surveillance s’améliore.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-stop-reviewing-pull-requests/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Combien l’audit doit-il voir ? Défauts en attente d’être trouvés sans barrière mais avec un audit, comparés à la barrière d’aujourd’hui, selon la part des défauts que l’audit peut voir, pour d = 0,5. Sous la ligne noire, la proposition fait mieux qu’aujourd’hui ; les cercles marquent les seuils. Les courbes suivent l’équation&nbsp;3 ; la simulation concorde à 0,04 près."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig06.png" class="img-fluid figure-img" alt="Graphique avec en abscisse la part des défauts que l'audit peut voir, de 0 à 100 %, et en ordonnée les défauts en attente d'être trouvés comparés à aujourd'hui, de 0 à 2x. Une ligne noire horizontale à 1x est marquée aujourd'hui : une personne approuve chaque modification ; la zone en dessous, en vert, est marquée mieux qu'aujourd'hui. Deux courbes descendantes partent de 2x : un audit qui trouve les défauts en deux jours environ croise 1x à 60 % et finit près de 0,33x ; un audit qui les trouve en cinq jours environ croise 1x à 75 % et finit près de 0,67x."></a></p>
+<figcaption><strong>Figure 6.</strong> Combien l’audit doit-il voir ? Défauts en attente d’être trouvés sans barrière mais avec un audit, comparés à la barrière d’aujourd’hui, selon la part des défauts que l’audit peut voir, pour <img src="https://latex.codecogs.com/png.latex?d%20=%200,5">. Sous la ligne noire, la proposition fait mieux qu’aujourd’hui ; les cercles marquent les seuils. Les courbes suivent l’équation&nbsp;3 ; la simulation concorde à 0,04 près.</figcaption>
+</figure>
+</div>
+</section>
+<section id="prédictions-et-protocole-de-test" class="level2">
+<h2 class="anchored" data-anchor-id="prédictions-et-protocole-de-test">7. Prédictions et protocole de test</h2>
+<p>La vitesse n’est pas un bon test : supprimer une barrière accélère évidemment les fusions. La thèse tient ou tombe sur la qualité et sur ses hypothèses. Pour les équipes qui adoptent la règle, comparées à des équipes semblables qui gardent la barrière :</p>
+<ul>
+<li><strong>H1. Pas de perte de stabilité.</strong> Le taux de modifications en échec et le temps de rétablissement du service <span class="citation" data-cites="forsgren2018">(Forsgren et al. 2018)</span> ne sont pas pires, dans une marge fixée à l’avance, et les incidents irréversibles n’augmentent pas.</li>
+<li><strong>H2. La surveillance voit assez loin.</strong> La part des défauts trouvés d’abord par l’audit ou la supervision plutôt que par les utilisateurs, une estimation de <img src="https://latex.codecogs.com/png.latex?c">, dépasse le seuil de l’équation&nbsp;3, et les défauts sont trouvés plus tôt.</li>
+<li><strong>H3. Les corrections sont bon marché (hypothèse A).</strong> Pour les défauts trouvés par l’audit, le délai médian entre le signalement et la correction fusionnée est inférieur à une heure ouvrée, et un drapeau ou un retour arrière contient le dommage avant l’arrivée de la correction.</li>
+<li><strong>H4. Le rapport est utilisé.</strong> Au moins la moitié des constats de l’audit sont corrigés ou explicitement écartés en une semaine. Un audit que personne ne lit ramène la proposition au cas du chaos.</li>
+<li><strong>H5. La barrière reste légère.</strong> La part des modifications qui atteignent la barrière légère et les minutes par décision restent faibles, et baissent à mesure que plus d’actions deviennent réversibles.</li>
+</ul>
+<p><strong>Protocole.</strong> Dans un plan en escalier (<em>stepped wedge</em>), les équipes adoptent la règle l’une après l’autre, dans un ordre aléatoire, sur plusieurs mois, de sorte que chaque équipe est observée sous les deux politiques et que les effets de calendrier sont contrôlés. H1 est un test de non-infériorité préenregistré ; H2 à H5 et le délai de livraison sont des critères secondaires, mesurés à partir des journaux du dépôt, du pipeline et des incidents plutôt que de déclarations, puisque les équipes ne peuvent pas être mises en aveugle. Si H1, H2 ou H3 échoue, la thèse est fausse pour les équipes étudiées.</p>
+</section>
+<section id="objections-et-limites" class="level2">
+<h2 class="anchored" data-anchor-id="objections-et-limites">8. Objections et limites</h2>
+<p><strong>« La revue réduit manifestement les défauts » <span class="citation" data-cites="mcintosh2014">(McIntosh et al. 2014)</span>.</strong> Comparée à l’absence de revue, sur du code écrit à la main, oui. La comparaison pertinente oppose la revue à la surveillance, ce que testent H1 et H2. La recommandation de la revue par les pairs dans <span class="citation" data-cites="forsgren2018">Forsgren et al. (2018)</span> repose sur des données antérieures aux agents ; l’étendre est une extrapolation.</p>
+<p><strong>« La revue est la façon dont les équipes partagent le savoir » <span class="citation" data-cites="bacchelli2013 sadowski2018">(Bacchelli et Bird 2013; Sadowski, Söderberg, et al. 2018)</span>.</strong> Elle l’était. Le remplacement est délibéré : registres de décision, conventions, et un rapport quotidien lu par toute l’équipe plutôt que quarante diffs lus chacun par une personne.</p>
+<p><strong>Les gens s’adaptent.</strong> Sans relecteur, les auteurs peuvent devenir négligents, ou plus attentifs puisqu’ils sont seuls responsables du résultat. La simulation garde <img src="https://latex.codecogs.com/png.latex?p"> fixe ; H1 mesure l’effet net.</p>
+<p><strong>La conformité.</strong> Certaines normes exigent que le code spécifique soit relu avant sa mise en production ; PCI DSS fixe des conditions sur qui peut relire lorsque la revue est manuelle <span class="citation" data-cites="pcidss2022">(PCI Security Standards Council 2022)</span>. Savoir si une revue automatisée y satisfait relève des auditeurs ; quand ce n’est pas le cas, le code concerné rejoint la liste des portes à sens unique.</p>
+<p><strong>La perte de compétence.</strong> L’automatisation laisse aux personnes les cas rares et difficiles tout en supprimant la pratique qui les y prépare <span class="citation" data-cites="bainbridge1983">(Bainbridge 1983)</span>. Les équipes doivent entretenir cette compétence à dessein : lire dans le code les constats de l’audit, remonter des incidents à la main, faire tourner qui s’en charge.</p>
+<p><strong>Les limites du modèle.</strong> Il est linéaire et traite les défauts comme indépendants. Il ne pondère pas les défauts par leur gravité : si les relecteurs attrapent surtout les plus graves, il est biaisé contre la barrière ; les cas irréversibles, qui gardent leur barrière, sont censés couvrir les pires. Il compte l’audit comme une heure de lecture, sans son coût de calcul ni ses fausses alertes. Il tient <img src="https://latex.codecogs.com/png.latex?d"> pour constant, alors que les relecteurs se fatiguent et que les grosses modifications sont relues plus superficiellement, et il ignore ce que les relecteurs apprennent. Le taux d’arrêt de la barrière légère est supposé égal à celui d’un relecteur, non mesuré. Les paramètres décrivent une équipe à un rythme donné : le sens du résultat tient partout où l’équation&nbsp;3 tient, pas son ampleur. Enfin, l’article suppose que l’écriture du code n’est plus le goulot d’étranglement, et les données sur l’accélération des développeurs expérimentés par l’IA sont partagées <span class="citation" data-cites="becker2025">(Becker et al. 2025)</span>.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">9. Conclusion</h2>
+<p>La revue des pull requests était le bon contrôle tant que les défauts tardifs coûtaient cher et que la lecture d’une personne était la principale vérification. Avec le codage agentique, les règles s’appliquent à l’intérieur de chaque session, la plupart des défauts se corrigent à peu de frais le lendemain, et la seule étape qui ne s’est pas accélérée est la personne qui lit le diff.</p>
+<p>Ce qui garde un code en bonne santé, c’est la vitesse à laquelle les défauts sont trouvés et le faible coût auquel ils sont défaits, pas le fait que quelqu’un ait regardé chaque modification avant sa fusion. Là où le dommage ne peut pas être défait, une personne décide encore, tard et brièvement, au point de non-retour : la barrière garde l’acte, pas le code. Là où une machine ne voit pas, l’équipe doit le mesurer avant de lâcher prise.</p>
+<p>Cela demande de renoncer au contrôle de chaque modification. En échange, nous pouvons simplifier nos processus au lieu d’ajouter des couches pour protéger une forme de contrôle qui, autrefois, était la seule possible. Approuvez ce que vous ne pouvez pas défaire. Surveillez tout le reste.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-22-review-the-intent-not-the-diff/index.html">Relire l’intention, pas le diff</a> Comment l’équipe Claude Code a résolu la revue de code, et la seule chose que je lâcherais.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet article sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-ambler2006" class="csl-entry">
+Ambler, Scott W., et Pramod J. Sadalage. 2006. <em>Refactoring Databases: Evolutionary Database Design</em>. Addison-Wesley.
+</div>
+<div id="ref-bacchelli2013" class="csl-entry">
+Bacchelli, Alberto, et Christian Bird. 2013. <span>«&nbsp;Expectations, Outcomes, and Challenges of Modern Code Review&nbsp;»</span>. <em>Proceedings of the 35th International Conference on Software Engineering (ICSE)</em>, 712‑21. <a href="https://doi.org/10.1109/ICSE.2013.6606617">https://doi.org/10.1109/ICSE.2013.6606617</a>.
+</div>
+<div id="ref-bainbridge1983" class="csl-entry">
+Bainbridge, Lisanne. 1983. <span>«&nbsp;Ironies of Automation&nbsp;»</span>. <em>Automatica</em> 19 (6): 775‑79. <a href="https://doi.org/10.1016/0005-1098(83)90046-8">https://doi.org/10.1016/0005-1098(83)90046-8</a>.
+</div>
+<div id="ref-beck1999" class="csl-entry">
+Beck, Kent. 1999. <em>Extreme Programming Explained: Embrace Change</em>. Addison-Wesley.
+</div>
+<div id="ref-becker2025" class="csl-entry">
+Becker, Joel, Nate Rush, Elizabeth Barnes, et David Rein. 2025. <span>«&nbsp;Measuring the Impact of Early-2025 <span>AI</span> on Experienced Open-Source Developer Productivity&nbsp;»</span>. <em>arXiv preprint arXiv:2507.09089</em>. <a href="https://arxiv.org/abs/2507.09089">https://arxiv.org/abs/2507.09089</a>.
+</div>
+<div id="ref-beller2014" class="csl-entry">
+Beller, Moritz, Alberto Bacchelli, Andy Zaidman, et Elmar Juergens. 2014. <span>«&nbsp;Modern Code Reviews in Open-Source Projects: Which Problems Do They Fix?&nbsp;»</span> <em>Proceedings of the 11th Working Conference on Mining Software Repositories (MSR)</em>, 202‑11. <a href="https://doi.org/10.1145/2597073.2597082">https://doi.org/10.1145/2597073.2597082</a>.
+</div>
+<div id="ref-beyer2016" class="csl-entry">
+Beyer, Betsy, Chris Jones, Jennifer Petoff, et Niall Richard Murphy. 2016. <em>Site Reliability Engineering: How <span>Google</span> Runs Production Systems</em>. O’Reilly Media.
+</div>
+<div id="ref-bezos2016" class="csl-entry">
+Bezos, Jeffrey P. 2016. <em>2015 Letter to Shareholders</em>. Amazon.com, Inc.
+</div>
+<div id="ref-boehm1981" class="csl-entry">
+Boehm, Barry W. 1981. <em>Software Engineering Economics</em>. Prentice Hall.
+</div>
+<div id="ref-bossavit2015" class="csl-entry">
+Bossavit, Laurent. 2015. <em>The Leprechauns of Software Engineering</em>. Leanpub.
+</div>
+<div id="ref-anthropic2026review" class="csl-entry">
+Claude Code team, Anthropic. 2026. <em>Solving code review at <span>Anthropic</span></em>. Claude blog. <a href="https://claude.dev/blog/solving-code-review-at-anthropic/">https://claude.dev/blog/solving-code-review-at-anthropic/</a>.
+</div>
+<div id="ref-czerwonka2015" class="csl-entry">
+Czerwonka, Jacek, Michaela Greiler, et Jack Tilford. 2015. <span>«&nbsp;Code Reviews Do Not Find Bugs: How the Current Code Review Best Practice Slows Us Down&nbsp;»</span>. <em>Proceedings of the 37th International Conference on Software Engineering (ICSE), Software Engineering in Practice</em>, 27‑28. <a href="https://doi.org/10.1109/ICSE.2015.131">https://doi.org/10.1109/ICSE.2015.131</a>.
+</div>
+<div id="ref-fagan1976" class="csl-entry">
+Fagan, Michael E. 1976. <span>«&nbsp;Design and Code Inspections to Reduce Errors in Program Development&nbsp;»</span>. <em>IBM Systems Journal</em> 15 (3): 182‑211. <a href="https://doi.org/10.1147/sj.153.0182">https://doi.org/10.1147/sj.153.0182</a>.
+</div>
+<div id="ref-forsgren2018" class="csl-entry">
+Forsgren, Nicole, Jez Humble, et Gene Kim. 2018. <em>Accelerate: The Science of Lean Software and <span>DevOps</span></em>. IT Revolution Press.
+</div>
+<div id="ref-greshake2023" class="csl-entry">
+Greshake, Kai, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, et Mario Fritz. 2023. <span>«&nbsp;Not What You’ve Signed Up For: Compromising Real-World <span>LLM</span>-Integrated Applications with Indirect Prompt Injection&nbsp;»</span>. <em>Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security (AISec)</em>, 79‑90. <a href="https://arxiv.org/abs/2302.12173">https://arxiv.org/abs/2302.12173</a>.
+</div>
+<div id="ref-humble2010" class="csl-entry">
+Humble, Jez, et David Farley. 2010. <em>Continuous Delivery: Reliable Software Releases through Build, Test, and Deployment Automation</em>. Addison-Wesley.
+</div>
+<div id="ref-inozemtseva2014" class="csl-entry">
+Inozemtseva, Laura, et Reid Holmes. 2014. <span>«&nbsp;Coverage Is Not Strongly Correlated with Test Suite Effectiveness&nbsp;»</span>. <em>Proceedings of the 36th International Conference on Software Engineering (ICSE)</em>, 435‑45. <a href="https://doi.org/10.1145/2568225.2568271">https://doi.org/10.1145/2568225.2568271</a>.
+</div>
+<div id="ref-jimenez2024" class="csl-entry">
+Jimenez, Carlos E., John Yang, Alexander Wettig, et al. 2024. <span>«&nbsp;<span>SWE-bench</span>: Can Language Models Resolve Real-World <span>GitHub</span> Issues?&nbsp;»</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2310.06770">https://arxiv.org/abs/2310.06770</a>.
+</div>
+<div id="ref-kemerer2009" class="csl-entry">
+Kemerer, Chris F., et Mark C. Paulk. 2009. <span>«&nbsp;The Impact of Design and Code Reviews on Software Quality: An Empirical Study Based on <span>PSP</span> Data&nbsp;»</span>. <em>IEEE Transactions on Software Engineering</em> 35 (4): 534‑50. <a href="https://doi.org/10.1109/TSE.2009.27">https://doi.org/10.1109/TSE.2009.27</a>.
+</div>
+<div id="ref-kingman1961" class="csl-entry">
+Kingman, J. F. C. 1961. <span>«&nbsp;The Single Server Queue in Heavy Traffic&nbsp;»</span>. <em>Mathematical Proceedings of the Cambridge Philosophical Society</em> 57 (4): 902‑4. <a href="https://doi.org/10.1017/S0305004100036094">https://doi.org/10.1017/S0305004100036094</a>.
+</div>
+<div id="ref-little1961" class="csl-entry">
+Little, John D. C. 1961. <span>«&nbsp;A Proof for the Queuing Formula: <span><img src="https://latex.codecogs.com/png.latex?L%20=%20%5Clambda%20W"></span>&nbsp;»</span>. <em>Operations Research</em> 9 (3): 383‑87. <a href="https://doi.org/10.1287/opre.9.3.383">https://doi.org/10.1287/opre.9.3.383</a>.
+</div>
+<div id="ref-mantyla2009" class="csl-entry">
+Mäntylä, Mika V., et Casper Lassenius. 2009. <span>«&nbsp;What Types of Defects Are Really Discovered in Code Reviews?&nbsp;»</span> <em>IEEE Transactions on Software Engineering</em> 35 (3): 430‑48. <a href="https://doi.org/10.1109/TSE.2008.71">https://doi.org/10.1109/TSE.2008.71</a>.
+</div>
+<div id="ref-mcintosh2014" class="csl-entry">
+McIntosh, Shane, Yasutaka Kamei, Bram Adams, et Ahmed E. Hassan. 2014. <span>«&nbsp;The Impact of Code Review Coverage and Code Review Participation on Software Quality: A Case Study of the <span>Qt</span>, <span>VTK</span>, and <span>ITK</span> Projects&nbsp;»</span>. <em>Proceedings of the 11th Working Conference on Mining Software Repositories (MSR)</em>, 192‑201. <a href="https://doi.org/10.1145/2597073.2597076">https://doi.org/10.1145/2597073.2597076</a>.
+</div>
+<div id="ref-papadakis2019" class="csl-entry">
+Papadakis, Mike, Marinos Kintis, Jie Zhang, Yue Jia, Yves Le Traon, et Mark Harman. 2019. <span>«&nbsp;Mutation Testing Advances: An Analysis and Survey&nbsp;»</span>. In <em>Advances in Computers</em>, vol. 112. Elsevier. <a href="https://doi.org/10.1016/bs.adcom.2018.03.015">https://doi.org/10.1016/bs.adcom.2018.03.015</a>.
+</div>
+<div id="ref-pcidss2022" class="csl-entry">
+PCI Security Standards Council. 2022. <em>Payment Card Industry Data Security Standard, Version 4.0</em>. Requirements 6.2.3 and 6.2.3.1.
+</div>
+<div id="ref-pearce2022" class="csl-entry">
+Pearce, Hammond, Baleegh Ahmad, Benjamin Tan, Brendan Dolan-Gavitt, et Ramesh Karri. 2022. <span>«&nbsp;Asleep at the Keyboard? Assessing the Security of <span>GitHub</span> <span>Copilot</span>’s Code Contributions&nbsp;»</span>. <em>IEEE Symposium on Security and Privacy (SP)</em>, 754‑68. <a href="https://doi.org/10.1109/SP46214.2022.9833571">https://doi.org/10.1109/SP46214.2022.9833571</a>.
+</div>
+<div id="ref-perry2023" class="csl-entry">
+Perry, Neil, Megha Srivastava, Deepak Kumar, et Dan Boneh. 2023. <span>«&nbsp;Do Users Write More Insecure Code with <span>AI</span> Assistants?&nbsp;»</span> <em>Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security (CCS)</em>, 2785‑99. <a href="https://doi.org/10.1145/3576915.3623157">https://doi.org/10.1145/3576915.3623157</a>.
+</div>
+<div id="ref-rigby2013" class="csl-entry">
+Rigby, Peter C., et Christian Bird. 2013. <span>«&nbsp;Convergent Contemporary Software Peer Review Practices&nbsp;»</span>. <em>Proceedings of the 9th Joint Meeting on Foundations of Software Engineering (ESEC/FSE)</em>, 202‑12. <a href="https://doi.org/10.1145/2491411.2491444">https://doi.org/10.1145/2491411.2491444</a>.
+</div>
+<div id="ref-sadowski2018cacm" class="csl-entry">
+Sadowski, Caitlin, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon, et Ciera Jaspan. 2018. <span>«&nbsp;Lessons from Building Static Analysis Tools at <span>Google</span>&nbsp;»</span>. <em>Communications of the ACM</em> 61 (4): 58‑66. <a href="https://doi.org/10.1145/3188720">https://doi.org/10.1145/3188720</a>.
+</div>
+<div id="ref-sadowski2018" class="csl-entry">
+Sadowski, Caitlin, Emma Söderberg, Luke Church, Michal Sipko, et Alberto Bacchelli. 2018. <span>«&nbsp;Modern Code Review: A Case Study at <span>Google</span>&nbsp;»</span>. <em>Proceedings of the 40th International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)</em>, 181‑90. <a href="https://doi.org/10.1145/3183519.3183525">https://doi.org/10.1145/3183519.3183525</a>.
+</div>
+<div id="ref-strathern1997" class="csl-entry">
+Strathern, Marilyn. 1997. <span>«&nbsp;<span>“Improving Ratings”</span>: Audit in the <span>British</span> University System&nbsp;»</span>. <em>European Review</em> 5 (3): 305‑21. <a href="https://doi.org/10.1002/(SICI)1234-981X(199707)5:3<305::AID-EURO184>3.0.CO;2-4">https://doi.org/10.1002/(SICI)1234-981X(199707)5:3&lt;305::AID-EURO184&gt;3.0.CO;2-4</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Arrêtez de relire les pull requests},
+  date = {2026-10-23},
+  url = {https://scuenat.github.io/fr/posts/2026-10-23-stop-reviewing-pull-requests/},
+  langid = {fr}
+}
+</code></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Arrêtez de relire les pull
+requests.”</span> October 23. <a href="https://scuenat.github.io/fr/posts/2026-10-23-stop-reviewing-pull-requests/">https://scuenat.github.io/fr/posts/2026-10-23-stop-reviewing-pull-requests/</a>.
+</div></div></section></div> ]]></description>
+  <category>article</category>
+  <category>position</category>
+  <category>ia</category>
+  <category>agents</category>
+  <category>programmation</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-10-23-stop-reviewing-pull-requests/</guid>
+  <pubDate>Fri, 23 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png" medium="image" type="image/png" height="85" width="144"/>
+</item>
 <item>
   <title>Relire l’intention, pas le diff</title>
   <dc:creator>Stéphane Cuenat</dc:creator>

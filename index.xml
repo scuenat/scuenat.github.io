@@ -15,7 +15,463 @@
 <link>https://scuenat.github.io/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Thu, 22 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 23 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Stop Reviewing Pull Requests</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-warning">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>A provocative paper, on purpose.</strong> A position paper in the form of a short scientific paper: a thesis, a model, a simulation, and predictions that could prove it wrong. It follows <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a>, which kept review and changed its object; this paper asks whether we need the review at all. Figures are my own, drawn and simulated with the code in <a href="figs.py">figs.py</a>.</p>
+</div>
+</div>
+</div>
+<p><strong>Abstract.</strong> Human approval of every pull request became standard when code was written by hand and defects found late were expensive. I model the review gate as an investment that pays when <img src="https://latex.codecogs.com/png.latex?p%20%5Ccdot%20d%20%5Ccdot%20%5CDelta%20C%20%3E%20r">: the chance a change still carries a defect after automated checks, times the share a reviewer catches, times the late-fix cost avoided, must exceed the cost of the gate. Agentic coding shrinks the late-fix cost of most changes, but not where harm survives a revert. The model therefore yields a rule rather than a ban: <em>approve what you cannot undo; watch everything else</em>. Watching means rules in every session and a daily audit of the whole codebase. The approval that remains is a thin gate placed late, at the point of no return, rather than at the merge. In a simulation of a team merging 40 changes a day, the audit and the thin gate together leave a third of today’s latent defects and the same number of irreversible incidents, for about 80 minutes of people time a day instead of 16 hours. I state the conditions under which this holds and five predictions to test it.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Claims
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>The rule.</strong> Approve what you cannot undo. Watch everything else.</li>
+<li><strong>Why.</strong> A gate pays only when <img src="https://latex.codecogs.com/png.latex?p%20%5Ccdot%20d%20%5Ccdot%20%5CDelta%20C%20%3E%20r">. Cheap fixes and fast rollback make <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C"> small, except where harm survives a revert.</li>
+<li><strong>Watching.</strong> Rules every session must follow, merge on green, and a daily audit whose report drives the team’s work.</li>
+<li><strong>The gate that remains.</strong> Thin and late: at the point of no return, a few questions with evidence, rarely needed. It guards the act, not the code.</li>
+<li><strong>The condition.</strong> Watching beats approving only if the audit reaches far enough and fast enough: <img src="https://latex.codecogs.com/png.latex?c%20%3E%20d%20%5C,%20(1%20+%20h_%7B%5Ctext%7Busers%7D%7D%20/%20h_%7B%5Ctext%7Baudit%7D%7D)">.</li>
+<li><strong>The test.</strong> Teams that adopt the rule should fail no more often and find defects sooner. If they do not, the thesis is wrong.</li>
+</ol>
+</div>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
+<p>For most changes, nobody should have to approve the pull request. The usual answer is that this would end in chaos. I do not think so, and the reason is economic. Review is a control, and every control has a price. We paid it because the gate was the cheapest place to catch a defect: minutes at review against days once it reached users.</p>
+<p>Agentic coding changes the price on both sides. Rules can be enforced inside every session instead of at its end. A fix takes an agent minutes, and a flag can switch a change off in seconds. Correction is cheap now, and I believe that is what changes the whole picture. Human attention stays expensive, and the gate spends it on every change, whether or not that change needs it.</p>
+<p>Correction is not cheap everywhere. Deleted data, leaked credentials or money sent to the wrong account cannot be taken back by a revert. Hence the rule: <strong>approve what you cannot undo; watch everything else.</strong> Where approval remains, it must come late and stay small, or it brings little.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Today, every change waits for a person. In the proposal, everything merges when the checks pass. Only an action that cannot be undone waits, late, at a thin gate where a person decides; everything else is released. Every night, an audit of the whole codebase tells the team what to fix and which rules to tighten."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png" class="img-fluid figure-img" alt="Two bands. Top, today, a person approves every change: Write, Checks, A person approves (highlighted, every change waits here), Merge. Bottom, proposed, approve what you cannot undo, watch everything else: Write with rules, Checks, Merge (everything merges), then Point of no return? If yes, Thin gate, a person decides, then Release; if no, straight to Release. From Release, an arrow labelled every night leads to Daily audit of the whole codebase, then to The team fixes what matters and tightens the rules, and back up to Write."></a></p>
+<figcaption><strong>Figure 1.</strong> Today, every change waits for a person. In the proposal, everything merges when the checks pass. Only an action that cannot be undone waits, late, at a thin gate where a person decides; everything else is released. Every night, an audit of the whole codebase tells the team what to fix and which rules to tighten.</figcaption>
+</figure>
+</div>
+</section>
+<section id="background-what-review-was-for" class="level2">
+<h2 class="anchored" data-anchor-id="background-what-review-was-for">2. Background: what review was for</h2>
+<p><strong>Inspections.</strong> Formal code inspection began at IBM in the 1970s as a defect-removal step <span class="citation" data-cites="fagan1976">(Fagan 1976)</span>, justified by the claim that a defect costs one to two orders of magnitude more to fix in operation than in development <span class="citation" data-cites="boehm1981">(Boehm 1981)</span>. The empirical basis of that curve is thinner than its fame <span class="citation" data-cites="bossavit2015">(Bossavit 2015)</span>, and agile practice argued that integration and automated tests flatten it <span class="citation" data-cites="beck1999">(Beck 1999)</span>.</p>
+<p><strong>What modern review finds.</strong> Lightweight review replaced inspections in most teams <span class="citation" data-cites="rigby2013">(Rigby and Bird 2013)</span>. At Microsoft, developers named finding defects as their first motivation, yet most comments concerned code improvement and understanding <span class="citation" data-cites="bacchelli2013">(Bacchelli and Bird 2013)</span>; a later study was titled <em>Code Reviews Do Not Find Bugs</em> <span class="citation" data-cites="czerwonka2015">(Czerwonka et al. 2015)</span>. About three quarters of the issues found concern evolvability rather than behaviour <span class="citation" data-cites="mantyla2009 beller2014">(Mäntylä and Lassenius 2009; Beller et al. 2014)</span>. At Google, people valued education, norms, gatekeeping and accident prevention most <span class="citation" data-cites="sadowski2018">(Sadowski, Söderberg, et al. 2018)</span>.</p>
+<p><strong>Evidence for review.</strong> Components with low review coverage had more post-release defects in three open-source projects <span class="citation" data-cites="mcintosh2014">(McIntosh et al. 2014)</span>, and careful reading improves quality <span class="citation" data-cites="kemerer2009">(Kemerer and Paulk 2009)</span>. On approval, the largest survey of delivery performance found that external approval slowed delivery without reducing failed changes, and recommended lightweight peer review instead <span class="citation" data-cites="forsgren2018">(Forsgren et al. 2018)</span>.</p>
+<p><strong>Agentic review today.</strong> The Claude Code team at Anthropic already lets low-risk changes merge without a person when automated review passes, and reports more merged changes and fewer reverts <span class="citation" data-cites="anthropic2026review">(Claude Code team, Anthropic 2026)</span>. The rule proposed here replaces their risk score with a simpler question and makes no-approval the default.</p>
+</section>
+<section id="a-cost-model-of-the-gate" class="level2">
+<h2 class="anchored" data-anchor-id="a-cost-model-of-the-gate">3. A cost model of the gate</h2>
+<p>Consider one change. Let <img src="https://latex.codecogs.com/png.latex?p"> be the probability that it still carries a defect after all automated checks; <img src="https://latex.codecogs.com/png.latex?d"> the share of such defects a human reviewer catches; <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C%20=%20C_%7B%5Ctext%7Blate%7D%7D%20-%20C_%7B%5Ctext%7Breview%7D%7D"> the cost avoided by catching it at review; and <img src="https://latex.codecogs.com/png.latex?r"> the full cost of the gate for one change, including reading, waiting and context switches. The gate pays for itself when</p>
+<p><span id="eq-break-even"><img src="https://latex.codecogs.com/png.latex?%0Ap%20%5C,%20d%20%5C,%20%5CDelta%20C%20%3E%20r%20.%0A%5Ctag%7B1%7D"></span></p>
+<p>The late cost is the work of the fix plus the harm done while the defect lives. If harm accrues at a rate <img src="https://latex.codecogs.com/png.latex?k"> and the defect is found after a time <img src="https://latex.codecogs.com/png.latex?%5Ctau">,</p>
+<p><span id="eq-late"><img src="https://latex.codecogs.com/png.latex?%0AC_%7B%5Ctext%7Blate%7D%7D%20%5Capprox%20c_%7B%5Ctext%7Bfix%7D%7D%20+%20k%20%5C,%20%5Ctau%20.%0A%5Ctag%7B2%7D"></span></p>
+<p><strong>What agents change.</strong> Session rules can lower <img src="https://latex.codecogs.com/png.latex?p">: an agent can be made to add tests for every changed behaviour, keep coverage of changed lines above a threshold and follow a conventions file, and checks delivered while code is written are the ones developers act on <span class="citation" data-cites="sadowski2018cacm">(Sadowski, Aftandilian, et al. 2018)</span>. This is not automatic, since code written with AI assistants can be less secure <span class="citation" data-cites="pearce2022 perry2023">(Pearce et al. 2022; Perry et al. 2023)</span>, so the simulation keeps <img src="https://latex.codecogs.com/png.latex?p"> the same under every policy. Meanwhile <img src="https://latex.codecogs.com/png.latex?r"> does not fall: careful review proceeds at a few hundred lines an hour <span class="citation" data-cites="kemerer2009">(Kemerer and Paulk 2009)</span>, volume rises, and waiting grows roughly as <img src="https://latex.codecogs.com/png.latex?%5Crho/(1-%5Crho)"> with reviewer utilisation <img src="https://latex.codecogs.com/png.latex?%5Crho"> <span class="citation" data-cites="kingman1961">(Kingman 1961)</span>.</p>
+<p><strong>The main assumption.</strong> The term that moves most is <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C">. <em>Assumption A: for most defects, an agent can produce a correct fix within an hour of the report, and a flag or a rollback can stop the harm within minutes.</em> Under A, <img src="https://latex.codecogs.com/png.latex?c_%7B%5Ctext%7Bfix%7D%7D"> is small, flags cap <img src="https://latex.codecogs.com/png.latex?k"> <span class="citation" data-cites="humble2010">(Humble and Farley 2010)</span>, and an audit caps <img src="https://latex.codecogs.com/png.latex?%5Ctau">. Agents resolve a meaningful share of real repository issues under controlled evaluation <span class="citation" data-cites="jimenez2024">(Jimenez et al. 2024)</span>, and the best teams in <span class="citation" data-cites="forsgren2018">Forsgren et al. (2018)</span> already restored service in under an hour; neither measures agent-made fixes in production, so prediction H3 tests A directly.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Schematic. Before agents, a defect cost far more to fix the later it was found, a curve whose exact shape is disputed [@bossavit2015]. With agents, under Assumption A, a late fix costs little more than an early one. Harm that cannot be undone stays expensive."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig02.png" class="img-fluid figure-img" alt="Log-scale chart of cost to fix, from 1x to 100x, against when the defect is found: while writing, at review, next day, months later. A dashed grey line, before agents, rises from 1x to 100x. A green line, with agents (assumed), rises only from 1x to about 2.4x. A red line, cannot be undone, starts at 40x the next day and stays high."></a></p>
+<figcaption><strong>Figure 2.</strong> Schematic. Before agents, a defect cost far more to fix the later it was found, a curve whose exact shape is disputed <span class="citation" data-cites="bossavit2015">(Bossavit 2015)</span>. With agents, under Assumption A, a late fix costs little more than an early one. Harm that cannot be undone stays expensive.</figcaption>
+</figure>
+</div>
+<p><strong>Where the rule comes from.</strong> Assumption A flattens the cost curve only for harm that a revert removes. When harm persists after a revert, <img src="https://latex.codecogs.com/png.latex?k%5Ctau"> stays large however quickly the defect is found, and the gate still pays (the red point in Figure 3). Everything else drifts below the break-even line. The model does not say “never review”; it says exactly where review still pays.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. The break-even condition of Equation&nbsp;1, for d = 0.5. Review pays only when defects are likely and late fixes are costly. Agents move ordinary changes into the green region; changes that cannot be undone stay in the amber one. Positions are illustrative, not measured."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig03.png" class="img-fluid figure-img" alt="Chart with horizontal axis cost of a late fix relative to the cost of a review, and vertical axis chance a change still has a defect, both increasing. A diagonal line separates an amber upper-right region, review pays, from a green lower-left region, review costs more than it saves. A point labelled before agents sits in the amber region; a curved arrow leads from it to a point labelled with agents in the green region. A red point labelled cannot be undone sits in the amber region."></a></p>
+<figcaption><strong>Figure 3.</strong> The break-even condition of Equation&nbsp;1, for <img src="https://latex.codecogs.com/png.latex?d%20=%200.5">. Review pays only when defects are likely and late fixes are costly. Agents move ordinary changes into the green region; changes that cannot be undone stay in the amber one. Positions are illustrative, not measured.</figcaption>
+</figure>
+</div>
+</section>
+<section id="the-rule-in-practice" class="level2">
+<h2 class="anchored" data-anchor-id="the-rule-in-practice">4. The rule in practice</h2>
+<p><strong>What cannot be undone.</strong> A change is a one-way door <span class="citation" data-cites="bezos2016">(Bezos 2016)</span> when its harm survives a revert: data destroyed or exposed, money moved, credentials or signing keys changed, a public interface released outside the team, a message sent to customers. The list is explicit, versioned and part of the session contract. Code that touches it merges like any other; its irreversible step waits at the thin gate (§5). Sessions steered from outside the team belong to the same category: an outsider’s issue or a web page can direct an agent <span class="citation" data-cites="greshake2023">(Greshake et al. 2023)</span>, and a planted backdoor or a leaked secret cannot be undone either. The contract records where each session’s instructions came from, so such sessions are flagged automatically.</p>
+<p><strong>What watching means.</strong> Every change merges on green, and everything that is not a one-way door is released without waiting. It is watched at three points (Table 1): before the merge by a <em>session contract</em> enforced by the agent and CI; after it by <em>flags and monitoring</em>; and once a day by an <em>audit</em> that reads the whole codebase and production signals and writes a short report that the team reads instead of forty diffs. When a problem keeps reappearing, the team turns it into a rule, so the contract gradually absorbs what reviewers used to write in comments.</p>
+<p><strong>What the audit sees that a pre-merge check cannot.</strong> Fast checks belong in the contract. The audit adds <em>slow</em> checks such as mutation testing and fuzzing, patterns <em>across</em> changes, <em>production</em> signals since yesterday’s merges, and <em>trends</em> people can judge before any rule encodes them. A per-change reviewer misses the second and third kind too.</p>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> A minimal session contract and audit. Thresholds and exact checks are for each team to set; the split is the point. What can be decided per change is enforced by machines; what needs judgement is batched once a day for people.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Session contract (every change, blocking)</th>
+<th>Daily audit (whole codebase, advisory)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tests</td>
+<td>Tests added or updated for each changed behaviour</td>
+<td>Mutation score by module, and its trend</td>
+</tr>
+<tr class="even">
+<td>Coverage</td>
+<td>Coverage of changed lines ≥ threshold; total never decreases</td>
+<td>Untested hotspots: code that changes often and is weakly tested</td>
+</tr>
+<tr class="odd">
+<td>Integrity</td>
+<td>No test deleted or assertion weakened without a linked decision</td>
+<td>Weakened or skipped tests, by session</td>
+</tr>
+<tr class="even">
+<td>Conventions</td>
+<td>Conventions file, linters and types pass</td>
+<td>Drift from conventions and architecture rules</td>
+</tr>
+<tr class="odd">
+<td>Intent</td>
+<td>A change to a contract or invariant updates its decision record</td>
+<td>Decision records changed since yesterday</td>
+</tr>
+<tr class="even">
+<td>Production</td>
+<td>User-facing behaviour behind a flag</td>
+<td>Errors and performance since the last merges</td>
+</tr>
+<tr class="odd">
+<td>One-way doors</td>
+<td>Listed actions wait at the thin gate; sessions steered from outside are flagged</td>
+<td>Gate load: share of changes reaching it, minutes per decision</td>
+</tr>
+</tbody>
+</table>
+<p>The integrity rule stops the most common failure of coding agents, an agent that edits a test until it passes. Coverage is paired with mutation testing because coverage alone is a weak measure of test quality <span class="citation" data-cites="inozemtseva2014">(Inozemtseva and Holmes 2014)</span> and becomes a target once enforced <span class="citation" data-cites="strathern1997">(Strathern 1997)</span>; mutation testing measures whether tests notice a change in behaviour <span class="citation" data-cites="papadakis2019">(Papadakis et al. 2019)</span>.</p>
+<p><strong>Who is accountable.</strong> The person who starts a session owns what it merges. Steering the agent and looking at its output is part of writing, and it stays. What disappears is the second person whose approval was required.</p>
+<p><strong>Intent changes.</strong> The previous essay sent every change of intent to a person before merging. The rule refines that: a change to a contract or invariant that can be reverted merges, but never silently. It updates its decision record, and the team reads it the next morning. Only intent that guards a one-way door meets the thin gate.</p>
+</section>
+<section id="the-thin-gate" class="level2">
+<h2 class="anchored" data-anchor-id="the-thin-gate">5. The thin gate</h2>
+<p>Where the remaining gate sits and how much it asks decide whether it is worth having. A gate placed early and made thick, with a person reading every diff of every risky change, brings little. A gate placed late and kept thin keeps most of the value that is left.</p>
+<p><strong>Late: at the point of no return, not at the merge.</strong> Merging is reversible; code that touches a one-way door is safe until it runs. The irreversible act comes later: running the migration, rotating the key, sending the message, turning on the flag that moves money. The gate belongs there. The person judges what will actually run, with real data and configuration; the approval cannot go stale; and the gate holds back one action, not the team.</p>
+<p><strong>Thin: a few questions with evidence, not a diff.</strong> Reading code is slow, and reviews get shallower as changes grow <span class="citation" data-cites="kemerer2009">(Kemerer and Paulk 2009)</span>. At the point of no return, five questions suffice (Figure 4). What exactly cannot be undone? What did a rehearsal, such as a dry run on a copy of production, show? What is affected, and can the action be staged? What is the way back, and has it been tested? Who asked, and did any instruction come from outside the team? The agent prepares the answers; the person checks them and chooses to go, to stage the action, or to stop. Staged releases are standard practice when an effect is uncertain <span class="citation" data-cites="beyer2016">(Beyer et al. 2016)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Schematic of a thin gate, with an illustrative example. The person answers five questions from evidence the agent prepared, instead of reading a diff. The gate is late, thin and rare."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig04.png" class="img-fluid figure-img" alt="Left, a decision card headed point of no return: drop column customers.legacy_email. Five rows of question and evidence: what cannot be undone, deletes 1,284,301 stored values in production; evidence, dry run on last night's copy, no reads in 30 days; blast radius, one table, three services, can run region by region; way back, backup taken 02:00, restore tested 02:20; who asked, team ticket, no instructions from outside the team. Three buttons: Go, Stage it, Stop. Right, three notes: Late, at the point of no return, not at the merge, the person judges what will actually run. Thin, five questions, the agent prepares the evidence, nobody reads the diff, minutes not hours. Rare, a few changes reach it, keep it thin by making more things undoable, not by adding people."></a></p>
+<figcaption><strong>Figure 4.</strong> Schematic of a thin gate, with an illustrative example. The person answers five questions from evidence the agent prepared, instead of reading a diff. The gate is late, thin and rare.</figcaption>
+</figure>
+</div>
+<p>In the terms of Equation&nbsp;1, a thin, late gate raises <img src="https://latex.codecogs.com/png.latex?d">, because the person examines evidence about the one thing that matters, lowers <img src="https://latex.codecogs.com/png.latex?r">, because the decision takes minutes and is rarely needed, and sits where <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C"> is largest. A thick, early gate does the opposite on all three counts. One case needs more than five questions: a session steered from outside the team, where the danger hides in the code itself. There a person reads the diff or, better, the work is redone in a session the team steers.</p>
+<p><strong>Rare: keep it thin on purpose.</strong> Gates grow. Every incident adds an item to the list, and a long enough list turns the thin gate back into the old one, approved by tired people who no longer read. Track its load: the share of changes that reach it and the minutes per decision. When the same kind of action keeps arriving, make it undoable instead of adding approvers: soft deletes, schema changes that expand before they contract <span class="citation" data-cites="ambler2006">(Ambler and Sadalage 2006)</span>, keys that can be rolled back, releases region by region. Each piece of reversibility moves a class of changes from “approve” to “watch”. The best gate is one with less and less to do.</p>
+</section>
+<section id="a-simulation" class="level2">
+<h2 class="anchored" data-anchor-id="a-simulation">6. A simulation</h2>
+<p>I simulated a team under five policies: a gate on every change (today’s common practice), no gate and no audit, an audit alone, the audit with the thin gate (the proposal), and a gate on every change with the audit. Each change may carry a reversible defect; one in twenty also carries an irreversible step, which may itself be defective. A defective irreversible step that runs unstopped is an <em>irreversible incident</em>: the nightly audit comes too late for it. The parameters (Table 2) are chosen rather than measured and, where I had to choose, generous to review.</p>
+<table class="caption-top table">
+<caption><strong>Table 2.</strong> Simulation parameters. The audit includes production signals, so monitoring counts as part of the watch, not as users. The review queue is optimistic for the gate: reviewers start as soon as they are free. A value of <img src="https://latex.codecogs.com/png.latex?d%20=%200.5"> is high for functional defects given what review is known to find <span class="citation" data-cites="mantyla2009 czerwonka2015">(Mäntylä and Lassenius 2009; Czerwonka et al. 2015)</span>.</caption>
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Changes per day, <img src="https://latex.codecogs.com/png.latex?%5Clambda"></td>
+<td>40</td>
+</tr>
+<tr class="even">
+<td>Automated checks (CI and AI review)</td>
+<td>log-normal, mean 24 min</td>
+</tr>
+<tr class="odd">
+<td>Review rounds</td>
+<td>first log-normal, mean 20 min, coefficient of variation 1; a second, mean 10 min, for 40% of changes after a 2 h author turnaround</td>
+</tr>
+<tr class="even">
+<td>Reviewer capacity</td>
+<td>3 full-time equivalents, first come first served, no batching</td>
+</tr>
+<tr class="odd">
+<td>Residual defect probability, <img src="https://latex.codecogs.com/png.latex?p"></td>
+<td>0.05 per change, under every policy</td>
+</tr>
+<tr class="even">
+<td>Share caught by a reviewer, <img src="https://latex.codecogs.com/png.latex?d"></td>
+<td>0.5</td>
+</tr>
+<tr class="odd">
+<td>Daily chance users find a latent defect, <img src="https://latex.codecogs.com/png.latex?h_%7B%5Ctext%7Busers%7D%7D"></td>
+<td>0.10</td>
+</tr>
+<tr class="even">
+<td>Daily chance the audit finds a defect it can see, <img src="https://latex.codecogs.com/png.latex?h_%7B%5Ctext%7Baudit%7D%7D"></td>
+<td>0.50 (varied in Figure 6)</td>
+</tr>
+<tr class="odd">
+<td>Share of defects the audit can see, <img src="https://latex.codecogs.com/png.latex?c"></td>
+<td>1 (varied in Figure 6)</td>
+</tr>
+<tr class="even">
+<td>Changes with an irreversible step</td>
+<td>5%, defective with probability <img src="https://latex.codecogs.com/png.latex?p"></td>
+</tr>
+<tr class="odd">
+<td>Share of defective steps the thin gate stops</td>
+<td>0.5, the same as a full review (0.8 tested)</td>
+</tr>
+<tr class="even">
+<td>Time per thin-gate decision</td>
+<td>10 min</td>
+</tr>
+<tr class="odd">
+<td>Horizon</td>
+<td>60 working days, 300 runs</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Simulation at 40 changes a day, parameters in Table 2. Left: defects waiting to be found in the main branch. Right: irreversible incidents per month, with the people time each policy costs per day. The audit does most of the work on reversible defects; the thin gate does the work on irreversible ones."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig05.png" class="img-fluid figure-img" alt="Two horizontal bar charts sharing five policies. Defects waiting to be found: no gate no audit 19.2; gate on every change (today) 9.7; audit only 3.3; audit and thin gate (proposed) 3.3; gate on every change and audit 1.6. Irreversible incidents per month: 2.0, 1.0, 2.0, 1.0, 1.0. People time per day: 0 h, 16 h, 1 h, 1.3 h, 17 h."></a></p>
+<figcaption><strong>Figure 5.</strong> Simulation at 40 changes a day, parameters in Table 2. Left: defects waiting to be found in the main branch. Right: irreversible incidents per month, with the people time each policy costs per day. The audit does most of the work on reversible defects; the thin gate does the work on irreversible ones.</figcaption>
+</figure>
+</div>
+<table class="caption-top table">
+<caption><strong>Table 3.</strong> Simulation results at 40 changes a day. Latent defects are those present in main during a day, averaged over days 21 to 60. Standard errors are 0.15 or less for latent defects and 0.05 or less for incidents. Run <code>python figs.py</code> to reproduce them.</caption>
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Policy</th>
+<th>Median time to merge (90th pct.)</th>
+<th>People time per day</th>
+<th>Latent defects in main</th>
+<th>Irreversible incidents per month</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>No gate, no audit</td>
+<td>0.4 h (0.7 h)</td>
+<td>0</td>
+<td>19.2</td>
+<td>2.0</td>
+</tr>
+<tr class="even">
+<td>Gate on every change (today)</td>
+<td>1.1 h (4.0 h)</td>
+<td>16 h</td>
+<td>9.7</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td>Audit only</td>
+<td>0.4 h (0.7 h)</td>
+<td>1 h</td>
+<td>3.3</td>
+<td>2.0</td>
+</tr>
+<tr class="even">
+<td>Audit and thin gate (proposed)</td>
+<td>0.4 h (0.7 h)</td>
+<td>1 h 20 min</td>
+<td>3.3</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td>Gate on every change and audit</td>
+<td>1.1 h (4.0 h)</td>
+<td>17 h</td>
+<td>1.6</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Chaos is real, but it is not the proposal.</strong> With no gate and no audit, latent defects double and irreversible incidents double. The critics are right about that policy, not about the alternative.</p>
+<p><strong>Each mechanism does one job.</strong> The audit alone cuts latent defects to a third of today’s, but leaves irreversible incidents at the chaos level, because a nightly audit finds them after the harm. The thin gate alone brings incidents back to today’s level, for 20 minutes a day. Together they beat today’s practice on reversible defects and match it on irreversible ones, at a twelfth of the people time. If the evidence at the thin gate lets it stop 80% of defective steps instead of 50%, incidents fall to 0.4 a month, well below today’s.</p>
+<p><strong>The price of the full gate.</strong> Adding a gate on every change to the audit lowers latent defects from 3.3 to 1.6 and does not reduce irreversible incidents, for 16 hours a day: about <strong>10 engineer-hours for every day of latent defects it prevents</strong> (16 h ÷ 1.7 ≈ 9.4). Does a latent defect in this part of the system cost more than 10 engineer-hours a day? For a reversible defect in an internal tool, rarely. For a payment flow, easily, and that is a one-way door with its own thin gate.</p>
+<p><strong>Speed and reach of the watch.</strong> By Little’s law <span class="citation" data-cites="little1961">(Little 1961)</span>, latent defects equal the rate at which they enter times how long they stay. A gate removes at most the factor <img src="https://latex.codecogs.com/png.latex?(1-d)">, here a half; an audit shortens the stay, here by a factor of six. But the audit may see only a share <img src="https://latex.codecogs.com/png.latex?c"> of defects, the rest being found by users. The proposal then beats today’s practice when</p>
+<p><span id="eq-watch"><img src="https://latex.codecogs.com/png.latex?%0Ac%20%3E%20d%20%5Cleft(1%20+%20%5Cfrac%7Bh_%7B%5Ctext%7Busers%7D%7D%7D%7Bh_%7B%5Ctext%7Baudit%7D%7D%7D%5Cright).%0A%5Ctag%7B3%7D"></span></p>
+<p>In plain words, <em>the watch must see more kinds of defect than a reviewer would have caught, and the slower it is, the more it must see.</em> With the values of Table 2, an audit that finds what it sees in about two days must see at least 60% of defects, and one that takes five days, 75% (Figure 6). If a team’s defects are mostly of a kind no machine can notice, the rule fails for that team, and Equation&nbsp;3 says so before any harm is done. Measure <img src="https://latex.codecogs.com/png.latex?c"> first, and where it falls below the bound, keep reviewing changes to that part of the code until the watch improves.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. How much must the audit see? Defects waiting to be found without a gate but with an audit, compared with today’s gate, against the share of defects the audit can see, for d = 0.5. Below the black line, the proposal does better than today; circles mark the thresholds. Lines follow Equation&nbsp;3; the simulation agrees within 0.04."><img src="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig06.png" class="img-fluid figure-img" alt="Chart with horizontal axis share of defects the audit can see, 0 to 100%, and vertical axis defects waiting to be found compared with today, 0 to 2x. A black horizontal line at 1x is labelled today: a person approves every change; the area below is shaded green, better than today. Two falling lines start at 2x: audit finds them in about 2 days crosses 1x at 60% and ends near 0.33x; audit finds them in about 5 days crosses 1x at 75% and ends near 0.67x."></a></p>
+<figcaption><strong>Figure 6.</strong> How much must the audit see? Defects waiting to be found without a gate but with an audit, compared with today’s gate, against the share of defects the audit can see, for <img src="https://latex.codecogs.com/png.latex?d%20=%200.5">. Below the black line, the proposal does better than today; circles mark the thresholds. Lines follow Equation&nbsp;3; the simulation agrees within 0.04.</figcaption>
+</figure>
+</div>
+</section>
+<section id="predictions-and-a-test-protocol" class="level2">
+<h2 class="anchored" data-anchor-id="predictions-and-a-test-protocol">7. Predictions and a test protocol</h2>
+<p>Speed is not a useful test: removing a gate obviously speeds up merging. The thesis stands or falls on quality and on its assumptions. For teams that adopt the rule, compared with similar teams that keep the gate:</p>
+<ul>
+<li><strong>H1. No loss of stability.</strong> Change failure rate and time to restore service <span class="citation" data-cites="forsgren2018">(Forsgren et al. 2018)</span> are no worse, within a margin fixed in advance, and irreversible incidents do not rise.</li>
+<li><strong>H2. The watch sees far enough.</strong> The share of defects found first by the audit or monitoring rather than by users, an estimate of <img src="https://latex.codecogs.com/png.latex?c">, exceeds the bound of Equation&nbsp;3, and defects are found sooner.</li>
+<li><strong>H3. Fixes are cheap (Assumption A).</strong> For defects found by the audit, the median time from report to merged fix is under one working hour, and a flag or rollback contains the harm before the fix lands.</li>
+<li><strong>H4. The report is used.</strong> At least half of the audit’s findings are fixed or explicitly dismissed within a week. An audit nobody reads turns the proposal into the chaos case.</li>
+<li><strong>H5. The gate stays thin.</strong> The share of changes reaching the thin gate and the minutes per decision stay small, and fall as more actions are made undoable.</li>
+</ul>
+<p><strong>Protocol.</strong> In a stepped-wedge design, teams adopt the rule one at a time, in random order, over several months, so every team is observed under both policies and calendar effects are controlled. H1 is a pre-registered non-inferiority test; H2 to H5 and lead time are secondary outcomes, measured from repository, pipeline and incident logs rather than self-reports, since teams cannot be blinded. If H1, H2 or H3 fails, the thesis is wrong for the teams studied.</p>
+</section>
+<section id="objections-and-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="objections-and-limitations">8. Objections and limitations</h2>
+<p><strong>“Review demonstrably reduces defects” <span class="citation" data-cites="mcintosh2014">(McIntosh et al. 2014)</span>.</strong> Compared with no review, on hand-written code, yes. The relevant comparison is review against watching, which H1 and H2 test. The recommendation of peer review in <span class="citation" data-cites="forsgren2018">Forsgren et al. (2018)</span> rests on data that predate agents; extending it is an extrapolation.</p>
+<p><strong>“Review is how teams share knowledge” <span class="citation" data-cites="bacchelli2013 sadowski2018">(Bacchelli and Bird 2013; Sadowski, Söderberg, et al. 2018)</span>.</strong> It was. The replacement is deliberate: decision records, conventions, and a daily report read by the whole team rather than forty diffs each read by one person.</p>
+<p><strong>People adapt.</strong> Without a reviewer, authors may grow careless, or more careful because they alone own the result. The simulation holds <img src="https://latex.codecogs.com/png.latex?p"> fixed; H1 measures the net effect.</p>
+<p><strong>Compliance.</strong> Some standards require custom code to be reviewed before release; PCI DSS sets conditions on who may review when the review is manual <span class="citation" data-cites="pcidss2022">(PCI Security Standards Council 2022)</span>. Whether automated review satisfies them is for auditors to decide; where it does not, the code joins the list of one-way doors.</p>
+<p><strong>Loss of skill.</strong> Automation leaves people responsible for rare, hard cases while removing the practice that prepares them <span class="citation" data-cites="bainbridge1983">(Bainbridge 1983)</span>. Teams must keep the skill on purpose: reading the audit’s findings in the code, tracing incidents by hand, rotating who does it.</p>
+<p><strong>Limits of the model.</strong> It is linear and treats defects as independent. It does not weight defects by harm, so if reviewers mainly catch severe ones it is biased against the gate; the irreversible cases, which keep their gate, are meant to cover the worst. It counts the audit as an hour of reading, ignoring its compute cost and false alarms. It holds <img src="https://latex.codecogs.com/png.latex?d"> constant, although reviewers tire and large changes get shallower reviews, and it ignores what reviewers learn. The thin gate’s catch rate is assumed equal to a reviewer’s, not measured. The parameters describe one team at one rate: the direction of the result holds wherever Equation&nbsp;3 holds, not its magnitude. Finally, the paper assumes writing code is no longer the bottleneck, and the evidence on how much AI speeds up experienced developers is mixed <span class="citation" data-cites="becker2025">(Becker et al. 2025)</span>.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">9. Conclusion</h2>
+<p>The pull request review was the right control while late defects were expensive and a person’s reading was the main check. With agentic coding, rules run inside every session, most defects are cheap to fix the next day, and the one step that has not become faster is the person reading the diff.</p>
+<p>What keeps a codebase healthy is how quickly defects are found and how cheaply they are undone, not whether someone looked at each change before it merged. Where harm cannot be undone, a person still decides, late and briefly, at the point of no return: the gate guards the act, not the code. Where a machine cannot see, the team should measure that before it lets go.</p>
+<p>This means giving up control of each change. In return, we can simplify our processes instead of adding layers to protect a kind of control that, in the past, was the only kind available. Approve what you cannot undo. Watch everything else.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a> How the Claude Code team solved code review, and the one thing I would let go of.</p>
+</div>
+<div class="small">
+<p><em>The views in this paper are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-ambler2006" class="csl-entry">
+Ambler, Scott W., and Pramod J. Sadalage. 2006. <em>Refactoring Databases: Evolutionary Database Design</em>. Addison-Wesley.
+</div>
+<div id="ref-bacchelli2013" class="csl-entry">
+Bacchelli, Alberto, and Christian Bird. 2013. <span>“Expectations, Outcomes, and Challenges of Modern Code Review.”</span> <em>Proceedings of the 35th International Conference on Software Engineering (ICSE)</em>, 712–21. <a href="https://doi.org/10.1109/ICSE.2013.6606617">https://doi.org/10.1109/ICSE.2013.6606617</a>.
+</div>
+<div id="ref-bainbridge1983" class="csl-entry">
+Bainbridge, Lisanne. 1983. <span>“Ironies of Automation.”</span> <em>Automatica</em> 19 (6): 775–79. <a href="https://doi.org/10.1016/0005-1098(83)90046-8">https://doi.org/10.1016/0005-1098(83)90046-8</a>.
+</div>
+<div id="ref-beck1999" class="csl-entry">
+Beck, Kent. 1999. <em>Extreme Programming Explained: Embrace Change</em>. Addison-Wesley.
+</div>
+<div id="ref-becker2025" class="csl-entry">
+Becker, Joel, Nate Rush, Elizabeth Barnes, and David Rein. 2025. <span>“Measuring the Impact of Early-2025 <span>AI</span> on Experienced Open-Source Developer Productivity.”</span> <em>arXiv Preprint arXiv:2507.09089</em>. <a href="https://arxiv.org/abs/2507.09089">https://arxiv.org/abs/2507.09089</a>.
+</div>
+<div id="ref-beller2014" class="csl-entry">
+Beller, Moritz, Alberto Bacchelli, Andy Zaidman, and Elmar Juergens. 2014. <span>“Modern Code Reviews in Open-Source Projects: Which Problems Do They Fix?”</span> <em>Proceedings of the 11th Working Conference on Mining Software Repositories (MSR)</em>, 202–11. <a href="https://doi.org/10.1145/2597073.2597082">https://doi.org/10.1145/2597073.2597082</a>.
+</div>
+<div id="ref-beyer2016" class="csl-entry">
+Beyer, Betsy, Chris Jones, Jennifer Petoff, and Niall Richard Murphy. 2016. <em>Site Reliability Engineering: How <span>Google</span> Runs Production Systems</em>. O’Reilly Media.
+</div>
+<div id="ref-bezos2016" class="csl-entry">
+Bezos, Jeffrey P. 2016. <em>2015 Letter to Shareholders</em>. Amazon.com, Inc.
+</div>
+<div id="ref-boehm1981" class="csl-entry">
+Boehm, Barry W. 1981. <em>Software Engineering Economics</em>. Prentice Hall.
+</div>
+<div id="ref-bossavit2015" class="csl-entry">
+Bossavit, Laurent. 2015. <em>The Leprechauns of Software Engineering</em>. Leanpub.
+</div>
+<div id="ref-anthropic2026review" class="csl-entry">
+Claude Code team, Anthropic. 2026. <em>Solving Code Review at <span>Anthropic</span></em>. Claude blog. <a href="https://claude.dev/blog/solving-code-review-at-anthropic/">https://claude.dev/blog/solving-code-review-at-anthropic/</a>.
+</div>
+<div id="ref-czerwonka2015" class="csl-entry">
+Czerwonka, Jacek, Michaela Greiler, and Jack Tilford. 2015. <span>“Code Reviews Do Not Find Bugs: How the Current Code Review Best Practice Slows Us Down.”</span> <em>Proceedings of the 37th International Conference on Software Engineering (ICSE), Software Engineering in Practice</em>, 27–28. <a href="https://doi.org/10.1109/ICSE.2015.131">https://doi.org/10.1109/ICSE.2015.131</a>.
+</div>
+<div id="ref-fagan1976" class="csl-entry">
+Fagan, Michael E. 1976. <span>“Design and Code Inspections to Reduce Errors in Program Development.”</span> <em>IBM Systems Journal</em> 15 (3): 182–211. <a href="https://doi.org/10.1147/sj.153.0182">https://doi.org/10.1147/sj.153.0182</a>.
+</div>
+<div id="ref-forsgren2018" class="csl-entry">
+Forsgren, Nicole, Jez Humble, and Gene Kim. 2018. <em>Accelerate: The Science of Lean Software and <span>DevOps</span></em>. IT Revolution Press.
+</div>
+<div id="ref-greshake2023" class="csl-entry">
+Greshake, Kai, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, and Mario Fritz. 2023. <span>“Not What You’ve Signed up for: Compromising Real-World <span>LLM</span>-Integrated Applications with Indirect Prompt Injection.”</span> <em>Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security (AISec)</em>, 79–90. <a href="https://arxiv.org/abs/2302.12173">https://arxiv.org/abs/2302.12173</a>.
+</div>
+<div id="ref-humble2010" class="csl-entry">
+Humble, Jez, and David Farley. 2010. <em>Continuous Delivery: Reliable Software Releases Through Build, Test, and Deployment Automation</em>. Addison-Wesley.
+</div>
+<div id="ref-inozemtseva2014" class="csl-entry">
+Inozemtseva, Laura, and Reid Holmes. 2014. <span>“Coverage Is Not Strongly Correlated with Test Suite Effectiveness.”</span> <em>Proceedings of the 36th International Conference on Software Engineering (ICSE)</em>, 435–45. <a href="https://doi.org/10.1145/2568225.2568271">https://doi.org/10.1145/2568225.2568271</a>.
+</div>
+<div id="ref-jimenez2024" class="csl-entry">
+Jimenez, Carlos E., John Yang, Alexander Wettig, et al. 2024. <span>“<span class="nocase">SWE-bench</span>: Can Language Models Resolve Real-World <span>GitHub</span> Issues?”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2310.06770">https://arxiv.org/abs/2310.06770</a>.
+</div>
+<div id="ref-kemerer2009" class="csl-entry">
+Kemerer, Chris F., and Mark C. Paulk. 2009. <span>“The Impact of Design and Code Reviews on Software Quality: An Empirical Study Based on <span>PSP</span> Data.”</span> <em>IEEE Transactions on Software Engineering</em> 35 (4): 534–50. <a href="https://doi.org/10.1109/TSE.2009.27">https://doi.org/10.1109/TSE.2009.27</a>.
+</div>
+<div id="ref-kingman1961" class="csl-entry">
+Kingman, J. F. C. 1961. <span>“The Single Server Queue in Heavy Traffic.”</span> <em>Mathematical Proceedings of the Cambridge Philosophical Society</em> 57 (4): 902–4. <a href="https://doi.org/10.1017/S0305004100036094">https://doi.org/10.1017/S0305004100036094</a>.
+</div>
+<div id="ref-little1961" class="csl-entry">
+Little, John D. C. 1961. <span>“A Proof for the Queuing Formula: <span><img src="https://latex.codecogs.com/png.latex?L%20=%20%5Clambda%20W"></span>.”</span> <em>Operations Research</em> 9 (3): 383–87. <a href="https://doi.org/10.1287/opre.9.3.383">https://doi.org/10.1287/opre.9.3.383</a>.
+</div>
+<div id="ref-mantyla2009" class="csl-entry">
+Mäntylä, Mika V., and Casper Lassenius. 2009. <span>“What Types of Defects Are Really Discovered in Code Reviews?”</span> <em>IEEE Transactions on Software Engineering</em> 35 (3): 430–48. <a href="https://doi.org/10.1109/TSE.2008.71">https://doi.org/10.1109/TSE.2008.71</a>.
+</div>
+<div id="ref-mcintosh2014" class="csl-entry">
+McIntosh, Shane, Yasutaka Kamei, Bram Adams, and Ahmed E. Hassan. 2014. <span>“The Impact of Code Review Coverage and Code Review Participation on Software Quality: A Case Study of the <span>Qt</span>, <span>VTK</span>, and <span>ITK</span> Projects.”</span> <em>Proceedings of the 11th Working Conference on Mining Software Repositories (MSR)</em>, 192–201. <a href="https://doi.org/10.1145/2597073.2597076">https://doi.org/10.1145/2597073.2597076</a>.
+</div>
+<div id="ref-papadakis2019" class="csl-entry">
+Papadakis, Mike, Marinos Kintis, Jie Zhang, Yue Jia, Yves Le Traon, and Mark Harman. 2019. <span>“Mutation Testing Advances: An Analysis and Survey.”</span> In <em>Advances in Computers</em>, vol. 112. Elsevier. <a href="https://doi.org/10.1016/bs.adcom.2018.03.015">https://doi.org/10.1016/bs.adcom.2018.03.015</a>.
+</div>
+<div id="ref-pcidss2022" class="csl-entry">
+PCI Security Standards Council. 2022. <em>Payment Card Industry Data Security Standard, Version 4.0</em>. Requirements 6.2.3 and 6.2.3.1.
+</div>
+<div id="ref-pearce2022" class="csl-entry">
+Pearce, Hammond, Baleegh Ahmad, Benjamin Tan, Brendan Dolan-Gavitt, and Ramesh Karri. 2022. <span>“Asleep at the Keyboard? Assessing the Security of <span>GitHub</span> <span>Copilot</span>’s Code Contributions.”</span> <em>IEEE Symposium on Security and Privacy (SP)</em>, 754–68. <a href="https://doi.org/10.1109/SP46214.2022.9833571">https://doi.org/10.1109/SP46214.2022.9833571</a>.
+</div>
+<div id="ref-perry2023" class="csl-entry">
+Perry, Neil, Megha Srivastava, Deepak Kumar, and Dan Boneh. 2023. <span>“Do Users Write More Insecure Code with <span>AI</span> Assistants?”</span> <em>Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security (CCS)</em>, 2785–99. <a href="https://doi.org/10.1145/3576915.3623157">https://doi.org/10.1145/3576915.3623157</a>.
+</div>
+<div id="ref-rigby2013" class="csl-entry">
+Rigby, Peter C., and Christian Bird. 2013. <span>“Convergent Contemporary Software Peer Review Practices.”</span> <em>Proceedings of the 9th Joint Meeting on Foundations of Software Engineering (ESEC/FSE)</em>, 202–12. <a href="https://doi.org/10.1145/2491411.2491444">https://doi.org/10.1145/2491411.2491444</a>.
+</div>
+<div id="ref-sadowski2018cacm" class="csl-entry">
+Sadowski, Caitlin, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon, and Ciera Jaspan. 2018. <span>“Lessons from Building Static Analysis Tools at <span>Google</span>.”</span> <em>Communications of the ACM</em> 61 (4): 58–66. <a href="https://doi.org/10.1145/3188720">https://doi.org/10.1145/3188720</a>.
+</div>
+<div id="ref-sadowski2018" class="csl-entry">
+Sadowski, Caitlin, Emma Söderberg, Luke Church, Michal Sipko, and Alberto Bacchelli. 2018. <span>“Modern Code Review: A Case Study at <span>Google</span>.”</span> <em>Proceedings of the 40th International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)</em>, 181–90. <a href="https://doi.org/10.1145/3183519.3183525">https://doi.org/10.1145/3183519.3183525</a>.
+</div>
+<div id="ref-strathern1997" class="csl-entry">
+Strathern, Marilyn. 1997. <span>“<span>‘Improving Ratings’</span>: Audit in the <span>British</span> University System.”</span> <em>European Review</em> 5 (3): 305–21. <a href="https://doi.org/10.1002/(SICI)1234-981X(199707)5:3<305::AID-EURO184>3.0.CO;2-4">https://doi.org/10.1002/(SICI)1234-981X(199707)5:3&lt;305::AID-EURO184&gt;3.0.CO;2-4</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Stop {Reviewing} {Pull} {Requests}},
+  date = {2026-10-23},
+  url = {https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/},
+  langid = {en}
+}
+</code></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Stop Reviewing Pull Requests.”</span>
+October 23. <a href="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/">https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/</a>.
+</div></div></section></div> ]]></description>
+  <category>paper</category>
+  <category>position</category>
+  <category>ai</category>
+  <category>agents</category>
+  <category>programming</category>
+  <guid>https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/</guid>
+  <pubDate>Fri, 23 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png" medium="image" type="image/png" height="85" width="144"/>
+</item>
 <item>
   <title>Review the Intent, Not the Diff</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
