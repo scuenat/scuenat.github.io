@@ -1,0 +1,211 @@
+---
+title: "Stop Reviewing Pull Requests"
+subtitle: "A provocative position paper: why a human gate on every change no longer pays for itself, and what should replace it"
+description: "A deliberately provocative position paper. Per-change human code review was the right control when code was written by hand and late fixes were expensive. With agentic coding, both assumptions fail. I state a simple cost model of the review gate, show where it breaks even, simulate a team with and without it, and argue for a replacement: rules that travel with every session, merge on green, and a daily audit of the whole codebase that steers the team. I end with predictions, a test protocol, and the cases where a person must still approve."
+date: 2026-10-23
+draft: true
+citation: true
+google-scholar: true
+toc-depth: 2
+bibliography: references.bib
+categories: [paper, position, ai, agents, programming]
+image: figures/fig01.png
+resources:
+  - figs.py
+---
+
+::: {.callout-warning appearance="simple"}
+**A provocative paper, on purpose.** This is a position paper, written to argue one side as strongly as I can, in the form of a short scientific paper. It states a thesis, defines a model, tests it with a small simulation, and ends with predictions that could prove it wrong. It is not a neutral survey. A follow-up to [Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd), which kept review and changed its object. This paper asks whether we need the review at all. Figures are my own, drawn and simulated with the code in [figs.py](figs.py).
+:::
+
+**Abstract.** Per-change human code review, the approval a person gives before a pull request can merge, became standard practice when code was written by hand, reviewers were the main check, and defects found late were expensive to fix. Agentic coding removes all three conditions. I model the review gate as an investment that pays when $p \cdot d \cdot \Delta C > r$: the probability that a change still carries a defect after automated checks, times the share of those defects a reviewer catches, times the late-fix cost avoided, must exceed the full cost of the gate. Agentic practice lowers $p$ and $\Delta C$ while $r$ stays fixed by human reading speed and rises with volume. A Monte Carlo simulation of a team merging 40 changes a day shows that the quantity that governs defects in the codebase is the *time to detection*, not the *share caught at the gate*: removing the gate and adding a daily audit leaves fewer latent defects than today's practice, saves about 15 person-hours a day, and cuts the time to merge. I propose to replace the gate with a session contract and a scheduled audit, and to keep a human approval only for irreversible changes. I give four falsifiable predictions and a protocol to test them.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Claims
+
+1. **The gate.** Per-change human approval was a rational control under three conditions: hand-written code, review as the main check, and expensive late fixes. None of them holds for agentic teams.
+2. **The model.** The gate pays only when $p \cdot d \cdot \Delta C > r$. Agentic practice pushes the left side down and the right side up.
+3. **The replacement.** Control moves from each change to the system: rules every session must follow, merge on green, and a daily audit whose report drives the team's work.
+4. **The boundary.** For irreversible changes (data migrations, authentication, money, release signing) the model itself says to keep a person. Everywhere else, the default should be no human gate.
+5. **The test.** Teams that drop the gate and add the audit should ship faster with no rise in change failure rate. If they do not, the thesis is wrong.
+:::
+
+## 1. Introduction
+
+In [Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd), I argued that teams should review the intent rather than the diff. That still assumed a person would look at each change. Here I go one step further, and I want to be clear that the step is deliberately provocative: for most changes, nobody should have to approve the pull request at all.
+
+The usual answer is that this would end in chaos. I do not think it would, and the reason is economic rather than ideological. Review is a control, and every control has a price. We paid it gladly because, until recently, it was the cheapest way to keep a codebase healthy. A defect caught in review cost minutes; the same defect found months later cost days. The gate was the only place where someone was sure to look.
+
+That situation has changed. When an agent writes most of the code, rules can be enforced inside every session instead of at the end of it. When a fix takes an agent a few minutes and a flag can switch a change off in seconds, finding a defect tomorrow costs little more than finding it today. Making a correction is cheap now, and I believe that is what changes the whole picture. What stays expensive is human attention, and the gate spends it on every change, whether or not that change needed it.
+
+Removing the gate means accepting that we no longer control each change. In exchange, we can simplify our processes instead of adding layers to keep a kind of control that, in the past, was the only kind available.
+
+![**Figure 1.** Schematic. Top: today, a person approves each pull request, and changes queue in front of that person. Bottom: the proposal. Rules travel with every session, changes merge when the checks are green, and a nightly audit of the whole codebase produces a report that the team uses to decide what to fix and how to tighten the rules.](figures/fig01.png){fig-alt="Two bands. Top, Today, control on every change: Session (a developer and an agent write), Checks (tests, CI, AI review), a stack of queued PR cards labelled queue, Human gate (every change, a person reads and approves), Merge. Bottom, Proposed, control on the system: Session with a contract (chips: adds tests, diff coverage at least 80%, no test weakened, conventions file), Checks (the same, and now blocking), Merge on green, with a note no person waits here, then Main (production, flags and fast rollback). From Main an arrow labelled every night goes to Daily audit (scheduled job, reads the whole codebase, not a diff), then to Report (what to improve: coverage and mutation trend, weakened tests, drift, hotspots), then to Team (people, decides what to fix and tightens the rules), and an arrow labelled rules goes back up to the session."}
+
+## 2. Background: what review was for
+
+**Inspections.** Formal code inspection was introduced at IBM in the 1970s as a defect-removal step, justified by the cost of defects found late [@fagan1976]. The justification rested on the claim that a defect costs one to two orders of magnitude more to fix in operation than during development [@boehm1981]. That curve shaped decades of process, although its empirical basis is thinner than its fame suggests [@bossavit2015], and agile practice argued, already in the 1990s, that frequent integration and automated tests flatten it [@beck1999].
+
+**What modern review finds.** Lightweight, tool-based review replaced inspections in most teams [@rigby2013]. When researchers looked at what it actually produces, defects were a minority. At Microsoft, developers named finding defects as their first motivation, but most review comments concerned code improvement and understanding [@bacchelli2013], and a later internal study was titled, bluntly, *Code Reviews Do Not Find Bugs* [@czerwonka2015]. Across industrial and open-source projects, about three quarters of the issues found in review concern evolvability (naming, structure, documentation) rather than functional behaviour [@mantyla2009; @beller2014]. At Google, the outcomes people valued most were education, keeping norms, gatekeeping and accident prevention [@sadowski2018].
+
+**Evidence for review.** Review is not useless. In three large open-source projects, components with low review coverage and low participation had more post-release defects [@mcintosh2014]. Careful reading at a controlled rate improves quality [@kemerer2009]. I take this evidence seriously in §7.
+
+**Evidence on approval.** The largest survey-based study of delivery performance found that approval by an external body was associated with slower delivery and was not associated with fewer failed changes; the authors recommended lightweight peer review instead [@forsgren2018]. My argument extends their reasoning one step further than their data go.
+
+**Agentic review today.** The Claude Code team at Anthropic already lets low-risk changes merge without a person when automated review passes, and reports more merged changes and fewer reverts [@anthropic2026review]. The step I propose is to make that the default rather than the exception.
+
+## 3. A cost model of the gate
+
+Consider one change. Let
+
+- $p$ be the probability that the change still carries a defect after all automated checks (tests, types, linters, AI review);
+- $d$ be the share of such defects a human reviewer catches;
+- $\Delta C$ be the cost avoided by catching a defect at review rather than later, $\Delta C = C_{\text{late}} - C_{\text{review}}$;
+- $r$ be the full cost of the gate for one change: the reviewer's reading time, the author's waiting time, and the context switches on both sides.
+
+The expected value of the gate per change is
+
+$$
+V = p \, d \, \Delta C - r,
+$$
+
+and the gate pays for itself when
+
+$$
+p \, d \, \Delta C > r .
+$$ {#eq-break-even}
+
+The late cost has two parts: the work of the fix, and the harm the defect does while it lives in the codebase. If harm accrues at a rate $k$ and the defect is found after a time $\tau$,
+
+$$
+C_{\text{late}} \approx c_{\text{fix}} + k \, \tau .
+$$ {#eq-late}
+
+Agentic practice moves every term of @eq-break-even, and in the same direction.
+
+**$p$ falls.** Checks that used to happen in a reviewer's head move into the session. An agent can be required to add tests for every behaviour it changes, to keep coverage of the changed lines above a threshold, to run linters and types, and to follow a conventions file. Static analysis delivered at the moment of writing, rather than at review, is also where developers act on it most readily [@sadowski2018cacm].
+
+**$\Delta C$ falls.** An agent repairs a reported defect in minutes, so $c_{\text{fix}}$ is small. Feature flags and fast rollback cap $k$ [@humble2010]. A daily audit caps $\tau$ at about a day. Figure 2 shows the consequence: the curve that justified early detection becomes almost flat, except where harm cannot be undone.
+
+![**Figure 2.** Schematic. The relative cost of fixing a defect against when it is found. The steep curve is the one usually cited for the 1970s; its empirical basis is disputed [@bossavit2015]. Practice flattened it [@beck1999], and agentic sessions with fast rollback flatten it further. The vertical arrow is what a review gate saves on the steep curve. Irreversible harm, such as lost data or a breach, does not flatten. Shapes, not measurements.](figures/fig02.png){fig-alt="Log-scale chart of relative cost to fix, from 1x to 100x, against when the defect is found: while writing, at review, next day (audit), after a week, in production months later. A dashed grey steep curve labelled Boehm 1981 rises from 1x to 100x. A navy curve labelled Beck 1999 rises from 1x to about 6x. A green curve labelled agentic session, fast rollback rises from 1x to about 2.4x. A red line labelled irreversible harm: data loss, breach starts at 40x the next day and rises to about 75x. An amber arrow at review marks what a gate used to save."}
+
+**$r$ does not fall.** The gate's cost is set by human reading speed, which agents do not change; careful review proceeds at a few hundred lines an hour [@kemerer2009]. Volume, meanwhile, rises. Queueing theory says what happens next: for a reviewer pool at utilisation $\rho$, waiting time grows roughly as $\rho/(1-\rho)$ [@kingman1961], so a team whose reviewers are two-thirds busy already waits twice as long as one that is half busy.
+
+The boundary of @eq-break-even is a straight line on log-log axes (Figure 3). A team writing code by hand, with review as its main check, sits well above it. An agentic team with strong session rules and a daily audit sits well below. A third kind of change stays above the line whatever the tools: one where $k\tau$ is large even for small $\tau$, because the harm cannot be undone.
+
+![**Figure 3.** The break-even condition of @eq-break-even. Above the solid line (for $d = 0.5$), the gate prevents more cost than it adds; below it, the gate costs more than it prevents. Dashed lines show $d = 0.25$ and $d = 0.75$. Positions A, B and C are illustrative, not measured: A, $p = 0.2$ and $\Delta C / r = 40$; B, $p = 0.03$ and $\Delta C / r = 3$; C, $p = 0.03$ and $\Delta C / r = 300$.](figures/fig03.png){fig-alt="Log-log chart. Horizontal axis: late-fix cost avoided by catching the defect at review, Delta C over r, from 0.1 to 1000. Vertical axis: residual defect probability per change p after the automated checks, from 0.001 to 1. A solid diagonal line marks break-even for d = 0.5, with dashed lines for d = 0.25 and d = 0.75. The upper right region, shaded amber, is labelled the gate pays for itself; the lower left, shaded green, the gate costs more than it prevents. Point A, hand-written code with review as the main check, sits in the amber region. A curved arrow labelled checks move into the session (p falls), fixes get cheap, queues grow (Delta C over r falls) leads to point B, agentic session with a contract, daily audit, fast rollback, in the green region. Point C, irreversible: migration, auth, money, sits in the amber region."}
+
+## 4. The proposal: a session contract and a daily audit
+
+If the gate goes, something must replace the control it gave. I propose two mechanisms, one on each side of the merge (Figure 1).
+
+**The session contract.** Every coding session, whoever starts it, runs under the same rules, enforced by the agent while it works and by CI before it merges. A change that breaks the contract does not merge; a change that respects it merges without waiting for anyone. Nothing in the contract requires a person to read the diff.
+
+**The daily audit.** A scheduled job reads the whole codebase, not the latest diff, and produces a short report of what to improve. It does not block anything. The team reads one report a day instead of forty diffs, decides what to fix, and tightens the contract when the same problem keeps coming back. Over time, the rules absorb what reviewers used to say in comments.
+
+| | Session contract (every change, blocking) | Daily audit (whole codebase, advisory) |
+|---|---|---|
+| Tests | Tests added or updated for each changed behaviour | Mutation score by module, and its trend |
+| Coverage | Coverage of changed lines ≥ threshold; total never decreases | Untested hotspots: code that changes often and is weakly tested |
+| Integrity | No test deleted or assertion weakened without a linked decision | List of weakened or skipped tests, by author and session |
+| Conventions | Conventions file, linters and types pass | Drift from conventions and architecture rules |
+| Intent | A change to a contract or invariant must update its decision record | Decision records changed this week, for the team to read |
+| Risk | Change behind a flag when it touches user-facing behaviour | Dependencies, licences and known vulnerabilities |
+| Size | Small changes; one intent per change | Complexity and duplication trends |
+
+: **Table 1.** A minimal session contract and audit. The threshold and the exact checks are for each team to set; the split is the point. What can be decided per change is enforced by machines; what needs judgement is batched once a day for people.
+
+Two details matter. First, the integrity rule closes the most common failure of coding agents, an agent that edits a test until it passes. The session cannot weaken a test silently, and the audit lists every case that was allowed. Second, the coverage rule is deliberately paired with mutation testing, because coverage alone is a weak measure of test quality [@inozemtseva2014] and becomes a target as soon as it is enforced [@strathern1997]. Mutation testing measures whether tests would notice a change in behaviour [@papadakis2019]; the audit is where it can run, since it is too slow for every change.
+
+## 5. A simulation
+
+To check whether the argument survives contact with numbers, I simulated a team under four policies: a gate with no audit (today's common practice), no gate with a daily audit (the proposal), both, and neither. The parameters are in Table 2. They are not measurements; they are chosen to be plausible and, where I had to choose, generous to review.
+
+| Parameter | Value |
+|---|---|
+| Changes per day, $\lambda$ | 40 in panel (b) and Table 3; 5 to 56 in panel (a) |
+| Automated checks (CI and AI review) | log-normal, mean 24 min |
+| First review round | log-normal, mean 20 min, coefficient of variation 1 |
+| Second round | needed by 40% of changes, after a 2 h author turnaround; mean 10 min |
+| Reviewer capacity | 3 full-time equivalents, first come first served, no batching |
+| Residual defect probability, $p$ | 0.05 per change |
+| Share caught by a reviewer, $d$ | 0.5 |
+| Daily chance an escaped defect is found by users or monitoring | 0.10 |
+| Extra daily chance the audit finds it | 0.50 |
+| Horizon | 60 working days, 300 runs |
+
+: **Table 2.** Simulation parameters. The review queue is optimistic for the gate: reviewers start as soon as they are free and never let changes wait for a convenient moment. A value of $d = 0.5$ is high for functional defects given what review is known to find [@mantyla2009; @czerwonka2015].
+
+![**Figure 4.** Simulation, parameters in Table 2. (a) Time from ready to merged, median and 10th to 90th percentile, against the number of changes per day. With a gate, waiting rises as reviewers fill up; without one, it stays at the time of the automated checks. (b) Latent defects in the main branch, mean and 10th to 90th percentile over 300 runs, at 40 changes per day. The daily audit, not the gate, decides how many defects live in the codebase.](figures/fig04.png){fig-alt="Two panels. Left, time from ready to merged on a log scale from 6 minutes to 3 days, against changes per day from 5 to 56. The amber line, human gate on every change, sits near one hour and rises to about two and a half hours at 56 changes a day, with a band up to about a day. The green line, merge on green, stays flat near 20 minutes. A dashed vertical line at 40 marks the rate used in panel b. Right, latent defects in main over 60 working days. The red dashed line, no gate no audit (chaos), rises to about 17. The navy line, gate no audit (today), rises to about 9. The green line, no gate daily audit (proposed), stays near 1.3. The amber line, gate and daily audit, stays near 0.7."}
+
+| Policy | Median time to merge (90th pct.) | Reviewer hours per day | Latent defects in main | Median age of a defect when found |
+|---|---|---|---|---|
+| Gate, no audit (today) | 1.1 h (4.0 h) | 16 | 8.8 | 6 days |
+| No gate, daily audit (proposed) | 0.4 h (0.7 h) | about 1, reading the report | 1.3 | 1 day |
+| Gate and daily audit | 1.1 h (4.0 h) | about 17 | 0.7 | 1 day |
+| No gate, no audit | 0.4 h (0.7 h) | 0 | 17.3 | 6 days |
+
+: **Table 3.** Simulation results at 40 changes a day. Latent defects are averaged over days 21 to 60, after the warm-up. Run `python figs.py` to reproduce them.
+
+Three results stand out.
+
+**The chaos case is real, and it is not the proposal.** Removing the gate without adding anything doubles the number of latent defects compared with today. Those who predict chaos are right about that policy. They are wrong to assume it is the only alternative to the gate.
+
+**Detection time dominates.** By Little's law [@little1961], the number of latent defects is the rate at which they enter times how long they stay, $L \approx \lambda \, p \, (1 - d) \, \tau$ with a gate and $L \approx \lambda \, p \, \tau$ without. A gate can at best remove the factor $(1 - d)$, here a factor of two. An audit shortens $\tau$, here by a factor of about six. This is why the proposal leaves fewer latent defects than today's practice, while costing about 15 fewer person-hours a day.
+
+**Keeping both is a real choice, not a free one.** The gate and the audit together leave the fewest defects, 0.7 instead of 1.3. Whether that is worth two full-time engineers spent reading diffs is exactly @eq-break-even. For defects that cost a day of harm and an agent's few minutes to fix, it is not. For defects that leak customer data, it is.
+
+The waiting time in panel (a) is modest, about an hour, because the queue is optimistic. Real reviewers batch their reviews around their own work, and studies of review latency measure it in hours to days rather than minutes [@sadowski2018; @czerwonka2015]. The main cost of the gate in this simulation is not delay; it is the 16 hours of attention it consumes every day.
+
+## 6. Predictions and a test protocol
+
+A position paper should be falsifiable. If the thesis is right, the following should hold for teams that replace the gate with a session contract and a daily audit, compared with similar teams that keep it.
+
+- **H1. Speed.** Lead time from ready to merged falls by at least half.
+- **H2. Stability.** Change failure rate and time to restore service, as defined in @forsgren2018, do not get worse.
+- **H3. Detection.** The median age of a defect when it is found falls, because the audit finds what review would have found, a day later, and much of what review would never have found.
+- **H4. Rules absorb review.** The number of rules in the session contract grows during the first months and then stabilises, as recurring review comments become checks.
+
+**Protocol.** These predictions can be tested within an organisation with a stepped-wedge design: teams switch from the gate to the contract and audit one at a time, in a random order, over several months, so that every team is observed under both policies and calendar effects are controlled. Changes classified as irreversible (§7) keep a human approval throughout. Outcomes are H1 to H4, measured from the repository, the deployment pipeline and the incident log. A rise in change failure rate or time to restore beyond a pre-registered margin falsifies the thesis.
+
+## 7. Objections and limitations
+
+**"Review demonstrably reduces defects" [@mcintosh2014].** It does, compared with no review. Those studies compare review with nothing, on code written by hand, before session rules and daily audits were possible. The relevant comparison is review against the alternative proposed here, which is what H2 and H3 test. If teams without the gate show more failed changes, I am wrong.
+
+**"The best evidence recommends peer review" [@forsgren2018].** It does. That evidence shows that heavy external approval slows teams without making them safer, and it recommends review by peers as the lighter option. I am arguing that agentic tooling makes an even lighter option available. Their data do not cover it, so this is an extrapolation, and I state it as one.
+
+**"Review is how teams share knowledge" [@bacchelli2013; @sadowski2018].** It was, and I argued in the previous essay that this channel no longer scales at agentic speed. The replacement is deliberate: the intent layer of decisions, contracts, invariants and conventions, and a daily report that the whole team reads. One short report read by everyone shares more than forty diffs each read by one person.
+
+**Irreversible changes.** Some changes cannot be rolled back: a destructive data migration, a change to authentication or permissions, a payment flow, the signing of a release. For these, $k\tau$ in @eq-late is large even if $\tau$ is short, and the model itself says to keep a person (position C in Figure 3). These are what Bezos called one-way doors, decisions that deserve care because they cannot be reversed [@bezos2016]. The thesis does not remove the gate for them. It removes it as the default for everything else, and makes the list of one-way doors an explicit, versioned part of the session contract.
+
+**Security and insiders.** A malicious contributor is a real threat, as the backdoor in xz showed [@freund2024]. But that attack came from someone who had earned the trust to approve their own changes. Per-change review by a single colleague is a weak defence against a patient insider. Changes to credentials, build and release paths belong in the irreversible category above, with two people, and the audit should report every change to them.
+
+**Compliance.** Some standards require code to be reviewed before release, for example PCI DSS [@pcidss2022]. Whether a session contract and automated review satisfy such a requirement is for auditors to decide. A team bound by it should keep the gate where the standard applies, and only there.
+
+**Goodhart's law.** Every rule in the contract will be gamed if it becomes a target [@strathern1997]. This is why the contract pairs coverage with mutation testing and an integrity rule, and why the audit reports trends rather than pass or fail. It is also why the audit is read by people: the rules are a starting point that the team keeps tightening, not a finished specification.
+
+**Loss of control and of skill.** Automation tends to remove routine work from people while leaving them responsible for the rare, hard cases, which they are then less practised at handling [@bainbridge1983]. Without the gate, fewer people will read code every day. Teams need to keep that skill on purpose: by reading the audit's findings in the code, by tracing incidents by hand, and by rotating who does it.
+
+**Limits of the model.** The model is linear and treats changes as independent. It holds $d$ constant, although reviewers tire and large changes get shallower reviews. It ignores what reviewers learn by reviewing. The simulation's parameters are chosen, not measured, and it describes one team at one rate. Its conclusion is robust in direction rather than in magnitude: as long as the audit shortens detection time by more than the gate reduces the defect rate, the proposal leaves fewer latent defects than today's practice. Whether that holds in a given team is an empirical question, which is why §6 exists. The evidence that AI makes experienced developers faster is itself mixed [@becker2025]; this paper assumes the speed of writing code is no longer the constraint, and a team where it still is may not benefit.
+
+## 8. Conclusion
+
+The pull request review was a good answer to a question we no longer have. It was the cheapest place to catch a defect when defects were expensive to fix late and a person's reading was the main check we had. With agentic coding, rules can be enforced inside every session, defects are cheap to fix the next day, and the only part of the process that has not become faster is the person reading the diff.
+
+I have argued, on purpose without hedging, that the gate should go: merge on green under a session contract, and let a daily audit of the whole codebase tell the team what to improve. The model says where this stops being true, at irreversible changes, and the simulation says why the alternative is not chaos: what governs the health of a codebase is how quickly defects are found, not whether someone looked at each change before it merged.
+
+This asks us to let go of something we used to control, change by change. In return, it lets us simplify our processes instead of adding layers to protect a form of control that used to be the only one available. I expect to be partly wrong, and the predictions above say how to find out.
+
+::: {.read-next}
+**Read next** · [Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd)
+How the Claude Code team solved code review, and the one thing I would let go of.
+:::
+
+::: {.small}
+*The views in this paper are my own and do not describe any product or plan of my employer.*
+:::
+
+## References
+
+::: {#refs}
+:::
