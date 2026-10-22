@@ -8,8 +8,9 @@ local function exists(path)
   return false
 end
 
+-- Directory form (/posts/x/), the same URL as the canonical link and the sitemap.
 local function html(p)
-  return (p:gsub("%.qmd$", ".html"))
+  return (p:gsub("%.qmd$", ".html"):gsub("index%.html$", ""))
 end
 
 function Meta(meta)

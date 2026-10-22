@@ -26,6 +26,19 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 - New essay: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
 - Paper: publish it as a post (category `paper`, `citation: true`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
 - Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `social-card.jpg`
+- Every page needs a `description:`: it is the snippet in Google results (the first ~155 characters show) and the summary in the listing
+- A translation lives at the same path under `fr/`; the two are linked automatically (hreflang, language switch, `translationOfWork`)
+
+## Search engines
+
+Handled by the build, nothing to do per post:
+
+- `seo.lua`: a canonical URL on every page and schema.org JSON-LD (`BlogPosting`, or `ScholarlyArticle` for posts in the `paper`/`article` category; `WebSite` on the home pages; `ProfilePage` on About)
+- `lang-links.lua`: hreflang links between English and French
+- `sitemap-lastmod.py` (post-render): sitemap dates from the last commit touching each page, URLs in directory form (`/posts/x/`), like the canonical links
+- Google Scholar tags (`google-scholar: true`) on English papers only, so each paper is indexed once
+
+Once, by hand: verify the site in [Google Search Console](https://search.google.com/search-console) (URL-prefix property `https://scuenat.github.io/`) and submit `sitemap.xml`; optionally the same in Bing Webmaster Tools.
 - Categories are lowercase (`ai`, `data`, `physics`, ...)
 - Series: link both ways ("A follow-up to…" / "Continued in…")
 - Analytics: GoatCounter (https://scuenat.goatcounter.com)
