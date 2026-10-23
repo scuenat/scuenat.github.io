@@ -1,0 +1,46 @@
+<%
+// Research publications, grouped by kind. Data: research/publications.yml.
+// Labels come from template-params, so the English and French pages share this file.
+const t = (typeof templateParams !== "undefined" && templateParams) || {};
+const fr = t.lang === "fr";
+const L = fr ? {
+  selected: "Sélection", thesis: "Thèse", journal: "Articles de revue", conference: "Conférences",
+  data: "Données", "in-progress": "En cours"
+} : {
+  selected: "Selected", thesis: "Thesis", journal: "Journal articles", conference: "Conference papers",
+  data: "Data", "in-progress": "In progress"
+};
+const order = ["thesis", "journal", "conference", "data", "in-progress"];
+const byYear = (a, b) => (b.year || 0) - (a.year || 0);
+const sorted = [...items].sort(byYear);
+const groups = [["selected", sorted.filter(i => i.featured)]].concat(order.map(k => [k, sorted.filter(i => i.kind === k)]));
+%>
+<% for (const [key, list] of groups) { if (!list.length) continue; %>
+<section class="pub-group pub-<%= key %>">
+<h2 class="pub-heading" id="pub-<%= key %>"><%= L[key] %></h2>
+<ol class="pub-list">
+<% for (const item of list) {
+const href = item.doi ? "https://doi.org/" + item.doi : (item.links && item.links.length ? item.links[0].url : null);
+const note = fr ? (item.note_fr || item.note) : item.note;
+%>
+<li class="pub">
+<div class="pub-year"><%= item.year %></div>
+<div class="pub-body">
+<div class="pub-title"><% if (href) { %><a href="<%= href %>"><%= item.title %></a><% } else { %><%= item.title %><% } %></div>
+<% if (item.title_en && !fr) { %><div class="pub-translation"><%= item.title_en %></div><% } %>
+<% const parts = String(item.authors || "").split("Stéphane Cuenat"); %>
+<div class="pub-authors"><% for (let i = 0; i < parts.length; i++) { %><% if (i > 0) { %><strong>Stéphane Cuenat</strong><% } %><%= parts[i] %><% } %></div>
+<div class="pub-venue"><%= item.venue %></div>
+<% if (note) { %><p class="pub-note"><%= note %></p><% } %>
+<% if (item.doi || (item.links && item.links.length)) { %>
+<div class="pub-links">
+<% if (item.doi) { %><a href="https://doi.org/<%= item.doi %>">DOI <%= item.doi %></a><% } %>
+<% for (const l of (item.links || [])) { %><a href="<%= l.url %>"><%= l.label %></a><% } %>
+</div>
+<% } %>
+</div>
+</li>
+<% } %>
+</ol>
+</section>
+<% } %>
