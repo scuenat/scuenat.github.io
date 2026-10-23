@@ -30,7 +30,7 @@ const note = fr ? (item.note_fr || item.note) : item.note;
 <% if (item.title_en && !fr) { %><div class="pub-translation"><%= item.title_en %></div><% } %>
 <% const parts = String(item.authors || "").split("Stéphane Cuenat"); %>
 <div class="pub-authors"><% for (let i = 0; i < parts.length; i++) { %><% if (i > 0) { %><strong>Stéphane Cuenat</strong><% } %><%= parts[i] %><% } %></div>
-<div class="pub-venue"><%= item.venue %></div>
+<% if (item.venue) { %><div class="pub-venue"><%= item.venue %></div><% } %>
 <% if (note) { %><p class="pub-note"><%= note %></p><% } %>
 <% if (item.doi || (item.links && item.links.length)) { %>
 <div class="pub-links">
