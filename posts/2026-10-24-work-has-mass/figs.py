@@ -269,6 +269,45 @@ def fig_dilation():
     fig.savefig(OUT + "fig03.png"); plt.close(fig)
 
 
+def fig_mass_test():
+    """The mass test: does a framework element remove more mass than it adds? My judgement, illustrative."""
+    # name, mass it adds (attention it costs), mass it removes or prevents, framework, label offset
+    els = [("Sprint Goal", 1.0, 6.0, "s", (8, 0)),
+           ("Definition of Done", 1.6, 7.4, "s", (8, 0)),
+           ("Sprint Review", 3.0, 6.2, "s", (8, 0)),
+           ("Retrospective", 2.2, 4.3, "s", (8, -2)),
+           ("Daily Scrum", 3.4, 3.6, "s", (-9, 6)),
+           ("Story points, velocity (add-ons)", 4.2, 1.0, "s", (8, 0)),
+           ("Refining a long backlog", 6.2, 1.6, "s", (8, 0)),
+           ("IP iteration, used for removal", 2.2, 8.4, "f", (8, 0)),
+           ("System Demo", 3.8, 5.4, "f", (8, 0)),
+           ("WSJF on every feature", 4.6, 3.0, "f", (8, -2)),
+           ("PI Planning, whole train, two days", 8.0, 6.0, "f", (0, -17)),
+           ("Sync meetings across a large train", 6.6, 3.2, "f", (8, 0)),
+           ("Layers above the train", 7.8, 2.6, "f", (8, 0))]
+    fig, ax = plt.subplots(figsize=(10.6, 5.6))
+    ax.fill_between([0, 10], [0, 10], [10, 10], color=GREEN_T, zorder=0)
+    ax.plot([0, 10], [0, 10], color=MUTED, lw=1, ls=(0, (3, 3)))
+    ax.text(0.4, 9.5, "KEEP: removes more mass than it adds", fontsize=8.6, weight="semibold", color=GREEN)
+    ax.text(9.6, 0.5, "SLIM OR CUT: adds more than it removes", fontsize=8.6, weight="semibold", color=RED,
+            ha="right")
+    for name, x, y, fw, off in els:
+        col = NAVY if fw == "s" else WARM
+        mk = "o" if fw == "s" else "s"
+        ax.scatter([x], [y], s=70, marker=mk, color="white", edgecolor=col, lw=2, zorder=4)
+        ax.annotate(name, (x, y), xytext=off, textcoords="offset points", fontsize=8.3, color=INK,
+                    va="center", ha="left" if off[0] > 0 else "right" if off[0] < 0 else "center", zorder=5)
+    ax.scatter([], [], s=60, marker="o", color="white", edgecolor=NAVY, lw=2, label="Scrum")
+    ax.scatter([], [], s=60, marker="s", color="white", edgecolor=WARM, lw=2, label="SAFe")
+    ax.legend(loc="upper right", bbox_to_anchor=(1.0, 0.93), fontsize=8.6)
+    ax.set_xlim(0, 10); ax.set_ylim(0, 10)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.set_xlabel("Mass it adds: attention it costs, every sprint \u2192")
+    ax.set_ylabel("Mass it removes or prevents \u2192")
+    tidy(ax, grid_axis="both")
+    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+
+
 def fig_wsjf():
     """WSJF ranks before AI, with AI, and with AI plus the cost of carrying."""
     # name, cost of delay, job size by hand, job size with AI, carrying cost (mass it adds)
@@ -311,33 +350,6 @@ def fig_wsjf():
         sc = scores[c]
         ax.text(xs[c], -9.0, f"spread {max(sc) / min(sc):.1f}×", ha="center", fontsize=8.2, color=MUTED)
     ax.set_xlim(-0.95, 2.95); ax.set_ylim(-9.3, 0.8); ax.axis("off")
-    fig.savefig(OUT + "fig04.png"); plt.close(fig)
-
-
-def fig_art():
-    """Draw the train by mass, not by headcount. Schematic."""
-    fig, ax = plt.subplots(figsize=(8.6, 4.4))
-    people = np.linspace(0, 140, 200)
-    cap = 100   # what one train can coordinate, in arbitrary units of mass
-    for k, lab, col in ((0.8, "mass per person, by hand", MUTED), (2.6, "mass per person, with AI", NAVY)):
-        ax.plot(people, k * people, color=col, lw=2.4)
-        if k < 1:
-            ax.text(people[-1] + 2, k * people[-1], lab, color=col, fontsize=8.6, weight="semibold", va="center")
-        else:
-            ax.text(128 / k - 3, 128, lab, color=col, fontsize=8.6, weight="semibold", va="center", ha="right")
-    ax.axhspan(cap, 140, color=SAND_T, zorder=0)
-    ax.axhline(cap, color=INK, lw=1.2)
-    ax.text(52, cap + 4, "what one train can coordinate", fontsize=8.6, color=INK)
-    ax.axvspan(50, 125, ymax=0.06, color=NAVY_T, zorder=1)
-    ax.text(87.5, 3, "SAFe: 50 to 125 people", ha="center", fontsize=8, color=NAVY, va="bottom")
-    for k, col in ((0.8, MUTED), (2.6, NAVY)):
-        ax.scatter([cap / k], [cap], s=70, color="white", edgecolor=col, lw=2, zorder=5)
-        ax.annotate(f"~{cap / k:.0f} people", (cap / k, cap), xytext=(8, -16), textcoords="offset points",
-                    fontsize=9, color=col, weight="bold")
-    ax.set_xlim(0, 175); ax.set_ylim(0, 140)
-    ax.set_xlabel("People on the train"); ax.set_ylabel("Mass the train must carry")
-    ax.set_yticks([])
-    tidy(ax)
     fig.savefig(OUT + "fig05.png"); plt.close(fig)
 
 
@@ -378,4 +390,4 @@ def fig_ledger():
 if __name__ == "__main__":
     import os
     os.makedirs(OUT, exist_ok=True)
-    fig_spacetime(); fig_mass(); fig_dilation(); fig_wsjf(); fig_art(); fig_ledger()
+    fig_spacetime(); fig_mass(); fig_dilation(); fig_mass_test(); fig_wsjf(); fig_ledger()
