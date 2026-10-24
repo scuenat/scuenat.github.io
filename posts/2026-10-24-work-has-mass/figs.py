@@ -152,47 +152,46 @@ def simulate(p, budget=None, delete_cost=0.5):
 
 
 def fig_spacetime():
-    """Items as masses that curve the grid in which work moves."""
-    fig, axes = plt.subplots(1, 2, figsize=(11.6, 5.0))
-    rng = np.random.default_rng(7)
-    few = [(0.0, 0.0, 1.0), (-1.7, 1.2, 0.35), (1.6, -1.1, 0.4), (1.5, 1.5, 0.25)]
-    many = few + [(x, y, m) for x, y, m in zip(rng.uniform(-2.4, 2.4, 34), rng.uniform(-2.4, 2.4, 34),
-                                                rng.uniform(0.08, 0.3, 34))]
-    many[0] = (0.0, 0.0, 1.6)
-    titles = [("CALIBRATED FOR", "A few items, a gentle curve"),
-              ("WITH AI", "Many more items, a deep well")]
-    for ax, masses, (eb, tt), pull in zip(axes, (few, many), titles, (0.32, 0.22)):
-        ax.set_xlim(-3, 3); ax.set_ylim(-3, 3); ax.set_aspect("equal"); ax.axis("off")
-        t = np.linspace(-3, 3, 400)
+    """Items as masses that sink the surface on which work moves: the classic embedding picture."""
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+    rng = np.random.default_rng(3)
+    few = [(0.0, 0.0, 1.0), (-1.8, 1.3, 0.3), (1.7, -1.2, 0.35)]
+    extra = [(x, y, m) for x, y, m in zip(rng.uniform(-2.3, 2.3, 26), rng.uniform(-2.3, 2.3, 26),
+                                          rng.uniform(0.15, 0.4, 26))]
+    many = [(0.0, 0.0, 2.6)] + few[1:] + extra
+    g = np.linspace(-3, 3, 121)
+    X, Y = np.meshgrid(g, g)
 
-        def warp(X, Y):
-            dX, dY = np.zeros_like(X), np.zeros_like(Y)
-            for mx, my, m in masses:
-                rx, ry = X - mx, Y - my
-                r2 = rx ** 2 + ry ** 2 + 0.25
-                dX -= pull * m * rx / r2; dY -= pull * m * ry / r2
-            # never pull a point past the centre of its well, so the grid folds in but does not cross
-            return X + np.clip(dX, -0.9, 0.9), Y + np.clip(dY, -0.9, 0.9)
-        for g in np.linspace(-3, 3, 19):
-            for X, Y in ((t, np.full_like(t, g)), (np.full_like(t, g), t)):
-                wx, wy = warp(X, Y)
-                ax.plot(wx, wy, color="#b9c3cc", lw=0.7, zorder=1)
+    def depth(masses, x, y):
+        return -sum(m / np.sqrt((x - mx) ** 2 + (y - my) ** 2 + 0.35) for mx, my, m in masses)
+
+    fig = plt.figure(figsize=(11.6, 4.6))
+    zmin = depth(many, X, Y).min()
+    panels = [(few, "CALIBRATED FOR", "A light system: a shallow dip", NAVY),
+              (many, "WITH AI", "A heavy system: a deep well", WARM)]
+    for k, (masses, eb, tt, col) in enumerate(panels):
+        ax = fig.add_subplot(1, 2, k + 1, projection="3d", computed_zorder=False)
+        Z = depth(masses, X, Y)
+        ax.plot_wireframe(X, Y, Z, rstride=6, cstride=6, color="#9aa6b1", lw=0.55)
         for mx, my, m in masses:
-            heavy = m > 0.9
-            ax.add_patch(Circle((mx, my), 0.07 + 0.15 * np.sqrt(m), fc=NAVY if heavy else "white",
-                                ec=NAVY, lw=1.1, zorder=3))
-        # a new request crossing the system: dots one sprint apart
-        if masses is few:
-            path = np.array([(-2.8 + 5.4 * s, -2.2 + 0.9 * s + 0.35 * np.sin(np.pi * s)) for s in np.linspace(0, 1, 9)])
-        else:
-            s = np.linspace(0, 1, 9) ** 1.9 * 0.62
-            path = np.array([(-2.8 + 5.4 * u, -2.2 + 0.9 * u + 1.6 * np.sin(np.pi * u)) for u in s])
-        ax.plot(path[:, 0], path[:, 1], color=WARM, lw=1.6, ls=(0, (4, 3)), zorder=4)
-        ax.scatter(path[:, 0], path[:, 1], s=26, color=AMBER, edgecolor=WARM, lw=1, zorder=5)
-        ax.text(-2.9, 3.25, eb, fontsize=7, weight="semibold", color=NAVY if masses is few else WARM)
-        ax.text(-2.9, 3.05, tt, fontsize=11.5, weight="semibold", color=INK, va="top")
-    axes[0].text(2.85, -2.75, "a new request:\none dot per sprint", fontsize=8, color=WARM, ha="right")
-    axes[1].text(0.6, -2.85, "same nine sprints, a shorter and bent path", fontsize=8, color=WARM, ha="center")
+            ax.scatter([mx], [my], [depth(masses, mx, my) + 0.05], s=40 + 160 * m,
+                       color=NAVY if m > 0.9 else "white", edgecolor=NAVY, lw=1.1, depthshade=False)
+        # a request crossing the surface, one dot per sprint: the heavier the system, the less ground it covers
+        span = 5.4 if masses is few else 3.1
+        u = np.linspace(0, 1, 9) ** (1.0 if masses is few else 1.6)
+        px, py = -2.7 + span * u, -2.6 + span * 0.55 * u
+        ax.plot(px, py, depth(masses, px, py) + 0.08, color=WARM, lw=1.6, ls=(0, (4, 3)))
+        ax.scatter(px, py, depth(masses, px, py) + 0.08, s=22, color=AMBER, edgecolor=WARM, lw=1,
+                   depthshade=False)
+        ax.set_zlim(zmin * 1.02, 0.3)
+        ax.view_init(elev=24, azim=-60)
+        ax.set_axis_off()
+        ax.set_box_aspect((1, 1, 0.55))
+        ax.text2D(0.04, 0.98, eb, transform=ax.transAxes, fontsize=7, weight="semibold", color=col)
+        ax.text2D(0.04, 0.92, tt, transform=ax.transAxes, fontsize=11.5, weight="semibold", color=INK, va="top")
+    fig.text(0.5, 0.06, "Amber: one request, one dot per sprint. In the heavy system the same nine sprints "
+             "cover less ground, and the path sinks toward the well.", ha="center", fontsize=8.6, color=WARM)
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0.04, wspace=0)
     fig.savefig(OUT + "fig01.png"); plt.close(fig)
 
 
@@ -214,6 +213,12 @@ def fig_mass():
     a1.set_ylim(0, 1080); a1.set_xlim(0, SPRINTS + 7)
     a1.set_ylabel("Items in the system (mass)"); a1.set_xlabel("Sprint")
     a2.set_ylim(0, 20); a2.set_xlim(1, SPRINTS + 9)
+    a2.set_yticks([0, 5, 10, 15, 20])
+    n_ai = runs[1][1][1]
+    a2.annotate("twice the by-hand rate at first", (1, n_ai[0]), xytext=(14, 8), textcoords="offset points",
+                fontsize=8.2, color=NAVY)
+    a2.annotate(f"\u2212{1 - n_ai[-1] / n_ai[0]:.0%} after a year", (SPRINTS, n_ai[-1]), xytext=(-10, -26),
+                textcoords="offset points", fontsize=8.2, color=NAVY, ha="right")
     a2.set_ylabel("New items delivered per sprint"); a2.set_xlabel("Sprint")
     for lab, (m, n), col, ls in runs:
         a1.text(SPRINTS + 0.4, m[-1], lab.replace(" and a", "\nand a"), fontsize=8.4, color=col, weight="semibold", va="center")
@@ -350,6 +355,9 @@ def fig_ledger():
             v = run if v is None else v
             ax.bar(i, v - 250, bottom=250, width=0.62, color=NAVY, zorder=3)
             ax.text(i, v + 2, f"{v:.0f}", ha="center", va="bottom", fontsize=9, weight="semibold", color=INK)
+            if i:
+                ax.text(i, v + 9, f"net {v - rows[0][1]:+.0f}", ha="center", va="bottom", fontsize=9,
+                        weight="semibold", color=WARM)
             run = v
         else:
             col = WARM if kind == "add" else GREEN
