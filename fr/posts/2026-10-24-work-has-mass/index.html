@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Avec l’IA, les équipes produisent bien plus, et tout ce qu’elles produisent doit être porté. Je traite cela comme une masse qui courbe l’espace dans lequel le travail se déplace, et je soutiens que Scrum et SAFe ne doivent pas grossir pour y faire face, mais s’alléger : garder ce qui retire de la masse, couper ce qui en ajoute.">
+
+<title>Le travail a une masse – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-ee4c5b18e506b90af44436d4fa6a22e1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-c106df560c95206274fc63409fa022b2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-ee4c5b18e506b90af44436d4fa6a22e1.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-10-24-work-has-mass/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-10-24-work-has-mass/">
+<meta name="alt-lang-url" content="/posts/2026-10-24-work-has-mass/">
+<link rel="canonical" href="https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-10-24","description":"Avec l’IA, les équipes produisent bien plus, et tout ce qu’elles produisent doit être porté. Je traite cela comme une masse qui courbe l’espace dans lequel le travail se déplace, et je soutiens que Scrum et SAFe ne doivent pas grossir pour y faire face, mais s’alléger : garder ce qui retire de la masse, couper ce qui en ajoute.","headline":"Le travail a une masse","image":"https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig01.png","inLanguage":"fr","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["essai","ia","agilité","organisation"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"translationOfWork":{"@id":"https://scuenat.github.io/posts/2026-10-24-work-has-mass/"},"url":"https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/"}</script>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Le travail a une masse – AI, Honestly">
+<meta property="og:description" content="Avec l’IA, les équipes produisent bien plus, et tout ce qu’elles produisent doit être porté. Je traite cela comme une masse qui courbe l’espace dans lequel le travail se déplace, et je soutiens que Scrum et SAFe ne doivent pas grossir pour y faire face, mais s’alléger : garder ce qui retire de la masse, couper ce qui en ajoute.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="1052">
+<meta property="og:image:width" content="2326">
+<meta name="twitter:title" content="Le travail a une masse – AI, Honestly">
+<meta name="twitter:description" content="Avec l’IA, les équipes produisent bien plus, et tout ce qu’elles produisent doit être porté. Je traite cela comme une masse qui courbe l’espace dans lequel le travail se déplace, et je soutiens que Scrum et SAFe ne doivent pas grossir pour y faire face, mais s’alléger : garder ce qui retire de la masse, couper ce qui en ajoute.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig01.png">
+<meta name="twitter:image-height" content="1052">
+<meta name="twitter:image-width" content="2326">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul>
+  <li><a href="#le-mauvais-débat" id="toc-le-mauvais-débat" class="nav-link active" data-scroll-target="#le-mauvais-débat">Le mauvais débat</a></li>
+  <li><a href="#chaque-élément-a-une-masse" id="toc-chaque-élément-a-une-masse" class="nav-link" data-scroll-target="#chaque-élément-a-une-masse">Chaque élément a une masse</a></li>
+  <li><a href="#ce-que-lia-change-le-coût-de-créer-de-la-masse" id="toc-ce-que-lia-change-le-coût-de-créer-de-la-masse" class="nav-link" data-scroll-target="#ce-que-lia-change-le-coût-de-créer-de-la-masse">Ce que l’IA change : le coût de créer de la masse</a></li>
+  <li><a href="#la-dilatation-du-temps" id="toc-la-dilatation-du-temps" class="nav-link" data-scroll-target="#la-dilatation-du-temps">La dilatation du temps</a></li>
+  <li><a href="#mesurer-la-masse" id="toc-mesurer-la-masse" class="nav-link" data-scroll-target="#mesurer-la-masse">Mesurer la masse</a></li>
+  <li><a href="#un-cadre-aussi-a-une-masse" id="toc-un-cadre-aussi-a-une-masse" class="nav-link" data-scroll-target="#un-cadre-aussi-a-une-masse">Un cadre aussi a une masse</a></li>
+  <li><a href="#scrum-plus-léger-pas-plus-lâche" id="toc-scrum-plus-léger-pas-plus-lâche" class="nav-link" data-scroll-target="#scrum-plus-léger-pas-plus-lâche">Scrum : plus léger, pas plus lâche</a></li>
+  <li><a href="#safe-des-trains-plus-petits-moins-de-couches" id="toc-safe-des-trains-plus-petits-moins-de-couches" class="nav-link" data-scroll-target="#safe-des-trains-plus-petits-moins-de-couches">SAFe : des trains plus petits, moins de couches</a>
+  <ul class="collapse">
+  <li><a href="#le-wsjf-ne-départage-plus" id="toc-le-wsjf-ne-départage-plus" class="nav-link" data-scroll-target="#le-wsjf-ne-départage-plus">Le WSJF ne départage plus</a></li>
+  <li><a href="#des-trains-plus-petits-moins-de-couches" id="toc-des-trains-plus-petits-moins-de-couches" class="nav-link" data-scroll-target="#des-trains-plus-petits-moins-de-couches">Des trains plus petits, moins de couches</a></li>
+  </ul></li>
+  <li><a href="#ce-que-je-ferais-concrètement" id="toc-ce-que-je-ferais-concrètement" class="nav-link" data-scroll-target="#ce-que-je-ferais-concrètement">Ce que je ferais concrètement</a></li>
+  <li><a href="#objections" id="toc-objections" class="nav-link" data-scroll-target="#objections">Objections</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Le travail a une masse</h1>
+<p class="subtitle lead">Scrum et SAFe n’ont pas tort. Dans un univers plus lourd, ils doivent s’alléger.</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">agilité</div>
+    <div class="quarto-category">organisation</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Avec l’IA, les équipes produisent bien plus, et tout ce qu’elles produisent doit être porté. Je traite cela comme une masse qui courbe l’espace dans lequel le travail se déplace, et je soutiens que Scrum et SAFe ne doivent pas grossir pour y faire face, mais s’alléger : garder ce qui retire de la masse, couper ce qui en ajoute.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">24 octobre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Un regard extérieur.</strong> Je connais Scrum par des années de pratique ; SAFe, je ne le connais que par son cadre public, et les praticiens sauront où les vrais trains diffèrent. La physique est une métaphore, utilisée à dessein ; les chiffres viennent d’un modèle jouet décrit en entier. Les figures sont de moi, faites avec le code de <a href="../../../posts/2026-10-24-work-has-mass/figs.py">figs.py</a>, et leurs libellés sont en anglais. Cet essai fait suite à la série <a href="../../../fr/agentic-coding.html">Le codage agentique</a>, qui regardait le code ; ici, je regarde l’organisation autour. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-24-work-has-mass/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>Trois lois de la masse du travail
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>Tout ce que vous fabriquez, vous le portez.</strong></li>
+<li><strong>L’IA baisse le coût de fabriquer, pas celui de porter.</strong></li>
+<li><strong>Un processus aussi a une masse.</strong> Dans un univers plus lourd, les cadres doivent s’alléger.</li>
+</ol>
+</div>
+</div>
+<section id="le-mauvais-débat" class="level2">
+<h2 class="anchored" data-anchor-id="le-mauvais-débat">Le mauvais débat</h2>
+<p>Les discussions sur l’IA et les cadres agiles se rangent en deux camps. Le premier dit que l’IA rend Scrum et SAFe obsolètes : si un agent construit une fonctionnalité en un après-midi, pourquoi planifier en sprints de deux semaines, ou en incréments de dix semaines avec cent personnes dans une salle ? Le second dit que rien ne change : l’IA n’est qu’un outil plus rapide dans un bon processus.</p>
+<p>Les deux camps regardent la <em>production</em> : la vitesse à laquelle le travail est fait. Mais les cadres n’ont jamais porté seulement sur la production. Ils portent sur la manière dont un groupe de personnes porte, dans la durée, un ensemble de travail qui grandit, sans en perdre le contrôle. Ce qui devrait les changer n’est pas ce que l’IA fabrique, mais ce qu’elle <em>laisse derrière elle</em>. Et la réponse, je vais le soutenir, n’est pas plus de cadre. C’est moins.</p>
+</section>
+<section id="chaque-élément-a-une-masse" class="level2">
+<h2 class="anchored" data-anchor-id="chaque-élément-a-une-masse">Chaque élément a une masse</h2>
+<p>Chaque élément qui entre dans le système y reste un moment, et certains y restent pour de bon : une story, une pull request, une fonctionnalité, un test, un document, une dépendance, une décision ouverte, un élément de backlog que quelqu’un « traitera plus tard ». Chacun demande de l’attention pour être gardé : quelqu’un doit le comprendre, le maintenir, répondre aux questions qu’il soulève, ou au moins se souvenir qu’il existe.</p>
+<p>J’appelle ce coût permanent la <strong>masse</strong> de l’élément. La masse n’est pas la valeur. Une petite fonctionnalité utilisée par des milliers de personnes peut être légère ; un module généré que personne ne comprend vraiment peut être lourd.</p>
+<p>En relativité générale, la masse courbe l’espace-temps : les objets proches d’une grande masse suivent des trajectoires courbes, et le temps s’écoule plus lentement pour eux. C’est une bonne image de ce que le travail accumulé fait à une équipe :</p>
+<ul>
+<li><strong>Les trajectoires se courbent.</strong> Une nouvelle demande est attirée vers les parties lourdes du système : le module historique, l’intégration dont tout le monde dépend, la décision que personne n’a prise.</li>
+<li><strong>Le temps ralentit près de la masse.</strong> Le même changement prend plus de temps dans un système lourd, parce que chaque étape doit tenir compte de davantage de choses qui existent déjà.</li>
+<li><strong>Il y a un horizon.</strong> Si la masse continue de croître, toute l’attention de l’équipe finit par porter ce qui existe. Les demandes entrent toujours. Rien ne sort.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma. Les éléments enfoncent la surface sur laquelle le travail se déplace. À gauche, le système léger pour lequel les cadres ont été calibrés : un léger creux, et une demande (en ambre, un point par sprint) qui le traverse presque en ligne droite. À droite, le même système après que l’IA a multiplié ce que l’équipe produit : un puits profond, et dans les mêmes neuf sprints la demande parcourt moins de chemin et s’enfonce vers le centre."><img src="../../../posts/2026-10-24-work-has-mass/figures/fig01.png" class="img-fluid figure-img" alt="Deux surfaces en fil de fer vues en perspective. À gauche, un système léger, un léger creux : une grille presque plate avec une masse sombre qui forme un petit creux et deux petits cercles ; un chemin ambre en pointillés de neuf points régulièrement espacés la traverse presque en ligne droite. À droite, un système lourd, un puits profond : la grille s'enfonce en un entonnoir profond autour d'une grande masse sombre au fond, avec une trentaine de cercles sur ses pentes ; le chemin ambre de neuf points part du bord gauche, les points se rapprochent et le chemin descend dans le puits."></a></p>
+<figcaption><strong>Figure 1.</strong> Schéma. Les éléments enfoncent la surface sur laquelle le travail se déplace. À gauche, le système léger pour lequel les cadres ont été calibrés : un léger creux, et une demande (en ambre, un point par sprint) qui le traverse presque en ligne droite. À droite, le même système après que l’IA a multiplié ce que l’équipe produit : un puits profond, et dans les mêmes neuf sprints la demande parcourt moins de chemin et s’enfonce vers le centre.</figcaption>
+</figure>
+</div>
+<p>Rien de tout cela n’est nouveau. Lehman l’a énoncé comme une loi de l’évolution du logiciel : la complexité augmente, sauf si l’on travaille à la réduire <span class="citation" data-cites="lehman1980">(<a href="#ref-lehman1980" role="doc-biblioref">Lehman 1980</a>)</span>. Le Lean appelle le travail inachevé un stock <span class="citation" data-cites="reinertsen2009">(<a href="#ref-reinertsen2009" role="doc-biblioref">Reinertsen 2009</a>)</span>. Brooks a montré que les chemins de communication croissent plus vite que l’effectif <span class="citation" data-cites="brooks1975">(<a href="#ref-brooks1975" role="doc-biblioref">Brooks 1975</a>)</span>. Ce qui est nouveau, c’est le rythme.</p>
+</section>
+<section id="ce-que-lia-change-le-coût-de-créer-de-la-masse" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-lia-change-le-coût-de-créer-de-la-masse">Ce que l’IA change : le coût de créer de la masse</h2>
+<p>L’IA rend <em>produire</em> un élément beaucoup moins cher. Elle ne rend pas, ou pas encore, le <em>porter</em> beaucoup moins cher. Quelqu’un doit toujours décider si une fonctionnalité doit exister, comprendre comment elle s’insère, en répondre quand elle casse, et se souvenir pourquoi elle a été construite. Sous forme de bilan :</p>
+<p><span class="math display">
+\frac{dM}{dt} = \text{production} - \text{retrait}, \qquad \text{capacité pour du travail nouveau} = H - k \cdot M,
+</span></p>
+<p>où <span class="math inline">M</span> est la masse du système, <span class="math inline">H</span> l’attention totale de l’équipe et <span class="math inline">k</span> l’attention qu’une unité de masse demande. La production est devenue bon marché ; le retrait n’a presque jamais été planifié. Donc <span class="math inline">M</span> croît plus vite, et <span class="math inline">H - kM</span> diminue plus vite.</p>
+<p>Le plus petit modèle que j’ai pu construire : une équipe dispose de 100 heures d’attention par sprint. Le système commence avec 250 éléments qui demandent chacun 0,1 heure, si bien qu’un quart de l’équipe porte déjà le passé. Un nouvel élément demande 6 heures pour être produit à la main ou 1,5 heure avec l’IA, plus 3 heures pour être absorbé (relire, décider, intégrer). Ce qui reste après le portage va à de nouveaux éléments, et chaque nouvel élément reste. Ces hypothèses font l’essentiel du travail ; j’y reviens dans les objections.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Modèle jouet, une année de sprints de deux semaines. À gauche : les éléments dans le système. À droite : les nouveaux éléments livrés par sprint. Avec l’IA, l’équipe commence au double du rythme manuel, mais la masse qu’elle ajoute mange sa capacité. Avec un budget de masse (le portage plafonné à 35 % de l’attention), le rythme tient. Les paramètres sont dans le texte et dans figs.py."><img src="../../../posts/2026-10-24-work-has-mass/figures/fig02.png" class="img-fluid figure-img" alt="Deux graphiques en lignes sur 26 sprints. À gauche, la masse : à la main, elle passe de 250 à environ 440 éléments ; avec l'IA, à environ 580 ; avec l'IA et un budget de masse, à environ 350 au sprint 6, puis reste stable. Une ligne rouge pointillée à 1000 marque l'horizon. À droite, le flux : à la main, il baisse de 8,3 à 6,3 éléments par sprint ; avec l'IA, de 16,7 à 9,5, avec la mention moins 43 % après un an ; avec l'IA et un budget de masse, de 16,7 à environ 13 au sprint 8, puis reste stable."></a></p>
+<figcaption><strong>Figure 2.</strong> Modèle jouet, une année de sprints de deux semaines. À gauche : les éléments dans le système. À droite : les nouveaux éléments livrés par sprint. Avec l’IA, l’équipe commence au double du rythme manuel, mais la masse qu’elle ajoute mange sa capacité. Avec un budget de masse (le portage plafonné à 35 % de l’attention), le rythme tient. Les paramètres sont dans le texte et dans figs.py.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>À la main</strong>, l’équipe livre 8,3 éléments au premier sprint et 6,3 au dernier ; le portage passe de 25 % à 44 % de son attention.</li>
+<li><strong>Avec l’IA</strong>, elle livre 16,7 éléments au premier sprint, et tous les tableaux de bord sont superbes. À la fin de l’année, elle en livre 9,5, avec 58 % de son attention consacrée au portage. La deuxième année, le gain a presque disparu : 5,3 éléments par sprint contre 4,7 à la main.</li>
+<li><strong>Avec l’IA et un budget de masse</strong>, dès que le portage dépasserait 35 % de l’attention, l’équipe retire des éléments (supprime du code, retire des fonctionnalités, ferme des éléments de backlog) avant d’en ajouter. Elle livre 13 éléments par sprint, la première année comme la deuxième.</li>
+</ul>
+<p>Sur la première année, le budget rapporte peu : 356 éléments contre 332, environ 7 % de plus. Ce qui diffère, c’est la situation de chaque équipe à la fin : l’une livre 13 éléments par sprint avec un tiers de son attention sur le passé, l’autre 9,5 et en baisse, avec près de 60 % sur le passé. L’IA ne change pas la <em>forme</em> du problème, seulement sa <em>vitesse</em>. Un système qui mettait dix ans à devenir lourd peut maintenant le devenir en un an, et nos cadres ont été réglés, implicitement, pour la décennie.</p>
+</section>
+<section id="la-dilatation-du-temps" class="level2">
+<h2 class="anchored" data-anchor-id="la-dilatation-du-temps">La dilatation du temps</h2>
+<p>Le délai de livraison dépend de la capacité disponible. La théorie des files d’attente sait depuis soixante ans que, lorsque la charge approche de la capacité, l’attente ne croît pas régulièrement : elle explose <span class="citation" data-cites="kingman1961 little1961">(<a href="#ref-kingman1961" role="doc-biblioref">Kingman 1961</a>; <a href="#ref-little1961" role="doc-biblioref">Little 1961</a>)</span>. La masse mange la capacité disponible. La figure 3 ajoute une hypothèse au modèle : les demandes arrivent à un rythme régulier qui mobilise 35 % de l’équipe.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Modèle jouet. Délai de livraison d’une nouvelle demande selon la part de l’attention consacrée à porter la masse existante. À la main, après un an, les délais doublent presque ; avec l’IA et sans budget, ils sont presque six fois plus longs."><img src="../../../posts/2026-10-24-work-has-mass/figures/fig03.png" class="img-fluid figure-img" alt="Une courbe qui monte lentement, puis fortement. Abscisse : part de l'attention consacrée à porter la masse existante, de 0 à 80 %. Ordonnée : délai comparé à aujourd'hui, de 0 à 6 fois. Points : aujourd'hui à 25 %, 1 fois ; avec un budget de masse à 35 %, environ 1,3 fois ; à la main après un an à 44 %, environ 1,9 fois ; avec l'IA après un an à 58 %, environ 5,9 fois. Une ligne rouge pointillée à 65 % marque l'horizon."></a></p>
+<figcaption><strong>Figure 3.</strong> Modèle jouet. Délai de livraison d’une nouvelle demande selon la part de l’attention consacrée à porter la masse existante. À la main, après un an, les délais doublent presque ; avec l’IA et sans budget, ils sont presque six fois plus longs.</figcaption>
+</figure>
+</div>
+<p>Cela concorde avec ce que rapportent les équipes : <em>nous produisons plus que jamais, et tout prend plus de temps</em>. En 2024, DORA a associé une adoption plus forte de l’IA à un débit de livraison légèrement plus faible (environ 1,5 %) et à une stabilité plus faible (environ 7,2 %) <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA, Google Cloud 2024</a>)</span>. En 2025, le débit est devenu positif mais la stabilité est restée négative, et l’explication des auteurs est proche de celle de cet essai : le volume de changements dépasse les contrôles en aval, et les équipes dans des systèmes fortement couplés en tirent peu ou pas de bénéfice <span class="citation" data-cites="dora2025">(<a href="#ref-dora2025" role="doc-biblioref">DORA, Google Cloud 2025</a>)</span>. Des développeurs expérimentés se sont même révélés plus lents avec les outils du début de 2025, dans leurs propres dépôts, grands et matures <span class="citation" data-cites="becker2025">(<a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>. Aucune de ces études n’a mesuré la masse, mais toutes vont dans le même sens : le gain d’une fabrication plus rapide est le plus faible là où il y a le plus à porter.</p>
+</section>
+<section id="mesurer-la-masse" class="level2">
+<h2 class="anchored" data-anchor-id="mesurer-la-masse">Mesurer la masse</h2>
+<p>La masse n’a pas besoin d’être précise pour être vue. Deux chiffres suffisent pour commencer.</p>
+<ul>
+<li><strong>La part de portage.</strong> Étiquetez chaque ticket, ou chaque heure, comme <em>nouveau</em> ou <em>portage</em>. Le portage, c’est tout ce qui est consacré à ce qui existe déjà : support, incidents, mises à jour, questions, relectures de changements qui y touchent. C’est l’abscisse de la figure 3.</li>
+<li><strong>Les éléments les plus lourds.</strong> Une fois par trimestre, attribuez les heures de portage aux éléments qui les ont causées et dressez la liste des dix premiers. La masse est très inégale ; quelques services, intégrations ou décisions ouvertes en portent généralement l’essentiel. C’est par cette liste que commence le retrait.</li>
+</ul>
+</section>
+<section id="un-cadre-aussi-a-une-masse" class="level2">
+<h2 class="anchored" data-anchor-id="un-cadre-aussi-a-une-masse">Un cadre aussi a une masse</h2>
+<p>La troisième loi est celle que je trouve la plus importante. Chaque événement, rôle, artefact, indicateur et outil d’un cadre est un élément du système, et coûte de l’attention à chaque sprint, qu’il aide ou non. Les cadres grandissent par ajout, et presque rien n’est jamais retiré. Quand l’IA alourdit le travail, un processus plus lourd est la dernière chose dont le système a besoin. J’appliquerais donc un seul test à chaque élément de Scrum et de SAFe :</p>
+<blockquote class="blockquote">
+<p><strong>Le test de masse.</strong> Cet élément retire-t-il ou évite-t-il plus de masse qu’il n’en ajoute ?</p>
+</blockquote>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Le test de masse : mon jugement, à discuter. Chaque élément de Scrum (cercles) et de SAFe (carrés) est placé selon l’attention qu’il coûte à chaque sprint et la masse qu’il retire ou évite. Au-dessus de la ligne, on le garde ; en dessous, on l’allège ou on le coupe. La flèche montre le passage, décidé par SAFe lui-même, d’un PI Planning de deux jours à un PI Outcome Planning d’une journée. Les positions dépendent de l’équipe ; le test, non."><img src="../../../posts/2026-10-24-work-has-mass/figures/fig04.png" class="img-fluid figure-img" alt="Un nuage de points coupé par une diagonale. Abscisse : la masse ajoutée, l'attention coûtée à chaque sprint. Ordonnée : la masse retirée ou évitée. Zone en haut à gauche, en vert : garder, retire plus de masse qu'il n'en ajoute. On y trouve l'itération IP utilisée pour le retrait, la Definition of Done, le Sprint Goal, la Sprint Review, la System Demo et la rétrospective. Le Daily Scrum est sur la ligne. Zone en bas à droite : alléger ou couper, ajoute plus qu'il ne retire. On y trouve le WSJF sur chaque fonctionnalité, les réunions de synchronisation d'un grand train, les couches au-dessus du train, le PI Planning avec tout le train pendant deux jours, avec une flèche pointillée marquée slim it qui monte vers le PI Outcome Planning d'une journée, la version AI-Native de SAFe, dans la zone à garder ; l'affinage d'un long backlog, et les story points et la vélocité comme ajouts."></a></p>
+<figcaption><strong>Figure 4.</strong> Le test de masse : mon jugement, à discuter. Chaque élément de Scrum (cercles) et de SAFe (carrés) est placé selon l’attention qu’il coûte à chaque sprint et la masse qu’il retire ou évite. Au-dessus de la ligne, on le garde ; en dessous, on l’allège ou on le coupe. La flèche montre le passage, décidé par SAFe lui-même, d’un PI Planning de deux jours à un PI Outcome Planning d’une journée. Les positions dépendent de l’équipe ; le test, non.</figcaption>
+</figure>
+</div>
+<p>Mes placements comptent moins que le motif. <strong>Les parties qui disent non passent. Les parties qui comptent échouent.</strong> Un Sprint Goal, une Definition of Done, une revue, une itération réservée au retrait : chacun décide de ce qu’il ne faut <em>pas</em> porter, et coûte peu. Estimer chaque élément, affiner un long backlog, synchroniser un grand train : chacun gère une quantité de travail, et la quantité est exactement ce que l’IA a rendu bon marché. Certains éléments sont entre les deux et peuvent être allégés plutôt que coupés. Le PI Planning est le cas le plus clair, et SAFe le fait déjà évoluer : ses recommandations AI-Native remplacent l’événement de deux jours par un PI Outcome Planning d’une journée, et fondent la System Demo et l’Inspect and Adapt dans un événement de deux heures à chaque itération <span class="citation" data-cites="safeai2026">(<a href="#ref-safeai2026" role="doc-biblioref">Scaled Agile, Inc. 2026</a>)</span>. Appliqué honnêtement, le test ne rejette aucun des deux cadres. Il les réduit tous deux à leur noyau.</p>
+</section>
+<section id="scrum-plus-léger-pas-plus-lâche" class="level2">
+<h2 class="anchored" data-anchor-id="scrum-plus-léger-pas-plus-lâche">Scrum : plus léger, pas plus lâche</h2>
+<p>Le Scrum Guide est déjà court : empirisme et pensée lean, une équipe de dix personnes au plus, une durée fixe d’un mois au plus, cinq événements et trois engagements, le Product Goal, le Sprint Goal et la Definition of Done <span class="citation" data-cites="scrumguide2020">(<a href="#ref-scrumguide2020" role="doc-biblioref">Schwaber et Sutherland 2020</a>)</span>. Il ne dit rien des story points ni de la vélocité ; ce sont des ajouts courants, et l’essentiel de ce qui alourdit Scrum en pratique se trouve dans les ajouts.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 1.</strong> Scrum, relu avec la masse en tête. La colonne du milieu est ma lecture du Scrum Guide et de la pratique courante ; la colonne de droite est ma proposition.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Élément</th>
+<th>Calibré pour</th>
+<th>Dans un univers plus lourd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Sprint</strong></td>
+<td>Un rythme pour produire un incrément utilisable</td>
+<td>Un rythme pour l’<em>absorber</em> : décider, intégrer, comprendre.</td>
+</tr>
+<tr class="even">
+<td><strong>Sprint Goal</strong></td>
+<td>La concentration pendant le sprint</td>
+<td>À garder. La façon la moins chère de dire non.</td>
+</tr>
+<tr class="odd">
+<td><strong>Definition of Done</strong></td>
+<td>La qualité qu’un incrément doit atteindre</td>
+<td>À garder, en ajoutant : ce qu’il coûte à porter, ce qui a été retiré pour lui faire de la place.</td>
+</tr>
+<tr class="even">
+<td><strong>Product Backlog</strong></td>
+<td>Une liste ordonnée, affinée au besoin</td>
+<td>Courte, avec des éléments qui <em>expirent</em>. L’IA peut la remplir sans limite.</td>
+</tr>
+<tr class="odd">
+<td><strong>Sprint Review</strong></td>
+<td>Inspecter l’incrément</td>
+<td>Inspecter l’incrément <em>et le registre de masse</em> (figure 6).</td>
+</tr>
+<tr class="even">
+<td><strong>Daily Scrum</strong></td>
+<td>Une inspection quotidienne vers l’objectif</td>
+<td>Le garder court, ou asynchrone pour une petite équipe.</td>
+</tr>
+<tr class="odd">
+<td><strong>Story points, vélocité</strong> <em>(ajouts, absents du Guide)</em></td>
+<td>Ce que l’équipe peut fabriquer</td>
+<td>À abandonner. Avec l’IA, ils mesurent la masse ajoutée. Utiliser le délai et la part de portage.</td>
+</tr>
+<tr class="even">
+<td><strong>Taille de l’équipe</strong></td>
+<td>Dix au plus, pour garder une communication gérable</td>
+<td>La limite est la masse que chaque personne porte. Cinq personnes avec l’IA peuvent porter la masse de vingt.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Le backlog a besoin d’évaporation.</strong> Quand écrire un élément de backlog demandait de l’effort, l’effort servait de filtre. Aujourd’hui, une IA peut transformer chaque réunion en dix stories bien écrites, et chaque story est une promesse qui a une masse. Sans activité pendant trois sprints, un élément expire, sauf si quelqu’un le renouvelle. Les trous noirs s’évaporent lentement. Les backlogs devraient en faire autant.</p>
+<p>Ce qui reste, c’est Scrum dans son noyau : un objectif, un standard, une liste courte, un rythme d’inspection et un registre de ce que l’équipe porte. Moins de cadre que ce que la plupart des équipes font tourner aujourd’hui, pas plus.</p>
+</section>
+<section id="safe-des-trains-plus-petits-moins-de-couches" class="level2">
+<h2 class="anchored" data-anchor-id="safe-des-trains-plus-petits-moins-de-couches">SAFe : des trains plus petits, moins de couches</h2>
+<p>La structure centrale de SAFe est l’Agile Release Train (ART), une équipe d’équipes agiles durable, généralement de 50 à 125 personnes <span class="citation" data-cites="safe6">(<a href="#ref-safe6" role="doc-biblioref">Scaled Agile, Inc. 2023</a>)</span>, qui planifie ensemble toutes les 8 à 12 semaines <span class="citation" data-cites="safepi">(<a href="#ref-safepi" role="doc-biblioref">Scaled Agile, Inc., s.&nbsp;d.-b</a>)</span>. Le travail est classé par Weighted Shortest Job First (WSJF) : le coût du retard divisé par la taille du travail, une idée issue du flux de développement produit <span class="citation" data-cites="reinertsen2009">(<a href="#ref-reinertsen2009" role="doc-biblioref">Reinertsen 2009</a>)</span>.</p>
+<p>SAFe sait déjà que le travail existant pèse. À chaque fin d’intervalle, les trains conviennent d’une <em>allocation de capacité</em> : la part de capacité consacrée aux nouvelles fonctionnalités face aux enablers, à la dette technique et à la maintenance <span class="citation" data-cites="safebacklog">(<a href="#ref-safebacklog" role="doc-biblioref">Scaled Agile, Inc., s.&nbsp;d.-a</a>)</span>. C’est proche d’un budget de masse, et les trains qui l’utilisent bien ont de l’avance. La différence tient à ce qui est limité. Une allocation de capacité plafonne l’effort consacré à l’existant ; un budget de masse plafonne l’existant lui-même, et oblige à retirer quand il grossit.</p>
+<section id="le-wsjf-ne-départage-plus" class="level3">
+<h3 class="anchored" data-anchor-id="le-wsjf-ne-départage-plus">Le WSJF ne départage plus</h3>
+<p>Avec l’IA, les tailles de travail diminuent, mais de façon inégale : les petites fonctionnalités atteignent un plancher, les complexes diminuent moins. Le dénominateur perd son étendue, et le classement se réduit au seul coût du retard. Et la taille du travail n’a jamais mesuré ce qu’une fonctionnalité coûte à <em>porter</em>, qui en est maintenant la plus grande part.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Illustratif, huit fonctionnalités inventées, classées par WSJF classique à la main, WSJF classique avec l’IA, et WSJF avec coût de portage. Avec l’IA, l’écart entre le meilleur et le moins bon score passe de 3,8× à 2,2×, et deux fonctionnalités sont ex æquo en tête. Le coût de portage rétablit un écart de 6,8× et fait descendre les fonctionnalités dont le coût vient après la livraison, comme un assistant conversationnel."><img src="../../../posts/2026-10-24-work-has-mass/figures/fig05.png" class="img-fluid figure-img" alt="Un graphique de pente avec trois colonnes de huit fonctionnalités. WSJF classique à la main, de haut en bas : Export to PDF 3,0, Checkout redesign 2,2, Faster search 1,6, New partner API 1,6, Admin dashboard 1,6, Chat assistant 1,2, Fraud rules v2 1,0, Second mobile app 0,8 ; écart 3,8 fois. WSJF classique avec l'IA : Checkout redesign 9,0, Export to PDF 9,0, Admin dashboard 8,0, Chat assistant 7,5, New partner API 7,0, Faster search 6,5, Second mobile app 5,3, Fraud rules v2 4,0 ; écart 2,2 fois. WSJF avec coût de portage : Export to PDF 4,5, Checkout redesign 3,6, Faster search 3,2, Fraud rules v2 1,5, Admin dashboard 1,3, New partner API 1,3, Chat assistant 1,0, Second mobile app 0,7 ; écart 6,8 fois. Faster search, Fraud rules v2 et Chat assistant sont mis en évidence parce que leur rang bouge d'au moins trois places entre les deux dernières colonnes."></a></p>
+<figcaption><strong>Figure 5.</strong> Illustratif, huit fonctionnalités inventées, classées par WSJF classique à la main, WSJF classique avec l’IA, et WSJF avec coût de portage. Avec l’IA, l’écart entre le meilleur et le moins bon score passe de 3,8× à 2,2×, et deux fonctionnalités sont ex æquo en tête. Le coût de portage rétablit un écart de 6,8× et fait descendre les fonctionnalités dont le coût vient après la livraison, comme un assistant conversationnel.</figcaption>
+</figure>
+</div>
+<p>La correction est petite : ajouter le coût de portage au dénominateur,</p>
+<p><span class="math display">
+\text{WSJF}_{\text{masse}} = \frac{\text{coût du retard}}{\text{taille du travail} + \text{coût de portage}},
+</span></p>
+<p>où le coût de portage est une estimation relative de l’attention que la fonctionnalité demandera pendant sa première année. Un assistant conversationnel est rapide à construire et lent à porter : il descend. Une recherche plus rapide n’ajoute presque rien à porter : elle monte. Et il suffit de noter le haut du backlog : classer des fonctionnalités qui ne seront jamais construites est en soi de la masse.</p>
+</section>
+<section id="des-trains-plus-petits-moins-de-couches" class="level3">
+<h3 class="anchored" data-anchor-id="des-trains-plus-petits-moins-de-couches">Des trains plus petits, moins de couches</h3>
+<p>De 50 à 125 personnes, c’est une limite de coordination, apprise d’équipes qui produisaient à vitesse humaine. Mais un train ne coordonne pas des personnes ; il coordonne ce qu’elles produisent et doivent garder cohérent : interfaces, dépendances, données partagées, décisions partagées. Si chaque personne ajoute trois fois plus de masse, un train atteint cette limite à environ un tiers de sa taille.</p>
+<p>La réponse tentante est plus de structure. Le test de masse indique l’inverse. Découpez les trains selon la masse, bien avant 125 personnes, pour que chacun porte moins. Des trains plus petits ont besoin de moins de réunions de synchronisation et de moins de rôles de coordination, et peut-être de moins de la structure au-dessus d’eux. La planification rétrécit avec eux : chaque équipe apporte un <strong>budget de masse</strong> à côté de sa capacité, le tableau ne montre que les dépendances qui traversent les équipes, et l’itération Innovation and Planning devient le lieu du retrait. SAFe avec l’IA devrait ressembler moins à un SAFe plus gros qu’à quelques trains petits et légers, chacun avec un budget clair de ce qu’il a le droit de porter.</p>
+</section>
+</section>
+<section id="ce-que-je-ferais-concrètement" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-je-ferais-concrètement">Ce que je ferais concrètement</h2>
+<ol type="1">
+<li><strong>Mesurer la part de portage</strong> et dresser la liste des dix éléments les plus lourds.</li>
+<li><strong>Fixer un budget de masse,</strong> et traiter son dépassement comme un build rouge : arrêter d’ajouter, commencer à retirer.</li>
+<li><strong>Faire du retrait un livrable,</strong> montré à la Sprint Review et à la System Demo à côté de ce qui a été ajouté.</li>
+<li><strong>Laisser les éléments expirer :</strong> éléments de backlog, questions ouvertes, documents générés.</li>
+<li><strong>Intégrer la masse dans la priorité :</strong> WSJF avec coût de portage, pour le haut du backlog seulement.</li>
+<li><strong>Dimensionner les équipes et les trains selon la masse,</strong> pas selon l’effectif.</li>
+<li><strong>Soumettre le cadre au test de masse,</strong> ces sept propositions comprises.</li>
+</ol>
+<p>Ce dernier point compte, car ce sont de nouvelles pratiques, et un essai contre la masse des cadres ne devrait pas en ajouter en douce. Chacune remplace quelque chose de plus lourd. La part de portage et le délai remplacent les story points et la vélocité. L’expiration remplace l’affinage d’un long backlog. Le registre remplace un rapport d’avancement, et n’est qu’un graphique dans une revue qui existe déjà. Le budget de masse est un chiffre dans un événement de planification qui existe déjà, pas un nouvel événement. Si l’une d’elles ne retire pas plus qu’elle n’ajoute dans votre équipe, abandonnez-la.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Illustratif. Un registre de masse pour un sprint, en heures de portage par sprint : 51 ajoutées, 44 retirées, solde +7. C’est le graphique que je montrerais à chaque Sprint Review, à côté de l’incrément."><img src="../../../posts/2026-10-24-work-has-mass/figures/fig06.png" class="img-fluid figure-img" alt="Un graphique en cascade. Début de sprint 312. Ajouts, en ambre : stories terminées +14, code et tests générés +22, nouveaux documents et spécifications +6, décisions ouvertes +9. Retraits, en vert : code supprimé -18, fonctionnalités retirées -11, éléments de backlog expirés -15. Fin de sprint 319, solde +7."></a></p>
+<figcaption><strong>Figure 6.</strong> Illustratif. Un registre de masse pour un sprint, en heures de portage par sprint : 51 ajoutées, 44 retirées, solde +7. C’est le graphique que je montrerais à chaque Sprint Review, à côté de l’incrément.</figcaption>
+</figure>
+</div>
+</section>
+<section id="objections" class="level2">
+<h2 class="anchored" data-anchor-id="objections">Objections</h2>
+<p><strong>« C’est de la dette technique, ou du stock au sens du Lean, sous un nouveau nom. »</strong> En partie. Mais une fonctionnalité bien construite et utilisée n’est ni une dette ni un stock, et elle doit pourtant être portée. Le stock du Lean, c’est surtout du travail inachevé ; la masse qui croît le plus vite avec l’IA, c’est du travail <em>achevé</em>. Le Lean dit aussi de piloter un système à sa contrainte <span class="citation" data-cites="goldratt1984">(<a href="#ref-goldratt1984" role="doc-biblioref">Goldratt et Cox 1984</a>)</span>, et la contrainte s’est déplacée de la fabrication vers le portage.</p>
+<p><strong>« L’IA portera aussi la masse. »</strong> En partie, oui : les agents lisent déjà le code et résument les documents, ce qui fait baisser <span class="math inline">k</span>. Si <span class="math inline">k</span> baisse aussi vite que les coûts de production, cet essai a tort. J’en doute, parce que la masse qui compte le plus a besoin d’une personne : répondre d’une fonctionnalité, décider de la garder ou de la supprimer, le client qui en dépend.</p>
+<p><strong>« Personne n’est promu pour avoir supprimé quelque chose. »</strong> C’est vrai, et c’est la raison la plus sérieuse pour laquelle un budget de masse pourrait échouer. Les organisations récompensent ce qui est ajouté. C’est pourquoi le retrait doit être montré et compté lors des mêmes événements que la livraison, et pourquoi le registre a deux colonnes. Ce qui n’est pas vu n’est pas récompensé.</p>
+<p><strong>« Le modèle est trop simple. »</strong> Il l’est : une équipe, des paramètres constants, des éléments qui ne s’allègent jamais, et une IA qui baisse le coût de fabriquer mais pas celui de porter. Le modèle montre la conséquence de ces hypothèses, pas leur vérité. Si un meilleur modèle montre que la masse se stabilise d’elle-même, j’aimerais le voir.</p>
+<p><strong>« La physique n’est que décorative. »</strong> Peut-être. Mais les métaphores choisissent ce que nous regardons. La <em>vélocité</em> a fait regarder la vitesse aux équipes. La <em>masse</em> leur ferait regarder ce que la vitesse laisse derrière elle.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>Scrum et SAFe n’ont pas tort. L’empirisme, les boucles de retour courtes, les petites équipes, la cadence partagée et la priorisation économique sont aussi utiles avec l’IA que sans elle. Mais les deux ont été calibrés dans un univers où produire le travail était la partie difficile, et où la masse croissait assez lentement pour devenir plus tard le problème de quelqu’un d’autre.</p>
+<p>L’IA a changé le rythme auquel nous créons de la masse, pas encore celui auquel nous la portons. Le réflexe sera d’ajouter : plus de cérémonies pour contrôler plus de production, plus de rôles pour coordonner plus d’équipes, plus de couches pour planifier plus de travail. Cela ajoute de la masse à un système qui tombe déjà dans son propre puits. La meilleure réponse est l’inverse : mesurer la masse, la budgéter, lui donner un prix, la retirer aussi délibérément que nous ajoutons, puis mettre les cadres eux-mêmes sur la balance.</p>
+<p><strong>Tout ce que vous fabriquez, vous le portez. Dans un univers plus lourd, commencez par porter moins de cadre.</strong></p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">Les références</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-becker2025" class="csl-entry" role="listitem">
+Becker, Joel, Nate Rush, Elizabeth Barnes, et David Rein. 2025. <span>«&nbsp;Measuring the Impact of Early-2025 <span>AI</span> on Experienced Open-Source Developer Productivity&nbsp;»</span>. <em>arXiv preprint arXiv:2507.09089</em>. <a href="https://arxiv.org/abs/2507.09089">https://arxiv.org/abs/2507.09089</a>.
+</div>
+<div id="ref-brooks1975" class="csl-entry" role="listitem">
+Brooks, Frederick P. 1975. <em>The Mythical Man-Month: Essays on Software Engineering</em>. Addison-Wesley.
+</div>
+<div id="ref-dora2024" class="csl-entry" role="listitem">
+DORA, Google Cloud. 2024. <em>Accelerate State of <span>DevOps</span> Report 2024</em>. <a href="https://dora.dev/research/2024/dora-report/">https://dora.dev/research/2024/dora-report/</a>.
+</div>
+<div id="ref-dora2025" class="csl-entry" role="listitem">
+DORA, Google Cloud. 2025. <em>State of <span>AI</span>-assisted Software Development 2025</em>. <a href="https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report">https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report</a>.
+</div>
+<div id="ref-goldratt1984" class="csl-entry" role="listitem">
+Goldratt, Eliyahu M., et Jeff Cox. 1984. <em>The Goal: A Process of Ongoing Improvement</em>. North River Press.
+</div>
+<div id="ref-kingman1961" class="csl-entry" role="listitem">
+Kingman, J. F. C. 1961. <span>«&nbsp;The Single Server Queue in Heavy Traffic&nbsp;»</span>. <em>Mathematical Proceedings of the Cambridge Philosophical Society</em> 57 (4): 902‑4. <a href="https://doi.org/10.1017/S0305004100036094">https://doi.org/10.1017/S0305004100036094</a>.
+</div>
+<div id="ref-lehman1980" class="csl-entry" role="listitem">
+Lehman, Meir M. 1980. <span>«&nbsp;Programs, Life Cycles, and Laws of Software Evolution&nbsp;»</span>. <em>Proceedings of the IEEE</em> 68 (9): 1060‑76. <a href="https://doi.org/10.1109/PROC.1980.11805">https://doi.org/10.1109/PROC.1980.11805</a>.
+</div>
+<div id="ref-little1961" class="csl-entry" role="listitem">
+Little, John D. C. 1961. <span>«&nbsp;A Proof for the Queuing Formula: <span><span class="math inline">L = \lambda W</span></span>&nbsp;»</span>. <em>Operations Research</em> 9 (3): 383‑87. <a href="https://doi.org/10.1287/opre.9.3.383">https://doi.org/10.1287/opre.9.3.383</a>.
+</div>
+<div id="ref-reinertsen2009" class="csl-entry" role="listitem">
+Reinertsen, Donald G. 2009. <em>The Principles of Product Development Flow: Second Generation Lean Product Development</em>. Celeritas Publishing.
+</div>
+<div id="ref-safe6" class="csl-entry" role="listitem">
+Scaled Agile, Inc. 2023. <em><span>SAFe</span> 6.0 Framework: Agile Release Train</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/agile-release-train">https://framework.scaledagile.com/agile-release-train</a>.
+</div>
+<div id="ref-safeai2026" class="csl-entry" role="listitem">
+Scaled Agile, Inc. 2026. <em><span>AI</span>-Native <span>SAFe</span>: <span>PI</span> Outcome Planning</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/ain-safe-pi-outcome-planning/">https://framework.scaledagile.com/ain-safe-pi-outcome-planning/</a>.
+</div>
+<div id="ref-safebacklog" class="csl-entry" role="listitem">
+Scaled Agile, Inc. s.&nbsp;d.-a. <em><span>ART</span> and Solution Train Backlogs</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/art-and-solution-train-backlogs">https://framework.scaledagile.com/art-and-solution-train-backlogs</a>.
+</div>
+<div id="ref-safepi" class="csl-entry" role="listitem">
+Scaled Agile, Inc. s.&nbsp;d.-b. <em>Planning Interval (<span>PI</span>)</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/planning-interval">https://framework.scaledagile.com/planning-interval</a>.
+</div>
+<div id="ref-scrumguide2020" class="csl-entry" role="listitem">
+Schwaber, Ken, et Jeff Sutherland. 2020. <em>The <span>Scrum</span> Guide: The Definitive Guide to <span>Scrum</span>: The Rules of the Game</em>. Scrumguides.org. <a href="https://scrumguides.org/scrum-guide.html">https://scrumguides.org/scrum-guide.html</a>.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Le travail a une masse},
+  date = {2026-10-24},
+  url = {https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/},
+  langid = {fr}
+}
+</code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Le travail a une masse.”</span> October
+24. <a href="https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/">https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
