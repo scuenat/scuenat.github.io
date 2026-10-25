@@ -14,11 +14,15 @@ if (other.length && t.other) tiles.push([t.other, other]);
 <div class="topic-tiles">
 <% for (const [topic, list] of tiles) { if (!list.length) continue; %>
 <section class="topic-tile" id="topic-<%= topic.id %>">
-<h3 class="topic-title"><%= topic.title %></h3>
+<h3 class="topic-title"><% if (topic.link) { %><a href="<%- topic.link %>"><%= topic.title %></a><% } else { %><%= topic.title %><% } %></h3>
 <% if (topic.thesis) { %><p class="topic-thesis"><%= topic.thesis %></p><% } %>
 <ol class="topic-list">
-<% for (const item of list) { const kind = (item.categories || [])[0]; %>
-<li><a href="<%- item.path %>"><%= item.title %></a><% if (kind) { %> <span class="topic-kind"><%= kind %></span><% } %></li>
+<% for (const item of list) {
+const kind = (item.categories || [])[0];
+// The type label stays on the line of the title's last word, so it never wraps alone.
+const words = String(item.title).split(" "), last = words.pop();
+%>
+<li><a href="<%- item.path %>"><%= words.length ? words.join(" ") + " " : "" %><span class="topic-nowrap"><%= last %><% if (kind) { %><span class="topic-kind"><%= kind %></span><% } %></span></a></li>
 <% } %>
 </ol>
 <% if (topic.link) { %><p class="topic-more"><a href="<%- topic.link %>"><%= topic.linkText %>&nbsp;→</a></p><% } %>

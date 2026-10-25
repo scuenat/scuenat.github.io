@@ -72,6 +72,16 @@ body { line-height: 1.7; }
   .quarto-navbar-tools { margin-left: .5rem; }
 }
 
+// Narrow desktops (992-1199px): keep labels on one line and the brand whole
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .navbar .nav-link { white-space: nowrap; }
+  .navbar .navbar-brand-container { flex-shrink: 0; }
+  .navbar .navbar-nav.me-auto { margin-left: .5rem; }
+  .navbar .navbar-nav.me-auto .nav-link { padding-left: .4rem; padding-right: .4rem; }
+  .navbar .nav-link[href*="linkedin.com/in/"] { padding: .3rem .55rem !important; }
+  .navbar .nav-link[href*="linkedin.com/in/"] .menu-text { display: none; }   // the LinkedIn icon alone
+}
+
 // Collapsed (mobile) menu: give the links some room and keep the pill compact
 @media (max-width: 991.98px) {
   .navbar .navbar-nav.me-auto { margin-left: 0; margin-top: .5rem; }
@@ -246,7 +256,7 @@ main:has(.hero) > header#title-block-header { display: none; }
   .hero-inner {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 4.5rem 1.5rem 4rem;
+    padding: 3rem 1.5rem 2.75rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -256,7 +266,7 @@ main:has(.hero) > header#title-block-header { display: none; }
     margin: 0;
     font-family: $font-family-sans-serif;
     font-weight: 700;
-    font-size: clamp(2.8rem, 7vw, 4.6rem);
+    font-size: clamp(2.6rem, 6vw, 3.9rem);
     line-height: 1.05;
     letter-spacing: -.02em;
     color: #f4f6fa;
@@ -267,7 +277,7 @@ main:has(.hero) > header#title-block-header { display: none; }
       display: block;
       width: 5.5rem;
       height: 3px;
-      margin: 1.1rem 0 1rem;
+      margin: .9rem 0 .8rem;
       background: $amber;
       border-radius: 2px;
     }
@@ -354,15 +364,29 @@ main:has(.hero) > header#title-block-header { display: none; }
     a { text-decoration: none; font-weight: 500; }
     a:hover, a:focus { text-decoration: underline; }
   }
-  .topic-kind { color: $muted; font-size: .78rem; white-space: nowrap; }
-  .topic-kind::before { content: "· "; }
+  h3.topic-title a { color: inherit; font-weight: inherit; text-decoration: none; }
+  h3.topic-title a:hover, h3.topic-title a:focus { text-decoration: underline; text-decoration-color: $amber; }
+  h3.topic-title .anchorjs-link { display: none; }
+  .topic-nowrap { white-space: nowrap; }
+  .topic-kind { color: $muted; font-size: .78rem; font-weight: 400; display: inline-block; }   // inline-block: the link underline skips it
+  .topic-kind::before { content: "\00a0· "; }
   p.topic-more { margin: .8rem 0 0; font-size: .92rem; font-weight: 600; a { text-decoration: none; } }
 }
-// The latest strip is a short teaser: no thumbnails, tighter rows
-#listing-latest .quarto-post {
-  padding: 1rem 0;
-  .thumbnail { display: none; }
-  .listing-title { font-size: 1.2rem; }
+// The latest strip is a short teaser: compact rows (latest-strip.ejs)
+ol.latest-strip {
+  list-style: none;
+  margin: .5rem 0 0;
+  padding: 0;
+  li { padding: .85rem 0; border-bottom: 1px solid $rule; }
+  li:first-child { padding-top: .25rem; }
+  a.latest-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.3rem; line-height: 1.3; text-decoration: none; color: inherit; }
+  a.latest-title:hover, a.latest-title:focus { text-decoration: underline; text-decoration-color: $amber; }
+  p.latest-summary {
+    margin: .2rem 0 .25rem;
+    font-family: $headings-font-family; font-style: italic; color: $muted; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  p.latest-meta { margin: 0; color: $muted; font-size: .85rem; }
 }
-p:has(> a.all-essays) { margin: 1.25rem 0 3rem; font-weight: 600; }
+p:has(> a.all-essays) { margin: 1rem 0 3rem; font-weight: 600; }
 a.all-essays { text-decoration: none; }

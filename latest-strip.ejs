@@ -1,0 +1,12 @@
+<%
+// Home-page "Latest writing": compact rows (title, one line of summary, date and reading time).
+%>
+<ol class="latest-strip">
+<% for (const item of items) { const sum = item.subtitle || item.description; %>
+<li <%= metadataAttrs(item) %>>
+<a class="latest-title" href="<%- item.path %>"><%= item.title %></a>
+<% if (sum) { %><p class="latest-summary"><%= sum %></p><% } %>
+<p class="latest-meta"><span class="listing-date"><%= item.date %></span><% if (item['reading-time']) { %> · <span class="listing-reading-time"><%= item['reading-time'] %></span><% } %></p>
+</li>
+<% } %>
+</ol>
