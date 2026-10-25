@@ -12,7 +12,7 @@ resources:
 ---
 
 ::: {.callout-note appearance="simple"}
-**A draft, and an outsider's view.** I know Scrum from years of practice; SAFe I know only from its public framework, and practitioners will know where real trains differ. The physics is a metaphor, used on purpose, and the numbers come from a toy model described in full. Figures are my own, made with [figs.py](figs.py). This essay follows the [Agentic Coding](../../agentic-coding.qmd) series, which looked at the code; here I look at the organisation around it.
+**A draft, and an outsider's view.** I know Scrum from years of practice; SAFe I know only from its public framework, and practitioners will know where real trains differ. The physics is a metaphor, used on purpose; the numbers come from a toy model described in full. Figures are my own, made with [figs.py](figs.py). This essay follows the [Agentic Coding](../../agentic-coding.qmd) series, which looked at the code; here I look at the organisation around it.
 :::
 
 ::: {.callout-tip appearance="simple" icon="false"}
@@ -25,17 +25,15 @@ resources:
 
 ## The wrong debate
 
-Most conversations about AI and agile frameworks fall into two camps. One says AI makes Scrum and SAFe obsolete: if an agent builds a feature in an afternoon, why plan in two-week sprints, or in ten-week increments with a hundred people in a room? The other says nothing changes: a framework is about people and feedback, and AI is just a faster tool inside it.
+Conversations about AI and agile frameworks fall into two camps. One says AI makes Scrum and SAFe obsolete: if an agent builds a feature in an afternoon, why plan in two-week sprints, or in ten-week increments with a hundred people in a room? The other says nothing changes: AI is just a faster tool inside a good process.
 
-Both camps look at *production*: how fast work is made. But the frameworks were never only about production. They are about how a group of people carries a growing body of work over time without losing control of it.
-
-With AI, we produce much more. That alone should not change the framework. What should change it is what that extra production *leaves behind*. And the answer, I will argue, is not more framework. It is less.
+Both camps look at *production*: how fast work is made. But the frameworks were never only about production. They are about how a group of people carries a growing body of work over time without losing control of it. What should change them is not what AI makes, but what it *leaves behind*. And the answer, I will argue, is not more framework. It is less.
 
 ## Every item has mass
 
-Every item that enters the system stays for a while, and some stay for good: a story, a pull request, a feature, a test, a document, a dependency, an open decision, a backlog item someone will "get to later". Each needs attention to keep. Someone has to understand it, maintain it, answer questions about it, decide about it, or at least remember it is there.
+Every item that enters the system stays for a while, and some stay for good: a story, a pull request, a feature, a test, a document, a dependency, an open decision, a backlog item someone will "get to later". Each needs attention to keep: someone must understand it, maintain it, answer questions about it, or at least remember it is there.
 
-I call that ongoing cost the item's **mass**. Mass is not value. A small feature used by thousands can be light; a generated module nobody fully understands can be heavy. Mass is how much an item pulls on the attention of the people who carry it.
+I call that ongoing cost the item's **mass**. Mass is not value. A small feature used by thousands can be light; a generated module nobody fully understands can be heavy.
 
 In general relativity, mass curves spacetime: objects near a large mass follow curved paths, and time runs slower for them. That is a good picture of what accumulated work does to a team:
 
@@ -45,62 +43,56 @@ In general relativity, mass curves spacetime: objects near a large mass follow c
 
 ![**Figure 1.** Schematic. Items sink the surface on which work moves. Left, the light system the frameworks were calibrated for: a shallow dip, and a request (amber, one dot per sprint) that crosses it almost straight. Right, the same system after AI has multiplied what the team produces: a deep well, and in the same nine sprints the request covers less ground and sinks toward the centre.](figures/fig01.png){fig-alt="Two wireframe surfaces seen in perspective. Left, a light system, a shallow dip: a nearly flat grid with one dark mass making a small dip and two small circles; a dashed amber path of nine evenly spaced dots crosses it almost straight. Right, a heavy system, a deep well: the grid sinks into a deep funnel around a large dark mass at the bottom, with about thirty circles on its slopes; the amber path of nine dots starts at the left edge, the dots get closer together, and the path runs down into the well."}
 
-None of this is new. Lehman stated it as laws of software evolution: a system in use must keep changing, and its complexity grows unless work is spent to reduce it [@lehman1980]. Lean calls unfinished work inventory [@reinertsen2009]. Brooks showed that communication paths grow faster than headcount [@brooks1975]. Teams have always lived with mass. What is new is the rate.
+None of this is new. Lehman stated it as a law of software evolution: complexity grows unless work is spent to reduce it [@lehman1980]. Lean calls unfinished work inventory [@reinertsen2009]. Brooks showed that communication paths grow faster than headcount [@brooks1975]. What is new is the rate.
 
 ## What AI changes: the cost of creating mass
 
-AI makes *producing* an item much cheaper. It does not, or not yet, make *carrying* it much cheaper. Someone still has to decide whether a feature should exist, understand how it fits, own it when it breaks, and remember why it was built.
-
-Write it as a balance for the mass $M$ of the system, and for the capacity left for new work each sprint:
+AI makes *producing* an item much cheaper. It does not, or not yet, make *carrying* it much cheaper. Someone still has to decide whether a feature should exist, understand how it fits, own it when it breaks, and remember why it was built. As a balance:
 
 $$
 \frac{dM}{dt} = \text{production} - \text{removal}, \qquad \text{capacity for new work} = H - k \cdot M,
 $$
 
-where $H$ is the team's total attention and $k$ the attention one unit of mass needs. Production has become cheap. Removal has not changed, and was rarely planned at all. So $M$ grows faster, and $H - kM$ shrinks faster.
+where $M$ is the mass of the system, $H$ the team's total attention and $k$ the attention one unit of mass needs. Production has become cheap; removal was rarely planned at all. So $M$ grows faster, and $H - kM$ shrinks faster.
 
-To see what that means, I built the smallest model I could. A team has 100 hours of attention per sprint. The system starts with 250 items, each needing 0.1 hours per sprint, so a quarter of the team already carries the past. A new item takes 6 hours to produce by hand or 1.5 with AI, plus 3 hours to absorb (review, decide, integrate). Whatever is left after carrying goes into new items, and every new item stays. These assumptions do most of the work, and I return to them in the objections.
+The smallest model I could build: a team has 100 hours of attention per sprint. The system starts with 250 items needing 0.1 hours each, so a quarter of the team already carries the past. A new item takes 6 hours to produce by hand or 1.5 with AI, plus 3 hours to absorb (review, decide, integrate). Whatever is left after carrying goes into new items, and every new item stays. These assumptions do most of the work; I return to them in the objections.
 
 ![**Figure 2.** Toy model, one year of two-week sprints. Left: items in the system. Right: new items delivered per sprint. With AI, the team starts at twice the by-hand rate, but the mass it adds eats its capacity. With a mass budget (carrying capped at 35% of attention), the rate holds. Parameters are in the text and in figs.py.](figures/fig02.png){fig-alt="Two line charts over 26 sprints. Left, mass: by hand grows from 250 to about 440 items; with AI to about 580; with AI and a mass budget to about 350 by sprint 6, then flat. A dotted red line at 1000 marks the horizon. Right, flow: by hand falls from 8.3 to 6.3 items per sprint; with AI from 16.7 to 9.5, labelled minus 43% after a year; with AI and a mass budget from 16.7 to about 13 by sprint 8, then flat."}
 
-- **By hand**, the team delivers 8.3 items in the first sprint and 6.3 in the last; carrying grows from 25% to 44% of its attention. Lehman's law at the usual speed, slow enough to blame on something else.
-- **With AI**, it delivers 16.7 items in the first sprint. Every dashboard looks wonderful. By the end of the year it delivers 9.5, and carrying takes 58%. In the second year the gain is almost gone: 5.3 items per sprint against 4.7 by hand.
-- **With AI and a mass budget**, whenever carrying would exceed 35% of attention, the team removes items (deletes code, retires features, closes backlog items) before adding new ones, at half an hour per item. It delivers 13 items per sprint, in the first year and the second.
+- **By hand**, the team delivers 8.3 items in the first sprint and 6.3 in the last; carrying grows from 25% to 44% of its attention.
+- **With AI**, it delivers 16.7 items in the first sprint, and every dashboard looks wonderful. By the end of the year it delivers 9.5, with 58% of its attention on carrying. In the second year the gain is almost gone: 5.3 items per sprint against 4.7 by hand.
+- **With AI and a mass budget**, whenever carrying would exceed 35% of attention, the team removes items (deletes code, retires features, closes backlog items) before adding new ones. It delivers 13 items per sprint, in the first year and the second.
 
-Over the first year the budget buys little: 356 items delivered against 332, about 7% more. The difference is in where each team stands at the end of it. One still delivers 13 items a sprint with a third of its attention on the past; the other delivers 9.5, falling, with almost 60% on the past. AI does not change the *shape* of the problem, only its *speed*. A system that took a decade to become heavy can now do it in a year, and our frameworks were tuned, implicitly, for the decade.
+Over the first year the budget buys little: 356 items against 332, about 7% more. What differs is where each team stands at the end: one delivers 13 items a sprint with a third of its attention on the past, the other 9.5 and falling, with almost 60% on the past. AI does not change the *shape* of the problem, only its *speed*. A system that took a decade to become heavy can now do it in a year, and our frameworks were tuned, implicitly, for the decade.
 
 ## Time dilation
 
-Lead time, from request to delivery, depends on spare capacity. Queueing theory has known for sixty years that as load approaches capacity, waiting time does not grow steadily; it explodes [@kingman1961; @little1961]. Mass eats spare capacity, so the same flow of requests meets a smaller server. Figure 3 adds one assumption to the model: requests arrive at a steady rate that needs 35% of the team.
+Lead time depends on spare capacity. Queueing theory has known for sixty years that as load approaches capacity, waiting time does not grow steadily; it explodes [@kingman1961; @little1961]. Mass eats spare capacity. Figure 3 adds one assumption to the model: requests arrive at a steady rate that needs 35% of the team.
 
 ![**Figure 3.** Toy model. Lead time of a new request against the share of attention spent carrying existing mass. By hand, after a year, lead times nearly double; with AI and no budget, they are almost six times longer.](figures/fig03.png){fig-alt="A curve rising slowly, then steeply. X axis: share of attention spent carrying existing mass, 0 to 80%. Y axis: lead time compared with today, 0 to 6 times. Points: today at 25%, 1 times; with a mass budget at 35%, about 1.3 times; by hand after a year at 44%, about 1.9 times; with AI after a year at 58%, about 5.9 times. A dotted red line at 65% marks the horizon."}
 
-This is consistent with a paradox many teams report: *we produce more than ever, and everything takes longer*. The 2024 DORA report found more AI adoption associated with slightly lower delivery throughput (about 1.5%) and stability (about 7.2%), even as individuals felt more productive [@dora2024]. A controlled study found experienced developers slower with early-2025 tools in their own large, mature repositories [@becker2025]. Neither study measured mass, and neither proves the metaphor. But both point the same way: the gain from faster making is smallest where there is most to carry.
+This is consistent with what teams report: *we produce more than ever, and everything takes longer*. In 2024, DORA found more AI adoption associated with slightly lower delivery throughput (about 1.5%) and stability (about 7.2%) [@dora2024]. In 2025, throughput turned positive but stability stayed negative, and the authors' explanation is close to this essay's: change volume outruns the controls downstream, and teams in tightly coupled systems see little or no benefit [@dora2025]. Experienced developers were even found slower with early-2025 tools in their own large, mature repositories [@becker2025]. None of these studies measured mass, but all point the same way: the gain from faster making is smallest where there is most to carry.
 
 ## Measuring mass
 
-Mass is only useful if a team can see it, and it does not need to be precise to be seen. Two numbers are enough to start.
+Mass does not need to be precise to be seen. Two numbers are enough to start.
 
-- **The carrying share.** Tag every ticket, or every hour if the team tracks time, as *new* or *carry*. Carry is everything spent on what already exists: support, incidents, upgrades, questions, reviews of changes that touch it, meetings about it. The carrying share is the x-axis of Figure 3. Most teams I know have never measured it; most would guess low.
-- **The heaviest items.** Once a quarter, attribute the carry hours to the items that caused them and list the top ten. Mass is very unequal: a few services, integrations or open decisions usually carry most of it. That list is where removal starts.
-
-For a new item, carrying cost is estimated the way teams already estimate effort: relatively, quickly, and checked later against the carry hours it actually caused.
+- **The carrying share.** Tag every ticket, or every hour, as *new* or *carry*. Carry is everything spent on what already exists: support, incidents, upgrades, questions, reviews of changes that touch it. This is the x-axis of Figure 3.
+- **The heaviest items.** Once a quarter, attribute the carry hours to the items that caused them and list the top ten. Mass is very unequal; a few services, integrations or open decisions usually carry most of it. That list is where removal starts.
 
 ## A framework is mass too
 
-The third law is the one I find most important. Every event, role, artifact, metric and tool in a framework is an item in the system. It costs attention every sprint, whether or not it helps. Frameworks tend to grow by addition: each failure produces a new meeting, a new role, a new report. Almost nothing is ever removed.
-
-When AI makes the work heavier, a heavier process is the last thing the system needs. So I would apply one test to every element of Scrum and SAFe:
+The third law is the one I find most important. Every event, role, artifact, metric and tool in a framework is an item in the system, and costs attention every sprint whether or not it helps. Frameworks grow by addition, and almost nothing is removed. When AI makes the work heavier, a heavier process is the last thing the system needs. So I would apply one test to every element of Scrum and SAFe:
 
 > **The mass test.** Does this element remove or prevent more mass than it adds?
 
-![**Figure 4.** The mass test, my judgement, to be argued with. Each element of Scrum (circles) and SAFe (squares) is placed by the attention it costs every sprint and by the mass it removes or prevents. Above the line, keep it. Below, slim it or cut it. Positions depend on the team; the test does not.](figures/fig04.png){fig-alt="A scatter plot split by a diagonal. X axis: mass it adds, attention it costs every sprint. Y axis: mass it removes or prevents. Upper-left area, shaded green: keep, removes more mass than it adds. It holds IP iteration used for removal, Definition of Done, Sprint Goal, Sprint Review, System Demo and Retrospective. Daily Scrum sits on the line. Lower-right area: slim or cut, adds more than it removes. It holds WSJF on every feature, sync meetings across a large train, layers above the train, PI Planning with the whole train for two days, refining a long backlog, and story points and velocity as add-ons."}
+![**Figure 4.** The mass test: my judgement, to be argued with. Each element of Scrum (circles) and SAFe (squares) is placed by the attention it costs every sprint and the mass it removes or prevents. Above the line, keep it; below, slim it or cut it. The arrow shows SAFe's own move from a two-day PI Planning to a one-day PI Outcome Planning. Positions depend on the team; the test does not.](figures/fig04.png){fig-alt="A scatter plot split by a diagonal. X axis: mass it adds, attention it costs every sprint. Y axis: mass it removes or prevents. Upper-left area, shaded green: keep, removes more mass than it adds. It holds IP iteration used for removal, Definition of Done, Sprint Goal, Sprint Review, System Demo and Retrospective. Daily Scrum sits on the line. Lower-right area: slim or cut, adds more than it removes. It holds WSJF on every feature, sync meetings across a large train, layers above the train, PI Planning with the whole train for two days, with a dashed arrow labelled slim it pointing up to PI Outcome Planning, one day, SAFe's own AI-Native version, in the keep area; refining a long backlog, and story points and velocity as add-ons."}
 
-My own placements matter less than the pattern they show. **The parts that say no pass. The parts that count fail.** A Sprint Goal, a Definition of Done, a review, an iteration reserved for removal: each decides what *not* to carry, and costs little. Estimating every item, refining a long backlog, synchronising a large train, adding layers of portfolio: each manages a quantity of work, and the quantity is exactly what AI has made cheap. Applied honestly, the test does not reject either framework. It shrinks both to their core.
+My placements matter less than the pattern. **The parts that say no pass. The parts that count fail.** A Sprint Goal, a Definition of Done, a review, an iteration reserved for removal: each decides what *not* to carry, and costs little. Estimating every item, refining a long backlog, synchronising a large train: each manages a quantity of work, and quantity is exactly what AI has made cheap. Some elements sit in between and can be slimmed rather than cut. PI Planning is the clearest case, and SAFe is already moving it: its AI-Native guidance replaces the two-day event with a one-day PI Outcome Planning, and folds the System Demo and Inspect and Adapt into a two-hour event each iteration [@safeai2026]. Applied honestly, the test does not reject either framework. It shrinks both to their core.
 
 ## Scrum: lighter, not looser
 
-The Scrum Guide is already short. It rests on empiricism and lean thinking, a team of ten or fewer, a time-box of one month or less, five events and three commitments: the Product Goal, the Sprint Goal and the Definition of Done [@scrumguide2020]. Notably, it says nothing about story points or velocity; those are common add-ons. Most of what makes Scrum heavy in practice lives in the add-ons.
+The Scrum Guide is already short: empiricism and lean thinking, a team of ten or fewer, a time-box of one month or less, five events and three commitments, the Product Goal, the Sprint Goal and the Definition of Done [@scrumguide2020]. It says nothing about story points or velocity; those are common add-ons, and most of what makes Scrum heavy in practice lives in the add-ons.
 
 | Element | Calibrated for | In a heavier universe |
 |---|---|---|
@@ -110,26 +102,24 @@ The Scrum Guide is already short. It rests on empiricism and lean thinking, a te
 | **Product Backlog** | An ordered list, refined as needed | Short, with items that *expire*. AI can fill it without limit. |
 | **Sprint Review** | Inspect the increment | Inspect the increment *and the mass ledger* (Figure 6). |
 | **Daily Scrum** | Daily inspection toward the goal | Keep it short, or async for a small team. |
-| **Story points, velocity** *(add-ons, not in the Guide)* | How much the team can make | Drop. With AI they measure mass added. Track lead time and the carrying share instead. |
+| **Story points, velocity** *(add-ons, not in the Guide)* | How much the team can make | Drop. With AI they measure mass added. Use lead time and the carrying share. |
 | **Team size** | Ten or fewer, to keep communication manageable | The limit is the mass each person carries. Five people with AI can carry the mass of twenty. |
 
 : **Table 1.** Scrum, read again with mass in mind. The middle column is my reading of the Scrum Guide and of common practice; the right column is my proposal.
 
-**Velocity is a measure of mass now.** With AI, effort and output separate: a team can multiply its points without multiplying its value, and every point adds something to carry. Measured alone, velocity rewards the road to the horizon.
+**The backlog needs evaporation.** When writing a backlog item took effort, the effort was a filter. Now an AI can turn every meeting into ten well-written stories, and every story is a promise with mass. Untouched for three sprints, an item expires unless someone renews it. Black holes slowly evaporate. Backlogs should too.
 
-**The backlog needs evaporation.** When writing a backlog item took effort, the effort was a filter. Now an AI can turn every meeting into ten well-written stories. Each is a promise, and every promise has mass. Untouched for three sprints, an item expires unless someone renews it. Black holes slowly evaporate. Backlogs should too.
-
-What remains is Scrum at its core: a goal, a standard, a short list, a rhythm of inspection, and a ledger of what the team carries. That is less framework than most teams run today, not more.
+What remains is Scrum at its core: a goal, a standard, a short list, a rhythm of inspection, and a ledger of what the team carries. Less framework than most teams run today, not more.
 
 ## SAFe: smaller trains, fewer layers
 
-SAFe's central structure is the Agile Release Train (ART), a long-lived team of agile teams, generally 50 to 125 people [@safe6], that plans together for a Planning Interval of usually 8 to 12 weeks. Work is ranked with Weighted Shortest Job First (WSJF): cost of delay divided by job size, an idea from product development flow [@reinertsen2009].
+SAFe's central structure is the Agile Release Train (ART), a long-lived team of agile teams, generally 50 to 125 people [@safe6], that plans together every 8 to 12 weeks [@safepi]. Work is ranked with Weighted Shortest Job First (WSJF): cost of delay divided by job size, an idea from product development flow [@reinertsen2009].
 
-To be fair to SAFe, it already knows that existing work has weight. Trains set a *capacity allocation*: a share of each interval reserved for enablers, maintenance and technical debt. That is close to a mass budget, and teams that use it well are ahead. The difference is what is limited. A capacity allocation caps the effort spent on old work; a mass budget caps the old work itself, and forces removal when it grows. With AI, effort on old work can stay flat while the mass underneath it doubles.
+SAFe already knows that existing work has weight. At each interval boundary, trains agree on a *capacity allocation*: the share of capacity for new features against enablers, technical debt and maintenance [@safebacklog]. That is close to a mass budget, and trains that use it well are ahead. The difference is what is limited. A capacity allocation caps the effort spent on old work; a mass budget caps the old work itself, and forces removal when it grows.
 
 ### WSJF stops discriminating
 
-Job size is roughly how long a feature takes to produce. With AI, job sizes shrink, but unevenly: small features hit a floor, complex ones shrink less. The denominator loses its spread, and the ranking collapses toward cost of delay alone. And job size never measured what a feature costs to *carry*, which is now the larger part.
+With AI, job sizes shrink, but unevenly: small features hit a floor, complex ones shrink less. The denominator loses its spread, and the ranking collapses toward cost of delay alone. And job size never measured what a feature costs to *carry*, which is now the larger part.
 
 ![**Figure 5.** Illustrative, eight invented features, ranked by classic WSJF by hand, classic WSJF with AI, and WSJF with carrying cost. With AI the spread between best and worst score falls from 3.8× to 2.2×, and two features tie at the top. Carrying cost restores a 6.8× spread and moves features whose cost comes after delivery, like a chat assistant, down the list.](figures/fig05.png){fig-alt="A slope chart with three columns of eight features. Classic WSJF by hand, from top: Export to PDF 3.0, Checkout redesign 2.2, Faster search 1.6, New partner API 1.6, Admin dashboard 1.6, Chat assistant 1.2, Fraud rules v2 1.0, Second mobile app 0.8; spread 3.8 times. Classic WSJF with AI: Checkout redesign 9.0, Export to PDF 9.0, Admin dashboard 8.0, Chat assistant 7.5, New partner API 7.0, Faster search 6.5, Second mobile app 5.3, Fraud rules v2 4.0; spread 2.2 times. WSJF with carrying cost: Export to PDF 4.5, Checkout redesign 3.6, Faster search 3.2, Fraud rules v2 1.5, Admin dashboard 1.3, New partner API 1.3, Chat assistant 1.0, Second mobile app 0.7; spread 6.8 times. Faster search, Fraud rules v2 and Chat assistant are highlighted because their rank moves three places or more between the last two columns."}
 
@@ -139,39 +129,37 @@ $$
 \text{WSJF}_{\text{mass}} = \frac{\text{cost of delay}}{\text{job size} + \text{carrying cost}},
 $$
 
-where carrying cost is a relative estimate of the attention the feature will need in its first year. A chat assistant is quick to build and slow to carry, so it falls. A faster search adds almost nothing to carry, so it rises. And it is enough to score the top of the backlog: ranking features that will never be built is itself mass.
+where carrying cost is a relative estimate of the attention the feature will need in its first year. A chat assistant is quick to build and slow to carry, so it falls; a faster search adds almost nothing to carry, so it rises. And it is enough to score the top of the backlog: ranking features that will never be built is itself mass.
 
 ### Smaller trains, fewer layers
 
-50 to 125 people is a coordination limit, learned from teams who produced at human speed. But what a train coordinates is not people; it is what they produce and must keep consistent: interfaces, dependencies, shared data, shared decisions. If each person adds three times more mass, a train reaches that limit at a third of the size. A 120-person train with AI may carry the mass of a 400-person train without it.
+50 to 125 people is a coordination limit, learned from teams who produced at human speed. But a train does not coordinate people; it coordinates what they produce and must keep consistent: interfaces, dependencies, shared data, shared decisions. If each person adds three times more mass, a train reaches that limit at about a third of the size.
 
-The tempting answer is more structure: more syncs, more roles, more layers. The mass test points the other way. Split trains by mass, long before 125 people, so that each carries less. Smaller trains need fewer sync meetings and fewer coordinating roles, and many of the layers above them exist only to coordinate trains that were too heavy. PI Planning becomes shorter and more focused: each team brings a **mass budget** next to its capacity, and the board shows only the dependencies that cross teams, drawn as what they are, lines of mass. The Innovation and Planning iteration, already reserved for work outside the plan, becomes the home of removal. At portfolio level, a WIP limit of five epics treats a small epic and a platform rewrite as equal; a limit on mass would not.
-
-SAFe with AI should look less like a bigger SAFe and more like a few small, light trains, each with a clear budget of what it is allowed to carry.
+The tempting answer is more structure. The mass test points the other way. Split trains by mass, long before 125 people, so that each carries less. Smaller trains need fewer sync meetings and fewer coordinating roles, and may need less of the structure above them. Planning shrinks with them: each team brings a **mass budget** next to its capacity, the board shows only the dependencies that cross teams, and the Innovation and Planning iteration becomes the home of removal. SAFe with AI should look less like a bigger SAFe and more like a few small, light trains, each with a clear budget of what it is allowed to carry.
 
 ## What I would actually do
 
 1. **Measure the carrying share** and list the ten heaviest items.
-2. **Set a mass budget.** Decide what share of attention may go to carrying, and treat crossing it like a red build: stop adding, start removing.
-3. **Make removal a deliverable.** Show deleted code, retired features and closed decisions at the Sprint Review and System Demo, next to what was added.
-4. **Let items expire.** Backlog items, open questions and generated documents get a lifetime.
-5. **Price mass into priority.** WSJF with carrying cost, or any equivalent, and only for the top of the backlog.
+2. **Set a mass budget,** and treat crossing it like a red build: stop adding, start removing.
+3. **Make removal a deliverable,** shown at the Sprint Review and System Demo next to what was added.
+4. **Let items expire:** backlog items, open questions, generated documents.
+5. **Price mass into priority:** WSJF with carrying cost, for the top of the backlog only.
 6. **Size teams and trains by mass,** not headcount.
-7. **Put the framework through the mass test.** Every event, role, artifact and metric must remove more mass than it adds, or go.
+7. **Put the framework through the mass test,** these seven proposals included.
+
+That last point matters, because these are new practices and an essay against framework mass should not quietly add some. Each one replaces something heavier. The carrying share and lead time replace story points and velocity. Expiry replaces the refinement of a long backlog. The ledger replaces a status report, and is one chart in a review that already exists. The mass budget is a number in a planning event that already exists, not a new event. If one of them does not remove more than it adds in your team, drop it.
 
 ![**Figure 6.** Illustrative. A mass ledger for one sprint, in hours per sprint of carrying cost: 51 added, 44 removed, net +7. This is the chart I would show at every Sprint Review, next to the increment.](figures/fig06.png){fig-alt="A waterfall chart. Start of sprint 312. Added, in amber: stories done +14, generated code and tests +22, new docs and specs +6, open decisions +9. Removed, in green: code deleted -18, features retired -11, backlog items expired -15. End of sprint 319, net +7."}
 
 ## Objections
 
-**"This is technical debt with a new name."** Partly. Debt is one kind of mass, but a well-built feature that people use must still be carried, and backlog items, documents, open decisions and process never show up in a code review. The broader word makes the broader budget possible.
-
-**"Lean already says inventory is waste."** Lean's inventory is mostly unfinished work. The mass that grows fastest with AI is *finished* work: shipped features, merged code, published documents. Lean also says to manage a system at its constraint [@goldratt1984], and the constraint has moved from making to carrying.
+**"This is technical debt, or Lean inventory, with a new name."** Partly. But a well-built feature that people use is neither debt nor inventory, and it must still be carried. Lean's inventory is mostly unfinished work; the mass that grows fastest with AI is *finished* work. Lean also says to manage a system at its constraint [@goldratt1984], and the constraint has moved from making to carrying.
 
 **"AI will carry the mass too."** In part, yes: agents already read code and summarise documents, which lowers $k$. If $k$ falls as fast as production costs, this essay is wrong. I doubt it will, because the mass that matters most needs a person: accountability for a feature, the decision to keep or kill it, the customer who depends on it.
 
-**"Nobody gets promoted for deleting things."** True, and probably the strongest reason a mass budget will fail in practice. Organisations reward what is added: features launched, documents written, roles created. That is why removal must be shown, counted and celebrated at the same events as delivery, and why the ledger shows both columns. What is not seen is not rewarded.
+**"Nobody gets promoted for deleting things."** True, and the strongest reason a mass budget may fail. Organisations reward what is added. That is why removal must be shown and counted at the same events as delivery, and why the ledger has two columns. What is not seen is not rewarded.
 
-**"The model is too simple."** It is: one team, constant parameters, items that never get lighter, and an AI that lowers the cost of making but not of carrying. The conclusion follows from those assumptions; the model shows their consequence, not their truth. If a better model shows mass levelling off on its own, I would like to see it.
+**"The model is too simple."** It is: one team, constant parameters, items that never get lighter, and an AI that lowers the cost of making but not of carrying. The model shows the consequence of those assumptions, not their truth. If a better one shows mass levelling off on its own, I would like to see it.
 
 **"The physics is decoration."** Perhaps. But metaphors choose what we look at. *Velocity* made teams look at speed. *Mass* would make them look at what speed leaves behind.
 
@@ -179,8 +167,6 @@ SAFe with AI should look less like a bigger SAFe and more like a few small, ligh
 
 Scrum and SAFe are not wrong. Empiricism, short feedback loops, small teams, shared cadence and economic prioritisation are as useful with AI as without it. But both were calibrated in a universe where producing work was the hard part, and where mass grew slowly enough to be someone else's problem later.
 
-AI has changed the rate at which we create mass, not yet the rate at which we carry it. The reflex will be to add: more ceremonies to control more output, more roles to coordinate more teams, more layers to plan more work. That adds mass to a system already falling into its own well.
-
-The better answer is the opposite. Measure the mass, budget it, price it, and remove it as deliberately as we add. Then put the frameworks themselves on the scale, and keep only what makes the system lighter.
+AI has changed the rate at which we create mass, not yet the rate at which we carry it. The reflex will be to add: more ceremonies to control more output, more roles to coordinate more teams, more layers to plan more work. That adds mass to a system already falling into its own well. The better answer is the opposite: measure the mass, budget it, price it, remove it as deliberately as we add, and then put the frameworks themselves on the scale.
 
 **Everything you make, you carry. In a heavier universe, start by carrying less framework.**

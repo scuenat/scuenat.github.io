@@ -283,6 +283,7 @@ def fig_mass_test():
            ("System Demo", 3.8, 5.4, "f", (8, 0)),
            ("WSJF on every feature", 4.6, 3.0, "f", (8, -2)),
            ("PI Planning, whole train, two days", 8.0, 6.0, "f", (0, -17)),
+           ("PI Outcome Planning, one day\n(SAFe's own AI-Native version)", 3.6, 7.6, "f", (8, 0)),
            ("Sync meetings across a large train", 6.6, 3.2, "f", (8, 0)),
            ("Layers above the train", 7.8, 2.6, "f", (8, 0))]
     fig, ax = plt.subplots(figsize=(10.6, 5.6))
@@ -297,6 +298,8 @@ def fig_mass_test():
         ax.scatter([x], [y], s=70, marker=mk, color="white", edgecolor=col, lw=2, zorder=4)
         ax.annotate(name, (x, y), xytext=off, textcoords="offset points", fontsize=8.3, color=INK,
                     va="center", ha="left" if off[0] > 0 else "right" if off[0] < 0 else "center", zorder=5)
+    arrow(ax, (7.8, 6.1), (3.6, 7.3), color=WARM, lw=1.3, ls=(0, (4, 3)), rad=-0.12, z=3)
+    ax.text(6.1, 6.45, "slim it", fontsize=8.2, color=WARM, style="italic", ha="center")
     ax.scatter([], [], s=60, marker="o", color="white", edgecolor=NAVY, lw=2, label="Scrum")
     ax.scatter([], [], s=60, marker="s", color="white", edgecolor=WARM, lw=2, label="SAFe")
     ax.legend(loc="upper right", bbox_to_anchor=(1.0, 0.93), fontsize=8.6)
