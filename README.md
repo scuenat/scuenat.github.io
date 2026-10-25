@@ -26,6 +26,7 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 - New essay: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
 - Paper: publish it as a post (category `paper`, `citation: true`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
 - Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `social-card.jpg`
+- Every post needs `topics:` (the home-page tiles it appears in: `agentic-coding`, `fast-ai`, `dashboards`, `physics`; a post may have several). The tiles are defined in `index.qmd` and `fr/index.qmd`; a post with no known topic lands in a "More essays" tile. The full list by date, with category filters, is `archive.qmd`
 - Every page needs a `description:`: it is the snippet in Google results (the first ~155 characters show) and the summary in the listing
 - A translation lives at the same path under `fr/`; the two are linked automatically (hreflang, language switch, `translationOfWork`)
 

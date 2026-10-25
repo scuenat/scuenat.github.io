@@ -1,0 +1,27 @@
+<%
+// Home-page theme tiles. Each post names its tiles in `topics:` (a post may sit in several);
+// the tiles themselves (title, thesis, optional link) come from template-params, so the
+// English and French home pages share this file. Posts with no known topic go in a last tile.
+const t = (typeof templateParams !== "undefined" && templateParams) || {};
+const topics = t.topics || [];
+const known = new Set(topics.map(x => x.id));
+// The listing is sorted newest first (that order also feeds the RSS feed); tiles read oldest first.
+const posts = [...items].reverse();
+const tiles = topics.map(x => [x, posts.filter(i => (i.topics || []).includes(x.id))]);
+const other = posts.filter(i => !(i.topics || []).some(id => known.has(id)));
+if (other.length && t.other) tiles.push([t.other, other]);
+%>
+<div class="topic-tiles">
+<% for (const [topic, list] of tiles) { if (!list.length) continue; %>
+<section class="topic-tile" id="topic-<%= topic.id %>">
+<h3 class="topic-title"><%= topic.title %></h3>
+<% if (topic.thesis) { %><p class="topic-thesis"><%= topic.thesis %></p><% } %>
+<ol class="topic-list">
+<% for (const item of list) { const kind = (item.categories || [])[0]; %>
+<li><a href="<%- item.path %>"><%= item.title %></a><% if (kind) { %> <span class="topic-kind"><%= kind %></span><% } %></li>
+<% } %>
+</ol>
+<% if (topic.link) { %><p class="topic-more"><a href="<%- topic.link %>"><%= topic.linkText %>&nbsp;→</a></p><% } %>
+</section>
+<% } %>
+</div>

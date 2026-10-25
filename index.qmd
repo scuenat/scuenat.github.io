@@ -5,19 +5,46 @@ description: "Ideas about AI, without the hype. Essays on where AI is heading, a
 title-block-style: none
 image: social-card.jpg   # share preview; otherwise Quarto picks the first post thumbnail
 listing:
-  contents: "/posts/*/index.qmd"   # root posts only, not fr/posts
-  sort: "date desc"
-  type: default
-  categories: true
-  sort-ui: false
-  filter-ui: false
-  feed: true
-  fields: [image, date, title, subtitle, description, categories, reading-time]
+  # Theme tiles: each post names its tiles in `topics:`. This listing also writes the RSS feed (index.xml).
+  - id: topics
+    contents: "/posts/*/index.qmd"   # root posts only, not fr/posts
+    sort: "date desc"
+    template: topic-tiles.ejs
+    feed: true
+    template-params:
+      topics:
+        - id: agentic-coding
+          title: "Agentic coding"
+          thesis: "When agents write the code, what is left for people to do? A series in five steps, and what it changes for the team around it."
+          link: agentic-coding.html
+          linkText: "Read the series in order"
+        - id: fast-ai
+          title: "Fast and local AI"
+          thesis: "Learn slowly, once. Act fast, every time: small specialists and a shared memory, with the large model kept for what is new."
+        - id: dashboards
+          title: "Dashboards that show change"
+          thesis: "Show what changed in our understanding, not the data, and tell a quiet screen from a blind one."
+        - id: physics
+          title: "Physics and curiosity"
+          thesis: "Evenings with physics papers I could not quite follow: surfaces that know everything, and grains within grains."
+      other:
+        id: other
+        title: "More essays"
+  - id: latest
+    contents: "/posts/*/index.qmd"
+    sort: "date desc"
+    max-items: 3
+    type: default
+    fields: [date, title, subtitle, reading-time]
 page-layout: article
 toc: false
 ---
 
 ```{=html}
+<script>
+// Category chips on posts link to this page (the nearest listing); the filterable list is in the archive.
+if (location.hash.indexOf("#category=") === 0) location.replace("archive.html" + location.hash);
+</script>
 <section class="hero column-screen">
   <div class="hero-inner">
     <div class="hero-text">
@@ -31,4 +58,15 @@ toc: false
 </section>
 ```
 
+
+## Themes {.latest-heading}
+
+::: {#topics}
+:::
+
 ## Latest writing {.latest-heading}
+
+::: {#latest}
+:::
+
+[All essays, newest first&nbsp;→](archive.qmd){.all-essays}

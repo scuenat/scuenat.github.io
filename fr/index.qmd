@@ -5,19 +5,46 @@ description: "Des idées sur l'IA, sans l'emballement. Des essais sur la directi
 title-block-style: none
 image: ../social-card.jpg
 listing:
-  contents: "posts/*/index.qmd"   # relative to fr/
-  sort: "date desc"
-  type: default
-  categories: true
-  sort-ui: false
-  filter-ui: false
-  feed: true
-  fields: [image, date, title, subtitle, description, categories, reading-time]
+  # Tuiles par thème : chaque texte nomme ses tuiles dans `topics:`. Cette liste écrit aussi le flux RSS.
+  - id: topics
+    contents: "posts/*/index.qmd"   # relative to fr/
+    sort: "date desc"
+    template: ../topic-tiles.ejs
+    feed: true
+    template-params:
+      topics:
+        - id: agentic-coding
+          title: "Le codage agentique"
+          thesis: "Quand les agents écrivent le code, que reste-t-il à faire aux personnes ? Une série en cinq étapes, et ce qu'elle change pour l'équipe autour."
+          link: agentic-coding.html
+          linkText: "Lire la série dans l'ordre"
+        - id: fast-ai
+          title: "Une IA rapide et locale"
+          thesis: "Apprendre lentement, une fois. Agir vite, à chaque fois : de petits spécialistes et une mémoire partagée, le grand modèle gardé pour ce qui est nouveau."
+        - id: dashboards
+          title: "Des tableaux de bord qui montrent le changement"
+          thesis: "Montrer ce qui a changé dans notre compréhension, pas les données, et distinguer un écran calme d'un écran aveugle."
+        - id: physics
+          title: "Physique et curiosité"
+          thesis: "Des soirées avec des articles de physique que je ne suivais pas tout à fait : des surfaces qui savent tout, et des grains dans les grains."
+      other:
+        id: other
+        title: "Autres textes"
+  - id: latest
+    contents: "posts/*/index.qmd"
+    sort: "date desc"
+    max-items: 3
+    type: default
+    fields: [date, title, subtitle, reading-time]
 page-layout: article
 toc: false
 ---
 
 ```{=html}
+<script>
+// Category chips on posts link to this page (the nearest listing); the filterable list is in the archive.
+if (location.hash.indexOf("#category=") === 0) location.replace("archive.html" + location.hash);
+</script>
 <section class="hero column-screen">
   <div class="hero-inner">
     <div class="hero-text">
@@ -32,4 +59,15 @@ toc: false
 </section>
 ```
 
+
+## Thèmes {.latest-heading}
+
+::: {#topics}
+:::
+
 ## Derniers textes {.latest-heading}
+
+::: {#latest}
+:::
+
+[Tous les textes, du plus récent au plus ancien&nbsp;→](archive.qmd){.all-essays}
