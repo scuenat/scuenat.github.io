@@ -1,0 +1,221 @@
+---
+title: "Where Memory Lives"
+subtitle: "Four experiments on what a small model should remember, and what it should look up"
+description: "I measured how many facts fit in the weights of a small network, what it costs to change one, how fast an external memory answers, and when the KV cache outweighs the model. The result is a design rule for small, local, fast AI."
+date: 2026-10-25
+draft: true
+citation: true
+bibliography: references.bib
+toc-depth: 2
+categories: [essay, experiment, ai, local-ai, memory]
+topics: [fast-ai]   # home-page theme tiles (index.qmd)
+image: figures/fig01.png
+resources:
+  - sim.py
+  - figs.py
+  - results.json
+  - figures/*.png
+---
+
+::: {.callout-note appearance="simple"}
+**An experiment, October 2026.** Every number in Experiments 1 to 4 comes from code I ran for this essay: [sim.py](sim.py) runs the experiments in plain NumPy on a 4-core cloud CPU and writes [results.json](results.json); [figs.py](figs.py) draws the figures. Numbers taken from other people's work are cited where they appear. The networks are deliberately tiny: they test the *shape* of an argument, not the behaviour of any product. This essay follows [Fast AI](../2026-10-11-fast-ai/index.qmd) and [An Ecosystem, Not an Oracle](../2026-10-17-an-ecosystem-not-an-oracle/index.qmd). Figures are vector graphics; each has a 400 dpi PNG next to it in `figures/`.
+:::
+
+**In short.** A language model has four memories: its weights, its working memory (the KV cache), whatever it can look up, and the habits it has compiled. We talk about them as if they were one thing, *what the model knows*. They are not: each is paid for at a different moment, and for a small model running on a laptop the difference decides everything. I ran four experiments. Weights are the densest memory there is, up to 1.7 bits per parameter in my small networks, close to the two bits measured in real language models, but they are read in full for every token and are hard to edit: teaching my network 150 changed or new facts by fine-tuning erased 60% of the 1,425 facts I had not touched. An external memory is hundreds of times less compact, but an index answered from four million facts in half a millisecond while reading 11 megabytes, and an edit is one overwrite. And the working memory catches up with the weights sooner than one expects: shrink a 1B model to 4 bits, and its cache weighs as much as its weights at about 19,000 tokens. The design rule I draw is simple: **keep in the weights what is used on every token; look up everything else.**
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Key takeaways
+
+- **Weights are the densest memory, and the most expensive to read.** My small networks held up to 1.7 bits per parameter; for every token, a model reads all of them.
+- **Weights are hard to edit.** Fine-tuning my network on 150 changed or new facts erased 60% of the other facts. Gentler steps kept the old facts but learned none of the new ones; rehearsing everything kept them all, at ten times the cost, and still had only 71% of the edits right after 400 steps. An external table changed in microseconds and forgot nothing.
+- **Looking up is cheap if you index.** With an inverted-file index, a question about one of four million facts took 0.5 ms and read 11 MB, against 620 MB of weights that a 4-bit 1B model reads for every token.
+- **Small models hit the working-memory wall first.** At 4-bit weights, the KV cache of Llama 3.2 1B outweighs its weights from about 19,000 tokens on; for Llama 3.1 70B, from about 108,000.
+- **The tail of knowledge is long.** If questions follow Zipf's law, each tenfold increase in the facts a memory holds answers the same extra slice of questions. Weights cover the head. The tail belongs in a lookup.
+:::
+
+## 1. The question
+
+Most debates about small language models ask one question: *how much of a large model can I fit on my machine?* The answer is always "a bit less than you would like". I think the question is wrong, because it treats a model as one block of knowledge to compress.
+
+Memory is where the cost of a language model lives. Generating one token on a laptop is limited by memory bandwidth, not arithmetic: the machine must read every weight, and the whole cache of the conversation so far, from memory, for every token [@alizadeh2023]. The previous essays in this series argued that intelligence should be spent once and reused ([Fast AI](../2026-10-11-fast-ai/index.qmd)), and that local AI should be an ecosystem of specialists around a shared memory ([An Ecosystem, Not an Oracle](../2026-10-17-an-ecosystem-not-an-oracle/index.qmd)). This essay asks the question underneath both: *what should live where?*
+
+![**Figure 1.** Schematic, my own. Four memories of a language model, ordered by how often you pay for them. Weights and the KV cache are read for every token; a lookup is paid only when a question needs it; a compiled habit is built once and reused.](figures/fig01.svg){fig-alt="Four cards side by side. Weights, parametric memory: what the model knows, read in full for every token. KV cache, working memory: what it is reading now, grows with the context and is read for every token. Lookup, external memory: documents, records, past cases, a few rows only when asked. Habits, compiled memory: verified answers and small models, built once and reused in milliseconds. An arrow underneath runs from paid on every token to paid rarely."}
+
+To answer, I measured four things in four experiments. All of them are small enough to rerun on a laptop in half an hour.
+
+## 2. Experiment 1: how many facts fit in the weights
+
+**Setup.** A *fact* is a pair: a key (a random vector of 32 numbers, standing for a question such as "where was this person born?") and a value, one of $V = 256$ possible answers. A random value carries exactly $\log_2 256 = 8$ bits. The memory is a small two-layer network,
+
+$$
+f_\theta(x) = W_2\,\mathrm{ReLU}(W_1 x + b_1) + b_2, \qquad |\theta| = 32h + h + 256h + 256,
+$$
+
+with hidden width $h \in \{8, 16, 32, 64\}$, from 2,568 to 18,752 parameters. I trained each network to memorise $N$ facts, with $N$ chosen so that the bits offered range from half to four times the number of parameters, and gave each run 3,000 full-batch Adam steps.
+
+**Measure.** Accuracy is too coarse: a network that is unsure between two answers holds 7 of the 8 bits, yet may get the fact wrong. So, following Allen-Zhu and Li [@allenzhu2025], I count the bits the network holds as
+
+$$
+B(\theta) = \sum_{i=1}^{N} \max\!\Big(0,\; \log_2 V + \log_2 p_\theta(y_i \mid x_i)\Big),
+$$
+
+the information about each answer that the network's prediction carries beyond a uniform guess.
+
+![**Figure 2.** Experiment 1, measured. Left: bits stored against bits offered, for four network sizes. Each network keeps almost everything until it is full, then stops. Right: bits stored per parameter. The plateau is the capacity of the weights.](figures/fig02.svg){fig-alt="Left, four lines of bits stored against bits offered, for networks of 2,568, 4,880, 9,504 and 18,752 parameters. Each follows the diagonal, where every bit offered is kept, then peaks and flattens slightly lower. Right, bits stored per parameter against bits offered per parameter: all four networks rise along the same line to a peak between 1.45 and 1.69, then settle near 1.4. A dashed amber line at 2 marks the capacity measured in language models by Allen-Zhu and Li, 2024."}
+
+**Result.** Every network behaves the same way. Below its capacity it keeps every bit it is offered, with 100% accuracy. Near capacity it peaks: 1.45 bits per parameter for the smallest network, 1.56, 1.69 and 1.68 for the larger ones. Past it, it does not hold more by trying harder: offered twice as much, it stores *less*, about 1.4 bits per parameter, because the facts start to crowd each other out, and its accuracy collapses to a fifth or a third. Capacity grows in proportion to the parameters, close to 1.7 bits each, independently of size over the sevenfold range I tested.
+
+This is the first lesson: **weights are a very dense memory.** A fact of 8 bits costs about five parameters; at 8 bits per parameter, a precision at which Allen-Zhu and Li found the capacity intact, that is under five bytes. No database comes close. Allen-Zhu and Li found the same order in real transformers, about two bits per parameter after enough exposure, which would let a 7B model hold more facts than all of English Wikipedia [@allenzhu2025].
+
+But density is not the only property of a memory. Two others matter as much: how much of it you must read to use it, and how easily you can change it.
+
+## 3. Experiment 2: changing one's mind
+
+**Setup.** I trained a network of 18,752 parameters on 1,500 facts (12,000 bits, well under its capacity) until it had every fact right. Then the world changed: 75 facts got a new value and 75 new facts appeared. I updated the network in three ways, and measured both the 150 edits and the 1,425 facts that had not changed:
+
+1. **Edits only:** fine-tune on the 150 changed and new facts.
+2. **Edits only, small steps:** the same, with a five times smaller learning rate.
+3. **Rehearse everything:** fine-tune on all 1,575 facts, old and new.
+
+The same edits were applied to an external table: overwrite 75 rows, append 75.
+
+![**Figure 3.** Experiment 2, measured. Left: share of the 150 edits the network gets right, during fine-tuning. Right: share of the 1,425 untouched facts it still gets right. The green diamond is the external table, right at once on both.](figures/fig03.svg){fig-alt="Two line charts over 400 training steps. Left, share of the 150 edits right: edits only rises to 77 percent, rehearse everything to 71 percent, edits only with small steps stays at 0; a green diamond at 100 percent marks the external memory, right at once. Right, share of the 1,425 other facts right: rehearse everything stays at 100 percent, small steps at about 99 percent, while edits only falls from 100 to 40 percent within about 300 steps."}
+
+**Result.** The three updates fail in three different ways.
+
+- **Edits only** learned 77% of the edits in 400 steps, and on the way erased 60% of the facts it had not been asked to change: only 40% of them survived.
+- **Smaller steps** protected the old facts (98.7% kept), and learned *none* of the 150 edits in the same 400 steps.
+- **Rehearsing everything** kept every old fact and reached 71% of the edits, but it saw 630,000 examples instead of 60,000, ten times the work, and the work grows with everything the network already knows.
+
+The external table took 150 writes, a fraction of a millisecond, and had every edit and every old fact right.
+
+None of this is new. Neural networks forget what they are not reminded of: McCloskey and Cohen called it catastrophic interference in 1989 [@mccloskey1989], and targeted editing methods for language models exist precisely because naive fine-tuning spills over [@meng2022]. What the experiment adds is the comparison: in a table, an edit is local *by construction*. In weights, every fact shares every parameter, and locality has to be bought.
+
+For a local assistant, this is not academic. Your contacts change, your prices change, a policy is withdrawn, a client asks you to delete their data. A memory you can overwrite and delete row by row is a memory you can keep true.
+
+## 4. Experiment 3: looking it up
+
+**Setup.** I stored $N$ facts, from ten thousand to four million, as unit vectors of 256 numbers (the size of a small sentence embedding), drawn around 2,000 topics, because real embeddings cluster by subject. A question is a stored key plus noise, as a paraphrase would be. I answered each question in two ways:
+
+- **Exact search:** compare the question with every key, $O(Nd)$ work and $4Nd$ bytes read.
+- **An inverted-file index (IVF):** cluster the keys into $c = 4\sqrt{N}$ groups once; for each question, compare it with the $c$ centroids, then only with the keys of the $p$ nearest clusters. The work is $O\big((c + pN/c)\,d\big)$, minimised when $c \approx \sqrt{pN}$, so it grows like $\sqrt{N}$ rather than $N$. This is the oldest idea in the Faiss library [@douze2024].
+
+![**Figure 4.** Experiment 3, measured. Left: median time to answer one question, against the number of facts in memory. Right: bytes read per question. The dashed line is what a 4-bit Llama 3.2 1B reads from memory for every token it generates.](figures/fig04.svg){fig-alt="Two log-log charts against facts in memory, from ten thousand to four million. Left, time per question: exact search rises from 0.1 to 100 milliseconds; an index probing 16 clusters from 0.1 to 1.4 milliseconds; probing 4 clusters from 0.03 to 0.5 milliseconds. Right, megabytes read per question: exact search from 10 to 4,096; the indexes from under 1 to 11 and 16. A dashed amber line at 620 megabytes marks the weights a 4-bit Llama 3.2 1B reads per token."}
+
+**Result.** Every method found the right fact for all 300 questions at every size; my paraphrases are easy, which I return to below. The cost is what differs. Exact search grows with the memory: 0.1 ms for ten thousand facts, 29 ms for a million, 100 ms for four million, reading 4 GB per question. The index barely moves: probing the 4 nearest clusters, a question took 0.25 ms over a million facts and 0.5 ms over four million, reading 5 and 11 MB. From one million to four million facts, the time doubled, as the square-root rule predicts; exact search took four times longer.
+
+Put Experiments 1 and 3 side by side and the trade-off is plain. My external memory spends 1,024 bytes on a fact the weights hold in under five. It is two hundred times less compact. But the weights are read *in full for every token*, whether the token needs one fact, a thousand or none, while the index reads a few megabytes *only when a question needs it*. Weights are memory you pay for on every token. A lookup is memory you pay for when you use it.
+
+This is also why some of the most interesting recent architectures move knowledge out of the dense weights and into sparse lookups *inside* the model. Meta's memory layers add a trainable key-value table that each token reads only a few rows of, and beat dense models with more than twice the compute, with the largest gains on factual questions [@berges2024]. DeepSeek's Engram adds a hashed n-gram table read in constant time, as "a new axis of sparsity" next to mixture of experts [@engram2026]. Google's Gemma 3n keeps its per-layer embeddings out of accelerator memory, on fast local storage [@gemma3n]. They are the same move as my index, made differentiable.
+
+## 5. Experiment 4: the working memory
+
+**Setup.** The KV cache stores, for each token of the context, a key and a value vector for every layer and every key-value head. Its size per token is
+
+$$
+\text{KV bytes per token} = 2 \cdot L \cdot n_{kv} \cdot d_h \cdot b,
+$$
+
+with $L$ layers, $n_{kv}$ key-value heads of size $d_h$, and $b$ bytes per number. During generation, each new token reads the whole cache *and* all the weights. The cache weighs as much as the weights at the context length
+
+$$
+T^{*} = \frac{|\theta| \cdot b_w}{2 \cdot L \cdot n_{kv} \cdot d_h \cdot b_{kv}}.
+$$
+
+I measured this directly for one layer with the shapes of Llama 3.2 1B (hidden size 2,048, 32 query heads sharing 8 key-value heads of size 64, an MLP of 8,192 [@llama32]): the time to generate one token through the layer's weights, and through its attention over a cache of 1,000 to 131,000 tokens.
+
+![**Figure 5.** Experiment 4. Left, measured: time per generated token for one Llama-3.2-1B-shaped layer, in NumPy, weights against attention over the cache. Right, computed from the published model configurations: the context length at which the cache weighs as much as the weights, for three precisions.](figures/fig05.svg){fig-alt="Left, a log-log chart of time per generated token for one layer against context length from 1k to 128k tokens: the weights are flat at 3.6 milliseconds; attention over the KV cache rises from 0.3 to 49 milliseconds, crossing the weights at about 15k tokens; a dotted line at 59k marks where cache and weights hold the same number of bytes. Right, horizontal bars of the context at which the cache weighs as much as the weights. Llama 3.2 1B: 76k with 16-bit weights, 19k with 4-bit weights, 151k with 4-bit weights and a 2-bit cache. Llama 3.2 3B: 56k, 14k, 112k. Llama 3.1 8B: 123k, 31k, 245k. Llama 3.1 70B: 431k, 108k, 862k."}
+
+**Result.** On my CPU, the layer's weights cost 3.6 ms per token whatever the context. Attention over the cache cost 0.3 ms at 1,000 tokens, matched the weights at about 15,000, and took 49 ms, thirteen times the weights, at 131,000. The byte count alone puts the crossover at 59,000 tokens for this layer, because one token of its cache holds 1,024 numbers and its weights 61 million; my NumPy attention is less efficient than a matrix product, so the measured crossover comes earlier.
+
+The right panel applies the formula to the published configurations. With weights and cache both in 16 bits, Llama 3.2 1B reaches the crossover at 76,000 tokens. Quantise the weights to 4 bits, as everyone does on a laptop, and it falls to **19,000 tokens**: a long document, a day of chat, or one agent loop with a few tool outputs. For Llama 3.1 70B it is 108,000. Quantising the cache to 2 bits as well pushes the crossover back to 151,000 for the 1B model.
+
+This is the second lesson, and for small models the more surprising one. **Shrinking the weights moves the bottleneck to the working memory.** Grouped-query attention already shares each key-value head among four query heads [@ainslie2023]; Gemma 3 makes most layers attend only to a short window; KIVI quantises the cache to 2 bits with little loss [@liu2024kivi]; Cartridges go further and *train* a small cache offline for a given corpus, matching in-context learning with 38.6 times less memory [@eyuboglu2026]. They are all ways of keeping the working memory short. For a small local model, a long transcript in the context is not free memory: it is a cost paid on every token, and often a larger one than the model itself.
+
+## 6. The arithmetic of the long tail
+
+One question remains: *how much* knowledge should stay in the weights? It depends on how questions are distributed, and they are not uniform. A few facts are asked constantly; most are asked rarely. Large models know popular facts far better than rare ones [@kandpal2023], and retrieval helps most precisely on the rare ones [@mallen2023].
+
+Suppose the world holds $F$ facts and the $k$-th most asked is asked with probability proportional to $k^{-s}$ (Zipf's law). A memory that holds the $K$ most asked facts answers a share
+
+$$
+\text{coverage}(K) = \frac{H_{K,s}}{H_{F,s}}, \qquad H_{n,s} = \sum_{k=1}^{n} k^{-s}
+$$
+
+of the questions. For $s = 1$, $H_n \approx \ln n + 0.577$, so
+
+$$
+\text{coverage}(10K) - \text{coverage}(K) \approx \frac{\ln 10}{\ln F + 0.577}.
+$$
+
+With a billion facts, every tenfold increase in the facts a memory holds answers the same extra 11 points of questions. Parameters buy coverage logarithmically.
+
+![**Figure 6.** Computed. Share of questions answered by a memory that holds the most asked facts, in a world of one billion facts, for three tails. With Zipf's law (s = 1), each tenfold increase adds the same slice, about 11 points.](figures/fig06.svg){fig-alt="Three rising curves on a logarithmic horizontal axis from a hundred to a billion facts. The Zipf curve with s equal to 1 rises in a nearly straight line, from about 25 percent at a hundred facts to 100 percent at a billion. Two amber arrows mark that each tenfold increase adds the same slice of about 11 points. A flatter tail with s equal to 0.9 lies below, a steeper tail with s equal to 1.1 above."}
+
+Combine this with Experiment 1. A model ten times larger reads ten times more bytes for every token, and answers, from its weights, about 11 more points of questions. An index ten times larger reads about three times more per question, and only when asked. The head of the distribution belongs in the weights, because it is used constantly and dense storage pays off there. The tail belongs in a lookup.
+
+Apple's hierarchical memories make the same split at pretraining time: a small model keeps common knowledge and reasoning, and long-tail facts go into a large bank of memory parameters, fetched by context. A 160M model with an 18M memory, drawn from a 4.6B bank, matched a regular model of more than twice its size [@pouransari2026].
+
+## 7. What it means for small models and Fast AI
+
+The four experiments point to one design for small, local, fast AI. I state it as a proposal.
+
+![**Figure 7.** A proposal, my own. A small model reasons; a short working memory holds the task at hand; an indexed external memory holds what can be looked up, on flash, editable and deletable; compiled habits answer the familiar cases in milliseconds; and a slow loop turns what repeats into habits and deletes what is wrong.](figures/fig07.svg){fig-alt="Diagram. A dark card in the centre: small model, reasons; language, reasoning, tools; 1 to 4B parameters at 4 bits. Top left, working memory: sliding window, 2-bit cache, summaries instead of transcripts, labelled bounded per token. Bottom left, lookup: indexed external memory on flash, editable and deletable, labelled a few rows per question. Top right, habits: verified answers, small trees, adapters, labelled checked first, milliseconds. Bottom right, learning: slow consolidation at night. Dashed arrows run from consolidation to habits and to the external memory, labelled writes and corrections."}
+
+1. **Keep in the weights what is used on every token.** Language, reasoning, tool use, the structure of a domain. Not the price list.
+2. **Keep the working memory short.** Summaries rather than transcripts, a compressed cache, a window. Every token in the context is read again for every token generated.
+3. **Look up the long tail.** An index on local flash holds millions of facts for a few megabytes read per question, and every row can be inspected, corrected and deleted.
+4. **Compile what repeats.** This is [Fast AI](../2026-10-11-fast-ai/index.qmd): a verified answer, a small tree or an adapter, checked before the model is called at all.
+5. **Consolidate slowly.** Move facts between the tiers on evidence: what is looked up constantly may earn a place in a habit or an adapter; what turns out wrong is deleted from the table, which takes one line, not one training run.
+
+Agent memory systems are building the top of this stack today: MemGPT, now Letta, pages information in and out of the context like an operating system [@packer2023]; Mem0 and A-MEM extract, update and link memories across sessions [@chhikara2025; @xu2025amem]. Titans goes the other way and learns a memory *at test time*, inside the network [@behrouz2024]. My experiments say little about which wins. They say why the question matters most for small models: a small model has the least room in its weights and the least bandwidth to spare, so it gains the most from putting each memory in the right place.
+
+## 8. Recent work to follow, with code
+
+For readers who want to go further, here is the work I found most relevant, with its code where it exists.
+
+| Work | Memory it addresses | Idea | Code |
+|---|---|---|---|
+| Physics of Language Models 3.3 [@allenzhu2025] | Weights | About 2 bits of knowledge per parameter | — |
+| Memory Layers at Scale [@berges2024] | Weights, sparse | Trainable key-value lookup inside the model | [facebookresearch/memory](https://github.com/facebookresearch/memory) |
+| Engram [@engram2026] | Weights, sparse | Hashed n-gram memory, constant-time lookup | [deepseek-ai/Engram](https://github.com/deepseek-ai/Engram) |
+| Hierarchical memories [@pouransari2026] | Weights + bank | Small model, long-tail facts in a fetched memory bank | — |
+| Titans [@behrouz2024] | Learned at test time | A neural memory updated during inference | [lucidrains/titans-pytorch](https://github.com/lucidrains/titans-pytorch) (unofficial) |
+| KIVI [@liu2024kivi] | Working memory | 2-bit KV cache, no fine-tuning | [jy-yuan/KIVI](https://github.com/jy-yuan/KIVI) |
+| Cartridges [@eyuboglu2026] | Working memory | A small cache trained offline per corpus | [HazyResearch/cartridges](https://github.com/HazyResearch/cartridges) |
+| LLM in a Flash [@alizadeh2023] | Weights on flash | Load only the weights a token needs | — |
+| Faiss [@douze2024] | External | Vector indexes, IVF and beyond | [facebookresearch/faiss](https://github.com/facebookresearch/faiss) |
+| MemGPT / Letta [@packer2023] | External, agent | The context as virtual memory | [letta-ai/letta](https://github.com/letta-ai/letta) |
+| Mem0 [@chhikara2025] | External, agent | Extract and update memories across sessions | [mem0ai/mem0](https://github.com/mem0ai/mem0) |
+| A-MEM [@xu2025amem] | External, agent | Linked notes that reorganise themselves | [agiresearch/A-mem](https://github.com/agiresearch/A-mem) |
+| llama.cpp | All, locally | Quantised weights and KV cache on a laptop | [ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp) |
+
+: **Table 1.** Recent work on the four memories. Code links checked on 25 October 2026. Benchmarks of agent memory systems are still young, and the vendors' own scores often disagree with independent ones; I would compare them on your own data.
+
+## 9. What this experiment does not show
+
+- **My facts are random.** Real knowledge is structured: facts share patterns, and a model can store rules rather than lists. That makes weights more efficient than my networks suggest, which is why I compare against Allen-Zhu and Li's measurement on language models, not only my own.
+- **My networks are tiny,** two layers and at most 19,000 parameters, trained full-batch. The plateau may move with depth, training length and precision; Allen-Zhu and Li find it stable around two bits per parameter.
+- **Lookup is not free in quality.** My questions are noisy copies of stored keys. Real questions must be embedded first, and a retriever can miss, or find the right fact and still be ignored by the model.
+- **NumPy is not a serving engine.** My attention is less efficient than the weights' matrix products, so the measured crossover in Figure 5 comes earlier than the byte count says. Optimised kernels approach the byte count, which is why the right panel uses it.
+- **The Zipf model is a model.** Real question distributions differ by domain; a specialist's questions may have a much shorter tail, which is an argument for specialists.
+
+## 10. Conclusion
+
+We say a model *knows* something as if knowledge were one thing in one place. In a running system it lives in four places, at four prices. The weights are the densest and the most expensive to read; the working memory is the most immediate and grows with every token; an external memory is bulky but cheap to consult and easy to correct; a compiled habit costs almost nothing once it exists.
+
+Large models can afford to blur these. Small ones cannot, and that is their advantage: forced to choose, they can be designed so that each memory does what it does best. Keep in the weights what is used on every token. Keep the working memory short. Look up the long tail. Compile what repeats. That is how a small model on a laptop can be fast without pretending to know everything.
+
+::: {.read-next}
+**Read next** · [An Ecosystem, Not an Oracle](../2026-10-17-an-ecosystem-not-an-oracle/index.qmd)
+The architecture these four memories fit into: small specialists, a shared memory and a slow loop that keeps learning.
+:::
+
+::: {.small}
+*The views in this essay are my own and do not describe any product or plan of my employer.*
+:::
+
+## References
+
+::: {#refs}
+:::
