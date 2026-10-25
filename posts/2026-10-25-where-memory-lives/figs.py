@@ -140,48 +140,53 @@ def title(ax, eyebrow, text, y=1.1):
 
 # ---------- Figure 1: four memories, and when you pay for each ----------
 def fig_four():
-    fig, ax = canvas(11.6, 4.9, 23.2, 9.8)
-    cols = [
-        ("WEIGHTS", "Parametric memory", "What the model knows:\nlanguage, skills,\nfacts",
-         "read in full for\nevery token", NAVY, "every token"),
-        ("KV CACHE", "Working memory", "What it is reading now:\nthe prompt,\nthe conversation",
-         "grows with the context,\nread for every token", WARM, "every token × context"),
-        ("LOOKUP", "External memory", "What it can look up:\ndocuments, records,\npast cases",
-         "a few rows, only\nwhen it is asked", GREEN, "per question"),
-        ("HABITS", "Compiled memory", "What it has decided before:\nverified answers,\nsmall models",
-         "built once,\nreused in milliseconds", "#6b5ca5", "once"),
-    ]
+    fig, ax = canvas(11.6, 5.0, 23.2, 10.0)
+    cols = [("WEIGHTS", "Parametric", "what the model knows", "every token,\nin full", NAVY),
+            ("KV CACHE", "Working", "what it is reading now", "every token,\ngrowing with context", WARM),
+            ("LOOKUP", "External", "what it can look up", "only when\na question needs it", GREEN),
+            ("HABITS", "Compiled", "what it decided before", "once,\nthen reused", "#6b5ca5")]
     w, gap, x0 = 5.1, 0.6, 0.4
-    for i, (eb, t, sub, cost, col, when) in enumerate(cols):
+    for i, (eb, t, sub, cost, col) in enumerate(cols):
         x = x0 + i * (w + gap)
-        card(ax, x, 3.5, w, 4.4, t, sub, accent=col, eyebrow=eb, fs=12, subfs=8.8)
-        ax.text(x + w / 2 + 0.12, 2.75, "YOU PAY", ha="center", fontsize=6.6, weight="semibold", color=MUTED)
-        ax.text(x + w / 2 + 0.12, 2.35, cost, ha="center", va="top", fontsize=8.6, color=INK, linespacing=1.3)
-    # the cost axis
-    ax.add_patch(FancyArrowPatch((x0 + 0.2, 0.75), (x0 + 4 * w + 3 * gap - 0.2, 0.75),
-                                 arrowstyle="-|>,head_length=0.6,head_width=0.32", mutation_scale=12,
-                                 color=MUTED, lw=1.2))
-    ax.text(x0 + 0.2, 0.25, "paid on every token", fontsize=8.2, color=MUTED, va="center")
-    ax.text(x0 + 4 * w + 3 * gap - 0.2, 0.25, "paid rarely", fontsize=8.2, color=MUTED, va="center", ha="right")
-    ax.text(x0, 9.45, "THE FOUR MEMORIES OF A LANGUAGE MODEL", fontsize=7, weight="semibold", color=NAVY)
-    ax.text(x0, 9.0, "Fast AI moves what it can to the right", fontsize=12.5, weight="semibold", color=INK, va="top")
+        card(ax, x, 4.1, w, 3.9, t + " memory", sub, accent=col, eyebrow=eb, fs=12.5, subfs=10.5)
+        ax.text(x + w / 2 + 0.12, 3.35, "YOU PAY", ha="center", fontsize=8, weight="semibold", color=MUTED)
+        ax.text(x + w / 2 + 0.12, 2.95, cost, ha="center", va="top", fontsize=11, color=INK, linespacing=1.3)
+    ax.add_patch(FancyArrowPatch((x0 + 0.2, 0.95), (x0 + 4 * w + 3 * gap - 0.2, 0.95),
+                                 arrowstyle="-|>,head_length=0.6,head_width=0.32", mutation_scale=13,
+                                 color=MUTED, lw=1.3))
+    ax.text(x0 + 0.2, 0.35, "paid on every token", fontsize=10, color=MUTED, va="center")
+    ax.text(x0 + 4 * w + 3 * gap - 0.2, 0.35, "paid rarely", fontsize=10, color=MUTED, va="center", ha="right")
+    ax.text(x0, 9.6, "THE FOUR MEMORIES OF A LANGUAGE MODEL", fontsize=8.5, weight="semibold", color=NAVY)
+    ax.text(x0, 9.15, "Fast AI moves what it can to the right", fontsize=15, weight="semibold", color=INK, va="top")
     save(fig, "fig01")
 
 
 # ---------- Figure 2: how many facts fit in the weights ----------
 def fig_capacity():
-    rows = R["capacity"]
+    rows = [r for r in R["capacity"] if r.get("steps", 3000) == 3000]
+    seeds = sorted({r.get("seed", 0) for r in rows})
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(11.6, 4.4), gridspec_kw=dict(width_ratios=[1.25, 1]))
     widths = sorted({r["hidden"] for r in rows})
     shades = ["#9cb7cc", "#5f8fb3", "#2f6b95", DEEP]
+
+    def stats(h, key):
+        loads = sorted({round(r["offered_bits"] / r["params"], 2) for r in rows if r["hidden"] == h})
+        out = []
+        for L in loads:
+            v = np.array([r[key] for r in rows if r["hidden"] == h and round(r["offered_bits"] / r["params"], 2) == L])
+            out.append((L, v.mean(), v.std(ddof=1) if len(v) > 1 else 0.0))
+        return np.array(out)
     for h, c in zip(widths, shades):
-        rr = [r for r in rows if r["hidden"] == h]
-        p = rr[0]["params"]
-        x = [r["offered_bits"] / 1e3 for r in rr]
-        y = [r["stored_bits"] / 1e3 for r in rr]
-        a1.plot(x, y, color=c, lw=2, marker="o", ms=5, mfc="white", mew=1.6)
-        a1.annotate(f"{p:,} parameters".replace(",", "\u2009"), (x[-1], y[-1]), xytext=(8, 0),
+        p = n_params_of(h)
+        st = stats(h, "stored_bits")
+        x = st[:, 0] * p / 1e3
+        a1.fill_between(x, (st[:, 1] - st[:, 2]) / 1e3, (st[:, 1] + st[:, 2]) / 1e3, color=c, alpha=0.18, lw=0)
+        a1.plot(x, st[:, 1] / 1e3, color=c, lw=2, marker="o", ms=5, mfc="white", mew=1.6)
+        a1.annotate(f"{p:,} parameters".replace(",", "\u2009"), (x[-1], st[-1, 1] / 1e3), xytext=(8, 0),
                     textcoords="offset points", fontsize=8, color=c, va="center", weight="semibold")
+        sb = stats(h, "bits_per_param")
+        a2.errorbar(sb[:, 0], sb[:, 1], yerr=sb[:, 2], color=c, lw=2, marker="o", ms=5, mfc="white", mew=1.6,
+                    capsize=2.5, elinewidth=1)
     lim = max(r["offered_bits"] for r in rows) / 1e3
     a1.plot([0, lim], [0, lim], color=MUTED, lw=0.9, ls=(0, (3, 3)))
     a1.text(lim * 0.47, lim * 0.5, "every bit offered is kept  ", fontsize=8, color=MUTED, ha="right")
@@ -190,54 +195,64 @@ def fig_capacity():
     a1.set_ylabel("Bits of facts stored (thousands)")
     tidy(a1)
     title(a1, "EXPERIMENT 1", "Each network fills up, then stops")
-
-    # right: bits per parameter at the plateau, and accuracy as load grows
-    for h, c in zip(widths, shades):
-        rr = [r for r in rows if r["hidden"] == h]
-        load = [r["offered_bits"] / r["params"] for r in rr]
-        a2.plot(load, [r["bits_per_param"] for r in rr], color=c, lw=2, marker="o", ms=5, mfc="white", mew=1.6)
-    best = max(r["bits_per_param"] for r in rows)
+    # three times more training, past capacity (hidden width 32, one seed)
+    lg = R.get("capacity_long", [])
+    if lg:
+        L9 = [(r["offered_bits"] / r["params"], r["bits_per_param"]) for r in lg if r["steps"] == 9000]
+        a2.scatter(*zip(*L9), marker="D", s=34, color=WARM, zorder=6, label="3× more training (9\u2009504 parameters)")
+        a2.legend(loc="lower right", fontsize=7.8, handletextpad=0.3)
     a2.axhline(2, color=WARM, lw=1, ls=(0, (2, 2)))
-    a2.text(0.45, 2.04, "2 bits per parameter, measured in language models\n(Allen-Zhu & Li, 2024)",
+    a2.text(0.45, 2.04, "about 2 bits per parameter: a perceptron (Cover, 1965)\nand language models (Allen-Zhu & Li, 2024)",
             fontsize=7.8, color=WARM, va="bottom")
     a2.set_xlabel("Bits offered per parameter")
     a2.set_ylabel("Bits stored per parameter")
     a2.set_ylim(0, 2.6); a2.set_xlim(0.3, 4.2)
     tidy(a2)
-    title(a2, "THE PLATEAU", f"Up to {best:.1f} bits per parameter")
+    best = max(np.mean([r["bits_per_param"] for r in rows if r["hidden"] == h and abs(r["offered_bits"] / r["params"] - L) < 0.05])
+               for h in widths for L in (1.5, 2.0))
+    title(a2, "THE PLATEAU", f"Up to {best:.1f} bits per parameter, mean of {len(seeds)} seeds")
     fig.subplots_adjust(wspace=0.3)
     save(fig, "fig02")
 
 
+def n_params_of(h):
+    return 32 * h + h + 256 * h + 256
+
+
 # ---------- Figure 3: editing a fact in the weights ----------
 def fig_editing():
+    sw = R["editing_sweep"]
     E = R["editing"]
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(11.6, 4.3), sharey=True)
-    runs = [("edits only", NAVY, "-"), ("edits only, small steps", "#7fa6c4", (0, (4, 2))),
-            ("rehearse everything", WARM, "-")]
-    for name, c, ls in runs:
-        cv = E[name]["curve"]
-        s = [p["step"] for p in cv]
-        a1.plot(s, [100 * p["edits"] for p in cv], color=c, lw=2.2, ls=ls)
-        a2.plot(s, [100 * p["kept"] for p in cv], color=c, lw=2.2, ls=ls)
-        dy = {"rehearse everything": 4, "edits only, small steps": -4}.get(name, 0)
-        a2.text(s[-1] + 8, 100 * cv[-1]["kept"] + dy, name, fontsize=8.2, color=c, va="center", weight="semibold")
-        a1.text(s[-1] + 8, 100 * cv[-1]["edits"] + (3 if name == "edits only" else -3 if name == "rehearse everything" else 2),
-                name, fontsize=8.2, color=c, va="center", weight="semibold")
-    for ax in (a1, a2):
-        ax.scatter([0], [100 * E["external"]["edits" if ax is a1 else "kept"]], s=90, marker="D",
-                   color=GREEN, zorder=6, clip_on=False)
-        ax.set_xlabel("Training steps after the change")
-        ax.set_xlim(-12, 400); ax.set_ylim(0, 106)
-        tidy(ax)
-    a1.annotate("external memory: overwrite the row,\nright at once", (0, 100 * E["external"]["edits"]),
-                xytext=(30, -40), textcoords="offset points", fontsize=8, color=GREEN, weight="semibold",
-                arrowprops=dict(arrowstyle="-", color=GREEN, lw=0.9))
-    a1.set_ylabel("Facts right (%)")
-    n = E["changed"] + E["new"]
-    title(a1, "THE 150 EDITS", f"{E['changed']} facts changed, {E['new']} added")
-    title(a2, "EVERYTHING ELSE", f"The other {E['facts'] - E['changed']:,} facts".replace(",", " "))
-    fig.subplots_adjust(wspace=0.38, right=0.86)
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(11.6, 4.5), gridspec_kw=dict(width_ratios=[1.15, 1]))
+    style = {"edits only": (NAVY, "o"), "rehearse everything": (WARM, "s")}
+    sizes = {100: 22, 400: 48, 1600: 95}
+    for m, (c, mk) in style.items():
+        rr = [r for r in sw if r["method"] == m]
+        a1.scatter([100 * r["edits"] for r in rr], [100 * r["kept"] for r in rr], s=[sizes[r["steps"]] for r in rr],
+                   marker=mk, facecolor="white", edgecolor=c, lw=1.6, zorder=4, label=m)
+    a1.scatter([100], [100], marker="D", s=110, color=GREEN, zorder=6, clip_on=False, label="external table")
+    a1.annotate("external table:\noverwrite 75 rows, add 75", (100, 100), xytext=(-12, -40), textcoords="offset points",
+                fontsize=8, color=GREEN, weight="semibold", ha="right")
+    a1.set_xlim(-3, 104); a1.set_ylim(-3, 106)
+    a1.set_xlabel("The 150 edits: share learned (%)")
+    a1.set_ylabel("The 1,425 other facts: share kept (%)")
+    a1.legend(loc="lower left", fontsize=7.8, scatterpoints=1, markerscale=0.8)
+    a1.text(0.02, 0.2, "marker size: 100, 400 or 1,600 steps", transform=a1.transAxes, fontsize=7.4, color=MUTED)
+    tidy(a1, "both")
+    title(a1, "EXPERIMENT 2", "24 ways to change 150 facts")
+    # right: the work needed to get both right
+    for m, (c, mk) in style.items():
+        rr = sorted([r for r in sw if r["method"] == m], key=lambda r: r["examples_seen"])
+        a2.scatter([r["examples_seen"] for r in rr], [100 * min(r["kept"], r["edits"]) for r in rr],
+                   s=[sizes[r["steps"]] for r in rr], marker=mk, facecolor="white", edgecolor=c, lw=1.6, zorder=4)
+    a2.set_xscale("log")
+    a2.set_ylim(-3, 106)
+    a2.set_xlabel("Training examples processed (log scale)")
+    a2.set_ylabel("Worse of the two shares (%)")
+    a2.text(0.03, 0.93, "one table write per edit: 150", transform=a2.transAxes, fontsize=8, color=GREEN, weight="semibold")
+    tidy(a2, "both")
+    title(a2, "WHAT IT COSTS", "Getting both right takes rehearsal")
+    fig.subplots_adjust(wspace=0.3)
     save(fig, "fig03")
 
 
@@ -246,36 +261,71 @@ def fig_lookup():
     rows = R["lookup"]
     meth = [("exact", MUTED, "o", "exact: read every key"), ("IVF, 16 clusters", NAVY, "s", "index: 16 nearest clusters"),
             ("IVF, 4 clusters", GREEN, "D", "index: 4 nearest clusters")]
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(11.6, 4.4))
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(11.6, 4.5))
     for m, c, mk, lab in meth:
         rr = [r for r in rows if r["method"] == m]
         n = [r["n"] for r in rr]
         a1.plot(n, [r["ms"] for r in rr], color=c, lw=2, marker=mk, ms=5.5, mfc="white", mew=1.6)
-        a2.plot(n, [r["bytes_read"] / 1e6 for r in rr], color=c, lw=2, marker=mk, ms=5.5, mfc="white", mew=1.6)
         a1.text(n[-1] * 1.3, rr[-1]["ms"], lab, fontsize=8, color=c, va="center", weight="semibold")
-        for r in rr:
-            if r["recall"] < 0.995:
-                a1.annotate(f"{r['recall']:.0%}", (r["n"], r["ms"]), xytext=(0, 8), textcoords="offset points",
-                            fontsize=7.4, color=c, ha="center")
-    for ax in (a1, a2):
-        ax.set_xscale("log"); ax.set_yscale("log")
-        ax.set_xlabel("Facts in memory")
-        tidy(ax, "both")
+    a1.set_xscale("log"); a1.set_yscale("log")
+    a1.set_xlabel("Facts in memory")
     a1.set_xlim(6e3, 6e7)
     a1.set_ylabel("Time per question, 4-core CPU (ms)")
-    a2.set_ylabel("Megabytes read per question")
-    # what the weights of small models read per token, for scale
-    for p, lab in ((1.24e9 * 0.5, "Llama 3.2 1B, 4-bit:\nweights read per token"),):
-        a2.axhline(p / 1e6, color=WARM, lw=1, ls=(0, (2, 2)))
-        a2.text(1.1e4, p / 1e6 * 0.62, lab, fontsize=7.8, color=WARM, va="top")
-    a2.set_xlim(6e3, 6e6)
-    title(a1, "EXPERIMENT 3", "Looking up stays fast as memory grows")
-    title(a2, "WHAT IT COSTS", "An index reads megabytes, not the whole memory")
-    fig.subplots_adjust(wspace=0.32)
+    tidy(a1, "both")
+    title(a1, "EXPERIMENT 3", "Easy questions: the index stays fast")
+
+    nz = R["lookup_noise"]
+    levels = sorted({r["noise"] for r in nz})
+    cols = ["#9cb7cc", "#6f9cbf", "#3f78a3", "#1d4f73", DEEP]
+    for lv, c in zip(levels, cols):
+        ivf = sorted([r for r in nz if r["noise"] == lv and r["method"] == "IVF"], key=lambda r: r["probe"])
+        ex = [r for r in nz if r["noise"] == lv and r["method"] == "exact"][0]
+        a2.plot([r["ms"] for r in ivf], [100 * r["recall"] for r in ivf], color=c, lw=1.8, marker="o", ms=4.5,
+                mfc="white", mew=1.4)
+        a2.scatter([ex["ms"]], [100 * ex["recall"]], marker="*", s=90, color=c, zorder=5)
+        if lv in (levels[0], levels[-1]):
+            a2.annotate("easiest questions" if lv == levels[0] else "hardest questions",
+                        (ivf[0]["ms"], 100 * ivf[0]["recall"]), xytext=(-8, 0), textcoords="offset points",
+                        fontsize=7.8, color=c, weight="semibold", ha="right", va="center")
+    a2.set_xscale("log")
+    a2.set_ylim(76, 101.5); a2.set_xlim(0.02, 45)
+    a2.text(0.98, 0.04, "darker = noisier paraphrase", transform=a2.transAxes, ha="right", fontsize=7.6, color=MUTED)
+    a2.set_xlabel("Time per question (ms): index with 1, 4, 16, 64 clusters; ★ exact")
+    a2.set_ylabel("Right fact found (%)")
+    tidy(a2, "both")
+    title(a2, "HARDER QUESTIONS", "One million facts: 4 clusters match exact search")
+    fig.subplots_adjust(wspace=0.3)
     save(fig, "fig04")
 
 
-# ---------- Figure 5: working memory ----------
+# ---------- Figure 5: what a looked-up fact costs per generated token ----------
+def fig_price():
+    kv = kv_bytes(16, 8, 64, 2.0)            # Llama 3.2 1B, fp16 cache: bytes per token of context
+    lookup_mb = [r for r in R["lookup"] if r["method"] == "IVF, 4 clusters" and r["n"] == 4_000_000][0]["bytes_read"] / 1e6
+    answer = 200                              # tokens generated per answer (assumption)
+    bars = [
+        ("Ten times more weights, to hold\nthe facts instead (4-bit, 12B)", 10 * 1.24e9 * 0.5 / 1e6, MUTED),
+        ("Weights of the model (4-bit, 1B)", 1.24e9 * 0.5 / 1e6, NAVY),
+        ("Conversation so far, 2,000 tokens\n(fp16 cache)", 2000 * kv / 1e6, WARM),
+        ("Three retrieved passages, 900 tokens\n(fp16 cache)", 900 * kv / 1e6, WARM),
+        ("The same passages, 2-bit cache", 900 * kv / 8 / 1e6, "#d9a24a"),
+        ("The index search itself, spread\nover a 200-token answer", lookup_mb / answer, GREEN),
+    ]
+    fig, ax = plt.subplots(figsize=(10.4, 4.6))
+    y = np.arange(len(bars))
+    ax.barh(y, [b[1] for b in bars], color=[b[2] for b in bars], height=0.62)
+    for yy, (lab, v, c) in zip(y, bars):
+        ax.text(v * 1.15, yy, f"{v:,.2f} MB" if v < 1 else f"{v:,.0f} MB", va="center", fontsize=8.4, color=INK)
+    ax.set_yticks(y); ax.set_yticklabels([b[0] for b in bars], fontsize=8.6)
+    ax.invert_yaxis()
+    ax.set_xscale("log"); ax.set_xlim(0.02, 3e4)
+    ax.set_xlabel("Megabytes read from memory for every generated token (log scale), Llama 3.2 1B")
+    tidy(ax, "x")
+    title(ax, "THE REAL PRICE OF A LOOKUP", "Once retrieved, a fact is paid for again on every token", y=1.12)
+    save(fig, "fig05")
+
+
+# ---------- Figure 6: working memory ----------
 LLAMA = [  # parameters, layers, key-value heads, head size: from the published model configs
     ("Llama 3.2 1B", 1.24e9, 16, 8, 64),
     ("Llama 3.2 3B", 3.21e9, 28, 8, 128),
@@ -332,10 +382,10 @@ def fig_working():
     tidy(a2, "x")
     title(a2, "BY THE NUMBERS", "Shrink the weights, and the cache takes over")
     fig.subplots_adjust(wspace=0.42)
-    save(fig, "fig05")
+    save(fig, "fig06")
 
 
-# ---------- Figure 6: the long tail ----------
+# ---------- Figure 7: the long tail ----------
 def fig_tail():
     F = 1e9
     K = np.logspace(2, 9, 300)
@@ -366,10 +416,10 @@ def fig_tail():
     ax.set_ylabel("Share of questions answered from memory (%)")
     tidy(ax)
     title(ax, "THE ARITHMETIC OF THE LONG TAIL", "Weights cover the head; the tail needs a lookup", y=1.12)
-    save(fig, "fig06")
+    save(fig, "fig07")
 
 
-# ---------- Figure 7: a memory design for fast local AI ----------
+# ---------- Figure 8: a memory design for fast local AI ----------
 def fig_design():
     fig, ax = canvas(11.6, 6.0, 23.2, 12.0)
     # centre: the small model
@@ -397,7 +447,7 @@ def fig_design():
     ax.text(0.4, 11.75, "A PROPOSAL", fontsize=7, weight="semibold", color=NAVY)
     ax.text(0.4, 11.35, "Keep the model small, and give its memories their own places", fontsize=12.5,
             weight="semibold", color=INK, va="top")
-    save(fig, "fig07")
+    save(fig, "fig08")
 
 
 if __name__ == "__main__":
@@ -405,6 +455,7 @@ if __name__ == "__main__":
     fig_capacity()
     fig_editing()
     fig_lookup()
+    fig_price()
     fig_working()
     fig_tail()
     fig_design()

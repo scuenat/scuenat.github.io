@@ -1,7 +1,8 @@
 """Experiments for "Where Memory Lives". Pure NumPy, runs on a laptop CPU.
 
-    python sim.py            # all experiments, writes results.json (about 30 min on 4 cores)
-    python sim.py capacity   # one experiment: capacity, editing, lookup, working
+    python sim.py            # all experiments, writes results.json (about 2 hours on 4 cores)
+    python sim.py capacity   # one experiment: capacity, capacity_long, editing, editing_sweep,
+                             # lookup, lookup_noise, working
 
 1. capacity  How many bits of random facts fit in the weights of a small network.
 2. editing   What happens to the other facts when a few are changed in the weights.
@@ -73,25 +74,32 @@ def accuracy(P, X, y):
     return float((logits(P, X).argmax(1) == y).mean()) if len(y) else float("nan")
 
 
-def capacity():
-    rows = []
-    for h in (8, 16, 32, 64):
-        p = n_params(h)
-        for load in (0.5, 1, 1.5, 2, 3, 4):        # offered bits per parameter
-            n = int(round(load * p / np.log2(V)))
-            r = np.random.default_rng(100 + h)
-            X = r.standard_normal((n, D)).astype(np.float32)
-            y = r.integers(0, V, n)
-            P = init(h)
-            t = time.time()
-            fit(P, X, y, steps=3000, lr=1e-2)
-            b = stored_bits(P, X, y)
-            rows.append(dict(hidden=h, params=p, facts=n, offered_bits=n * np.log2(V),
-                             stored_bits=b, bits_per_param=b / p, accuracy=accuracy(P, X, y),
-                             seconds=time.time() - t))
-            print(f"capacity h={h:3d} P={p:6d} N={n:6d} stored={b:8.0f} "
-                  f"bits/param={b / p:.2f} acc={rows[-1]['accuracy']:.3f}", flush=True)
-    return rows
+def capacity_run(h, load, seed, steps=3000):
+    p = n_params(h)
+    n = int(round(load * p / np.log2(V)))
+    r = np.random.default_rng(1000 * seed + h)
+    X = r.standard_normal((n, D)).astype(np.float32)
+    y = r.integers(0, V, n)
+    P = init(h, seed=seed)
+    t = time.time()
+    fit(P, X, y, steps=steps, lr=1e-2)
+    b = stored_bits(P, X, y)
+    row = dict(hidden=h, params=p, facts=n, seed=seed, steps=steps, offered_bits=n * np.log2(V),
+               stored_bits=b, bits_per_param=b / p, accuracy=accuracy(P, X, y), seconds=time.time() - t)
+    print(f"capacity h={h:3d} P={p:6d} N={n:6d} seed={seed} steps={steps} "
+          f"bits/param={b / p:.2f} acc={row['accuracy']:.3f}", flush=True)
+    return row
+
+
+def capacity(seeds=(0, 1, 2)):
+    return [capacity_run(h, load, seed) for seed in seeds for h in (8, 16, 32, 64)
+            for load in (0.5, 1, 1.5, 2, 3, 4)]        # load: bits offered per parameter
+
+
+def capacity_long():
+    """Does the network store less past capacity because facts interfere, or because 3,000
+    steps are too few? Same runs with three times more steps."""
+    return [capacity_run(32, load, 0, steps=s) for load in (2, 3, 4) for s in (3000, 9000)]
 
 
 # ---------------------------------------------------------------- 2. editing the weights
@@ -138,6 +146,32 @@ def editing(h=64, n=1500, n_change=75, n_new=75):
                            edits=float(np.mean([table[int(i)] == y2[i] for i in edits])),
                            seconds=dt)
     return out
+
+
+def editing_sweep(h=64, n=1500, n_change=75, n_new=75):
+    """The same change as editing(), over a grid of learning rates and step counts, so that
+    no single choice of settings decides the comparison. Each point is one fine-tuning run."""
+    r = np.random.default_rng(7)
+    X = r.standard_normal((n + n_new, D)).astype(np.float32)
+    y = r.integers(0, V, n + n_new)
+    P = init(h, seed=7)
+    fit(P, X[:n], y[:n], steps=3000, lr=1e-2)
+    y2 = y.copy()
+    changed = r.choice(n, n_change, replace=False)
+    y2[changed] = (y[changed] + r.integers(1, V, n_change)) % V
+    kept = np.setdiff1d(np.arange(n), changed)
+    edits = np.concatenate([changed, np.arange(n, n + n_new)])
+    rows = []
+    for method, idx in (("edits only", edits), ("rehearse everything", np.arange(n + n_new))):
+        for lr in (1e-4, 3e-4, 1e-3, 3e-3):
+            for steps in (100, 400, 1600):
+                Q = [p.copy() for p in P]
+                fit(Q, X[idx], y2[idx], steps=steps, lr=lr)
+                rows.append(dict(method=method, lr=lr, steps=steps, examples_seen=int(steps * len(idx)),
+                                 kept=accuracy(Q, X[kept], y2[kept]), edits=accuracy(Q, X[edits], y2[edits])))
+                print(f"sweep {method:20s} lr={lr:.0e} steps={steps:5d} kept={rows[-1]['kept']:.3f} "
+                      f"edits={rows[-1]['edits']:.3f}", flush=True)
+    return rows
 
 
 # ---------------------------------------------------------------- 3. external memory
@@ -208,6 +242,50 @@ def lookup(d=256, topics=2000, noise=0.35, queries=300):
     return rows
 
 
+def lookup_noise(n=1_000_000, d=256, topics=2000, queries=200):
+    """Recall against time as questions get harder (more noise, i.e. looser paraphrases).
+    Exact search gives the best any method can do on these keys; the index trades recall for time."""
+    r = np.random.default_rng(5)
+    centres = r.standard_normal((topics, d)).astype(np.float32)
+    centres /= np.linalg.norm(centres, axis=1, keepdims=True)
+    K = np.empty((n, d), np.float32)
+    for i in range(0, n, 250_000):
+        m = min(250_000, n - i)
+        k = (centres[r.integers(0, topics, m)] + 0.6 * r.standard_normal((m, d)) / np.sqrt(d)).astype(np.float32)
+        K[i:i + m] = k / np.linalg.norm(k, axis=1, keepdims=True)
+    c = int(4 * np.sqrt(n))
+    C = kmeans(K, c)
+    assign = np.concatenate([(K[i:i + 200_000] @ C.T).argmax(1) for i in range(0, n, 200_000)])
+    order = np.argsort(assign, kind="stable")
+    starts = np.searchsorted(assign[order], np.arange(c + 1))
+    Ks = K[order]
+    rows = []
+    for noise in (0.35, 0.7, 1.0, 1.3, 1.6):
+        qi = r.integers(0, n, queries)
+        Q = (K[qi] + noise * r.standard_normal((queries, d)) / np.sqrt(d)).astype(np.float32)
+        Q /= np.linalg.norm(Q, axis=1, keepdims=True)
+        t, hit = [], 0
+        for q, i in zip(Q, qi):
+            s0 = time.perf_counter(); j = int((K @ q).argmax()); t.append(time.perf_counter() - s0)
+            hit += j == i
+        rows.append(dict(noise=noise, method="exact", probe=c, recall=hit / queries, ms=1e3 * float(np.median(t))))
+        for probe in (1, 4, 16, 64):
+            t, hit = [], 0
+            for q, i in zip(Q, qi):
+                s0 = time.perf_counter()
+                cl = np.argpartition(-(C @ q), probe)[:probe]
+                idx = np.concatenate([np.arange(starts[k], starts[k + 1]) for k in cl])
+                j = order[idx[int((Ks[idx] @ q).argmax())]]
+                t.append(time.perf_counter() - s0)
+                hit += j == i
+            rows.append(dict(noise=noise, method="IVF", probe=probe, recall=hit / queries,
+                             ms=1e3 * float(np.median(t))))
+        for row in rows[-5:]:
+            print(f"noise={noise:.2f} {row['method']:5s} probe={row['probe']:5d} recall={row['recall']:.3f} "
+                  f"ms={row['ms']:.3f}", flush=True)
+    return rows
+
+
 # ---------------------------------------------------------------- 4. working memory
 def working(reps=15):
     """One decoding step of one layer with the shapes of Llama 3.2 1B (hidden 2048, 32 query
@@ -256,7 +334,8 @@ def working(reps=15):
 
 
 if __name__ == "__main__":
-    which = sys.argv[1:] or ["capacity", "editing", "lookup", "working"]
+    which = sys.argv[1:] or ["working", "lookup", "lookup_noise", "editing", "editing_sweep",
+                             "capacity", "capacity_long"]
     try:
         res = json.load(open(OUT))
     except FileNotFoundError:
