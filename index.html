@@ -51,9 +51,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-3b64a6c6a69a519737ed44c532082f82.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-830c2e3158c2eeac714860bdbc4953cd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-3b64a6c6a69a519737ed44c532082f82.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-03d197310325bf30d13499ccf64c9f4f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-a0cf0ccf7c4eaecbb8a1c79a69339d7c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-03d197310325bf30d13499ccf64c9f4f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -84,20 +84,48 @@ ul.task-list li input[type="checkbox"] {
 <script>
 
   window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
+    const listingTargetEl = window.document.querySelector('#listing-topics .list');
     if (!listingTargetEl) {
       // No listing discovered, do not attach.
       return; 
     }
 
     const options = {
-      valueNames: ['listing-image','listing-date','listing-title','listing-subtitle','listing-description','listing-categories','listing-reading-time',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      valueNames: ['listing-project','listing-website','listing-lang','listing-format','listing-execute','listing-engines','listing-language','listing-draft-mode','listing-author','listing-title-block-banner','listing-freeze','listing-license','listing-title','listing-subtitle','listing-description','listing-date','listing-citation','listing-google-scholar','listing-categories','listing-topics','listing-image','listing-resources','listing-path','listing-outputHref','listing-date-modified','listing-filename','listing-file-modified','listing-reading-time','listing-word-count','listing-toc-depth','listing-bibliography',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-date-modified-sort'] },{ data: ['listing-file-modified-sort'] },{ data: ['listing-reading-time-sort'] },{ data: ['listing-word-count-sort'] }],
       
-      searchColumns: ["listing-date","listing-title","listing-author","listing-subtitle","listing-image","listing-description","listing-categories"],
+      searchColumns: ["listing-project","listing-website","listing-lang","listing-format","listing-execute","listing-engines","listing-language","listing-draft-mode","listing-author","listing-title-block-banner","listing-freeze","listing-license","listing-title","listing-subtitle","listing-description","listing-date","listing-citation","listing-google-scholar","listing-categories","listing-topics","listing-image","listing-resources","listing-path","listing-outputHref","listing-date-modified","listing-filename","listing-file-modified","listing-reading-time","listing-word-count","listing-toc-depth","listing-bibliography"],
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
+    window['quarto-listings']['listing-topics'] = new List('listing-topics', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-latest .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-date','listing-title','listing-subtitle','listing-reading-time',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      
+      searchColumns: ["listing-date","listing-title","listing-author","listing-subtitle","listing-image","listing-description"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-latest'] = new List('listing-latest', options);
 
     if (window['quarto-listing-loaded']) {
       window['quarto-listing-loaded']();
@@ -192,7 +220,7 @@ window.Quarto = {
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<body class="nav-fixed fullcontent quarto-light"><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -423,8 +451,7 @@ window.Quarto = {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(13)</span></div><div class="category" data-category="YWdlbnRz">agents <span class="quarto-category-count">(5)</span></div><div class="category" data-category="YWdpbGU=">agile <span class="quarto-category-count">(1)</span></div><div class="category" data-category="YWk=">ai <span class="quarto-category-count">(9)</span></div><div class="category" data-category="YW5hbHlzaXM=">analysis <span class="quarto-category-count">(2)</span></div><div class="category" data-category="YXJjaGl0ZWN0dXJl">architecture <span class="quarto-category-count">(2)</span></div><div class="category" data-category="YXV0b21hdGlvbg==">automation <span class="quarto-category-count">(2)</span></div><div class="category" data-category="Y3VyaW9zaXR5">curiosity <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZGFzaGJvYXJkcw==">dashboards <span class="quarto-category-count">(2)</span></div><div class="category" data-category="ZGF0YQ==">data <span class="quarto-category-count">(2)</span></div><div class="category" data-category="ZXNzYXk=">essay <span class="quarto-category-count">(7)</span></div><div class="category" data-category="bG9jYWwtYWk=">local-ai <span class="quarto-category-count">(1)</span></div><div class="category" data-category="bWNw">mcp <span class="quarto-category-count">(1)</span></div><div class="category" data-category="b3JnYW5pc2F0aW9u">organisation <span class="quarto-category-count">(1)</span></div><div class="category" data-category="cGFwZXI=">paper <span class="quarto-category-count">(3)</span></div><div class="category" data-category="cGVyc29uYWw=">personal <span class="quarto-category-count">(2)</span></div><div class="category" data-category="cGh5c2ljcw==">physics <span class="quarto-category-count">(3)</span></div><div class="category" data-category="cG9zaXRpb24=">position <span class="quarto-category-count">(2)</span></div><div class="category" data-category="cHJvZ3JhbW1pbmc=">programming <span class="quarto-category-count">(3)</span></div><div class="category" data-category="cmVzZWFyY2g=">research <span class="quarto-category-count">(1)</span></div></div></div>
+    
 <!-- main -->
 <main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><h1 class="title display-7">AI, Honestly</h1></header>
 
@@ -435,6 +462,10 @@ window.Quarto = {
 </header>
 
 
+<script>
+// Category chips on posts link to this page (the nearest listing); the filterable list is in the archive.
+if (location.hash.indexOf("#category=") === 0) location.replace("archive.html" + location.hash);
+</script>
 <section class="hero column-screen">
   <div class="hero-inner">
     <div class="hero-text">
@@ -446,21 +477,104 @@ window.Quarto = {
     </div>
   </div>
 </section>
+<section id="themes" class="level2 latest-heading">
+<h2 class="latest-heading anchored" data-anchor-id="themes">Themes</h2>
+<div id="listing-topics" class="quarto-listing quarto-listing-container-custom">
+<div class="topic-tiles">
+<section class="topic-tile" id="topic-agentic-coding">
+<h3 class="topic-title anchored">
+Agentic coding
+</h3>
+<p class="topic-thesis">
+When agents write the code, what is left for people to do? A series in five steps, and what it changes for the team around it.
+</p>
+<ol class="topic-list">
+<li>
+<a href="./posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a> <span class="topic-kind">analysis</span>
+</li>
+<li>
+<a href="./posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a> <span class="topic-kind">essay</span>
+</li>
+<li>
+<a href="./posts/2026-10-21-intent-is-the-source/index.html">Intent Is the Source</a> <span class="topic-kind">paper</span>
+</li>
+<li>
+<a href="./posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a> <span class="topic-kind">analysis</span>
+</li>
+<li>
+<a href="./posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a> <span class="topic-kind">paper</span>
+</li>
+<li>
+<a href="./posts/2026-10-24-work-has-mass/index.html">Work Has Mass</a> <span class="topic-kind">essay</span>
+</li>
+</ol>
+<p class="topic-more">
+<a href="agentic-coding.html">Read the series in order&nbsp;→</a>
+</p>
+</section>
+<section class="topic-tile" id="topic-fast-ai">
+<h3 class="topic-title anchored">
+Fast and local AI
+</h3>
+<p class="topic-thesis">
+Learn slowly, once. Act fast, every time: small specialists and a shared memory, with the large model kept for what is new.
+</p>
+<ol class="topic-list">
+<li>
+<a href="./posts/2026-10-11-fast-ai/index.html">Fast AI</a> <span class="topic-kind">essay</span>
+</li>
+<li>
+<a href="./posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a> <span class="topic-kind">essay</span>
+</li>
+<li>
+<a href="./posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a> <span class="topic-kind">analysis</span>
+</li>
+</ol>
+</section>
+<section class="topic-tile" id="topic-dashboards">
+<h3 class="topic-title anchored">
+Dashboards that show change
+</h3>
+<p class="topic-thesis">
+Show what changed in our understanding, not the data, and tell a quiet screen from a blind one.
+</p>
+<ol class="topic-list">
+<li>
+<a href="./posts/2026-09-29-show-what-changed/index.html">Show What Changed, Not the Data</a> <span class="topic-kind">paper</span>
+</li>
+<li>
+<a href="./posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">What a Quiet Screen Cannot See</a> <span class="topic-kind">essay</span>
+</li>
+</ol>
+</section>
+<section class="topic-tile" id="topic-physics">
+<h3 class="topic-title anchored">
+Physics and curiosity
+</h3>
+<p class="topic-thesis">
+Evenings with physics papers I could not quite follow: surfaces that know everything, and grains within grains.
+</p>
+<ol class="topic-list">
+<li>
+<a href="./posts/2026-10-15-a-universe-without-a-bottom/index.html">A Universe Without a Bottom</a> <span class="topic-kind">essay</span>
+</li>
+<li>
+<a href="./posts/2026-10-16-decided-in-the-bulk/index.html">Decided in the Bulk, Written on the Boundary</a> <span class="topic-kind">essay</span>
+</li>
+<li>
+<a href="./posts/2026-10-23-nothing-from-outside/index.html">Nothing From Outside, Everything From Inside</a> <span class="topic-kind">curiosity</span>
+</li>
+</ol>
+</section>
+</div>
+<div class="listing-no-matching d-none">No matching items</div>
+</div>
+</section>
 <section id="latest-writing" class="level2 latest-heading">
 <h2 class="latest-heading anchored" data-anchor-id="latest-writing">Latest writing</h2>
-
-
-
-</section>
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
+<div id="listing-latest" class="quarto-listing quarto-listing-container-default">
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="ZXNzYXklMkNhaSUyQ2FnaWxlJTJDb3JnYW5pc2F0aW9u" data-listing-date-sort="1792800000000" data-listing-file-modified-sort="1792921635013" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="19" data-listing-word-count-sort="3639">
-<div class="thumbnail"><a href="./posts/2026-10-24-work-has-mass/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-24-work-has-mass/figures/fig01.png" class="thumbnail-image">
-
-</a></div>
+<div class="quarto-post image-right" data-index="0" data-categories="ZXNzYXklMkNhaSUyQ2FnaWxlJTJDb3JnYW5pc2F0aW9u" data-listing-date-sort="1792800000000" data-listing-file-modified-sort="1792943119625" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="19" data-listing-word-count-sort="3639">
 <div class="body">
 <h3 class="no-anchor listing-title">
 <a href="./posts/2026-10-24-work-has-mass/index.html" class="no-external">Work Has Mass</a>
@@ -468,20 +582,6 @@ window.Quarto = {
 <div class="listing-subtitle">
 <a href="./posts/2026-10-24-work-has-mass/index.html" class="no-external">Scrum and SAFe are not wrong. In a heavier universe, they must get lighter.</a>
 </div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZXNzYXk='); return false;">essay</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWdpbGU='); return false;">agile</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('b3JnYW5pc2F0aW9u'); return false;">organisation</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-24-work-has-mass/index.html" class="no-external">
-<p>With AI, teams produce far more, and everything they produce must be carried. I treat that as mass that curves the space in which work moves, and argue that Scrum and SAFe should not grow to cope with it, but get lighter: keep what removes mass, cut what adds it.</p>
-</a></div>
 </div>
 <div class="metadata">
 <a href="./posts/2026-10-24-work-has-mass/index.html" class="no-external">
@@ -492,12 +592,7 @@ Oct 24, 2026
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="Y3VyaW9zaXR5JTJDcGh5c2ljcyUyQ3BlcnNvbmFs" data-listing-date-sort="1792713600000" data-listing-file-modified-sort="1792921635002" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2400">
-<div class="thumbnail"><a href="./posts/2026-10-23-nothing-from-outside/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-23-nothing-from-outside/figures/fig02.png" class="thumbnail-image">
-
-</a></div>
+<div class="quarto-post image-right" data-index="1" data-categories="Y3VyaW9zaXR5JTJDcGh5c2ljcyUyQ3BlcnNvbmFs" data-listing-date-sort="1792713600000" data-listing-file-modified-sort="1792943119614" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2400">
 <div class="body">
 <h3 class="no-anchor listing-title">
 <a href="./posts/2026-10-23-nothing-from-outside/index.html" class="no-external">Nothing From Outside, Everything From Inside</a>
@@ -505,18 +600,6 @@ Oct 24, 2026
 <div class="listing-subtitle">
 <a href="./posts/2026-10-23-nothing-from-outside/index.html" class="no-external"></a>
 </div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('Y3VyaW9zaXR5'); return false;">curiosity</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGh5c2ljcw=='); return false;">physics</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGVyc29uYWw='); return false;">personal</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-23-nothing-from-outside/index.html" class="no-external">
-<p>A closed universe seen from nowhere has one state. Put an observer inside and the possibilities come back. A second evening of curiosity about nothing, everything, and grains inside grains.</p>
-</a></div>
 </div>
 <div class="metadata">
 <a href="./posts/2026-10-23-nothing-from-outside/index.html" class="no-external">
@@ -527,12 +610,7 @@ Oct 23, 2026
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="2" data-categories="cGFwZXIlMkNwb3NpdGlvbiUyQ2FpJTJDYWdlbnRzJTJDcHJvZ3JhbW1pbmc=" data-listing-date-sort="1792713600000" data-listing-file-modified-sort="1792921635006" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4765">
-<div class="thumbnail"><a href="./posts/2026-10-23-stop-reviewing-pull-requests/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-23-stop-reviewing-pull-requests/figures/fig01.png" class="thumbnail-image">
-
-</a></div>
+<div class="quarto-post image-right" data-index="2" data-categories="cGFwZXIlMkNwb3NpdGlvbiUyQ2FpJTJDYWdlbnRzJTJDcHJvZ3JhbW1pbmc=" data-listing-date-sort="1792713600000" data-listing-file-modified-sort="1792943119619" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4765">
 <div class="body">
 <h3 class="no-anchor listing-title">
 <a href="./posts/2026-10-23-stop-reviewing-pull-requests/index.html" class="no-external">Stop Reviewing Pull Requests</a>
@@ -540,22 +618,6 @@ Oct 23, 2026
 <div class="listing-subtitle">
 <a href="./posts/2026-10-23-stop-reviewing-pull-requests/index.html" class="no-external">A provocative position paper: approve what you cannot undo, watch everything else</a>
 </div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGFwZXI='); return false;">paper</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cG9zaXRpb24='); return false;">position</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWdlbnRz'); return false;">agents</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cHJvZ3JhbW1pbmc='); return false;">programming</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-23-stop-reviewing-pull-requests/index.html" class="no-external">
-<p>A deliberately provocative position paper. Per-change human code review was the right control when code was written by hand and late fixes were expensive. With agentic coding, a simple cost model and a simulation suggest a different rule: a person approves only what cannot be undone, through a thin gate at the point of no return, and everything else merges under rules and is watched by a daily audit of the whole codebase. The paper states the conditions under which the rule holds, the predictions that would prove it wrong, and a protocol to test them.</p>
-</a></div>
 </div>
 <div class="metadata">
 <a href="./posts/2026-10-23-stop-reviewing-pull-requests/index.html" class="no-external">
@@ -566,375 +628,16 @@ Oct 23, 2026
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="3" data-categories="YW5hbHlzaXMlMkNhaSUyQ2FnZW50cyUyQ3Byb2dyYW1taW5n" data-listing-date-sort="1792627200000" data-listing-file-modified-sort="1792921634992" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1475">
-<div class="thumbnail"><a href="./posts/2026-10-22-review-the-intent-not-the-diff/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-22-review-the-intent-not-the-diff/figures/fig01.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-22-review-the-intent-not-the-diff/index.html" class="no-external">Review the Intent, Not the Diff</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-22-review-the-intent-not-the-diff/index.html" class="no-external">An analysis of how the Claude Code team solved code review, and the one thing I would let go of</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('YW5hbHlzaXM='); return false;">analysis</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWdlbnRz'); return false;">agents</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cHJvZ3JhbW1pbmc='); return false;">programming</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-22-review-the-intent-not-the-diff/index.html" class="no-external">
-<p>Once a team adopts agentic coding, review becomes the bottleneck. An analysis of how the Claude Code team at Anthropic moved most of the reading to machines and pointed human attention at risk, and an argument that shared understanding should no longer depend on reading diffs: humans own the intent, agents own the implementation, and review checks one against the other.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-22-review-the-intent-not-the-diff/index.html" class="no-external">
-<div class="listing-date">
-Oct 22, 2026
-</div>
-<div class="listing-reading-time">8 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="4" data-categories="cGFwZXIlMkNwb3NpdGlvbiUyQ2FpJTJDYWdlbnRzJTJDcHJvZ3JhbW1pbmc=" data-listing-date-sort="1792540800000" data-listing-file-modified-sort="1792921634989" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2169">
-<div class="thumbnail"><a href="./posts/2026-10-21-intent-is-the-source/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-21-intent-is-the-source/figures/fig01.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-21-intent-is-the-source/index.html" class="no-external">Intent Is the Source</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-21-intent-is-the-source/index.html" class="no-external">A provocative position paper: agentic coding as the next IDE and the next programming language</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGFwZXI='); return false;">paper</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cG9zaXRpb24='); return false;">position</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWdlbnRz'); return false;">agents</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cHJvZ3JhbW1pbmc='); return false;">programming</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-21-intent-is-the-source/index.html" class="no-external">
-<p>A deliberately provocative position paper. Every generation of programming turned what people used to write into something the machine generates. I argue that agentic coding is the next step: intent and checks become the source, code becomes an output, and the IDE becomes the loop in which we steer and review. I state the claim in a minimal formal way, give four arguments, and propose predictions that could prove it wrong.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-21-intent-is-the-source/index.html" class="no-external">
-<div class="listing-date">
-Oct 21, 2026
-</div>
-<div class="listing-reading-time">11 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="5" data-categories="ZXNzYXklMkNhaSUyQ2FnZW50cyUyQ2FyY2hpdGVjdHVyZSUyQ21jcA==" data-listing-date-sort="1792454400000" data-listing-file-modified-sort="1792921634987" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="33" data-listing-word-count-sort="6503">
-<div class="thumbnail"><a href="./posts/2026-10-20-the-interface-is-data/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-20-the-interface-is-data/figures/fig05.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-20-the-interface-is-data/index.html" class="no-external">The Interface Is Data</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-20-the-interface-is-data/index.html" class="no-external">How MCP and the agentic loop change what we call an API, and why the idea matters even without AI</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZXNzYXk='); return false;">essay</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWdlbnRz'); return false;">agents</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YXJjaGl0ZWN0dXJl'); return false;">architecture</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('bWNw'); return false;">mcp</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-20-the-interface-is-data/index.html" class="no-external">
-<p>MCP is usually presented as a way to give AI models tools. I think it changes something older: what an API is. When a service describes itself as data that any caller reads at run time, tools can form a web, offer several levels of detail at once, return whole programs, and save a great deal of glue code. The idea has real weaknesses too, and serious alternatives.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-20-the-interface-is-data/index.html" class="no-external">
-<div class="listing-date">
-Oct 20, 2026
-</div>
-<div class="listing-reading-time">33 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="6" data-categories="YW5hbHlzaXMlMkNhaSUyQ2FnZW50cyUyQ2F1dG9tYXRpb24=" data-listing-date-sort="1792281600000" data-listing-file-modified-sort="1792921634977" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="16" data-listing-word-count-sort="3143">
-<div class="thumbnail"><a href="./posts/2026-10-18-the-junior-colleague/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-18-the-junior-colleague/figures/fig06.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-18-the-junior-colleague/index.html" class="no-external">The Junior Colleague</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-18-the-junior-colleague/index.html" class="no-external">An analysis of decision models, JevAgentHarness, and what they mean for Fast AI</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('YW5hbHlzaXM='); return false;">analysis</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWdlbnRz'); return false;">agents</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YXV0b21hdGlvbg=='); return false;">automation</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-18-the-junior-colleague/index.html" class="no-external">
-<p>Most of an agent’s calls to a large model end in a multiple-choice pick. An analysis of a new paper showing that a small decision model, trained on the agent’s own states and trusted only when it is sure, can make most of them in milliseconds.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-18-the-junior-colleague/index.html" class="no-external">
-<div class="listing-date">
-Oct 18, 2026
-</div>
-<div class="listing-reading-time">16 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="7" data-categories="ZXNzYXklMkNhaSUyQ2xvY2FsLWFpJTJDYXJjaGl0ZWN0dXJl" data-listing-date-sort="1792195200000" data-listing-file-modified-sort="1792921634973" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="27" data-listing-word-count-sort="5309">
-<div class="thumbnail"><a href="./posts/2026-10-17-an-ecosystem-not-an-oracle/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-17-an-ecosystem-not-an-oracle/figures/fig02.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-17-an-ecosystem-not-an-oracle/index.html" class="no-external">An Ecosystem, Not an Oracle</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-17-an-ecosystem-not-an-oracle/index.html" class="no-external">Why I believe local AI will be many small specialists, a shared memory, a thin harness, and a way to keep learning</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZXNzYXk='); return false;">essay</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('bG9jYWwtYWk='); return false;">local-ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YXJjaGl0ZWN0dXJl'); return false;">architecture</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-17-an-ecosystem-not-an-oracle/index.html" class="no-external">
-<p>Local AI will not be one big model made small. I see an ecosystem: specialised models, a shared memory, a thin harness and a loop that keeps learning.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-17-an-ecosystem-not-an-oracle/index.html" class="no-external">
-<div class="listing-date">
-Oct 17, 2026
-</div>
-<div class="listing-reading-time">27 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="8" data-categories="ZXNzYXklMkNhaSUyQ3Jlc2VhcmNoJTJDcGh5c2ljcw==" data-listing-date-sort="1792108800000" data-listing-file-modified-sort="1792921634964" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="17" data-listing-word-count-sort="3297">
-<div class="thumbnail"><a href="./posts/2026-10-16-decided-in-the-bulk/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-16-decided-in-the-bulk/index.html" class="no-external">Decided in the Bulk, Written on the Boundary</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-16-decided-in-the-bulk/index.html" class="no-external">A physics question, an image generator, and one evening with an AI lab partner</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZXNzYXk='); return false;">essay</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cmVzZWFyY2g='); return false;">research</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGh5c2ljcw=='); return false;">physics</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-16-decided-in-the-bulk/index.html" class="no-external">
-<p>What a physics paper taught me about how AI makes images, an experiment run on two CPU cores in one evening, and what an AI lab partner made possible.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-16-decided-in-the-bulk/index.html" class="no-external">
-<div class="listing-date">
-Oct 16, 2026
-</div>
-<div class="listing-reading-time">17 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="9" data-categories="ZXNzYXklMkNwaHlzaWNzJTJDcGVyc29uYWw=" data-listing-date-sort="1792022400000" data-listing-file-modified-sort="1792921634951" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="7" data-listing-word-count-sort="1230">
-<div class="thumbnail"><a href="./posts/2026-10-15-a-universe-without-a-bottom/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-15-a-universe-without-a-bottom/figures/cover.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-15-a-universe-without-a-bottom/index.html" class="no-external">A Universe Without a Bottom</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-15-a-universe-without-a-bottom/index.html" class="no-external">It must be simpler than this.</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZXNzYXk='); return false;">essay</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGh5c2ljcw=='); return false;">physics</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGVyc29uYWw='); return false;">personal</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-15-a-universe-without-a-bottom/index.html" class="no-external">
-<p>An evening with a physics paper I could not follow, and the questions it left: surfaces that know everything, grains within grains, and open ends.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-15-a-universe-without-a-bottom/index.html" class="no-external">
-<div class="listing-date">
-Oct 15, 2026
-</div>
-<div class="listing-reading-time">7 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="10" data-categories="ZXNzYXklMkNhaSUyQ2F1dG9tYXRpb24=" data-listing-date-sort="1791727200000" data-listing-file-modified-sort="1792921634947" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2246">
-<div class="thumbnail"><a href="./posts/2026-10-11-fast-ai/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-11-fast-ai/figures/fig03.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-11-fast-ai/index.html" class="no-external">Fast AI</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-11-fast-ai/index.html" class="no-external">Learn slowly, once. Act fast, every time.</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZXNzYXk='); return false;">essay</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YWk='); return false;">ai</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('YXV0b21hdGlvbg=='); return false;">automation</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-11-fast-ai/index.html" class="no-external">
-<p>Use the large model to build the memory, not to replace it. Let deep learning perceive and trees decide. Keep the loop for the exceptions.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-11-fast-ai/index.html" class="no-external">
-<div class="listing-date">
-Oct 11, 2026
-</div>
-<div class="listing-reading-time">12 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="11" data-categories="ZXNzYXklMkNkYXRhJTJDZGFzaGJvYXJkcw==" data-listing-date-sort="1791712800000" data-listing-file-modified-sort="1792921634949" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="19" data-listing-word-count-sort="3750">
-<div class="thumbnail"><a href="./posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-10-11-what-a-quiet-screen-cannot-see/figures/fig05.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html" class="no-external">What a Quiet Screen Cannot See</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html" class="no-external">When an empty dashboard means all is well, and when it means we are not looking</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZXNzYXk='); return false;">essay</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGF0YQ=='); return false;">data</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGFzaGJvYXJkcw=='); return false;">dashboards</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html" class="no-external">
-<p>An empty dashboard can mean nothing changed, or something changed where we are not looking. The part of the data a model cannot explain tells them apart.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html" class="no-external">
-<div class="listing-date">
-Oct 11, 2026
-</div>
-<div class="listing-reading-time">19 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="12" data-categories="cGFwZXIlMkNkYXRhJTJDZGFzaGJvYXJkcw==" data-listing-date-sort="1790640000000" data-listing-file-modified-sort="1792921634944" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="24" data-listing-word-count-sort="4715">
-<div class="thumbnail"><a href="./posts/2026-09-29-show-what-changed/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/2026-09-29-show-what-changed/figures/fig07.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/2026-09-29-show-what-changed/index.html" class="no-external">Show What Changed, Not the Data</a>
-</h3>
-<div class="listing-subtitle">
-<a href="./posts/2026-09-29-show-what-changed/index.html" class="no-external">The dashboard as a difference of shapes</a>
-</div>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('cGFwZXI='); return false;">paper</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGF0YQ=='); return false;">data</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZGFzaGJvYXJkcw=='); return false;">dashboards</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/2026-09-29-show-what-changed/index.html" class="no-external">
-<p>A dashboard should show neither the data nor the shape, but how today’s shape differs from the last one: what changed in our understanding.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/2026-09-29-show-what-changed/index.html" class="no-external">
-<div class="listing-date">
-Sep 29, 2026
-</div>
-<div class="listing-reading-time">24 min</div>
-</a>
-</div>
-</div>
 </div>
 <div class="listing-no-matching d-none">No matching items</div>
-</div></main> <!-- /main -->
+</div>
+<p><a href="./archive.html" class="all-essays">All essays, newest first&nbsp;→</a></p>
+
+
+
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
