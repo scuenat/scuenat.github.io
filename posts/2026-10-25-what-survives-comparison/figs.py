@@ -170,11 +170,9 @@ def fig_horizons():
     fig, ax = plt.subplots(figsize=(8.6, 6.4))
     ax.set_aspect("equal"); ax.axis("off"); ax.set_xlim(-1.75, 1.75); ax.set_ylim(-1.3, 1.25)
 
-    # Shading: what observers near the north pole (left) can ever see and ever reach
-    ax.add_patch(Polygon([(-1, -1), (-1, 1), (1, -1)], fc=NAVY, alpha=0.08, lw=0))
-    ax.add_patch(Polygon([(-1, 1), (1, 1), (1, -1)], fc=AMBER, alpha=0.07, lw=0))
-    ax.add_patch(Polygon([(-1, -1), (-1, 1), (0, 0)], fc=NAVY, alpha=0.12, lw=0))     # A's static patch
-    ax.add_patch(Polygon([(1, -1), (1, 1), (0, 0)], fc=AMBER, alpha=0.16, lw=0))      # C's static patch
+    # Shading: everything A can ever see (its causal past) and everything C can ever see; they overlap below
+    ax.add_patch(Polygon([(-1, -1), (-1, 1), (1, -1)], fc=NAVY, alpha=0.13, lw=0))
+    ax.add_patch(Polygon([(-1, -1), (1, -1), (1, 1)], fc=AMBER, alpha=0.18, lw=0))
     ax.plot([-1, 1, 1, -1, -1], [-1, -1, 1, 1, -1], color=INK, lw=1.4)
     ax.plot([-1, 1], [-1, 1], color=RED, lw=1.2, ls=(0, (4, 2)))
     ax.plot([-1, 1], [1, -1], color=RED, lw=1.2, ls=(0, (4, 2)))
@@ -198,20 +196,30 @@ def fig_horizons():
                 arrowprops=dict(arrowstyle="-|>", color=NAVY, lw=1.4))
     ax.annotate("", xy=(xb, y0 + 2 * (xb + 1)), xytext=(-1, y0 + (xb + 1)),
                 arrowprops=dict(arrowstyle="-|>", color=NAVY, lw=1.4))
-    ax.text(-1.55, 0.62, "A and B meet\nand compare:\nconsistent", ha="center", va="center", fontsize=8.5, color=NAVY, style="italic")
+    ax.text(-1.55, 0.62, "A and B meet\nand compare:\nconsistent", ha="center", va="center", fontsize=8.5,
+            color=NAVY, style="italic")
     ax.annotate("", xy=(-0.97, 0.12), xytext=(-1.4, 0.45), arrowprops=dict(arrowstyle="-", color=NAVY, lw=0.7))
 
-    # A tries to send its record to C: the ray hits the far future first
-    ax.annotate("", xy=(0.65, 1), xytext=(-1, -0.65), arrowprops=dict(arrowstyle="-|>", color=GREY, lw=1.3,
-                                                                       ls=(0, (3, 2))))
-    ax.text(0.22, 0.8, "A's message\nnever reaches C", fontsize=8.5, color=GREY, style="italic", ha="right")
+    # A and C each send a message early; a third observer D, between them, catches both
+    D = (0, 0.6)
+    ax.annotate("", xy=D, xytext=(-1, -0.4), arrowprops=dict(arrowstyle="-|>", color=NAVY, lw=1.3))
+    ax.annotate("", xy=D, xytext=(1, -0.4), arrowprops=dict(arrowstyle="-|>", color="#9a5f06", lw=1.3))
+    ax.annotate("", xy=(0.4, 1), xytext=D, arrowprops=dict(arrowstyle="-|>", color=GREY, lw=1.2, ls=(0, (3, 2))))
+    clock(ax, D[0], D[1] + 0.07, 0.06)
+    ax.text(0.1, 0.68, "D", fontsize=12, weight="bold", color=INK)
+    ax.text(-0.08, 0.86, "A's message goes on,\nnever reaches C", fontsize=8.5, color=GREY, style="italic",
+            ha="right", va="center")
+    ax.text(1.55, 0.72, "D can compare\nboth messages,\nbut can never\ntell A or C", ha="center", va="center",
+            fontsize=8.5, color=INK, style="italic")
+    ax.annotate("", xy=(0.17, 0.66), xytext=(1.3, 0.72), arrowprops=dict(arrowstyle="-", color=INK, lw=0.7))
 
-    ax.text(0, -0.55, "horizons", ha="center", fontsize=8.5, color=RED, style="italic")
-    ax.text(-1.55, -0.35, "what A\ncan ever\nsee", ha="center", fontsize=8.5, color=NAVY, va="center")
-    ax.text(1.55, 0, "what C\ncan ever\nsee", ha="center", fontsize=8.5, color="#9a5f06", va="center")
-    ax.annotate("", xy=(-0.45, -0.35), xytext=(-1.38, -0.35), arrowprops=dict(arrowstyle="-", color=NAVY, lw=0.7))
-    ax.annotate("", xy=(0.55, -0.1), xytext=(1.38, 0), arrowprops=dict(arrowstyle="-", color="#9a5f06", lw=0.7))
-    ax.text(0, -1.27, "A and C are behind each other's horizons: \"do they agree?\" has no answer anyone can check",
+    ax.text(0, 0.1, "horizons", ha="center", fontsize=8.5, color=RED, style="italic")
+    ax.text(0, -0.68, "common past:\nboth A and C can see it", ha="center", va="center", fontsize=8.5, color=INK)
+    ax.text(-1.55, -0.3, "what A\ncan ever\nsee", ha="center", fontsize=8.5, color=NAVY, va="center")
+    ax.text(1.55, -0.1, "what C\ncan ever\nsee", ha="center", fontsize=8.5, color="#9a5f06", va="center")
+    ax.annotate("", xy=(-0.55, -0.3), xytext=(-1.38, -0.3), arrowprops=dict(arrowstyle="-", color=NAVY, lw=0.7))
+    ax.annotate("", xy=(0.55, -0.1), xytext=(1.38, -0.1), arrowprops=dict(arrowstyle="-", color="#9a5f06", lw=0.7))
+    ax.text(0, -1.27, "A and C can never compare with each other: for them, \"do we agree?\" has no answer",
             ha="center", fontsize=9, color=INK, style="italic")
     fig.savefig(OUT + "fig03.png"); plt.close(fig)
 
