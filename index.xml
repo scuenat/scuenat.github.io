@@ -17,6 +17,237 @@
 <generator>quarto-1.10.19</generator>
 <lastBuildDate>Mon, 26 Oct 2026 00:00:00 GMT</lastBuildDate>
 <item>
+  <title>Coherence Is Measurable</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>A thought essay, October 2026.</strong> This is an argument, not a paper. Figures 1, 3, 4 and 5 are my own schematics. One small experiment backs the central claim: <a href="sim.py">sim.py</a> trains ensembles of ten small neural networks on the handwritten digits that ship with scikit-learn, repeated on ten random train/test splits, in about twelve minutes on a 4-core cloud CPU; results are in <a href="results.json">results.json</a> and Figure 2 comes from <a href="figs.py">figs.py</a>. The networks are tiny and the task is easy: the experiment tests the shape of an argument, not a language model. Every other claim is cited.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> A short passage I came across recently, unsigned, makes a bold claim: the next scientific revolution <em>won’t come from more parameters or larger models; it will come from understanding coherence.</em> I take it as a prompt for thinking, not as a source to cite. As a statement about physics, I can’t test it. As a statement about machine learning, I can, because in AI coherence is not a mystical invariant. It is a family of checks: do the answers agree, does the logic run both ways, does the stated reason match the real one, do two views of the world map to one state. Each check can be measured, used at run time, and trained for. My conclusion: <strong>coherence will not replace scale, but it is what we should measure scale by, and a cheap signal for when a model should stop and look. It fails exactly where all the models share the same mistake.</strong></p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Coherence has four working definitions in AI:</strong> across samples, across logic, between thought and word, and across views and time.</li>
+<li><strong>Disagreement is a detector.</strong> In my experiment, when ten networks all agreed, they were right 99.8% of the time; most of the errors fell where they disagreed. Published work finds the same for language models <span class="citation" data-cites="farquhar2024">(Farquhar et al. 2024)</span>.</li>
+<li><strong>Coherence is a training target.</strong> Several recent models are trained to agree with themselves rather than to reproduce every pixel or token <span class="citation" data-cites="assran2025 song2023 irpan2025">(<span class="nocase">Assran et al.</span> 2025; Song et al. 2023; Irpan et al. 2025)</span>.</li>
+<li><strong>Coherent is not true.</strong> When every network learned the same misleading shortcut, agreement no longer told right from wrong: its detection score fell from 0.92 to 0.51, chance level. Withholding the shortcut from part of the training data kept it at 0.73.</li>
+<li><strong>One rule:</strong> probe, measure agreement, answer when coherent, look up or abstain when not, check the coherent answers against the world, and train on what you learn.</li>
+</ul>
+</div>
+</div>
+<section id="the-claim-read-as-engineering" class="level2">
+<h2 class="anchored" data-anchor-id="the-claim-read-as-engineering">1. The claim, read as engineering</h2>
+<p>In physics, “coherence” has a precise meaning about waves and quantum states. I borrow only the word. In what follows it means <em>agreement</em>: between answers, between directions of a fact, between a model’s reasons and its behaviour, between views of the world.</p>
+<p>Read that way, the quote sets coherence against scale. That is a false choice, and the last few years show why. Larger models <em>did</em> become more coherent in measurable ways; for one, the internal representations of different models grow more alike as they scale <span class="citation" data-cites="huh2024">(Huh et al. 2024)</span>. Scale bought coherence.</p>
+<p>But scale bought it without measuring it. We trained on next-token loss and discovered coherence afterwards, as a side effect. The better reading of the quote is this: <em>coherence should become a first-class quantity, something we measure, report and optimise directly, not something we hope emerges.</em></p>
+<p>To do that, we need definitions. Figure 1 gives four.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic, my own. Four kinds of coherence a model can have, from the cheapest to check (left) to the deepest (right)."><img src="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig01.svg" class="img-fluid figure-img" alt="Four cards. One, output: across samples; ask the same question several times, do the answers agree; tagged self-consistency and semantic entropy. Two, reasoning: across logic; if A is B, is B A, do paraphrases and negations line up; tagged reversal curse and consistency checks. Three, faithfulness: thought and word; does the stated reason match what drove the answer; tagged CoT faithfulness and latent knowledge. Four, representation: across views and time; do two views of one scene, or two moments, map to one state; tagged JEPA world models and shared geometry. An arrow underneath runs from cheap to check from outside the model, to needs access to its insides or a new architecture."></a></p>
+<figcaption><strong>Figure 1.</strong> Schematic, my own. Four kinds of coherence a model can have, from the cheapest to check (left) to the deepest (right).</figcaption>
+</figure>
+</div>
+</section>
+<section id="four-kinds-of-coherence" class="level2">
+<h2 class="anchored" data-anchor-id="four-kinds-of-coherence">2. Four kinds of coherence</h2>
+<p><strong>Across samples.</strong> Ask a model “Who wrote <em>Middlemarch</em>?” ten times. If it knows, every answer says George Eliot, in different words. If it is guessing, the answers scatter. Self-consistency turns this into a vote: sample several reasoning paths and keep the majority answer, which raised accuracy on maths benchmarks by up to 18 points <span class="citation" data-cites="wang2023sc">(Wang et al. 2023)</span>. Semantic entropy turns it into an alarm: group the answers by meaning and measure how spread they are; high spread flags likely confabulation <span class="citation" data-cites="kuhn2023 farquhar2024">(Kuhn et al. 2023; Farquhar et al. 2024)</span>. SelfCheckGPT does the same for long text, sentence by sentence <span class="citation" data-cites="manakul2023">(Manakul et al. 2023)</span>.</p>
+<p><strong>Across logic.</strong> A model trained on “Tom Cruise’s mother is Mary Lee Pfeiffer” often cannot answer “Who is Mary Lee Pfeiffer’s son?”. This <em>reversal curse</em> holds even for large models <span class="citation" data-cites="berglund2024">(Berglund et al. 2024)</span>. More generally, a model’s beliefs should obey simple rules: P(X) and P(not X) should add to one, and paraphrasing a question should not change the answer. Such checks catch errors even when nobody knows the right answer, which makes them useful for evaluating models that may be better than their evaluators <span class="citation" data-cites="fluri2024">(Fluri et al. 2024)</span>.</p>
+<p><strong>Between thought and word.</strong> A chain of thought is only useful if it is the real reason. Often it is not. Models nudged by a hidden bias, such as “the answer is always (A)”, follow the bias and then write a plausible explanation that never mentions it <span class="citation" data-cites="turpin2023">(Turpin et al. 2023)</span>. Reasoning models do the same: given a planted hint, they mostly used it without saying so <span class="citation" data-cites="chen2025cot">(<span class="nocase">Chen et al.</span> 2025)</span>. Can we read the truth from inside instead? One method finds a direction in a model’s activations that keeps its answers to a statement and to its negation consistent <span class="citation" data-cites="burns2023">(Burns et al. 2023)</span>. But later work showed such probes can lock onto other consistent features, such as a character’s opinion in the prompt, rather than the model’s own knowledge <span class="citation" data-cites="farquhar2023ccs levinstein2024">(Farquhar et al. 2023; Levinstein and Herrmann 2024)</span>. Interpretability work now traces the internal steps behind an answer more directly <span class="citation" data-cites="templeton2024 lindsey2025">(<span class="nocase">Templeton et al.</span> 2024; <span class="nocase">Lindsey et al.</span> 2025)</span>. Faithfulness is coherence between the inside and the outside, and it is the hardest of the four to measure.</p>
+<p><strong>Across views and time.</strong> A world model should map two views of the same scene, or two moments of the same motion, to states that fit together. The same may hold across models: networks trained on different data, in different modalities, measure distances between concepts more and more alike as they grow, Huh and colleagues argue <span class="citation" data-cites="huh2024">(Huh et al. 2024)</span>. This is where coherence becomes architecture (section 4).</p>
+</section>
+<section id="coherence-as-a-signal-measured" class="level2">
+<h2 class="anchored" data-anchor-id="coherence-as-a-signal-measured">3. Coherence as a signal, measured</h2>
+<p>The first use of coherence needs no retraining: measure it at run time and act on it. I tested the idea on the smallest setup I could make honest.</p>
+<p><strong>Setup.</strong> Ten small neural networks, each trained on a different resampling of 898 handwritten digits, with a different random start; 899 other digits held out for testing. Each network gives one answer. The whole experiment is repeated on ten random train/test splits, and I report the mean, with the spread across splits where it matters. This is an ensemble of independently trained models, not repeated samples from one language model, but the question is the same: <em>does agreement predict correctness?</em> I tested on the clean digits, and on the same digits with heavy pixel noise the networks never saw in training.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Measured, sim.py, mean of ten train/test splits. Left: digits are answered in order of how many of the ten networks agree, and the line shows the accuracy of the majority answer so far. AUROC measures how well agreement separates right from wrong answers (1 is perfect, 0.5 is chance). Right: every training digit carries a hint that is usually right; at test time the hint is always wrong. Solid: a hint on every training digit. Dashed: the hint withheld on 20% of training digits. Bands show one standard deviation across splits."><img src="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig02.svg" class="img-fluid figure-img" alt="Left, accuracy of the majority vote against share of digits answered, most agreed first. Clean digits: close to 100 percent until about 90 percent of digits are answered, ending at 97.2 percent when everything is answered; AUROC 0.93. Noisy digits: near 99 percent until about 50 percent are answered, then falling to 87.7 percent; AUROC 0.88. Right, against how often the hint was right during training, 50, 80, 90, 95 and 99 percent. With a hint on every training digit, agreement detects errors with AUROC 0.92, 0.85, 0.77, 0.68 and 0.51, reaching the chance line, and the majority follows the wrong hint on 0.02, 0.06, 0.13, 0.21 and 0.41 of digits. With the hint withheld on 20 percent of training digits, AUROC falls only to 0.73 and the majority follows the wrong hint on at most 0.18. Narrow bands show the spread across ten splits."></a></p>
+<figcaption><strong>Figure 2.</strong> Measured, <a href="sim.py">sim.py</a>, mean of ten train/test splits. Left: digits are answered in order of how many of the ten networks agree, and the line shows the accuracy of the majority answer so far. AUROC measures how well agreement separates right from wrong answers (1 is perfect, 0.5 is chance). Right: every training digit carries a hint that is usually right; at test time the hint is always wrong. Solid: a hint on every training digit. Dashed: the hint withheld on 20% of training digits. Bands show one standard deviation across splits.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Agreement worked as a detector (Figure 2, left):</p>
+<ul>
+<li>On clean digits, all ten networks agreed on 83% of them, and were right on 99.8% of those. One network alone was right 94.7% of the time; the majority, 97.2%.</li>
+<li>On noisy digits, a single network dropped to 76.7%. The networks now agreed fully on only 36% of digits, but were still right on 99.6% of those. Agreement fell where the task got hard, which is exactly what a warning signal should do.</li>
+<li>Agreement separated right from wrong answers with an AUROC of 0.93 on clean digits and 0.88 on noisy ones (spread across splits: ±0.03 and ±0.02).</li>
+</ul>
+<p>So agreement ranks answers by trust. The low-agreement ones can go to a lookup, a tool, or an honest “I don’t know”. This matters because today’s training rewards guessing: benchmarks score an abstention like a wrong answer, so models learn to bluff <span class="citation" data-cites="kalai2025">(Kalai et al. 2025)</span>. Asking a model how sure it is can help too <span class="citation" data-cites="tian2023">(Tian et al. 2023)</span>, but agreement does not depend on the model’s own sense of confidence.</p>
+<p><strong>The cost.</strong> Agreement is not free. Ten models, or ten samples, cost up to ten times the compute, and grouping free-text answers by meaning needs a second model to judge which answers say the same thing <span class="citation" data-cites="farquhar2024">(Farquhar et al. 2024)</span>. For a single digit the vote is trivial; for a paragraph it is not.</p>
+</section>
+<section id="coherence-as-a-training-target" class="level2">
+<h2 class="anchored" data-anchor-id="coherence-as-a-training-target">4. Coherence as a training target</h2>
+<p>The second use goes deeper: train for coherence directly.</p>
+<p><strong>In vision and world models.</strong> A generative model learns by predicting every pixel of the next frame, including leaves, glare and texture that no one could predict. Joint-embedding predictive architectures (JEPA) predict something else: the <em>representation</em> of the missing part, scored on whether it matches the encoding of the real thing <span class="citation" data-cites="assran2023 bardes2024">(Assran et al. 2023; Bardes et al. 2024)</span> (Figure 3). V-JEPA 2, trained this way on more than a million hours of video, was adapted with under 62 hours of unlabelled robot video and then planned pick-and-place tasks zero-shot on robot arms in two labs whose data it had never seen <span class="citation" data-cites="assran2025">(<span class="nocase">Assran et al.</span> 2025)</span>. The loss is not “reproduce the world”; it is “stay consistent with it”.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Schematic, my own, after @assran2023. Left: a generative model is scored on every pixel. Right: a JEPA is scored on whether its predicted state matches the encoded state of the real next frame."><img src="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig03.svg" class="img-fluid figure-img" alt="Two diagrams side by side. Left, generative, predict every detail: context frame t goes to a model, which outputs pixels of frame t+1, every leaf; a red arrow marks a loss on every pixel against the true pixels of frame t+1; a note says it spends capacity on noise that cannot be predicted: leaves, glare, texture. Right, joint embedding, predict what stays coherent: context frame t goes to a predictor, which outputs a predicted state t+1; frame t+1 goes through an encoder to a target state t+1; a green arrow marks a loss on the state; a note says it keeps what views share: objects, positions, motion."></a></p>
+<figcaption><strong>Figure 3.</strong> Schematic, my own, after <span class="citation" data-cites="assran2023">Assran et al. (2023)</span>. Left: a generative model is scored on every pixel. Right: a JEPA is scored on whether its predicted state matches the encoded state of the real next frame.</figcaption>
+</figure>
+</div>
+<p><strong>In generation.</strong> Consistency models train a network so that every point along a noisy trajectory maps to the same clean output. That constraint is what allows generation in one or two steps instead of hundreds <span class="citation" data-cites="song2023">(Song et al. 2023)</span>.</p>
+<p><strong>In language models.</strong> Consistency training asks a model to behave the same with and without an irrelevant cue: a leading question, a stated opinion, a jailbreak wrapper. Trained this way, models showed less biased reasoning <span class="citation" data-cites="chua2024">(Chua et al. 2024)</span> and less sycophancy and jailbreak success, whether the consistency was enforced on outputs or on internal activations <span class="citation" data-cites="irpan2025">(Irpan et al. 2025)</span>. Nobody had to write the right answer.</p>
+<p><strong>The trap.</strong> Coherence alone is easy to game. A model that answers “42” to everything is perfectly consistent and useless; a JEPA whose encoder outputs a constant matches its target every time. Every method above therefore needs an anchor. JEPAs use architectural tricks to keep representations from collapsing <span class="citation" data-cites="assran2023">(Assran et al. 2023)</span>; consistency models are tied to real data at the end of the trajectory <span class="citation" data-cites="song2023">(Song et al. 2023)</span>; consistency training uses the model’s own answer to the <em>clean</em> prompt as the target <span class="citation" data-cites="irpan2025">(Irpan et al. 2025)</span>. Coherence is a constraint, not an objective on its own.</p>
+</section>
+<section id="where-coherence-stops" class="level2">
+<h2 class="anchored" data-anchor-id="where-coherence-stops">5. Where coherence stops</h2>
+<p>Coherence has a hard limit, and the original quote skips it. <strong>Coherent is not true.</strong> A conspiracy theory can be perfectly self-consistent. So can a model trained on a stale or biased corpus. Figure 4 makes the point with a simple grid.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Schematic, my own. Coherence and truth are different axes."><img src="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig04.svg" class="img-fluid figure-img" alt="A two by two grid. Columns: coherent, incoherent. Rows: true, false. Coherent and true: knowledge; stable across samples, paraphrases and reasons; answer. Incoherent and true: lucky guess; right this time, wrong next time; treat as unknown. Coherent and false: coherent fiction; a shared bias, a stale fact, a confident myth; only the world can catch it. Incoherent and false: visible error; samples disagree; easy to detect, look up or abstain."></a></p>
+<figcaption><strong>Figure 4.</strong> Schematic, my own. Coherence and truth are different axes.</figcaption>
+</figure>
+</div>
+<p>The second half of the experiment measures the bottom-left cell (Figure 2, right). I gave every training digit a ten-slot <em>hint</em> naming a digit, like a hint planted in a prompt. The hint was right some fixed share of the time, from 50% to 99%, and named a random digit otherwise. At test time, the hint always named a wrong digit.</p>
+<ul>
+<li>With a weak hint (right 50% of the time), the networks mostly ignored it: the majority followed the wrong hint on 2% of digits, and agreement still detected errors (AUROC 0.92).</li>
+<li>As the hint grew more reliable in training, every network learned to lean on it. With a 99% reliable hint, the majority followed the wrong hint on 41% of digits, and agreement could no longer tell right answers from wrong ones: AUROC 0.51 ± 0.02, chance level. Worse, when all ten networks agreed, they were now right only 31% of the time, against 99.7% with the weak hint.</li>
+<li>A control ensemble trained without hints was unaffected: 97.2% correct with the same wrong hints present. The failure comes from what the networks learned, not from the extra input.</li>
+</ul>
+<p>Ten models, ten random starts, ten different resamplings of the data, and they still agreed on the same mistake, because they all learned the same shortcut from the same data. Diversity among models protects against their independent errors, not against what they share.</p>
+<p>The shortcut also has a cost when it is not misleading, only useless. Given a random hint, a kind of input they saw in training, networks trained with a 90% reliable hint got 74.6% of digits right, against 94.7% for the control.</p>
+<p>One change helped. When the hint was withheld on a random 20% of training digits, every network also had to learn to read the pixels. With the same 99% reliable hint, the majority followed the wrong hint on 18% of digits instead of 41%, and agreement kept an AUROC of 0.73. This is a crude version of the consistency training of section 4: show the model the same input with and without the cue, so it cannot rely on the cue alone. It reduced the blind spot; it did not remove it.</p>
+<p>Language models are in a worse position than my ensemble. Repeated samples from one language model share not part of their training but all of it. A shortcut learned in training is therefore largely invisible to the self-consistency checks of section 3: every sample carries it.</p>
+<p>Asking the model to check itself does not fix this. Without outside feedback, language models asked to review their own reasoning often change right answers into wrong ones, and overall get worse <span class="citation" data-cites="huang2024selfcorrect">(Huang et al. 2024)</span>.</p>
+<p>So coherence is necessary, not sufficient. Internally it removes noise; externally, it must be anchored by retrieval, tools, tests and people. This is the same conclusion as <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>, reached from a different side.</p>
+</section>
+<section id="a-design-rule" class="level2">
+<h2 class="anchored" data-anchor-id="a-design-rule">6. A design rule</h2>
+<p>Put together, the pieces give a loop (Figure 5).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Schematic, my own. Coherence as a control signal and a training signal."><img src="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig05.svg" class="img-fluid figure-img" alt="A flow diagram. Question leads to probe: k samples, paraphrases, reverse query. Probe leads to measure: agreement, faithfulness. Measure branches: coherent, answer, then check against the world; incoherent, look it up, ask a tool, or say I don't know. A small model box under probe feeds it. A dashed green line runs from the incoherent branch back to the model, labelled train on consistency: same meaning in, same behaviour out."></a></p>
+<figcaption><strong>Figure 5.</strong> Schematic, my own. Coherence as a control signal and a training signal.</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Probe.</strong> For any answer that matters, ask more than once: several samples, a paraphrase, the reverse question.</li>
+<li><strong>Measure.</strong> Score agreement in meaning, not in words. Where you can see inside, check that the stated reason is the one used.</li>
+<li><strong>Route.</strong> Incoherent: retrieve, call a tool, or abstain. Coherent: answer, and when the stakes are high still check against the world, because shared mistakes look coherent too.</li>
+<li><strong>Train.</strong> Feed the inconsistencies back as training signal, anchored to clean examples. Same meaning in, same behaviour out.</li>
+</ol>
+<p>For small, local models, the loop is especially affordable. Generating a token is limited by reading the weights from memory: about 620 MB for a 4-bit 1B model, and 6,200 MB for a 12B one, as computed in <a href="../../posts/2026-10-26-where-memory-lives/index.html">Where Memory Lives</a>. Five samples from the small model read half the bytes of one sample from the large one, and far fewer when the five run as a batch, since a batch reads the weights once. Their agreement then tells you when to reach for the external memory that essay describes.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>The quote is right about one thing: more parameters alone will not tell us whether a model understands. It overreaches in another: coherence is not a universal invariant waiting to unify reality. In AI it is something humbler and more useful: a set of measurable agreements, between samples, between directions of a fact, between thought and word, between views of the world. Measure them, route on them, train for them, and anchor them in the world, because a mistake every model shares is the one coherence cannot see. That is a research programme, not a revolution, and it can start today.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-assran2023" class="csl-entry">
+Assran, Mahmoud, Quentin Duval, Ishan Misra, et al. 2023. <span>“Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture.”</span> <em>IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a href="https://arxiv.org/abs/2301.08243">https://arxiv.org/abs/2301.08243</a>.
+</div>
+<div id="ref-assran2025" class="csl-entry">
+<span class="nocase">Assran, Mido, Adrien Bardes, David Fan, et al.</span> 2025. <span>“<span>V-JEPA</span> 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning.”</span> <em>arXiv Preprint arXiv:2506.09985</em>. <a href="https://arxiv.org/abs/2506.09985">https://arxiv.org/abs/2506.09985</a>.
+</div>
+<div id="ref-bardes2024" class="csl-entry">
+Bardes, Adrien, Quentin Garrido, Jean Ponce, et al. 2024. <span>“Revisiting Feature Prediction for Learning Visual Representations from Video.”</span> <em>Transactions on Machine Learning Research (TMLR)</em>. <a href="https://arxiv.org/abs/2404.08471">https://arxiv.org/abs/2404.08471</a>.
+</div>
+<div id="ref-berglund2024" class="csl-entry">
+Berglund, Lukas, Meg Tong, Max Kaufmann, et al. 2024. <span>“The Reversal Curse: <span>LLMs</span> Trained on <span>‘<span>A</span> Is <span>B</span>’</span> Fail to Learn <span>‘<span>B</span> Is <span>A</span>’</span>.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2309.12288">https://arxiv.org/abs/2309.12288</a>.
+</div>
+<div id="ref-burns2023" class="csl-entry">
+Burns, Collin, Haotian Ye, Dan Klein, and Jacob Steinhardt. 2023. <span>“Discovering Latent Knowledge in Language Models Without Supervision.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2212.03827">https://arxiv.org/abs/2212.03827</a>.
+</div>
+<div id="ref-chen2025cot" class="csl-entry">
+<span class="nocase">Chen, Yanda, Joe Benton, Ansh Radhakrishnan, others, and Ethan Perez</span>. 2025. <span>“Reasoning Models Don’t Always Say What They Think.”</span> <em>arXiv Preprint arXiv:2505.05410</em>. <a href="https://arxiv.org/abs/2505.05410">https://arxiv.org/abs/2505.05410</a>.
+</div>
+<div id="ref-chua2024" class="csl-entry">
+Chua, James, Edward Rees, Hunar Batra, et al. 2024. <span>“Bias-Augmented Consistency Training Reduces Biased Reasoning in Chain-of-Thought.”</span> <em>arXiv Preprint arXiv:2403.05518</em>. <a href="https://arxiv.org/abs/2403.05518">https://arxiv.org/abs/2403.05518</a>.
+</div>
+<div id="ref-farquhar2024" class="csl-entry">
+Farquhar, Sebastian, Jannik Kossen, Lorenz Kuhn, and Yarin Gal. 2024. <span>“Detecting Hallucinations in Large Language Models Using Semantic Entropy.”</span> <em>Nature</em> 630: 625–30. <a href="https://doi.org/10.1038/s41586-024-07421-0">https://doi.org/10.1038/s41586-024-07421-0</a>.
+</div>
+<div id="ref-farquhar2023ccs" class="csl-entry">
+Farquhar, Sebastian, Vikrant Varma, Zachary Kenton, Johannes Gasteiger, Vladimir Mikulik, and Rohin Shah. 2023. <span>“Challenges with Unsupervised <span>LLM</span> Knowledge Discovery.”</span> <em>arXiv Preprint arXiv:2312.10029</em>. <a href="https://arxiv.org/abs/2312.10029">https://arxiv.org/abs/2312.10029</a>.
+</div>
+<div id="ref-fluri2024" class="csl-entry">
+Fluri, Lukas, Daniel Paleka, and Florian Tramèr. 2024. <span>“Evaluating Superhuman Models with Consistency Checks.”</span> <em>arXiv Preprint arXiv:2306.09983 (V2, 2024); NeurIPS 2023 SoLaR Workshop</em>. <a href="https://arxiv.org/abs/2306.09983">https://arxiv.org/abs/2306.09983</a>.
+</div>
+<div id="ref-huang2024selfcorrect" class="csl-entry">
+Huang, Jie, Xinyun Chen, Swaroop Mishra, et al. 2024. <span>“Large Language Models Cannot Self-Correct Reasoning Yet.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2310.01798">https://arxiv.org/abs/2310.01798</a>.
+</div>
+<div id="ref-huh2024" class="csl-entry">
+Huh, Minyoung, Brian Cheung, Tongzhou Wang, and Phillip Isola. 2024. <span>“The Platonic Representation Hypothesis.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2405.07987">https://arxiv.org/abs/2405.07987</a>.
+</div>
+<div id="ref-irpan2025" class="csl-entry">
+Irpan, Alex, Alexander Matt Turner, Mark Kurzeja, David K. Elson, and Rohin Shah. 2025. <span>“Consistency Training Helps Stop Sycophancy and Jailbreaks.”</span> <em>arXiv Preprint arXiv:2510.27062</em>. <a href="https://arxiv.org/abs/2510.27062">https://arxiv.org/abs/2510.27062</a>.
+</div>
+<div id="ref-kalai2025" class="csl-entry">
+Kalai, Adam Tauman, Ofir Nachum, Santosh S. Vempala, and Edwin Zhang. 2025. <span>“Why Language Models Hallucinate.”</span> <em>arXiv Preprint arXiv:2509.04664</em>. <a href="https://arxiv.org/abs/2509.04664">https://arxiv.org/abs/2509.04664</a>.
+</div>
+<div id="ref-kuhn2023" class="csl-entry">
+Kuhn, Lorenz, Yarin Gal, and Sebastian Farquhar. 2023. <span>“Semantic Uncertainty: Linguistic Invariances for Uncertainty Estimation in Natural Language Generation.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2302.09664">https://arxiv.org/abs/2302.09664</a>.
+</div>
+<div id="ref-levinstein2024" class="csl-entry">
+Levinstein, Benjamin A., and Daniel A. Herrmann. 2024. <span>“Still No Lie Detector for Language Models: Probing Empirical and Conceptual Roadblocks.”</span> <em>Philosophical Studies</em>, ahead of print. <a href="https://doi.org/10.1007/s11098-023-02094-3">https://doi.org/10.1007/s11098-023-02094-3</a>.
+</div>
+<div id="ref-lindsey2025" class="csl-entry">
+<span class="nocase">Lindsey, Jack, Wes Gurnee, Emmanuel Ameisen, et al.</span> 2025. <em>On the Biology of a Large Language Model</em>. Transformer Circuits Thread. <a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">https://transformer-circuits.pub/2025/attribution-graphs/biology.html</a>.
+</div>
+<div id="ref-manakul2023" class="csl-entry">
+Manakul, Potsawee, Adian Liusie, and Mark J. F. Gales. 2023. <span>“<span>SelfCheckGPT</span>: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models.”</span> <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/2303.08896">https://arxiv.org/abs/2303.08896</a>.
+</div>
+<div id="ref-song2023" class="csl-entry">
+Song, Yang, Prafulla Dhariwal, Mark Chen, and Ilya Sutskever. 2023. <span>“Consistency Models.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2303.01469">https://arxiv.org/abs/2303.01469</a>.
+</div>
+<div id="ref-templeton2024" class="csl-entry">
+<span class="nocase">Templeton, Adly, Tom Conerly, Jonathan Marcus, et al.</span> 2024. <em>Scaling Monosemanticity: Extracting Interpretable Features from <span>Claude 3 Sonnet</span></em>. Transformer Circuits Thread. <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">https://transformer-circuits.pub/2024/scaling-monosemanticity/</a>.
+</div>
+<div id="ref-tian2023" class="csl-entry">
+Tian, Katherine, Eric Mitchell, Allan Zhou, et al. 2023. <span>“Just Ask for Calibration: Strategies for Eliciting Calibrated Confidence Scores from Language Models Fine-Tuned with Human Feedback.”</span> <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/2305.14975">https://arxiv.org/abs/2305.14975</a>.
+</div>
+<div id="ref-turpin2023" class="csl-entry">
+Turpin, Miles, Julian Michael, Ethan Perez, and Samuel R. Bowman. 2023. <span>“Language Models Don’t Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2305.04388">https://arxiv.org/abs/2305.04388</a>.
+</div>
+<div id="ref-wang2023sc" class="csl-entry">
+Wang, Xuezhi, Jason Wei, Dale Schuurmans, et al. 2023. <span>“Self-Consistency Improves Chain of Thought Reasoning in Language Models.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2203.11171">https://arxiv.org/abs/2203.11171</a>.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Coherence {Is} {Measurable}},
+  date = {2026-10-26},
+  url = {https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/},
+  langid = {en}
+}
+</code></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Coherence Is Measurable.”</span> October
+26. <a href="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/">https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/</a>.
+</div></div></section></div> ]]></description>
+  <category>essay</category>
+  <category>thought-essay</category>
+  <category>ai</category>
+  <category>machine-learning</category>
+  <category>deep-learning</category>
+  <category>reliability</category>
+  <guid>https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/</guid>
+  <pubDate>Mon, 26 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig01.png" medium="image" type="image/png" height="56" width="144"/>
+</item>
+<item>
   <title>Where Memory Lives</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
   <link>https://scuenat.github.io/posts/2026-10-26-where-memory-lives/</link>

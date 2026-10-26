@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-10-26">
+<meta name="description" content="A popular claim says the next scientific revolution will come from coherence, not bigger models. As physics, it is hard to test. As machine learning, it is not: coherence can be measured, used as a signal, and trained for. One small experiment shows where it helps and where it goes blind.">
+
+<title>Coherence Is Measurable – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-bf74e2d5e06b8c93fe2d8cdbabd0cd8b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-b3c99313d7e7912e8513ca856e586ade.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-bf74e2d5e06b8c93fe2d8cdbabd0cd8b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="canonical" href="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-10-26","description":"A popular claim says the next scientific revolution will come from coherence, not bigger models. As physics, it is hard to test. As machine learning, it is not: coherence can be measured, used as a signal, and trained for. One small experiment shows where it helps and where it goes blind.","headline":"Coherence Is Measurable","image":"https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig01.png","inLanguage":"en","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["essay","thought-essay","ai","machine-learning","deep-learning","reliability"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"url":"https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/"}</script>
+
+
+<meta property="og:title" content="Coherence Is Measurable – AI, Honestly">
+<meta property="og:description" content="A popular claim says the next scientific revolution will come from coherence, not bigger models. As physics, it is hard to test. As machine learning, it is not: coherence can be measured, used as a signal, and trained for. One small experiment shows where it helps and where it goes blind.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="1310">
+<meta property="og:image:width" content="3347">
+<meta name="twitter:title" content="Coherence Is Measurable – AI, Honestly">
+<meta name="twitter:description" content="A popular claim says the next scientific revolution will come from coherence, not bigger models. As physics, it is hard to test. As machine learning, it is not: coherence can be measured, used as a signal, and trained for. One small experiment shows where it helps and where it goes blind.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/figures/fig01.png">
+<meta name="twitter:image-height" content="1310">
+<meta name="twitter:image-width" content="3347">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#the-claim-read-as-engineering" id="toc-the-claim-read-as-engineering" class="nav-link active" data-scroll-target="#the-claim-read-as-engineering">1. The claim, read as engineering</a></li>
+  <li><a href="#four-kinds-of-coherence" id="toc-four-kinds-of-coherence" class="nav-link" data-scroll-target="#four-kinds-of-coherence">2. Four kinds of coherence</a></li>
+  <li><a href="#coherence-as-a-signal-measured" id="toc-coherence-as-a-signal-measured" class="nav-link" data-scroll-target="#coherence-as-a-signal-measured">3. Coherence as a signal, measured</a></li>
+  <li><a href="#coherence-as-a-training-target" id="toc-coherence-as-a-training-target" class="nav-link" data-scroll-target="#coherence-as-a-training-target">4. Coherence as a training target</a></li>
+  <li><a href="#where-coherence-stops" id="toc-where-coherence-stops" class="nav-link" data-scroll-target="#where-coherence-stops">5. Where coherence stops</a></li>
+  <li><a href="#a-design-rule" id="toc-a-design-rule" class="nav-link" data-scroll-target="#a-design-rule">6. A design rule</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">7. Conclusion</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Coherence Is Measurable</h1>
+<p class="subtitle lead">What it would mean to build AI around consistency, not only size</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essay</div>
+    <div class="quarto-category">thought-essay</div>
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">machine-learning</div>
+    <div class="quarto-category">deep-learning</div>
+    <div class="quarto-category">reliability</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A popular claim says the next scientific revolution will come from coherence, not bigger models. As physics, it is hard to test. As machine learning, it is not: coherence can be measured, used as a signal, and trained for. One small experiment shows where it helps and where it goes blind.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 26, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>A thought essay, October 2026.</strong> This is an argument, not a paper. Figures 1, 3, 4 and 5 are my own schematics. One small experiment backs the central claim: <a href="sim.py">sim.py</a> trains ensembles of ten small neural networks on the handwritten digits that ship with scikit-learn, repeated on ten random train/test splits, in about twelve minutes on a 4-core cloud CPU; results are in <a href="results.json">results.json</a> and Figure 2 comes from <a href="figs.py">figs.py</a>. The networks are tiny and the task is easy: the experiment tests the shape of an argument, not a language model. Every other claim is cited.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> A short passage I came across recently, unsigned, makes a bold claim: the next scientific revolution <em>won’t come from more parameters or larger models; it will come from understanding coherence.</em> I take it as a prompt for thinking, not as a source to cite. As a statement about physics, I can’t test it. As a statement about machine learning, I can, because in AI coherence is not a mystical invariant. It is a family of checks: do the answers agree, does the logic run both ways, does the stated reason match the real one, do two views of the world map to one state. Each check can be measured, used at run time, and trained for. My conclusion: <strong>coherence will not replace scale, but it is what we should measure scale by, and a cheap signal for when a model should stop and look. It fails exactly where all the models share the same mistake.</strong></p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Coherence has four working definitions in AI:</strong> across samples, across logic, between thought and word, and across views and time.</li>
+<li><strong>Disagreement is a detector.</strong> In my experiment, when ten networks all agreed, they were right 99.8% of the time; most of the errors fell where they disagreed. Published work finds the same for language models <span class="citation" data-cites="farquhar2024">(<a href="#ref-farquhar2024" role="doc-biblioref">Farquhar et al. 2024</a>)</span>.</li>
+<li><strong>Coherence is a training target.</strong> Several recent models are trained to agree with themselves rather than to reproduce every pixel or token <span class="citation" data-cites="assran2025 song2023 irpan2025">(<a href="#ref-assran2025" role="doc-biblioref"><span class="nocase">Assran et al.</span> 2025</a>; <a href="#ref-song2023" role="doc-biblioref">Song et al. 2023</a>; <a href="#ref-irpan2025" role="doc-biblioref">Irpan et al. 2025</a>)</span>.</li>
+<li><strong>Coherent is not true.</strong> When every network learned the same misleading shortcut, agreement no longer told right from wrong: its detection score fell from 0.92 to 0.51, chance level. Withholding the shortcut from part of the training data kept it at 0.73.</li>
+<li><strong>One rule:</strong> probe, measure agreement, answer when coherent, look up or abstain when not, check the coherent answers against the world, and train on what you learn.</li>
+</ul>
+</div>
+</div>
+<section id="the-claim-read-as-engineering" class="level2">
+<h2 class="anchored" data-anchor-id="the-claim-read-as-engineering">1. The claim, read as engineering</h2>
+<p>In physics, “coherence” has a precise meaning about waves and quantum states. I borrow only the word. In what follows it means <em>agreement</em>: between answers, between directions of a fact, between a model’s reasons and its behaviour, between views of the world.</p>
+<p>Read that way, the quote sets coherence against scale. That is a false choice, and the last few years show why. Larger models <em>did</em> become more coherent in measurable ways; for one, the internal representations of different models grow more alike as they scale <span class="citation" data-cites="huh2024">(<a href="#ref-huh2024" role="doc-biblioref">Huh et al. 2024</a>)</span>. Scale bought coherence.</p>
+<p>But scale bought it without measuring it. We trained on next-token loss and discovered coherence afterwards, as a side effect. The better reading of the quote is this: <em>coherence should become a first-class quantity, something we measure, report and optimise directly, not something we hope emerges.</em></p>
+<p>To do that, we need definitions. Figure 1 gives four.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic, my own. Four kinds of coherence a model can have, from the cheapest to check (left) to the deepest (right)."><img src="figures/fig01.svg" class="img-fluid figure-img" alt="Four cards. One, output: across samples; ask the same question several times, do the answers agree; tagged self-consistency and semantic entropy. Two, reasoning: across logic; if A is B, is B A, do paraphrases and negations line up; tagged reversal curse and consistency checks. Three, faithfulness: thought and word; does the stated reason match what drove the answer; tagged CoT faithfulness and latent knowledge. Four, representation: across views and time; do two views of one scene, or two moments, map to one state; tagged JEPA world models and shared geometry. An arrow underneath runs from cheap to check from outside the model, to needs access to its insides or a new architecture."></a></p>
+<figcaption><strong>Figure 1.</strong> Schematic, my own. Four kinds of coherence a model can have, from the cheapest to check (left) to the deepest (right).</figcaption>
+</figure>
+</div>
+</section>
+<section id="four-kinds-of-coherence" class="level2">
+<h2 class="anchored" data-anchor-id="four-kinds-of-coherence">2. Four kinds of coherence</h2>
+<p><strong>Across samples.</strong> Ask a model “Who wrote <em>Middlemarch</em>?” ten times. If it knows, every answer says George Eliot, in different words. If it is guessing, the answers scatter. Self-consistency turns this into a vote: sample several reasoning paths and keep the majority answer, which raised accuracy on maths benchmarks by up to 18 points <span class="citation" data-cites="wang2023sc">(<a href="#ref-wang2023sc" role="doc-biblioref">Wang et al. 2023</a>)</span>. Semantic entropy turns it into an alarm: group the answers by meaning and measure how spread they are; high spread flags likely confabulation <span class="citation" data-cites="kuhn2023 farquhar2024">(<a href="#ref-kuhn2023" role="doc-biblioref">Kuhn et al. 2023</a>; <a href="#ref-farquhar2024" role="doc-biblioref">Farquhar et al. 2024</a>)</span>. SelfCheckGPT does the same for long text, sentence by sentence <span class="citation" data-cites="manakul2023">(<a href="#ref-manakul2023" role="doc-biblioref">Manakul et al. 2023</a>)</span>.</p>
+<p><strong>Across logic.</strong> A model trained on “Tom Cruise’s mother is Mary Lee Pfeiffer” often cannot answer “Who is Mary Lee Pfeiffer’s son?”. This <em>reversal curse</em> holds even for large models <span class="citation" data-cites="berglund2024">(<a href="#ref-berglund2024" role="doc-biblioref">Berglund et al. 2024</a>)</span>. More generally, a model’s beliefs should obey simple rules: P(X) and P(not X) should add to one, and paraphrasing a question should not change the answer. Such checks catch errors even when nobody knows the right answer, which makes them useful for evaluating models that may be better than their evaluators <span class="citation" data-cites="fluri2024">(<a href="#ref-fluri2024" role="doc-biblioref">Fluri et al. 2024</a>)</span>.</p>
+<p><strong>Between thought and word.</strong> A chain of thought is only useful if it is the real reason. Often it is not. Models nudged by a hidden bias, such as “the answer is always (A)”, follow the bias and then write a plausible explanation that never mentions it <span class="citation" data-cites="turpin2023">(<a href="#ref-turpin2023" role="doc-biblioref">Turpin et al. 2023</a>)</span>. Reasoning models do the same: given a planted hint, they mostly used it without saying so <span class="citation" data-cites="chen2025cot">(<a href="#ref-chen2025cot" role="doc-biblioref"><span class="nocase">Chen et al.</span> 2025</a>)</span>. Can we read the truth from inside instead? One method finds a direction in a model’s activations that keeps its answers to a statement and to its negation consistent <span class="citation" data-cites="burns2023">(<a href="#ref-burns2023" role="doc-biblioref">Burns et al. 2023</a>)</span>. But later work showed such probes can lock onto other consistent features, such as a character’s opinion in the prompt, rather than the model’s own knowledge <span class="citation" data-cites="farquhar2023ccs levinstein2024">(<a href="#ref-farquhar2023ccs" role="doc-biblioref">Farquhar et al. 2023</a>; <a href="#ref-levinstein2024" role="doc-biblioref">Levinstein and Herrmann 2024</a>)</span>. Interpretability work now traces the internal steps behind an answer more directly <span class="citation" data-cites="templeton2024 lindsey2025">(<a href="#ref-templeton2024" role="doc-biblioref"><span class="nocase">Templeton et al.</span> 2024</a>; <a href="#ref-lindsey2025" role="doc-biblioref"><span class="nocase">Lindsey et al.</span> 2025</a>)</span>. Faithfulness is coherence between the inside and the outside, and it is the hardest of the four to measure.</p>
+<p><strong>Across views and time.</strong> A world model should map two views of the same scene, or two moments of the same motion, to states that fit together. The same may hold across models: networks trained on different data, in different modalities, measure distances between concepts more and more alike as they grow, Huh and colleagues argue <span class="citation" data-cites="huh2024">(<a href="#ref-huh2024" role="doc-biblioref">Huh et al. 2024</a>)</span>. This is where coherence becomes architecture (section 4).</p>
+</section>
+<section id="coherence-as-a-signal-measured" class="level2">
+<h2 class="anchored" data-anchor-id="coherence-as-a-signal-measured">3. Coherence as a signal, measured</h2>
+<p>The first use of coherence needs no retraining: measure it at run time and act on it. I tested the idea on the smallest setup I could make honest.</p>
+<p><strong>Setup.</strong> Ten small neural networks, each trained on a different resampling of 898 handwritten digits, with a different random start; 899 other digits held out for testing. Each network gives one answer. The whole experiment is repeated on ten random train/test splits, and I report the mean, with the spread across splits where it matters. This is an ensemble of independently trained models, not repeated samples from one language model, but the question is the same: <em>does agreement predict correctness?</em> I tested on the clean digits, and on the same digits with heavy pixel noise the networks never saw in training.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Measured, sim.py, mean of ten train/test splits. Left: digits are answered in order of how many of the ten networks agree, and the line shows the accuracy of the majority answer so far. AUROC measures how well agreement separates right from wrong answers (1 is perfect, 0.5 is chance). Right: every training digit carries a hint that is usually right; at test time the hint is always wrong. Solid: a hint on every training digit. Dashed: the hint withheld on 20% of training digits. Bands show one standard deviation across splits."><img src="figures/fig02.svg" class="img-fluid figure-img" alt="Left, accuracy of the majority vote against share of digits answered, most agreed first. Clean digits: close to 100 percent until about 90 percent of digits are answered, ending at 97.2 percent when everything is answered; AUROC 0.93. Noisy digits: near 99 percent until about 50 percent are answered, then falling to 87.7 percent; AUROC 0.88. Right, against how often the hint was right during training, 50, 80, 90, 95 and 99 percent. With a hint on every training digit, agreement detects errors with AUROC 0.92, 0.85, 0.77, 0.68 and 0.51, reaching the chance line, and the majority follows the wrong hint on 0.02, 0.06, 0.13, 0.21 and 0.41 of digits. With the hint withheld on 20 percent of training digits, AUROC falls only to 0.73 and the majority follows the wrong hint on at most 0.18. Narrow bands show the spread across ten splits."></a></p>
+<figcaption><strong>Figure 2.</strong> Measured, <a href="sim.py">sim.py</a>, mean of ten train/test splits. Left: digits are answered in order of how many of the ten networks agree, and the line shows the accuracy of the majority answer so far. AUROC measures how well agreement separates right from wrong answers (1 is perfect, 0.5 is chance). Right: every training digit carries a hint that is usually right; at test time the hint is always wrong. Solid: a hint on every training digit. Dashed: the hint withheld on 20% of training digits. Bands show one standard deviation across splits.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Agreement worked as a detector (Figure 2, left):</p>
+<ul>
+<li>On clean digits, all ten networks agreed on 83% of them, and were right on 99.8% of those. One network alone was right 94.7% of the time; the majority, 97.2%.</li>
+<li>On noisy digits, a single network dropped to 76.7%. The networks now agreed fully on only 36% of digits, but were still right on 99.6% of those. Agreement fell where the task got hard, which is exactly what a warning signal should do.</li>
+<li>Agreement separated right from wrong answers with an AUROC of 0.93 on clean digits and 0.88 on noisy ones (spread across splits: ±0.03 and ±0.02).</li>
+</ul>
+<p>So agreement ranks answers by trust. The low-agreement ones can go to a lookup, a tool, or an honest “I don’t know”. This matters because today’s training rewards guessing: benchmarks score an abstention like a wrong answer, so models learn to bluff <span class="citation" data-cites="kalai2025">(<a href="#ref-kalai2025" role="doc-biblioref">Kalai et al. 2025</a>)</span>. Asking a model how sure it is can help too <span class="citation" data-cites="tian2023">(<a href="#ref-tian2023" role="doc-biblioref">Tian et al. 2023</a>)</span>, but agreement does not depend on the model’s own sense of confidence.</p>
+<p><strong>The cost.</strong> Agreement is not free. Ten models, or ten samples, cost up to ten times the compute, and grouping free-text answers by meaning needs a second model to judge which answers say the same thing <span class="citation" data-cites="farquhar2024">(<a href="#ref-farquhar2024" role="doc-biblioref">Farquhar et al. 2024</a>)</span>. For a single digit the vote is trivial; for a paragraph it is not.</p>
+</section>
+<section id="coherence-as-a-training-target" class="level2">
+<h2 class="anchored" data-anchor-id="coherence-as-a-training-target">4. Coherence as a training target</h2>
+<p>The second use goes deeper: train for coherence directly.</p>
+<p><strong>In vision and world models.</strong> A generative model learns by predicting every pixel of the next frame, including leaves, glare and texture that no one could predict. Joint-embedding predictive architectures (JEPA) predict something else: the <em>representation</em> of the missing part, scored on whether it matches the encoding of the real thing <span class="citation" data-cites="assran2023 bardes2024">(<a href="#ref-assran2023" role="doc-biblioref">Assran et al. 2023</a>; <a href="#ref-bardes2024" role="doc-biblioref">Bardes et al. 2024</a>)</span> (Figure 3). V-JEPA 2, trained this way on more than a million hours of video, was adapted with under 62 hours of unlabelled robot video and then planned pick-and-place tasks zero-shot on robot arms in two labs whose data it had never seen <span class="citation" data-cites="assran2025">(<a href="#ref-assran2025" role="doc-biblioref"><span class="nocase">Assran et al.</span> 2025</a>)</span>. The loss is not “reproduce the world”; it is “stay consistent with it”.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Schematic, my own, after @assran2023. Left: a generative model is scored on every pixel. Right: a JEPA is scored on whether its predicted state matches the encoded state of the real next frame."><img src="figures/fig03.svg" class="img-fluid figure-img" alt="Two diagrams side by side. Left, generative, predict every detail: context frame t goes to a model, which outputs pixels of frame t+1, every leaf; a red arrow marks a loss on every pixel against the true pixels of frame t+1; a note says it spends capacity on noise that cannot be predicted: leaves, glare, texture. Right, joint embedding, predict what stays coherent: context frame t goes to a predictor, which outputs a predicted state t+1; frame t+1 goes through an encoder to a target state t+1; a green arrow marks a loss on the state; a note says it keeps what views share: objects, positions, motion."></a></p>
+<figcaption><strong>Figure 3.</strong> Schematic, my own, after <span class="citation" data-cites="assran2023">Assran et al. (<a href="#ref-assran2023" role="doc-biblioref">2023</a>)</span>. Left: a generative model is scored on every pixel. Right: a JEPA is scored on whether its predicted state matches the encoded state of the real next frame.</figcaption>
+</figure>
+</div>
+<p><strong>In generation.</strong> Consistency models train a network so that every point along a noisy trajectory maps to the same clean output. That constraint is what allows generation in one or two steps instead of hundreds <span class="citation" data-cites="song2023">(<a href="#ref-song2023" role="doc-biblioref">Song et al. 2023</a>)</span>.</p>
+<p><strong>In language models.</strong> Consistency training asks a model to behave the same with and without an irrelevant cue: a leading question, a stated opinion, a jailbreak wrapper. Trained this way, models showed less biased reasoning <span class="citation" data-cites="chua2024">(<a href="#ref-chua2024" role="doc-biblioref">Chua et al. 2024</a>)</span> and less sycophancy and jailbreak success, whether the consistency was enforced on outputs or on internal activations <span class="citation" data-cites="irpan2025">(<a href="#ref-irpan2025" role="doc-biblioref">Irpan et al. 2025</a>)</span>. Nobody had to write the right answer.</p>
+<p><strong>The trap.</strong> Coherence alone is easy to game. A model that answers “42” to everything is perfectly consistent and useless; a JEPA whose encoder outputs a constant matches its target every time. Every method above therefore needs an anchor. JEPAs use architectural tricks to keep representations from collapsing <span class="citation" data-cites="assran2023">(<a href="#ref-assran2023" role="doc-biblioref">Assran et al. 2023</a>)</span>; consistency models are tied to real data at the end of the trajectory <span class="citation" data-cites="song2023">(<a href="#ref-song2023" role="doc-biblioref">Song et al. 2023</a>)</span>; consistency training uses the model’s own answer to the <em>clean</em> prompt as the target <span class="citation" data-cites="irpan2025">(<a href="#ref-irpan2025" role="doc-biblioref">Irpan et al. 2025</a>)</span>. Coherence is a constraint, not an objective on its own.</p>
+</section>
+<section id="where-coherence-stops" class="level2">
+<h2 class="anchored" data-anchor-id="where-coherence-stops">5. Where coherence stops</h2>
+<p>Coherence has a hard limit, and the original quote skips it. <strong>Coherent is not true.</strong> A conspiracy theory can be perfectly self-consistent. So can a model trained on a stale or biased corpus. Figure 4 makes the point with a simple grid.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Schematic, my own. Coherence and truth are different axes."><img src="figures/fig04.svg" class="img-fluid figure-img" alt="A two by two grid. Columns: coherent, incoherent. Rows: true, false. Coherent and true: knowledge; stable across samples, paraphrases and reasons; answer. Incoherent and true: lucky guess; right this time, wrong next time; treat as unknown. Coherent and false: coherent fiction; a shared bias, a stale fact, a confident myth; only the world can catch it. Incoherent and false: visible error; samples disagree; easy to detect, look up or abstain."></a></p>
+<figcaption><strong>Figure 4.</strong> Schematic, my own. Coherence and truth are different axes.</figcaption>
+</figure>
+</div>
+<p>The second half of the experiment measures the bottom-left cell (Figure 2, right). I gave every training digit a ten-slot <em>hint</em> naming a digit, like a hint planted in a prompt. The hint was right some fixed share of the time, from 50% to 99%, and named a random digit otherwise. At test time, the hint always named a wrong digit.</p>
+<ul>
+<li>With a weak hint (right 50% of the time), the networks mostly ignored it: the majority followed the wrong hint on 2% of digits, and agreement still detected errors (AUROC 0.92).</li>
+<li>As the hint grew more reliable in training, every network learned to lean on it. With a 99% reliable hint, the majority followed the wrong hint on 41% of digits, and agreement could no longer tell right answers from wrong ones: AUROC 0.51 ± 0.02, chance level. Worse, when all ten networks agreed, they were now right only 31% of the time, against 99.7% with the weak hint.</li>
+<li>A control ensemble trained without hints was unaffected: 97.2% correct with the same wrong hints present. The failure comes from what the networks learned, not from the extra input.</li>
+</ul>
+<p>Ten models, ten random starts, ten different resamplings of the data, and they still agreed on the same mistake, because they all learned the same shortcut from the same data. Diversity among models protects against their independent errors, not against what they share.</p>
+<p>The shortcut also has a cost when it is not misleading, only useless. Given a random hint, a kind of input they saw in training, networks trained with a 90% reliable hint got 74.6% of digits right, against 94.7% for the control.</p>
+<p>One change helped. When the hint was withheld on a random 20% of training digits, every network also had to learn to read the pixels. With the same 99% reliable hint, the majority followed the wrong hint on 18% of digits instead of 41%, and agreement kept an AUROC of 0.73. This is a crude version of the consistency training of section 4: show the model the same input with and without the cue, so it cannot rely on the cue alone. It reduced the blind spot; it did not remove it.</p>
+<p>Language models are in a worse position than my ensemble. Repeated samples from one language model share not part of their training but all of it. A shortcut learned in training is therefore largely invisible to the self-consistency checks of section 3: every sample carries it.</p>
+<p>Asking the model to check itself does not fix this. Without outside feedback, language models asked to review their own reasoning often change right answers into wrong ones, and overall get worse <span class="citation" data-cites="huang2024selfcorrect">(<a href="#ref-huang2024selfcorrect" role="doc-biblioref">Huang et al. 2024</a>)</span>.</p>
+<p>So coherence is necessary, not sufficient. Internally it removes noise; externally, it must be anchored by retrieval, tools, tests and people. This is the same conclusion as <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>, reached from a different side.</p>
+</section>
+<section id="a-design-rule" class="level2">
+<h2 class="anchored" data-anchor-id="a-design-rule">6. A design rule</h2>
+<p>Put together, the pieces give a loop (Figure 5).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Schematic, my own. Coherence as a control signal and a training signal."><img src="figures/fig05.svg" class="img-fluid figure-img" alt="A flow diagram. Question leads to probe: k samples, paraphrases, reverse query. Probe leads to measure: agreement, faithfulness. Measure branches: coherent, answer, then check against the world; incoherent, look it up, ask a tool, or say I don't know. A small model box under probe feeds it. A dashed green line runs from the incoherent branch back to the model, labelled train on consistency: same meaning in, same behaviour out."></a></p>
+<figcaption><strong>Figure 5.</strong> Schematic, my own. Coherence as a control signal and a training signal.</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Probe.</strong> For any answer that matters, ask more than once: several samples, a paraphrase, the reverse question.</li>
+<li><strong>Measure.</strong> Score agreement in meaning, not in words. Where you can see inside, check that the stated reason is the one used.</li>
+<li><strong>Route.</strong> Incoherent: retrieve, call a tool, or abstain. Coherent: answer, and when the stakes are high still check against the world, because shared mistakes look coherent too.</li>
+<li><strong>Train.</strong> Feed the inconsistencies back as training signal, anchored to clean examples. Same meaning in, same behaviour out.</li>
+</ol>
+<p>For small, local models, the loop is especially affordable. Generating a token is limited by reading the weights from memory: about 620 MB for a 4-bit 1B model, and 6,200 MB for a 12B one, as computed in <a href="../../posts/2026-10-26-where-memory-lives/index.html">Where Memory Lives</a>. Five samples from the small model read half the bytes of one sample from the large one, and far fewer when the five run as a batch, since a batch reads the weights once. Their agreement then tells you when to reach for the external memory that essay describes.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>The quote is right about one thing: more parameters alone will not tell us whether a model understands. It overreaches in another: coherence is not a universal invariant waiting to unify reality. In AI it is something humbler and more useful: a set of measurable agreements, between samples, between directions of a fact, between thought and word, between views of the world. Measure them, route on them, train for them, and anchor them in the world, because a mistake every model shares is the one coherence cannot see. That is a research programme, not a revolution, and it can start today.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-assran2023" class="csl-entry" role="listitem">
+Assran, Mahmoud, Quentin Duval, Ishan Misra, et al. 2023. <span>“Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture.”</span> <em>IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a href="https://arxiv.org/abs/2301.08243">https://arxiv.org/abs/2301.08243</a>.
+</div>
+<div id="ref-assran2025" class="csl-entry" role="listitem">
+<span class="nocase">Assran, Mido, Adrien Bardes, David Fan, et al.</span> 2025. <span>“<span>V-JEPA</span> 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning.”</span> <em>arXiv Preprint arXiv:2506.09985</em>. <a href="https://arxiv.org/abs/2506.09985">https://arxiv.org/abs/2506.09985</a>.
+</div>
+<div id="ref-bardes2024" class="csl-entry" role="listitem">
+Bardes, Adrien, Quentin Garrido, Jean Ponce, et al. 2024. <span>“Revisiting Feature Prediction for Learning Visual Representations from Video.”</span> <em>Transactions on Machine Learning Research (TMLR)</em>. <a href="https://arxiv.org/abs/2404.08471">https://arxiv.org/abs/2404.08471</a>.
+</div>
+<div id="ref-berglund2024" class="csl-entry" role="listitem">
+Berglund, Lukas, Meg Tong, Max Kaufmann, et al. 2024. <span>“The Reversal Curse: <span>LLMs</span> Trained on <span>‘<span>A</span> Is <span>B</span>’</span> Fail to Learn <span>‘<span>B</span> Is <span>A</span>’</span>.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2309.12288">https://arxiv.org/abs/2309.12288</a>.
+</div>
+<div id="ref-burns2023" class="csl-entry" role="listitem">
+Burns, Collin, Haotian Ye, Dan Klein, and Jacob Steinhardt. 2023. <span>“Discovering Latent Knowledge in Language Models Without Supervision.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2212.03827">https://arxiv.org/abs/2212.03827</a>.
+</div>
+<div id="ref-chen2025cot" class="csl-entry" role="listitem">
+<span class="nocase">Chen, Yanda, Joe Benton, Ansh Radhakrishnan, others, and Ethan Perez</span>. 2025. <span>“Reasoning Models Don’t Always Say What They Think.”</span> <em>arXiv Preprint arXiv:2505.05410</em>. <a href="https://arxiv.org/abs/2505.05410">https://arxiv.org/abs/2505.05410</a>.
+</div>
+<div id="ref-chua2024" class="csl-entry" role="listitem">
+Chua, James, Edward Rees, Hunar Batra, et al. 2024. <span>“Bias-Augmented Consistency Training Reduces Biased Reasoning in Chain-of-Thought.”</span> <em>arXiv Preprint arXiv:2403.05518</em>. <a href="https://arxiv.org/abs/2403.05518">https://arxiv.org/abs/2403.05518</a>.
+</div>
+<div id="ref-farquhar2024" class="csl-entry" role="listitem">
+Farquhar, Sebastian, Jannik Kossen, Lorenz Kuhn, and Yarin Gal. 2024. <span>“Detecting Hallucinations in Large Language Models Using Semantic Entropy.”</span> <em>Nature</em> 630: 625–30. <a href="https://doi.org/10.1038/s41586-024-07421-0">https://doi.org/10.1038/s41586-024-07421-0</a>.
+</div>
+<div id="ref-farquhar2023ccs" class="csl-entry" role="listitem">
+Farquhar, Sebastian, Vikrant Varma, Zachary Kenton, Johannes Gasteiger, Vladimir Mikulik, and Rohin Shah. 2023. <span>“Challenges with Unsupervised <span>LLM</span> Knowledge Discovery.”</span> <em>arXiv Preprint arXiv:2312.10029</em>. <a href="https://arxiv.org/abs/2312.10029">https://arxiv.org/abs/2312.10029</a>.
+</div>
+<div id="ref-fluri2024" class="csl-entry" role="listitem">
+Fluri, Lukas, Daniel Paleka, and Florian Tramèr. 2024. <span>“Evaluating Superhuman Models with Consistency Checks.”</span> <em>arXiv Preprint arXiv:2306.09983 (V2, 2024); NeurIPS 2023 SoLaR Workshop</em>. <a href="https://arxiv.org/abs/2306.09983">https://arxiv.org/abs/2306.09983</a>.
+</div>
+<div id="ref-huang2024selfcorrect" class="csl-entry" role="listitem">
+Huang, Jie, Xinyun Chen, Swaroop Mishra, et al. 2024. <span>“Large Language Models Cannot Self-Correct Reasoning Yet.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2310.01798">https://arxiv.org/abs/2310.01798</a>.
+</div>
+<div id="ref-huh2024" class="csl-entry" role="listitem">
+Huh, Minyoung, Brian Cheung, Tongzhou Wang, and Phillip Isola. 2024. <span>“The Platonic Representation Hypothesis.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2405.07987">https://arxiv.org/abs/2405.07987</a>.
+</div>
+<div id="ref-irpan2025" class="csl-entry" role="listitem">
+Irpan, Alex, Alexander Matt Turner, Mark Kurzeja, David K. Elson, and Rohin Shah. 2025. <span>“Consistency Training Helps Stop Sycophancy and Jailbreaks.”</span> <em>arXiv Preprint arXiv:2510.27062</em>. <a href="https://arxiv.org/abs/2510.27062">https://arxiv.org/abs/2510.27062</a>.
+</div>
+<div id="ref-kalai2025" class="csl-entry" role="listitem">
+Kalai, Adam Tauman, Ofir Nachum, Santosh S. Vempala, and Edwin Zhang. 2025. <span>“Why Language Models Hallucinate.”</span> <em>arXiv Preprint arXiv:2509.04664</em>. <a href="https://arxiv.org/abs/2509.04664">https://arxiv.org/abs/2509.04664</a>.
+</div>
+<div id="ref-kuhn2023" class="csl-entry" role="listitem">
+Kuhn, Lorenz, Yarin Gal, and Sebastian Farquhar. 2023. <span>“Semantic Uncertainty: Linguistic Invariances for Uncertainty Estimation in Natural Language Generation.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2302.09664">https://arxiv.org/abs/2302.09664</a>.
+</div>
+<div id="ref-levinstein2024" class="csl-entry" role="listitem">
+Levinstein, Benjamin A., and Daniel A. Herrmann. 2024. <span>“Still No Lie Detector for Language Models: Probing Empirical and Conceptual Roadblocks.”</span> <em>Philosophical Studies</em>, ahead of print. <a href="https://doi.org/10.1007/s11098-023-02094-3">https://doi.org/10.1007/s11098-023-02094-3</a>.
+</div>
+<div id="ref-lindsey2025" class="csl-entry" role="listitem">
+<span class="nocase">Lindsey, Jack, Wes Gurnee, Emmanuel Ameisen, et al.</span> 2025. <em>On the Biology of a Large Language Model</em>. Transformer Circuits Thread. <a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">https://transformer-circuits.pub/2025/attribution-graphs/biology.html</a>.
+</div>
+<div id="ref-manakul2023" class="csl-entry" role="listitem">
+Manakul, Potsawee, Adian Liusie, and Mark J. F. Gales. 2023. <span>“<span>SelfCheckGPT</span>: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models.”</span> <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/2303.08896">https://arxiv.org/abs/2303.08896</a>.
+</div>
+<div id="ref-song2023" class="csl-entry" role="listitem">
+Song, Yang, Prafulla Dhariwal, Mark Chen, and Ilya Sutskever. 2023. <span>“Consistency Models.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2303.01469">https://arxiv.org/abs/2303.01469</a>.
+</div>
+<div id="ref-templeton2024" class="csl-entry" role="listitem">
+<span class="nocase">Templeton, Adly, Tom Conerly, Jonathan Marcus, et al.</span> 2024. <em>Scaling Monosemanticity: Extracting Interpretable Features from <span>Claude 3 Sonnet</span></em>. Transformer Circuits Thread. <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">https://transformer-circuits.pub/2024/scaling-monosemanticity/</a>.
+</div>
+<div id="ref-tian2023" class="csl-entry" role="listitem">
+Tian, Katherine, Eric Mitchell, Allan Zhou, et al. 2023. <span>“Just Ask for Calibration: Strategies for Eliciting Calibrated Confidence Scores from Language Models Fine-Tuned with Human Feedback.”</span> <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/2305.14975">https://arxiv.org/abs/2305.14975</a>.
+</div>
+<div id="ref-turpin2023" class="csl-entry" role="listitem">
+Turpin, Miles, Julian Michael, Ethan Perez, and Samuel R. Bowman. 2023. <span>“Language Models Don’t Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2305.04388">https://arxiv.org/abs/2305.04388</a>.
+</div>
+<div id="ref-wang2023sc" class="csl-entry" role="listitem">
+Wang, Xuezhi, Jason Wei, Dale Schuurmans, et al. 2023. <span>“Self-Consistency Improves Chain of Thought Reasoning in Language Models.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2203.11171">https://arxiv.org/abs/2203.11171</a>.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Coherence {Is} {Measurable}},
+  date = {2026-10-26},
+  url = {https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Coherence Is Measurable.”</span> October
+26. <a href="https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/">https://scuenat.github.io/posts/2026-10-26-coherence-is-measurable/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
