@@ -165,41 +165,49 @@ R = json.load(open("results.json"))
 
 
 def fig_agreement():
+    S = R["summary"]
     n = R["n_test"]
-    fig, (a, b) = plt.subplots(1, 2, figsize=(10.2, 3.8), gridspec_kw=dict(wspace=0.3))
+    fig, (a, b) = plt.subplots(1, 2, figsize=(10.2, 3.9), gridspec_kw=dict(wspace=0.3))
     for cond, col, lab in (("clean", NAVY, "clean digits"), ("noisy", WARM, "noisy digits (unseen)")):
-        r = R["control"][cond]
-        curve = np.array(r["selective_curve"])
-        cov = (np.arange(len(curve)) * 9 + 1) / n * 100
-        a.plot(cov, curve * 100, color=col, lw=2, label=f"{lab}  ·  AUROC {r['auroc_agreement_detects_error']:.2f}")
-        a.plot(100, r["majority_acc"] * 100, "o", color=col, ms=4)
-        a.annotate(f"{r['majority_acc']*100:.1f}% if it\nanswers everything", (100, r["majority_acc"] * 100),
-                   xytext=(-6, -6), textcoords="offset points", ha="right", va="top", fontsize=7.3, color=col)
+        s = S["control:None"][cond]
+        curve = np.array(R["mean_selective_curve"][cond])
+        cov = np.arange(1, n + 1) / n * 100
+        a.plot(cov, curve * 100, color=col, lw=2, label=f"{lab}  ·  AUROC {s['auroc']['mean']:.2f}")
+        m = s["majority_acc"]["mean"] * 100
+        a.plot(100, m, "o", color=col, ms=4)
+        a.annotate(f"{m:.1f}% if it\nanswers everything", (100, m), xytext=(-6, -6),
+                   textcoords="offset points", ha="right", va="top", fontsize=7.3, color=col)
     a.set_xlabel("share of digits answered, most agreed first (%)")
     a.set_ylabel("of those, majority vote correct (%)")
     a.set_xlim(0, 102); a.set_ylim(84, 100.8)
     a.legend(loc="lower left", fontsize=7.8)
     tidy(a); title(a, "A · AGREEMENT AS A SIGNAL", "Disagreement points at the errors")
 
-    sw = R["sweep"]
-    ps = sorted({r["hint_p"] for r in sw})
+    ps = R["hint_ps"]
     x = np.arange(len(ps))
-    for key, col, lab in (("auroc", GREEN, "agreement detects errors (AUROC)"),
-                          ("followed_hint_share", RED, "majority follows the wrong hint")):
-        v = np.array([[r[key] for r in sw if r["hint_p"] == p] for p in ps])
-        b.fill_between(x, v.min(1), v.max(1), color=col, alpha=0.15, lw=0)
-        b.plot(x, v.mean(1), "-o", color=col, lw=2, ms=4.5, label=lab)
-        for xi, m in zip(x, v.mean(1)):
-            dy = 7 if key == "auroc" else (8 if xi < len(ps) - 1 else -13)
-            b.annotate(f"{m:.2f}", (xi, m), xytext=(0, dy),
-                       textcoords="offset points", ha="center", fontsize=7.3, color=col)
+    for regime, ls, mk, lab in (("always", "-", "o", "hint on every training digit"),
+                                ("withheld", "--", "s", "hint withheld on 20%")):
+        for key, col in (("auroc", GREEN), ("followed_wrong_hint", RED)):
+            st = [S[f"{regime}:{p}"]["wrong"][key] for p in ps]
+            mean = np.array([v["mean"] for v in st]); sd = np.array([v["sd"] for v in st])
+            b.fill_between(x, mean - sd, mean + sd, color=col, alpha=0.12, lw=0)
+            b.plot(x, mean, ls=ls, marker=mk, color=col, lw=2 if ls == "-" else 1.5, ms=4.5)
+            if regime == "always":
+                for xi, m in zip(x, mean):
+                    b.annotate(f"{m:.2f}", (xi, m), xytext=(0, 8), textcoords="offset points",
+                               ha="center", fontsize=7.2, color=col)
     b.axhline(0.5, color=MUTED, ls=":", lw=1)
     b.text(-0.1, 0.515, "chance", fontsize=7.3, color=MUTED, ha="left")
+    from matplotlib.lines import Line2D
+    handles = [Line2D([], [], color=GREEN, lw=2, label="agreement detects errors (AUROC)"),
+               Line2D([], [], color=RED, lw=2, label="majority follows the wrong hint"),
+               Line2D([], [], color=MUTED, lw=1.6, ls="-", marker="o", ms=4, label="hint on every training digit"),
+               Line2D([], [], color=MUTED, lw=1.4, ls="--", marker="s", ms=4, label="hint withheld on 20%")]
+    b.legend(handles=handles, loc="center left", bbox_to_anchor=(0, 0.66), fontsize=7.4)
     b.set_xticks(x, [f"{p*100:.0f}%" for p in ps])
     b.set_xlabel("how often the hint was right during training")
-    b.set_ylim(0, 1.02)
-    b.legend(loc="center left", bbox_to_anchor=(0, 0.62), fontsize=7.8)
     b.set_ylabel("share or score")
+    b.set_ylim(0, 1.05)
     tidy(b); title(b, "B · A SHARED SHORTCUT", "When all models learn it, agreement goes blind")
     save(fig, "fig02")
 
