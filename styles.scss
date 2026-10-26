@@ -8,15 +8,44 @@ $web-font-path: false;   // the themes' own Google fonts (Source Sans Pro, Lato)
 /*-- scss:rules --*/
 // Fonts are loaded from the page header (_quarto.yml), not with @import.
 
-body { line-height: 1.7; }
+body {
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern", "liga";
+}
+::selection { background: rgba($amber, .35); }
+:focus-visible { outline: 2px solid $amber; outline-offset: 2px; border-radius: 3px; }
+main.content :is(h2, h3, h4)[id] { scroll-margin-top: 5rem; }
+
+// Reading progress: a thin amber line under the navbar on articles (browsers with scroll timelines)
+@keyframes read-progress { to { transform: scaleX(1); } }
+@supports (animation-timeline: scroll()) {
+  body:has(main .quarto-title-meta):not(:has(.hero))::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    z-index: 2000;
+    background: linear-gradient(90deg, $amber, lighten($amber, 12%));
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    animation: read-progress linear both;
+    animation-timeline: scroll(root);
+    pointer-events: none;
+  }
+}
 
 // ---------- Navbar & footer ----------
 .navbar {
-  padding-top: .45rem;
-  padding-bottom: .45rem;
-  background-color: $navy !important;
-  border-bottom: 1px solid rgba($amber, .18);
-  box-shadow: 0 1px 12px rgba(0, 0, 0, .18);
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  background-color: rgba($navy, .94) !important;
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  backdrop-filter: saturate(160%) blur(14px);
+  border-bottom: 1px solid rgba(#fff, .07);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .25), 0 8px 24px -16px rgba(0, 0, 0, .6);
 
   // Brand: monogram and the blog's name
   .navbar-brand-container { align-items: center; }
@@ -89,7 +118,20 @@ body { line-height: 1.7; }
   .navbar .navbar-nav.ms-auto { flex-direction: row; flex-wrap: wrap; margin: .5rem 0 .25rem; gap: .75rem; }
   .navbar .nav-link[href*="linkedin.com/in/"] { padding: .3rem .85rem !important; }
 }
-.nav-footer { border-top: 1px solid $rule; font-size: .9rem; }
+// Footer: a navy band that closes the page the way the navbar opens it
+footer.footer { margin-top: 4rem; }
+footer.footer .nav-footer {
+  min-height: 0;
+  padding: 1.75rem 1.5rem;
+  border-top: 3px solid $amber;
+  background: $navy;
+  color: rgba(#dfe6f1, .72);
+  font-size: .88rem;
+  letter-spacing: .01em;
+  p { margin: 0; }
+  a { color: #dfe6f1; text-decoration-color: rgba($amber, .6); text-underline-offset: .2em; }
+  a:hover, a:focus { color: $amber; }
+}
 
 // ---------- Reading ----------
 // Long-form text is set in a serif; UI stays in sans.
@@ -97,57 +139,209 @@ main.content p,
 main.content li,
 main.content blockquote { font-family: $headings-font-family; font-size: 1.12rem; }
 
-main.content h1, main.content h2, main.content h3 { font-weight: 600; letter-spacing: -.01em; }
+main.content h1, main.content h2, main.content h3 { font-weight: 600; letter-spacing: -.015em; text-wrap: balance; }
 main.content h1:not(.title):not(.hero-title),
 main.content h2.latest-heading {
   margin-top: 3rem;
   font-family: $font-family-sans-serif;
-  font-size: .85rem;
+  font-size: .78rem;
   font-weight: 600;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: $accent-warm;
   border-bottom: none;
 }
-main.content h2 { margin-top: 2.5rem; }
-main.content h2.latest-heading { margin-top: 0; }
+// Section labels on the home page run into a hairline: LATEST WRITING ————
+main.content h2.latest-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0;
+  &::after { content: ""; flex: 1; height: 1px; background: $rule; order: 1; }
+  .anchorjs-link { order: 2; }
+}
+main.content h2 {
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0;
+  border-bottom: none;
+  font-size: 1.75rem;
+  line-height: 1.25;
+}
+main.content h3 { margin-top: 2.25rem; font-size: 1.3rem; }
 
-.quarto-title h1.title { font-size: 2.6rem; line-height: 1.15; }
+// ---------- Article header ----------
+#title-block-header.quarto-title-block { margin-bottom: 2.5rem; }
+.quarto-title h1.title {
+  font-size: clamp(2.3rem, 4.6vw, 3.1rem);
+  line-height: 1.1;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
 .quarto-title h1.title::after {
   content: "";
   display: block;
-  width: 4.5rem;
+  width: 3.5rem;
   height: 3px;
-  margin-top: 1rem;
+  margin-top: 1.1rem;
   background: $amber;
   border-radius: 2px;
 }
-.quarto-title .subtitle { color: $muted; font-family: $headings-font-family; font-style: italic; font-size: 1.3rem; }
-.quarto-title-meta-heading { color: $muted; }
+.quarto-title .subtitle {
+  margin-top: .9rem;
+  color: $muted;
+  font-family: $headings-font-family;
+  font-style: italic;
+  font-size: 1.35rem;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+.quarto-title .quarto-categories { margin-top: 1.1rem; gap: .35rem; }
+.quarto-title .quarto-categories .quarto-category { text-transform: lowercase; opacity: 1; margin: 0; }
+// The description reads as the article's standfirst
+#title-block-header .description {
+  margin-top: 1.25rem;
+  font-family: $headings-font-family;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: mix($body-color, $muted, 55%);
+  p { margin: 0; }
+}
+#title-block-header.quarto-title-block.default .quarto-title-meta {
+  margin-top: 1.25rem;
+  padding: .55rem 0;
+  border-top: 1px solid $rule;
+  border-bottom: 1px solid $rule;
+}
+// Pages without a date (Research, About) have an empty meta block: no rules around nothing
+#title-block-header.quarto-title-block.default .quarto-title-meta:not(:has(.quarto-title-meta-contents)) { display: none; }
+.quarto-title-meta-heading {
+  color: $muted;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.quarto-title-meta-contents p { margin: 0; font-size: .95rem; font-weight: 500; }
 // Every post has the same author; keep it in the metadata (RSS, citations) but don't show it
 .quarto-title-meta > div:first-child:not(:only-child) { display: none; }
 
+// ---------- Body text ----------
+// :where keeps this weak, so the home-page components below set their own link styles
+main.content :where(p, li) a {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba($link-color, .35);
+  text-underline-offset: .18em;
+  transition: text-decoration-color .15s ease, color .15s ease;
+  &:hover, &:focus { text-decoration-color: currentColor; }
+}
+main.content li::marker { color: $accent-warm; }
+main.content hr { margin: 3rem auto; width: 6rem; border-top: 2px solid $amber; opacity: .6; }
+
 blockquote {
+  margin: 2rem 0;
   border-left: 3px solid $amber;
-  padding-left: 1.2rem;
+  padding: .25rem 0 .25rem 1.4rem;
   font-style: italic;
   color: inherit;
+  main.content & p { font-size: 1.22rem; line-height: 1.6; }
 }
 
 .quarto-figure {
-  margin: 2rem 0;
-  img { background: #fff; border-radius: $border-radius; padding: .5rem; border: 1px solid $rule; }
-  figcaption { font-size: .92rem; color: $muted; line-height: 1.5; }
+  margin: 2.5rem 0;
+  img {
+    background: #fff;
+    border-radius: $border-radius;
+    padding: .5rem;
+    border: 1px solid $rule;
+    box-shadow: 0 1px 2px $shadow, 0 12px 32px -20px $shadow;
+  }
+  figcaption {
+    margin-top: .75rem;
+    font-family: $font-family-sans-serif;
+    font-size: .86rem;
+    color: $muted;
+    line-height: 1.55;
+  }
 }
 
 .katex-display { margin: 1.5rem 0; overflow-x: auto; overflow-y: hidden; }
 
 table { font-size: .95rem; }
+main.content table:not(.sourceCode) {
+  margin: 2rem 0;
+  border-collapse: collapse;
+  thead th {
+    font-family: $font-family-sans-serif;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: $muted;
+    background: $surface-alt;
+    border-bottom: 1px solid $rule;
+  }
+  td, th { padding: .6rem .75rem; border-color: $rule; }
+  tbody tr:hover { background: rgba($amber, .05); }
+}
 // Long URLs in references and links must wrap, not widen the page
 main.content a { overflow-wrap: anywhere; }
 .small, .small p, .small li { font-size: .9rem !important; }
 
-.callout { border-radius: $border-radius; }
+// Code: quiet tinted chips inline, framed blocks
+main.content :not(pre) > code {
+  padding: .1em .35em;
+  border-radius: 4px;
+  background: rgba($accent, .09);
+  color: inherit;
+  font-size: .86em;
+}
+main.content div.sourceCode, main.content pre:not(.sourceCode) {
+  background: $surface-alt;
+  border: 1px solid $rule;
+  border-radius: $border-radius;
+}
+
+.callout {
+  margin: 2rem 0;
+  border-radius: $border-radius;
+  background: $surface;
+  box-shadow: 0 1px 2px $shadow;
+  main.content & p, main.content & li { font-size: 1.04rem; }
+}
+.callout .callout-header { background: transparent; }
+.callout.callout-titled .callout-title-container {
+  font-family: $font-family-sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+// Table of contents in the right margin
+#TOC, nav#TOC {
+  #toc-title, h2 {
+    font-family: $font-family-sans-serif;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: $muted;
+    margin-bottom: .75rem;
+  }
+  .nav-link {
+    font-size: .84rem;
+    line-height: 1.4;
+    color: $muted;
+    transition: color .15s ease;
+    &:hover { color: $body-color; }
+    &.active { color: $body-color; font-weight: 500; border-left-color: $amber; }
+  }
+}
+
+.references, #refs { font-size: .95rem; }
+.references .csl-entry { margin-bottom: .6rem; }
 
 // "Read next" link at the end of a post, to the other half of its pair
 .read-next {
@@ -156,6 +350,7 @@ main.content a { overflow-wrap: anywhere; }
   border-left: 3px solid $amber;
   border-radius: 0 $border-radius $border-radius 0;
   background: rgba($amber, .08);
+  box-shadow: 0 1px 2px $shadow;
   p { margin: 0; }
   strong { font-family: $font-family-sans-serif; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: $accent-warm; }
   a { font-weight: 600; }
@@ -172,8 +367,8 @@ main.content a { overflow-wrap: anywhere; }
 .pub-year { font-family: $font-family-sans-serif; font-size: .85rem; font-weight: 600; color: $accent-warm;
   font-variant-numeric: tabular-nums; padding-top: .2rem; }
 .pub-title { font-family: $headings-font-family; font-size: 1.08rem; font-weight: 600; line-height: 1.4; text-wrap: balance; }
-.pub-title a { text-decoration: none; }
-.pub-title a:hover { text-decoration: underline; }
+.pub-list .pub-title a { text-decoration: none; }
+.pub-list .pub-title a:hover { text-decoration: underline; }
 .pub-translation { font-style: italic; color: $muted; font-size: .92rem; margin-top: .15rem; }
 .pub-authors, .pub-venue { font-family: $font-family-sans-serif; font-size: .86rem; line-height: 1.5; margin-top: .3rem; }
 .pub-authors { color: $muted; }
@@ -209,6 +404,7 @@ main.content .series-note {
 
   .quarto-title h1.title { font-size: 2rem; }
   .quarto-title .subtitle { font-size: 1.12rem; }
+  #title-block-header .description { font-size: 1.05rem; }
   // Only the date is shown: one column, so "September 29, 2026" stays on one line
   #title-block-header.quarto-title-block.default .quarto-title-meta { grid-template-columns: 1fr; }
 
@@ -253,10 +449,25 @@ main:has(.hero) > header#title-block-header { display: none; }
     radial-gradient(ellipse at 20% 0%, #1b2f5e 0%, transparent 60%),
     linear-gradient(160deg, #0f1f45 0%, $navy 55%, #070f24 100%);
 
+  overflow: hidden;
+  border-bottom: 1px solid rgba($amber, .25);
+  // A warm glow behind the title and a soft fade at the bottom edge
+  &::before, &::after { content: ""; position: absolute; pointer-events: none; }
+  &::before {
+    left: -10%; top: -40%; width: 60%; height: 140%;
+    background: radial-gradient(closest-side, rgba($amber, .10), transparent 70%);
+  }
+  &::after {
+    left: 0; right: 0; bottom: 0; height: 35%;
+    background: linear-gradient(to bottom, transparent, rgba(#050b1c, .45));
+  }
+
   .hero-inner {
+    position: relative;
+    z-index: 1;
     max-width: 1100px;
     margin: 0 auto;
-    padding: 3rem 1.5rem 2.75rem;
+    padding: 4.5rem 1.5rem 4rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -266,18 +477,19 @@ main:has(.hero) > header#title-block-header { display: none; }
     margin: 0;
     font-family: $font-family-sans-serif;
     font-weight: 700;
-    font-size: clamp(2.6rem, 6vw, 3.9rem);
-    line-height: 1.05;
-    letter-spacing: -.02em;
+    font-size: clamp(2.8rem, 6.5vw, 4.6rem);
+    line-height: 1.02;
+    letter-spacing: -.035em;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, .35);
     color: #f4f6fa;
     border: none;
     span { color: $amber; }
     &::after {
       content: "";
       display: block;
-      width: 5.5rem;
+      width: 4.5rem;
       height: 3px;
-      margin: .9rem 0 .8rem;
+      margin: 1.25rem 0 1.1rem;
       background: $amber;
       border-radius: 2px;
     }
@@ -286,61 +498,92 @@ main:has(.hero) > header#title-block-header { display: none; }
     margin: 0 0 1rem;
     font-family: $headings-font-family;
     font-style: italic;
-    font-size: 1.4rem;
-    color: #d5dceb;
+    font-size: 1.55rem;
+    line-height: 1.35;
+    color: #e3e8f2;
   }
   p.hero-intro {
     margin: 0;
-    max-width: 34rem;
+    max-width: 32rem;
     font-family: $font-family-sans-serif;
-    font-size: 1.02rem;
-    color: #aab6cc;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: #aeb9ce;
   }
   p.hero-intro a { color: inherit; text-decoration-color: rgba($amber, .6); text-underline-offset: .2em; }
   // Call to action under the intro: the TEDx talk
   p.hero-cta {
-    margin: 1.4rem 0 0;
+    margin: 2rem 0 0;
     a {
       display: inline-block;
-      padding: .5rem 1.1rem;
-      border: 1px solid rgba($amber, .7);
+      padding: .7rem 1.4rem;
+      border: 1px solid $amber;
       border-radius: 999px;
+      background: $amber;
+      box-shadow: 0 6px 20px -8px rgba($amber, .7);
       font-family: $font-family-sans-serif;
       font-weight: 600;
       font-size: .95rem;
-      color: $amber;
+      color: $navy;
       text-decoration: none;
-      transition: background-color .15s ease, color .15s ease;
-      &:hover, &:focus { background: $amber; color: $navy; }
+      transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+      &:hover, &:focus { background: lighten($amber, 8%); transform: translateY(-1px); box-shadow: 0 10px 24px -8px rgba($amber, .8); }
     }
   }
 }
 @media (max-width: 768px) {
-  .hero .hero-inner { padding: 2.5rem 1rem; }
+  .hero .hero-inner { padding: 3rem 1.25rem 2.75rem; }
   .quarto-listing-default .quarto-post .thumbnail { display: none; }
   .hero p.hero-tagline { font-size: 1.15rem; }
 }
 
 // ---------- Listings ----------
 .quarto-listing-default .quarto-post {
-  padding: 1.5rem 0;
+  padding: 1.75rem 0;
   border-bottom: 1px solid $rule;
-  .listing-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.45rem; line-height: 1.25; }
-  .listing-subtitle { color: $muted; font-style: italic; }
+  .listing-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.5rem; line-height: 1.25; letter-spacing: -.015em; text-wrap: balance; }
+  .listing-title a { text-decoration: none; transition: color .15s ease; }
+  .listing-title a:hover { color: $link-color; }
+  .listing-subtitle { color: $muted; font-style: italic; font-family: $headings-font-family; }
   .listing-description { font-family: $headings-font-family; font-size: 1.05rem; color: inherit; }
-  .listing-date, .listing-reading-time { color: $muted; font-size: .88rem; }
-  .thumbnail img { background: #fff; border-radius: $border-radius; border: 1px solid $rule; object-fit: contain; padding: .25rem; }
+  .listing-date, .listing-reading-time { color: $muted; font-size: .82rem; font-variant-numeric: tabular-nums; }
+  .listing-date { font-weight: 600; letter-spacing: .02em; }
+  .thumbnail img {
+    background: #fff; border-radius: $border-radius; border: 1px solid $rule; object-fit: contain; padding: .25rem;
+    box-shadow: 0 1px 2px $shadow; transition: transform .2s ease, box-shadow .2s ease;
+  }
+  &:hover .thumbnail img { transform: translateY(-2px); box-shadow: 0 1px 2px $shadow, 0 12px 28px -16px $shadow; }
 }
 .listing-categories .listing-category,
 .quarto-category {
-  border: none;
+  border: 1px solid rgba($amber, .35);
   border-radius: 999px;
-  background: rgba($amber, .16);
+  background: rgba($amber, .1);
   color: $accent-warm;
-  font-size: .75rem;
-  padding: .15rem .6rem;
+  font-family: $font-family-sans-serif;
+  font-size: .72rem;
+  font-weight: 500;
+  letter-spacing: .02em;
+  padding: .15rem .65rem;
   text-transform: lowercase;
+  opacity: 1;
+  transition: background-color .15s ease;
 }
+// Quarto's own listing chips (div.quarto-post ...) would otherwise win: match their specificity
+div.quarto-post .listing-categories .listing-category {
+  border: 1px solid rgba($amber, .35); border-radius: 999px; color: $accent-warm;
+  font-size: .68rem; padding: .1rem .55rem; text-transform: lowercase;
+}
+.listing-categories .listing-category:hover { background: rgba($amber, .2); }
+main.content .quarto-listing-default .listing-description p { font-size: 1.02rem; line-height: 1.6; color: mix($body-color, $muted, 60%); }
+// Category filter on the archive page
+#quarto-margin-sidebar .quarto-listing-category-title {
+  font-family: $font-family-sans-serif; font-size: .72rem; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase; color: $muted;
+}
+.quarto-listing-category { font-family: $font-family-sans-serif; }
+.quarto-listing-category .category { font-size: .88rem; color: $muted; }
+.quarto-listing-category .category.active { color: $accent-warm; font-weight: 600; }
 
 // ---------- Home theme tiles ----------
 .topic-tiles {
@@ -350,43 +593,103 @@ main:has(.hero) > header#title-block-header { display: none; }
   margin: 1rem 0 2.5rem;
 }
 .topic-tile {
-  padding: 1.25rem 1.35rem 1rem;
+  position: relative;
+  overflow: hidden;
+  padding: 1.6rem 1.6rem 1.35rem;
   border: 1px solid $rule;
-  border-top: 3px solid $amber;
-  border-radius: $border-radius;
-  h3.topic-title { margin: 0 0 .4rem; font-family: $headings-font-family; font-weight: 600; font-size: 1.3rem; line-height: 1.25; }
-  p.topic-thesis { margin: 0 0 .9rem; font-family: $headings-font-family; font-style: italic; color: $muted; font-size: 1rem; line-height: 1.45; }
+  border-radius: calc(#{$border-radius} * 1.5);
+  background: $surface;
+  box-shadow: 0 1px 2px $shadow, 0 10px 30px -22px $shadow;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, $amber, rgba($amber, .25));
+  }
+  &:hover { transform: translateY(-2px); border-color: rgba($amber, .45); box-shadow: 0 1px 2px $shadow, 0 18px 40px -24px $shadow; }
+  h3.topic-title { margin: 0 0 .5rem; font-family: $headings-font-family; font-weight: 600; font-size: 1.4rem; line-height: 1.2; letter-spacing: -.015em; }
+  p.topic-thesis { margin: 0 0 1.1rem; font-family: $headings-font-family; font-style: italic; color: $muted; font-size: 1rem; line-height: 1.5; }
   ol.topic-list {
     margin: 0;
-    padding-left: 1.3rem;
-    li { margin: .3rem 0; line-height: 1.35; }
-    li::marker { color: $muted; font-size: .85rem; }
+    padding: .9rem 0 0 1.5rem;
+    border-top: 1px solid $rule;
+    li { margin: .45rem 0; padding-left: .2rem; line-height: 1.35; font-size: 1.02rem; }
+    li::marker { color: $accent-warm; font-family: $font-family-sans-serif; font-size: .78rem; font-weight: 600; font-variant-numeric: tabular-nums; }
     a { text-decoration: none; font-weight: 500; }
-    a:hover, a:focus { text-decoration: underline; }
+    a:hover, a:focus { text-decoration: underline; text-decoration-color: rgba($link-color, .4); text-underline-offset: .18em; }
   }
   h3.topic-title a { color: inherit; font-weight: inherit; text-decoration: none; }
   h3.topic-title a:hover, h3.topic-title a:focus { text-decoration: underline; text-decoration-color: $amber; }
   h3.topic-title .anchorjs-link { display: none; }
   .topic-nowrap { white-space: nowrap; }
-  .topic-kind { color: $muted; font-size: .78rem; font-weight: 400; display: inline-block; }   // inline-block: the link underline skips it
-  .topic-kind::before { content: "\00a0· "; }
-  p.topic-more { margin: .8rem 0 0; font-size: .92rem; font-weight: 600; a { text-decoration: none; } }
+  .topic-kind {   // inline-block: the link underline skips it
+    display: inline-block;
+    margin-left: .4rem;
+    padding: 0 .4rem;
+    border-radius: 3px;
+    background: $surface-alt;
+    color: $muted;
+    font-family: $font-family-sans-serif;
+    font-size: .66rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    line-height: 1.6;
+    vertical-align: .12em;
+  }
+  p.topic-more {
+    margin: 1.1rem 0 0;
+    font-family: $font-family-sans-serif;
+    font-size: .88rem;
+    font-weight: 600;
+    a { text-decoration: none; color: $accent-warm; }
+    a:hover, a:focus { text-decoration: underline; text-underline-offset: .2em; }
+  }
 }
-// The latest strip is a short teaser: compact rows (latest-strip.ejs)
+// The latest strip is a short teaser: compact rows (latest-strip.ejs); the whole row is clickable
 ol.latest-strip {
   list-style: none;
-  margin: .5rem 0 0;
+  margin: .75rem 0 0;
   padding: 0;
-  li { padding: .85rem 0; border-bottom: 1px solid $rule; }
-  li:first-child { padding-top: .25rem; }
-  a.latest-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.3rem; line-height: 1.3; text-decoration: none; color: inherit; }
-  a.latest-title:hover, a.latest-title:focus { text-decoration: underline; text-decoration-color: $amber; }
+  li {
+    position: relative;
+    margin: 0 -1rem;
+    padding: 1.1rem 1rem;
+    border-bottom: 1px solid $rule;
+    transition: background-color .2s ease, box-shadow .2s ease;
+  }
+  li:hover { border-radius: $border-radius; background: $surface; box-shadow: 0 1px 2px $shadow, 0 10px 28px -20px $shadow; border-bottom-color: transparent; }
+  a.latest-title {
+    font-family: $headings-font-family; font-weight: 600; font-size: 1.4rem; line-height: 1.25; letter-spacing: -.015em;
+    text-decoration: none; color: inherit; transition: color .15s ease;
+    &::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+  }
+  li:first-child a.latest-title { font-size: 1.7rem; }
+  li:hover a.latest-title, a.latest-title:focus { color: $link-color; }
   p.latest-summary {
-    margin: .2rem 0 .25rem;
-    font-family: $headings-font-family; font-style: italic; color: $muted; line-height: 1.45;
+    margin: .3rem 0 .45rem;
+    font-family: $headings-font-family; font-style: italic; color: $muted; line-height: 1.5;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  p.latest-meta { margin: 0; color: $muted; font-size: .85rem; }
+  p.latest-meta {
+    margin: 0; color: $muted; font-family: $font-family-sans-serif;
+    font-size: .76rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; font-variant-numeric: tabular-nums;
+  }
 }
-p:has(> a.all-essays) { margin: 1rem 0 3rem; font-weight: 600; }
-a.all-essays { text-decoration: none; }
+p:has(> a.all-essays) { margin: 1.5rem 0 3.5rem; }
+main.content a.all-essays {
+  display: inline-block;
+  padding: .55rem 1.15rem;
+  border: 1px solid $rule;
+  border-radius: 999px;
+  background: $surface;
+  font-family: $font-family-sans-serif;
+  font-size: .9rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 1px 2px $shadow;
+  transition: border-color .15s ease, transform .15s ease;
+  &:hover, &:focus { border-color: $amber; transform: translateY(-1px); }
+}
