@@ -26,7 +26,7 @@ resources:
 ## Key takeaways
 
 - **Coherence has four working definitions in AI:** across samples, across logic, between thought and word, and across views and time.
-- **Disagreement is a detector.** In my experiment, when ten networks all agreed, they were right 99.7% of the time; where they disagreed, the errors were. Published work finds the same for language models [@farquhar2024].
+- **Disagreement is a detector.** In my experiment, when ten networks all agreed, they were right 99.7% of the time; most of the errors fell where they disagreed. Published work finds the same for language models [@farquhar2024].
 - **Coherence is a training target.** Several recent models are trained to agree with themselves rather than to reproduce every pixel or token [@assran2025; @song2023; @irpan2025].
 - **Coherent is not true.** When every network learned the same misleading shortcut, agreement no longer told right from wrong: its detection score fell from 0.93 to 0.49, chance level.
 - **One rule:** probe, measure agreement, answer when coherent, look up or abstain when not, check the coherent answers against the world, and train on what you learn.
@@ -36,7 +36,7 @@ resources:
 
 In physics, "coherence" has a precise meaning about waves and quantum states. I borrow only the word. In what follows it means *agreement*: between answers, between directions of a fact, between a model's reasons and its behaviour, between views of the world.
 
-Read that way, the quote sets coherence against scale. That is a false choice, and the last few years show why. Larger models *did* become more coherent: they contradict themselves less, they hold a thread across longer tasks, and their internal representations grow more alike [@huh2024]. Scale bought coherence.
+Read that way, the quote sets coherence against scale. That is a false choice, and the last few years show why. Larger models *did* become more coherent in measurable ways; for one, the internal representations of different models grow more alike as they scale [@huh2024]. Scale bought coherence.
 
 But scale bought it without measuring it. We trained on next-token loss and discovered coherence afterwards, as a side effect. The better reading of the quote is this: *coherence should become a first-class quantity, something we measure, report and optimise directly, not something we hope emerges.*
 
@@ -46,17 +46,17 @@ To do that, we need definitions. Figure 1 gives four.
 
 ## 2. Four kinds of coherence
 
-**Across samples.** Ask a model *Who wrote* Middlemarch? ten times. If it knows, every answer says George Eliot, in different words. If it is guessing, the answers scatter. Self-consistency turns this into a vote: sample several reasoning paths and keep the majority answer, which raised accuracy on maths benchmarks by up to 18 points [@wang2023sc]. Semantic entropy turns it into an alarm: group the answers by meaning and measure how spread they are; high spread flags likely confabulation [@kuhn2023; @farquhar2024]. SelfCheckGPT does the same for long text, sentence by sentence [@manakul2023].
+**Across samples.** Ask a model "Who wrote *Middlemarch*?" ten times. If it knows, every answer says George Eliot, in different words. If it is guessing, the answers scatter. Self-consistency turns this into a vote: sample several reasoning paths and keep the majority answer, which raised accuracy on maths benchmarks by up to 18 points [@wang2023sc]. Semantic entropy turns it into an alarm: group the answers by meaning and measure how spread they are; high spread flags likely confabulation [@kuhn2023; @farquhar2024]. SelfCheckGPT does the same for long text, sentence by sentence [@manakul2023].
 
 **Across logic.** A model trained on "Tom Cruise's mother is Mary Lee Pfeiffer" often cannot answer "Who is Mary Lee Pfeiffer's son?". This *reversal curse* holds even for large models [@berglund2024]. More generally, a model's beliefs should obey simple rules: P(X) and P(not X) should add to one, and paraphrasing a question should not change the answer. Such checks catch errors even when nobody knows the right answer, which makes them useful for evaluating models that may be better than their evaluators [@fluri2024].
 
 **Between thought and word.** A chain of thought is only useful if it is the real reason. Often it is not. Models nudged by a hidden bias, such as "the answer is always (A)", follow the bias and then write a plausible explanation that never mentions it [@turpin2023]. Reasoning models do the same: given a planted hint, they mostly used it without saying so [@chen2025cot]. Can we read the truth from inside instead? One method finds a direction in a model's activations that keeps its answers to a statement and to its negation consistent [@burns2023]. But later work showed such probes can lock onto other consistent features, such as a character's opinion in the prompt, rather than the model's own knowledge [@farquhar2023ccs; @levinstein2024]. Interpretability work now traces the internal steps behind an answer more directly [@templeton2024; @lindsey2025]. Faithfulness is coherence between the inside and the outside, and it is the hardest of the four to measure.
 
-**Across views and time.** A world model should map two views of the same scene, or two moments of the same motion, to states that fit together. The same may hold across models: networks trained on different data, in different modalities, measure distances between concepts more and more alike as they grow, its authors argue [@huh2024]. This is where coherence becomes architecture (section 4).
+**Across views and time.** A world model should map two views of the same scene, or two moments of the same motion, to states that fit together. The same may hold across models: networks trained on different data, in different modalities, measure distances between concepts more and more alike as they grow, Huh and colleagues argue [@huh2024]. This is where coherence becomes architecture (section 4).
 
 ## 3. Coherence as a signal, measured
 
-The first use of coherence costs nothing to adopt: measure it at run time and act on it. I tested the idea on the smallest setup I could make honest.
+The first use of coherence needs no retraining: measure it at run time and act on it. I tested the idea on the smallest setup I could make honest.
 
 **Setup.** Ten small neural networks, each trained on a different resampling of 898 handwritten digits, with a different random start; 899 other digits held out for testing. Each network gives one answer. This is an ensemble of independently trained models, not repeated samples from one language model, but the question is the same: *does agreement predict correctness?* I tested on the clean digits, and on the same digits with heavy pixel noise the networks never saw in training.
 
@@ -76,7 +76,7 @@ So agreement ranks answers by trust. The low-agreement ones can go to a lookup, 
 
 The second use goes deeper: train for coherence directly.
 
-**In vision and world models.** A generative model learns by predicting every pixel of the next frame, including leaves, glare and texture that no one could predict. Joint-embedding predictive architectures (JEPA) predict something else: the *representation* of the missing part, scored on whether it matches the encoding of the real thing [@assran2023; @bardes2024] (Figure 3). V-JEPA 2, trained this way on more than a million hours of video, was then adapted with under 62 hours of unlabelled robot video and then planned pick-and-place tasks zero-shot on robot arms in two labs whose data it had never seen [@assran2025]. The loss is not "reproduce the world"; it is "stay consistent with it".
+**In vision and world models.** A generative model learns by predicting every pixel of the next frame, including leaves, glare and texture that no one could predict. Joint-embedding predictive architectures (JEPA) predict something else: the *representation* of the missing part, scored on whether it matches the encoding of the real thing [@assran2023; @bardes2024] (Figure 3). V-JEPA 2, trained this way on more than a million hours of video, was adapted with under 62 hours of unlabelled robot video and then planned pick-and-place tasks zero-shot on robot arms in two labs whose data it had never seen [@assran2025]. The loss is not "reproduce the world"; it is "stay consistent with it".
 
 ![**Figure 3.** Schematic, my own, after @assran2023. Left: a generative model is scored on every pixel. Right: a JEPA is scored on whether its predicted state matches the encoded state of the real next frame.](figures/fig03.svg){fig-alt="Two diagrams side by side. Left, generative, predict every detail: context frame t goes to a model, which outputs pixels of frame t+1, every leaf; a red arrow marks a loss on every pixel against the true pixels of frame t+1; a note says it spends capacity on noise that cannot be predicted: leaves, glare, texture. Right, joint embedding, predict what stays coherent: context frame t goes to a predictor, which outputs a predicted state t+1; frame t+1 goes through an encoder to a target state t+1; a green arrow marks a loss on the state; a note says it keeps what views share: objects, positions, motion."}
 
@@ -96,11 +96,11 @@ The second half of the experiment measures the bottom-left cell (Figure 2, right
 
 - With a weak hint (right 50% of the time), the networks mostly ignored it: the majority followed the wrong hint on 3% of digits, and agreement still detected errors (AUROC 0.93).
 - As the hint grew more reliable in training, every network learned to lean on it. With a 99% reliable hint, the majority followed the wrong hint on 44% of digits, and agreement could no longer tell right answers from wrong ones: AUROC 0.49, chance level.
-- A control ensemble trained without hints was unaffected: 97.6% correct with the same wrong hints present.
+- A control ensemble trained without hints was unaffected: 97.6% correct with the same wrong hints present. The failure comes from what the networks learned, not from the extra input.
 
 Ten models, ten random starts, ten different resamplings of the data, and they still agreed on the same mistake, because they all learned the same shortcut from the same data. Diversity among models protects against their independent errors, not against what they share. And the shortcut was not free: trained with the 90% hint, a single network got only 85% of *clean* digits right, against 94.5% without it, because it had learned to lean on a clue that was no longer there.
 
-Language models are in a worse position than my ensemble. Repeated samples from one language model share not part of their training but all of it. A shortcut learned in training is therefore invisible to the self-consistency checks of section 3 by construction: every sample has it.
+Language models are in a worse position than my ensemble. Repeated samples from one language model share not part of their training but all of it. A shortcut learned in training is therefore largely invisible to the self-consistency checks of section 3: every sample carries it.
 
 Asking the model to check itself does not fix this. Without outside feedback, language models asked to review their own reasoning often change right answers into wrong ones, and overall get worse [@huang2024selfcorrect].
 
