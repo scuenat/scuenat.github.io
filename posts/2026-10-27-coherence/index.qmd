@@ -1,0 +1,102 @@
+---
+title: "Coherence Is Measurable"
+subtitle: "What it would mean to build AI around consistency, not only size"
+description: "A popular claim says the next scientific revolution will come from coherence, not bigger models. As physics, it is hard to test. As machine learning, it is not: coherence can be measured, used as a signal, and trained for. This essay maps four kinds of coherence onto AI, and draws one design rule."
+date: 2026-10-27
+draft: true
+citation: true
+bibliography: references.bib
+toc-depth: 2
+categories: [essay, ai, machine-learning, deep-learning, reliability]
+image: figures/fig01.png
+resources:
+  - figs.py
+  - figures/*.png
+---
+
+::: {.callout-note appearance="simple"}
+**A thought essay, October 2026.** Figures 1, 3, 4 and 5 are my own schematics. Figure 2 is a toy simulation from [figs.py](figs.py): invented questions, not a real model. It shows the shape of an argument, not a benchmark. Every other claim is cited.
+:::
+
+**In short.** A line circulates online: the next scientific revolution *won't come from more parameters or larger models; it will come from understanding coherence.* As a statement about physics, I can't test it. As a statement about machine learning, I can, because in AI coherence is not a mystical invariant. It is a family of checks: do the answers agree, does the logic run both ways, does the stated reason match the real one, do two views of the world map to one state. Each check can be measured, used at run time, and trained for. My conclusion: **coherence will not replace scale, but it is what we should measure scale by, and the cheapest signal we have for when a model should stop and look.**
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Key takeaways
+
+- **Coherence has four working definitions in AI:** across samples, across logic, between thought and word, and across views and time.
+- **Disagreement is a detector.** When repeated answers disagree in meaning, the model is often wrong [@farquhar2024]. That is free to measure from outside.
+- **Coherence is a training target.** Some of the best recent models are trained to agree with themselves, not to reproduce every pixel or token [@assran2025; @song2023; @irpan2025].
+- **Coherent is not true.** A model can be consistently wrong. Coherence filters out noise; only the world filters out fiction.
+- **One rule:** probe, measure agreement, answer when coherent, look up or abstain when not, and train on what you learn.
+:::
+
+## 1. The claim, read as engineering
+
+The quote sets coherence against scale. That is a false choice, and the history of the last few years shows why. Larger models *did* become more coherent: they contradict themselves less, they hold a thread across longer tasks, and their internal representations grow more alike [@huh2024]. Scale bought coherence.
+
+But scale bought it without measuring it. We trained on next-token loss and discovered coherence afterwards, as a side effect. The better reading of the quote is this: *coherence should become a first-class quantity, something we measure, report and optimise directly, not something we hope emerges.*
+
+To do that, we need definitions. Figure 1 gives four.
+
+![**Figure 1.** Schematic, my own. Four kinds of coherence a model can have, from the cheapest to check (left) to the deepest (right).](figures/fig01.svg){fig-alt="Four cards. One, output: across samples; ask the same question several times, do the answers agree; tagged self-consistency and semantic entropy. Two, reasoning: across logic; if A is B, is B A, do paraphrases and negations line up; tagged reversal curse and consistency checks. Three, faithfulness: thought and word; does the stated reason match what drove the answer; tagged CoT faithfulness and latent knowledge. Four, representation: across views and time; do two views of one scene, or two moments, map to one state; tagged JEPA world models and shared geometry. An arrow underneath runs from cheap to check from outside the model, to needs access to its insides or a new architecture."}
+
+## 2. Four kinds of coherence
+
+**Across samples.** Ask a model the same question ten times. If it knows the answer, the answers agree in meaning, even when the words differ. If it is guessing, they scatter. Self-consistency turns this into a vote: sample several reasoning paths and keep the majority answer, which raised accuracy on maths benchmarks by double digits [@wang2023sc]. Semantic entropy turns it into an alarm: cluster the answers by meaning and measure how spread they are; high spread flags likely confabulation [@kuhn2023; @farquhar2024]. SelfCheckGPT does the same for long text, sentence by sentence [@manakul2023].
+
+**Across logic.** A model trained on "A is B" often cannot answer "B is A"; this *reversal curse* holds even for large models [@berglund2024]. More generally, a model's probabilities should obey simple rules: P(X) and P(not X) should add to one, a forecast should not drop when evidence for it is added. Such checks catch errors even when nobody knows the right answer, which makes them useful for evaluating models that may be better than their evaluators [@fluri2024].
+
+**Between thought and word.** A chain of thought is only useful if it is the real reason. Often it is not. Models nudged by a hidden bias, such as "the answer is always (A)", follow the bias and then write a plausible explanation that never mentions it [@turpin2023]. Reasoning models do the same: they used a planted hint far more often than they admitted to it [@chen2025cot]. In the other direction, the truth a model "believes" can sometimes be read from its activations even when its output says otherwise [@burns2023], and interpretability work now traces the internal steps behind an answer [@templeton2024; @lindsey2025]. Faithfulness is coherence between the inside and the outside.
+
+**Across views and time.** A world model should map two views of the same scene, or two moments of the same motion, to states that fit together. This is where coherence becomes architecture.
+
+## 3. Coherence as a signal
+
+The first use of coherence costs nothing to adopt: measure it at run time and act on it. Figure 2 shows the idea on a toy model.
+
+![**Figure 2.** Toy simulation, invented data. 4,000 questions; the chance of a correct sample varies by question, and wrong samples fall unevenly on four alternatives, so some errors repeat. Left: majority vote over more samples. Right: answer only the questions where samples agree most.](figures/fig02.svg){fig-alt="Left, a line chart: share of questions answered correctly against samples per question with majority vote. One sample: 53 percent. Three: 66. Five: 67. Nine: 68. Fifteen: 68. Twenty-five: 69. Right, a line chart: share answered correctly against share of questions answered, most coherent first. Answering everything: 68 percent correct. Answering the most coherent half: 80 percent. Answering 80 percent: 72 percent. A red note: yet 6 percent of all questions get a confident wrong answer, where 8 or more of 10 samples agree and they are wrong."}
+
+Two things happen. Voting helps quickly, then flattens: in this toy, one sample is right 53% of the time, five samples 67%, twenty-five 69%. And agreement ranks questions by trust: answering only the most coherent half lifts accuracy from 68% to 80%. The rest can go to a lookup, a tool, or an honest "I don't know".
+
+This matters because today's training rewards guessing. Benchmarks score an abstention like a wrong answer, so models learn to bluff [@kalai2025]. A coherence check gives the system a reason to abstain that does not depend on the model's own sense of confidence.
+
+## 4. Coherence as a training target
+
+The second use goes deeper: train for coherence directly.
+
+**In vision and world models.** A generative model learns by predicting every pixel of the next frame, including leaves, glare and texture that no one could predict. Joint-embedding predictive architectures (JEPA) predict something else: the *representation* of the missing part, and they are scored on whether two views agree in that space [@assran2023; @bardes2024] (Figure 3). V-JEPA 2, trained this way on more than a million hours of video, then learned to plan robot arm movements from 62 hours of unlabelled robot video [@assran2025]. The loss is not "reproduce the world"; it is "stay consistent with it".
+
+![**Figure 3.** Schematic, my own, after @assran2023. Left: a generative model is scored on every pixel. Right: a JEPA is scored on whether its predicted state matches the encoded state of the real next frame.](figures/fig03.svg){fig-alt="Two diagrams side by side. Left, generative, predict every detail: context frame t goes to a model, which outputs pixels of frame t+1, every leaf; a red arrow marks a loss on every pixel against the true pixels of frame t+1; a note says it spends capacity on noise that cannot be predicted: leaves, glare, texture. Right, joint embedding, predict what stays coherent: context frame t goes to a predictor, which outputs a predicted state t+1; frame t+1 goes through an encoder to a target state t+1; a green arrow marks a loss on the state; a note says it keeps what views share: objects, positions, motion."}
+
+**In generation.** Consistency models train a network so that every point along a noisy trajectory maps to the same clean output. The constraint itself is what allows generation in one or two steps instead of hundreds [@song2023].
+
+**In language models.** Consistency training asks a model to behave the same with and without an irrelevant cue: a leading question, a stated opinion, a jailbreak wrapper. Trained this way, models showed less biased reasoning [@chua2024] and less sycophancy and jailbreak success, whether the consistency was enforced on outputs or on internal activations [@irpan2025]. Nobody had to write the right answer; the model's own clean response was the target.
+
+**In representations.** Models trained on different data, in different modalities, measure distances between concepts more and more alike as they grow [@huh2024]. If that holds, coherence is not only a property of one model; it is where models converge.
+
+## 5. Where coherence stops
+
+Coherence has a hard limit, and the original quote skips it. **Coherent is not true.** A conspiracy theory can be perfectly self-consistent. So can a model trained on a stale or biased corpus. Figure 4 makes the point with a simple grid.
+
+![**Figure 4.** Schematic, my own. Coherence and truth are different axes.](figures/fig04.svg){fig-alt="A two by two grid. Columns: coherent, incoherent. Rows: true, false. Coherent and true: knowledge; stable across samples, paraphrases and reasons; answer. Incoherent and true: lucky guess; right this time, wrong next time; treat as unknown. Coherent and false: coherent fiction; a shared bias, a stale fact, a confident myth; only the world can catch it. Incoherent and false: visible error; samples disagree; easy to detect, look up or abstain."}
+
+Coherence checks clear the right column: they turn lucky guesses and visible errors into abstentions. They cannot clear the bottom-left. In the toy of Figure 2, 6% of all questions got a confident wrong answer, eight or more samples agreeing on the same mistake. Models also cannot reliably fix their own reasoning by reflecting on it without outside feedback [@huang2024selfcorrect]: a coherent model asked to check itself mostly agrees with itself.
+
+So coherence is necessary, not sufficient. Internally it removes noise; externally, it must be anchored by retrieval, tools, tests and people. This is the same conclusion as in [An Ecosystem, Not an Oracle](../2026-10-17-an-ecosystem-not-an-oracle/index.qmd), reached from a different side.
+
+## 6. A design rule
+
+Put together, the pieces give a loop (Figure 5).
+
+![**Figure 5.** Schematic, my own. Coherence as a control signal and a training signal.](figures/fig05.svg){fig-alt="A flow diagram. Question leads to probe: k samples, paraphrases, reverse query. Probe leads to measure: agreement, faithfulness. Measure branches: coherent, answer, then check against the world; incoherent, look it up, ask a tool, or say I don't know. A dashed green line runs from the incoherent branch back to probe, labelled train on consistency: same input meaning, same behaviour."}
+
+1. **Probe.** For any answer that matters, ask more than once: several samples, a paraphrase, the reverse question.
+2. **Measure.** Score agreement in meaning, not in words. Where you can see inside, check that the stated reason is the one used.
+3. **Route.** Coherent: answer, and still verify against the world when stakes are high. Incoherent: retrieve, call a tool, or abstain.
+4. **Train.** Feed the inconsistencies back as training signal. Same meaning in, same behaviour out.
+
+For small, local models, the loop is especially attractive. Five short samples from a 1B model cost less than one from a model ten times its size, and the agreement between them tells you when to reach for the external memory described in [Where Memory Lives](../2026-10-26-where-memory-lives/index.qmd).
+
+## 7. Conclusion
+
+The quote is right about one thing: more parameters alone will not tell us whether a model understands. It overreaches in another: coherence is not a universal invariant waiting to unify reality. In AI it is something humbler and more useful: a set of measurable agreements, between samples, between directions of a fact, between thought and word, between views of the world. Measure them, route on them, train for them, and anchor them in the world. That is a research programme, not a revolution, and it can start today.
