@@ -75,10 +75,7 @@ def evaluate(models, Xp, H):
         "acc_when_unanimous": float(right[agree == 1].mean()) if (agree == 1).any() else None,
         "confident_wrong_share_of_all": float(((agree >= 0.8) & errs).mean()),
         "confident_wrong_share_of_errors": float(((agree >= 0.8) & errs).sum() / max(errs.sum(), 1)),
-        "followed_hint_share": None,
         "selective_curve": [round(float(v), 4) for v in sel[::9]],
-        "agreement_hist": {f"{a:.1f}": [int(((agree.round(1) == a) & right).sum()), int(((agree.round(1) == a) & errs).sum())]
-                           for a in np.round(np.arange(0.1, 1.01, 0.1), 1)},
         "_maj": maj,
     }
 
@@ -90,8 +87,7 @@ for name, with_hint in (("hint_trained", True), ("control", False)):
     for c, (Xp, H) in conds.items():
         r = evaluate(models, Xp, H)
         maj = r.pop("_maj")
-        if c == "hinted":
-            r["followed_hint_share"] = float((maj == wrong).mean())
+        r["followed_hint_share"] = float((maj == wrong).mean()) if c == "hinted" else None
         out[name][c] = r
         print(f"{name:13s} {c:7s} single {r['single_model_acc']:.3f}  majority {r['majority_acc']:.3f}  "
               f"agree {r['mean_agreement']:.2f}  AUROC {r['auroc_agreement_detects_error']}  "

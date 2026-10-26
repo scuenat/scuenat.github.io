@@ -260,13 +260,15 @@ def fig_loop():
     card(ax, 5.0, 3.0, 4.0, 2.4, "Probe", "k samples\nparaphrases\nreverse query", accent=NAVY, subfs=8)
     card(ax, 10.1, 3.0, 3.8, 2.4, "Measure", "agreement\nfaithfulness", accent=NAVY, subfs=8)
     card(ax, 15.6, 5.2, 4.9, 2.2, "Coherent", "answer, then check\nagainst the world", accent=GREEN, subfs=8)
-    card(ax, 15.6, 1.8, 4.9, 2.2, "Incoherent", "look it up, ask a tool,\nor say \"I don't know\"", accent=WARM, subfs=8)
+    card(ax, 15.6, 2.0, 4.9, 2.2, "Incoherent", "look it up, ask a tool,\nor say \"I don't know\"", accent=WARM, subfs=8)
+    card(ax, 5.6, 0.75, 2.8, 1.25, "Model", None, accent=GREEN, fs=9.5)
     arrow(ax, (4.0, 4.2), (4.88, 4.2)); arrow(ax, (9.1, 4.2), (9.98, 4.2))
-    arrow(ax, (14.0, 4.5), (15.48, 6.2)); arrow(ax, (14.0, 3.9), (15.48, 2.9))
-    # training feedback
-    ax.plot([18.05, 18.05, 7.0], [1.6, 0.7, 0.7], color=GREEN, lw=1.3, ls="--", zorder=1.5)
-    arrow(ax, (7.0, 0.7), (7.0, 2.88), color=GREEN, lw=1.3, ls="--")
-    pill(ax, 12.5, 0.7, "train on consistency: same input meaning → same behaviour", color=GREEN, fs=7.6)
+    arrow(ax, (14.0, 4.5), (15.48, 6.2)); arrow(ax, (14.0, 3.9), (15.48, 3.1))
+    arrow(ax, (7.0, 2.1), (7.0, 2.88))
+    # training feedback: inconsistencies change the model, not the probe
+    ax.plot([18.05, 18.05, 8.75], [1.85, 1.375, 1.375], color=GREEN, lw=1.3, ls="--", zorder=1.5)
+    arrow(ax, (8.75, 1.375), (8.52, 1.375), color=GREEN, lw=1.3)
+    pill(ax, 13.0, 1.375, "train on consistency: same meaning in → same behaviour out", color=GREEN, fs=7.6)
     save(fig, "fig05")
 
 

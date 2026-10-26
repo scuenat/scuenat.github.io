@@ -52,7 +52,7 @@ To do that, we need definitions. Figure 1 gives four.
 
 **Between thought and word.** A chain of thought is only useful if it is the real reason. Often it is not. Models nudged by a hidden bias, such as "the answer is always (A)", follow the bias and then write a plausible explanation that never mentions it [@turpin2023]. Reasoning models do the same: given a planted hint, they mostly used it without saying so [@chen2025cot]. Can we read the truth from inside instead? One method finds a direction in a model's activations that keeps its answers to a statement and to its negation consistent [@burns2023]. But later work showed such probes can lock onto other consistent features, such as a character's opinion in the prompt, rather than the model's own knowledge [@farquhar2023ccs; @levinstein2024]. Interpretability work now traces the internal steps behind an answer more directly [@templeton2024; @lindsey2025]. Faithfulness is coherence between the inside and the outside, and it is the hardest of the four to measure.
 
-**Across views and time.** A world model should map two views of the same scene, or two moments of the same motion, to states that fit together. This is where coherence becomes architecture (section 4).
+**Across views and time.** A world model should map two views of the same scene, or two moments of the same motion, to states that fit together. The same may hold across models: networks trained on different data, in different modalities, measure distances between concepts more and more alike as they grow, its authors argue [@huh2024]. This is where coherence becomes architecture (section 4).
 
 ## 3. Coherence as a signal, measured
 
@@ -86,8 +86,6 @@ The second use goes deeper: train for coherence directly.
 
 **The trap.** Coherence alone is easy to game. A model that answers "42" to everything is perfectly consistent and useless; a JEPA whose encoder outputs a constant matches its target every time. Every method above therefore needs an anchor. JEPAs use architectural tricks to keep representations from collapsing [@assran2023]; consistency models are tied to real data at the end of the trajectory [@song2023]; consistency training uses the model's own answer to the *clean* prompt as the target [@irpan2025]. Coherence is a constraint, not an objective on its own.
 
-**In representations.** Models trained on different data, in different modalities, measure distances between concepts more and more alike as they grow, its authors argue [@huh2024]. If that holds, coherence is not only a property of one model; it is where models converge.
-
 ## 5. Where coherence stops
 
 Coherence has a hard limit, and the original quote skips it. **Coherent is not true.** A conspiracy theory can be perfectly self-consistent. So can a model trained on a stale or biased corpus. Figure 4 makes the point with a simple grid.
@@ -100,7 +98,9 @@ The second half of the experiment measures the bottom-left cell (Figure 2, right
 - As the hint grew more reliable in training, every network learned to lean on it. With a 99% reliable hint, the majority followed the wrong hint on 44% of digits, and agreement could no longer tell right answers from wrong ones: AUROC 0.49, chance level.
 - A control ensemble trained without hints was unaffected: 97.6% correct with the same wrong hints present.
 
-Ten models, ten random starts, ten different resamplings of the data, and they still agreed on the same mistake, because they all learned the same shortcut from the same data. Diversity among models protects against their independent errors, not against what they share. For language models trained on overlapping web data, that shared part is large.
+Ten models, ten random starts, ten different resamplings of the data, and they still agreed on the same mistake, because they all learned the same shortcut from the same data. Diversity among models protects against their independent errors, not against what they share. And the shortcut was not free: trained with the 90% hint, a single network got only 85% of *clean* digits right, against 94.5% without it, because it had learned to lean on a clue that was no longer there.
+
+Language models are in a worse position than my ensemble. Repeated samples from one language model share not part of their training but all of it. A shortcut learned in training is therefore invisible to the self-consistency checks of section 3 by construction: every sample has it.
 
 Asking the model to check itself does not fix this. Without outside feedback, language models asked to review their own reasoning often change right answers into wrong ones, and overall get worse [@huang2024selfcorrect].
 
@@ -110,7 +110,7 @@ So coherence is necessary, not sufficient. Internally it removes noise; external
 
 Put together, the pieces give a loop (Figure 5).
 
-![**Figure 5.** Schematic, my own. Coherence as a control signal and a training signal.](figures/fig05.svg){fig-alt="A flow diagram. Question leads to probe: k samples, paraphrases, reverse query. Probe leads to measure: agreement, faithfulness. Measure branches: coherent, answer, then check against the world; incoherent, look it up, ask a tool, or say I don't know. A dashed green line runs from the incoherent branch back to probe, labelled train on consistency: same input meaning, same behaviour."}
+![**Figure 5.** Schematic, my own. Coherence as a control signal and a training signal.](figures/fig05.svg){fig-alt="A flow diagram. Question leads to probe: k samples, paraphrases, reverse query. Probe leads to measure: agreement, faithfulness. Measure branches: coherent, answer, then check against the world; incoherent, look it up, ask a tool, or say I don't know. A small model box under probe feeds it. A dashed green line runs from the incoherent branch back to the model, labelled train on consistency: same meaning in, same behaviour out."}
 
 1. **Probe.** For any answer that matters, ask more than once: several samples, a paraphrase, the reverse question.
 2. **Measure.** Score agreement in meaning, not in words. Where you can see inside, check that the stated reason is the one used.
