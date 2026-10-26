@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-10-26">
+<meta name="description" content="I measured how many facts fit in the weights of a small network, what it costs to change one, how fast an external memory answers, and when the KV cache outweighs the model. The result is a design rule for small, local, fast AI.">
+
+<title>Where Memory Lives – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-efb20bfda7f7a242e63e093425e4b528.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-1d02aad802839351f2003475a7040890.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-efb20bfda7f7a242e63e093425e4b528.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="canonical" href="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-10-26","description":"I measured how many facts fit in the weights of a small network, what it costs to change one, how fast an external memory answers, and when the KV cache outweighs the model. The result is a design rule for small, local, fast AI.","headline":"Where Memory Lives","image":"https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png","inLanguage":"en","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["essay","experiment","ai","local-ai","memory"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/posts/2026-10-26-where-memory-lives/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"url":"https://scuenat.github.io/posts/2026-10-26-where-memory-lives/"}</script>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Where Memory Lives – AI, Honestly">
+<meta property="og:description" content="I measured how many facts fit in the weights of a small network, what it costs to change one, how fast an external memory answers, and when the KV cache outweighs the model. The result is a design rule for small, local, fast AI.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="1684">
+<meta property="og:image:width" content="3716">
+<meta name="twitter:title" content="Where Memory Lives – AI, Honestly">
+<meta name="twitter:description" content="I measured how many facts fit in the weights of a small network, what it costs to change one, how fast an external memory answers, and when the KV cache outweighs the model. The result is a design rule for small, local, fast AI.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png">
+<meta name="twitter:image-height" content="1684">
+<meta name="twitter:image-width" content="3716">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#the-question" id="toc-the-question" class="nav-link active" data-scroll-target="#the-question">1. The question</a></li>
+  <li><a href="#experiment-1-how-many-facts-fit-in-the-weights" id="toc-experiment-1-how-many-facts-fit-in-the-weights" class="nav-link" data-scroll-target="#experiment-1-how-many-facts-fit-in-the-weights">2. Experiment 1: how many facts fit in the weights</a></li>
+  <li><a href="#experiment-2-changing-ones-mind" id="toc-experiment-2-changing-ones-mind" class="nav-link" data-scroll-target="#experiment-2-changing-ones-mind">3. Experiment 2: changing one’s mind</a></li>
+  <li><a href="#experiment-3-looking-it-up" id="toc-experiment-3-looking-it-up" class="nav-link" data-scroll-target="#experiment-3-looking-it-up">4. Experiment 3: looking it up</a></li>
+  <li><a href="#experiment-4-the-working-memory" id="toc-experiment-4-the-working-memory" class="nav-link" data-scroll-target="#experiment-4-the-working-memory">5. Experiment 4: the working memory</a></li>
+  <li><a href="#the-arithmetic-of-the-long-tail" id="toc-the-arithmetic-of-the-long-tail" class="nav-link" data-scroll-target="#the-arithmetic-of-the-long-tail">6. The arithmetic of the long tail</a></li>
+  <li><a href="#what-it-means-for-small-models-and-fast-ai" id="toc-what-it-means-for-small-models-and-fast-ai" class="nav-link" data-scroll-target="#what-it-means-for-small-models-and-fast-ai">7. What it means for small models and Fast AI</a></li>
+  <li><a href="#recent-work-with-code" id="toc-recent-work-with-code" class="nav-link" data-scroll-target="#recent-work-with-code">8. Recent work, with code</a></li>
+  <li><a href="#what-this-experiment-does-not-show" id="toc-what-this-experiment-does-not-show" class="nav-link" data-scroll-target="#what-this-experiment-does-not-show">9. What this experiment does not show</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">10. Conclusion</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Where Memory Lives</h1>
+<p class="subtitle lead">Four experiments on what a small model should remember, and what it should look up</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essay</div>
+    <div class="quarto-category">experiment</div>
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">local-ai</div>
+    <div class="quarto-category">memory</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    I measured how many facts fit in the weights of a small network, what it costs to change one, how fast an external memory answers, and when the KV cache outweighs the model. The result is a design rule for small, local, fast AI.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 26, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>An experiment, October 2026.</strong> Every number in Experiments 1 to 4 comes from <a href="sim.py">sim.py</a>, plain NumPy on a 4-core cloud CPU, with results in <a href="results.json">results.json</a> and figures from <a href="figs.py">figs.py</a>. Other people’s numbers are cited where they appear. The networks are deliberately tiny: they test the shape of an argument, not any product. This essay puts to the test two ideas from <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> and <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>: bandwidth, and memory outside the weights.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> A language model keeps what it knows in four places: its weights, its working memory (the KV cache), whatever it can look up, and the habits it has compiled. Each is paid for at a different moment, and for a small model on a laptop that decides the design. Four experiments led me to one rule: <strong>keep in the weights what is used on every token; look up everything else, and keep what you look up short.</strong></p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Weights are the densest memory, and the most expensive to read.</strong> My networks held up to 1.7 bits per parameter, and a model reads all of them for every token.</li>
+<li><strong>Weights are hard to edit.</strong> Fine-tuning on 150 changed or new facts never kept both the edits and the other facts. Rehearsing everything did, after 630,000 training examples. A table needed 150 writes.</li>
+<li><strong>Looking up is cheap; rereading what you looked up is not.</strong> An index searched four million facts in 0.5 ms. But three retrieved passages then cost a 1B model 29 MB on every generated token.</li>
+<li><strong>Small models hit the working-memory wall first.</strong> At 4-bit weights, the cache of Llama 3.2 1B outweighs its weights from about 19,000 tokens.</li>
+<li><strong>Knowledge has a long tail.</strong> Under Zipf’s law, each tenfold increase in facts held answers the same extra slice of questions. Weights cover the head; the tail belongs in a lookup.</li>
+</ul>
+</div>
+</div>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">1. The question</h2>
+<p>Debates about small language models usually ask how much of a large model fits on a laptop. That treats a model as one block of knowledge to compress. I think the better question is <em>what should live where?</em></p>
+<p>Generating a token on a laptop is limited by memory bandwidth, not arithmetic: the machine reads every weight, and the whole cache of the conversation, for every token <span class="citation" data-cites="alizadeh2023">(<a href="#ref-alizadeh2023" role="doc-biblioref">Alizadeh et al. 2023</a>)</span>. So where knowledge lives decides what it costs.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic, my own. Four memories of a language model, ordered by how often you pay for them."><img src="figures/fig01.svg" class="img-fluid figure-img" alt="Four cards side by side. Weights, parametric memory: what the model knows, read in full for every token. KV cache, working memory: what it is reading now, grows with the context and is read for every token. Lookup, external memory: documents, records, past cases, a few rows only when asked. Habits, compiled memory: verified answers and small models, built once and reused in milliseconds. An arrow underneath runs from paid on every token to paid rarely."></a></p>
+<figcaption><strong>Figure 1.</strong> Schematic, my own. Four memories of a language model, ordered by how often you pay for them.</figcaption>
+</figure>
+</div>
+</section>
+<section id="experiment-1-how-many-facts-fit-in-the-weights" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-1-how-many-facts-fit-in-the-weights">2. Experiment 1: how many facts fit in the weights</h2>
+<p><strong>Setup.</strong> A fact is a key (a random vector of 32 numbers, standing for a question) and a value, one of <span class="math inline">V = 256</span> answers: <span class="math inline">\log_2 256 = 8</span> bits. The memory is a two-layer network,</p>
+<p><span class="math display">
+f_\theta(x) = W_2\,\mathrm{ReLU}(W_1 x + b_1) + b_2, \qquad |\theta| = 32h + h + 256h + 256,
+</span></p>
+<p>with hidden width <span class="math inline">h \in \{8, 16, 32, 64\}</span>: 2,568 to 18,752 parameters. Each network learned <span class="math inline">N</span> facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu and Li 2025</a>)</span>, I count the bits it holds as</p>
+<p><span class="math display">
+B(\theta) = \sum_{i=1}^{N} \max\!\Big(0,\; \log_2 V + \log_2 p_\theta(y_i \mid x_i)\Big),
+</span></p>
+<p>what its prediction knows about each answer beyond a uniform guess.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Experiment 1, measured, three seeds per point. Left: bits stored against bits offered; the band is one standard deviation. Right: bits stored per parameter; amber diamonds repeat three runs with three times more training."><img src="figures/fig02.svg" class="img-fluid figure-img" alt="Left, four lines of bits stored against bits offered, for networks of 2,568, 4,880, 9,504 and 18,752 parameters, each the mean of three seeds with a narrow band. Each follows the diagonal, where every bit offered is kept, then peaks and flattens slightly lower. Right, bits stored per parameter against bits offered per parameter, with small error bars: all four networks rise along the same line to a peak of 1.40, 1.53, 1.68 and 1.67, then settle near 1.4. Three amber diamonds for three times more training sit slightly higher: 1.80, 1.55 and 1.49. A dashed amber line at 2 marks the capacity of a perceptron and of language models."></a></p>
+<figcaption><strong>Figure 2.</strong> Experiment 1, measured, three seeds per point. Left: bits stored against bits offered; the band is one standard deviation. Right: bits stored per parameter; amber diamonds repeat three runs with three times more training.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Below capacity, every network kept every bit. Near capacity it peaked at 1.40 bits per parameter for the smallest network, 1.53 for the next, and 1.68 and 1.67 for the two largest, with seeds never more than 0.04 apart. Past capacity it stored less, not more: about 1.4 bits per parameter, with accuracy down to a fifth or a third. Three times more training lifted the peak to 1.80 but barely changed the decline (1.52 to 1.55, 1.45 to 1.49), so the decline is mostly interference between facts, not too little training.</p>
+<p>The number is old: Cover showed in 1965 that a perceptron stores about two bits per weight <span class="citation" data-cites="cover1965">(<a href="#ref-cover1965" role="doc-biblioref">Cover 1965</a>)</span>, and Allen-Zhu and Li measured about two bits per parameter in transformers <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu and Li 2025</a>)</span>. <strong>Weights are a very dense memory</strong>: an 8-bit fact costs about five parameters, under five bytes at 8-bit precision. Quantised to 4 bits after training, the precision most small models run at, their models lost more than half of it.</p>
+</section>
+<section id="experiment-2-changing-ones-mind" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-2-changing-ones-mind">3. Experiment 2: changing one’s mind</h2>
+<p><strong>Setup.</strong> A network of 18,752 parameters learned 1,500 facts perfectly. Then 75 facts changed and 75 new ones appeared. I updated it in two ways, each over 4 learning rates and 3 training lengths: fine-tuning on the 150 <strong>edits only</strong>, or <strong>rehearsing everything</strong>, all 1,575 facts. An external table got the same edits: overwrite 75 rows, add 75.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Experiment 2, measured. Left: each of the 24 fine-tuning runs, by the share of edits learned and of the other 1,425 facts kept; larger markers trained longer. Right: the worse of the two shares against training examples processed."><img src="figures/fig03.svg" class="img-fluid figure-img" alt="Left, a scatter plot. Horizontal axis: share of the 150 edits learned. Vertical axis: share of the 1,425 other facts kept. Rehearse everything runs, as squares, sit along the top at 100 percent kept, from 0 to 100 percent of edits learned. Edits only runs, as circles, fall along a diagonal from 100 percent kept with no edits learned to about 30 percent kept with all edits learned. A green diamond at the top right marks the external table. Right, the worse of the two shares against training examples processed on a log scale: edits only runs stay below 50 percent; rehearse everything runs reach 100 percent at about 630,000 examples and above."></a></p>
+<figcaption><strong>Figure 3.</strong> Experiment 2, measured. Left: each of the 24 fine-tuning runs, by the share of edits learned and of the other 1,425 facts kept; larger markers trained longer. Right: the worse of the two shares against training examples processed.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Fine-tuning on the edits alone never got both right. The runs that learned 97% or more of the edits kept only 28% to 35% of the other facts; the best compromise kept 48% and learned 47%. Rehearsing everything got both to 100%, after 630,000 training examples, a cost that grows with everything the network knows. The table needed 150 writes and 0.04 ms.</p>
+<p>Catastrophic interference is not new <span class="citation" data-cites="mccloskey1989">(<a href="#ref-mccloskey1989" role="doc-biblioref">McCloskey and Cohen 1989</a>)</span>, and editing methods such as ROME and MEMIT do far better than plain fine-tuning <span class="citation" data-cites="meng2022 meng2023">(<a href="#ref-meng2022" role="doc-biblioref">Meng et al. 2022</a>, <a href="#ref-meng2023" role="doc-biblioref">2023</a>)</span>, though models still degrade as edits accumulate <span class="citation" data-cites="gupta2024">(<a href="#ref-gupta2024" role="doc-biblioref">Gupta et al. 2024</a>)</span>. The point is the contrast: in a table, an edit is local by construction; in weights, every fact shares every parameter. Contacts change, prices change, a client asks you to delete their data. A memory you can overwrite row by row is one you can keep true.</p>
+</section>
+<section id="experiment-3-looking-it-up" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-3-looking-it-up">4. Experiment 3: looking it up</h2>
+<p><strong>Setup.</strong> I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, <span class="math inline">O(Nd)</span>. An inverted-file index (IVF) groups the keys into <span class="math inline">c = 4\sqrt{N}</span> clusters and searches only the <span class="math inline">p</span> nearest, <span class="math inline">O\big((c + pN/c)\,d\big)</span>, which grows like <span class="math inline">\sqrt{N}</span> <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Experiment 3, measured. Left: time per easy question against facts in memory. Right: one million facts at five noise levels; each line probes 1, 4, 16 and 64 clusters, and the star is exact search."><img src="figures/fig04.svg" class="img-fluid figure-img" alt="Left, a log-log chart of time per question against facts in memory, from ten thousand to four million: exact search rises from 0.1 to 100 milliseconds; an index probing 16 clusters from 0.1 to 1.4 milliseconds; probing 4 clusters from 0.03 to 0.5 milliseconds. Right, share of questions answered with the right fact against time per question, for five noise levels: probing 1 cluster finds 80 to 95 percent in about 0.12 milliseconds; probing 4 clusters reaches the same share as exact search, 100 percent for four levels and 95.5 percent against 96 for the noisiest, in about 0.25 milliseconds, while exact search takes about 24 milliseconds."></a></p>
+<figcaption><strong>Figure 4.</strong> Experiment 3, measured. Left: time per easy question against facts in memory. Right: one million facts at five noise levels; each line probes 1, 4, 16 and 64 clusters, and the star is exact search.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Exact search took 29 ms over a million facts and 100 ms over four million. Probing 4 clusters took 0.25 and 0.5 ms, reading 5 and 11 MB. On harder questions, one cluster missed 5% to 20%, while four clusters matched exact search (95.5% against 96% at the noisiest level). My clustered keys flatter any index: on real embeddings, the same recall takes more clusters, and more time.</p>
+<p>An external memory is less compact than weights: 1,024 bytes per fact here, or 8 to 64 bytes with compressed codes <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span>, against under five in the weights. But weights are read in full for every token. A lookup reads a few megabytes, only when a question needs it.</p>
+<section id="what-a-looked-up-fact-really-costs" class="level3">
+<h3 class="anchored" data-anchor-id="what-a-looked-up-fact-really-costs">What a looked-up fact really costs</h3>
+<p>In retrieval-augmented generation <span class="citation" data-cites="lewis2020">(<a href="#ref-lewis2020" role="doc-biblioref">Lewis et al. 2020</a>)</span>, what the index finds is pasted into the prompt. From then on it sits in the working memory and is reread for every generated token.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Computed for Llama 3.2 1B from the measurements above. Megabytes read per generated token, log scale. The search is paid once per question; retrieved passages on every token."><img src="figures/fig05.svg" class="img-fluid figure-img" alt="Horizontal bars on a logarithmic scale, in megabytes read per generated token for Llama 3.2 1B. A model ten times larger, 4-bit 12B: 6,200. Weights of the model, 4-bit 1B: 620. Conversation so far, 2,000 tokens, fp16 cache: 66. Three retrieved passages, 900 tokens, fp16 cache: 29. The same passages with a 2-bit cache: 4. The index search itself, spread over a 200-token answer: 0.05."></a></p>
+<figcaption><strong>Figure 5.</strong> Computed for Llama 3.2 1B from the measurements above. Megabytes read per generated token, log scale. The search is paid once per question; retrieved passages on every token.</figcaption>
+</figure>
+</div>
+<p>Each token of context costs this model 32 KB. Three passages of 300 tokens add 29 MB to every generated token, over five hundred times the search itself. That is still only 5% of the 620 MB of weights, and far less than a model ten times larger, which would read 6,200 MB per token to answer about 11 more points of questions (Section 6). A lookup is cheap only if what it brings back is short: a fact, not three pages.</p>
+<p>That is why recent architectures put the lookup <em>inside</em> the model, where a fetched fact never becomes context. Meta’s memory layers read a few rows of a trainable table per token and beat dense models with more than twice the compute, most on factual questions <span class="citation" data-cites="berges2024">(<a href="#ref-berges2024" role="doc-biblioref">Berges et al. 2024</a>)</span>. DeepSeek’s Engram adds a hashed n-gram table read in constant time <span class="citation" data-cites="engram2026">(<a href="#ref-engram2026" role="doc-biblioref">DeepSeek-AI 2026</a>)</span>. Gemma 3n keeps per-layer embeddings on local storage <span class="citation" data-cites="gemma3n">(<a href="#ref-gemma3n" role="doc-biblioref">Google 2025</a>)</span>.</p>
+</section>
+</section>
+<section id="experiment-4-the-working-memory" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-4-the-working-memory">5. Experiment 4: the working memory</h2>
+<p><strong>Setup.</strong> The KV cache stores a key and a value per token, layer and key-value head:</p>
+<p><span class="math display">
+\text{KV bytes per token} = 2 \cdot L \cdot n_{kv} \cdot d_h \cdot b.
+</span></p>
+<p>Each new token reads the whole cache and all the weights, so the cache weighs as much as the weights at</p>
+<p><span class="math display">
+T^{*} = \frac{|\theta| \cdot b_w}{2 \cdot L \cdot n_{kv} \cdot d_h \cdot b_{kv}}.
+</span></p>
+<p>I timed one layer shaped like Llama 3.2 1B <span class="citation" data-cites="llama32">(<a href="#ref-llama32" role="doc-biblioref">Meta 2024</a>)</span> generating a token over caches of 1,000 to 131,000 tokens.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig06.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Experiment 4. Left, measured: time per generated token for one Llama-3.2-1B layer, weights against attention over the cache. Right, from published configurations: the context at which cache and weights weigh the same."><img src="figures/fig06.svg" class="img-fluid figure-img" alt="Left, a log-log chart of time per generated token for one layer against context length from 1k to 128k tokens: the weights are flat at 3.6 milliseconds; attention over the KV cache rises from 0.3 to 49 milliseconds, crossing the weights at about 15k tokens; a dotted line at 59k marks where cache and weights hold the same number of bytes. Right, horizontal bars of the context at which the cache weighs as much as the weights. Llama 3.2 1B: 76k with 16-bit weights, 19k with 4-bit weights, 151k with 4-bit weights and a 2-bit cache. Llama 3.2 3B: 56k, 14k, 112k. Llama 3.1 8B: 123k, 31k, 245k. Llama 3.1 70B: 431k, 108k, 862k."></a></p>
+<figcaption><strong>Figure 6.</strong> Experiment 4. Left, measured: time per generated token for one Llama-3.2-1B layer, weights against attention over the cache. Right, from published configurations: the context at which cache and weights weigh the same.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> The weights cost 3.6 ms per token at any context. Attention cost 0.3 ms at 1,000 tokens, matched the weights at about 15,000 and took 49 ms at 131,000. By bytes alone the crossover is 59,000; my NumPy attention is slower than a matrix product, so it came earlier.</p>
+<p>The formula gives 76,000 tokens for Llama 3.2 1B in 16 bits. Quantise the weights to 4 bits and it falls to <strong>19,000</strong>: a long document, or one agent loop with a few tool outputs. For Llama 3.1 70B it is 108,000. <strong>Shrinking the weights moves the bottleneck to the working memory.</strong> The remedies all keep that memory short: grouped-query attention <span class="citation" data-cites="ainslie2023">(<a href="#ref-ainslie2023" role="doc-biblioref">Ainslie et al. 2023</a>)</span>, sliding windows on five of every six layers in Gemma 3 <span class="citation" data-cites="gemma3">(<a href="#ref-gemma3" role="doc-biblioref">Gemma Team 2025</a>)</span>, 2-bit caches <span class="citation" data-cites="liu2024kivi">(<a href="#ref-liu2024kivi" role="doc-biblioref">Liu et al. 2024</a>)</span>, which push the 1B crossover back to 151,000, and Cartridges, small caches trained offline that match in-context learning with 38.6 times less memory <span class="citation" data-cites="eyuboglu2026">(<a href="#ref-eyuboglu2026" role="doc-biblioref"><span class="nocase">Eyuboglu et al.</span> 2026</a>)</span>.</p>
+</section>
+<section id="the-arithmetic-of-the-long-tail" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-the-long-tail">6. The arithmetic of the long tail</h2>
+<p>How much should stay in the weights? Questions are not uniform: models know popular facts far better than rare ones <span class="citation" data-cites="kandpal2023">(<a href="#ref-kandpal2023" role="doc-biblioref">Kandpal et al. 2023</a>)</span>, and retrieval helps most on the rare ones <span class="citation" data-cites="mallen2023">(<a href="#ref-mallen2023" role="doc-biblioref">Mallen et al. 2023</a>)</span>. If the <span class="math inline">k</span>-th most asked of <span class="math inline">F</span> facts is asked with probability proportional to <span class="math inline">k^{-s}</span> (Zipf’s law), a memory holding the <span class="math inline">K</span> most asked answers</p>
+<p><span class="math display">
+\text{coverage}(K) = \frac{H_{K,s}}{H_{F,s}}, \qquad H_{n,s} = \sum_{k=1}^{n} k^{-s}.
+</span></p>
+<p>For <span class="math inline">s = 1</span>, <span class="math inline">H_n \approx \ln n + 0.577</span>, so each tenfold step adds the same share,</p>
+<p><span class="math display">
+\text{coverage}(10K) - \text{coverage}(K) \approx \frac{\ln 10}{\ln F + 0.577},
+</span></p>
+<p>about 11 points with a billion facts.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig07.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Computed. Share of questions answered by a memory holding the most asked facts, in a world of one billion facts, for three tails."><img src="figures/fig07.svg" class="img-fluid figure-img" alt="Three rising curves on a logarithmic horizontal axis from a hundred to a billion facts. The Zipf curve with s equal to 1 rises in a nearly straight line, from about 25 percent at a hundred facts to 100 percent at a billion. Two amber arrows mark that each tenfold increase adds the same slice of about 11 points. A flatter tail with s equal to 0.9 lies below, a steeper tail with s equal to 1.1 above."></a></p>
+<figcaption><strong>Figure 7.</strong> Computed. Share of questions answered by a memory holding the most asked facts, in a world of one billion facts, for three tails.</figcaption>
+</figure>
+</div>
+<p>A model ten times larger reads ten times more per token for 11 more points. An index ten times larger reads about three times more, once per question. The head belongs in the weights, where it is used constantly; the tail belongs in a lookup. Apple’s hierarchical memories make this split in pretraining: a 160M model fetching 18M parameters from a 4.6B memory bank matched a regular model over twice its size <span class="citation" data-cites="pouransari2026">(<a href="#ref-pouransari2026" role="doc-biblioref">Pouransari et al. 2026</a>)</span>.</p>
+</section>
+<section id="what-it-means-for-small-models-and-fast-ai" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-means-for-small-models-and-fast-ai">7. What it means for small models and Fast AI</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig08.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. A proposal, my own. A small model reasons; a short working memory, an editable external memory and compiled habits surround it; a slow loop moves knowledge between them."><img src="figures/fig08.svg" class="img-fluid figure-img" alt="Diagram. A dark card in the centre: small model, reasons; language, reasoning, tools; 1 to 4B parameters at 4 bits. Top left, working memory: sliding window, 2-bit cache, summaries instead of transcripts, labelled bounded per token. Bottom left, lookup: indexed external memory on flash, editable and deletable, labelled a few rows per question. Top right, habits: verified answers, small trees, adapters, labelled checked first, milliseconds. Bottom right, learning: slow consolidation at night. Dashed arrows run from consolidation to habits and to the external memory, labelled writes and corrections."></a></p>
+<figcaption><strong>Figure 8.</strong> A proposal, my own. A small model reasons; a short working memory, an editable external memory and compiled habits surround it; a slow loop moves knowledge between them.</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Keep in the weights what is used on every token:</strong> language, reasoning, tool use, the structure of a domain. Not the price list.</li>
+<li><strong>Keep the working memory short:</strong> summaries rather than transcripts, a compressed cache, a window.</li>
+<li><strong>Look up the long tail, and bring back little:</strong> the fact, not the page. Every row can be inspected, corrected and deleted.</li>
+<li><strong>Compile what repeats,</strong> as in <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>: a verified answer, a small tree or an adapter, checked before the model is called.</li>
+<li><strong>Consolidate slowly:</strong> what is looked up constantly may earn a place in a habit; what is wrong is deleted, in one line, not one training run.</li>
+</ol>
+<p>Agent memory systems are building the top of this stack: MemGPT, now Letta, pages context like an operating system <span class="citation" data-cites="packer2023">(<a href="#ref-packer2023" role="doc-biblioref">Packer et al. 2023</a>)</span>; Mem0 and A-MEM extract and link memories across sessions <span class="citation" data-cites="chhikara2025 xu2025amem">(<a href="#ref-chhikara2025" role="doc-biblioref">Chhikara et al. 2025</a>; <a href="#ref-xu2025amem" role="doc-biblioref">Xu et al. 2025</a>)</span>; Titans learns a memory at test time <span class="citation" data-cites="behrouz2024">(<a href="#ref-behrouz2024" role="doc-biblioref">Behrouz et al. 2024</a>)</span>. A small model has the least room in its weights and the least bandwidth to spare, so it gains the most from putting each memory in the right place.</p>
+</section>
+<section id="recent-work-with-code" class="level2">
+<h2 class="anchored" data-anchor-id="recent-work-with-code">8. Recent work, with code</h2>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> Recent work on the four memories. Code links checked on 25 October 2026. Benchmarks of agent memory systems are still young, and the vendors’ own scores often disagree with independent ones; I would compare them on your own data.</caption>
+<thead>
+<tr class="header">
+<th>Work</th>
+<th>Memory it addresses</th>
+<th>Idea</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Physics of Language Models 3.3 <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu and Li 2025</a>)</span></td>
+<td>Weights</td>
+<td>About 2 bits of knowledge per parameter</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Memory Layers at Scale <span class="citation" data-cites="berges2024">(<a href="#ref-berges2024" role="doc-biblioref">Berges et al. 2024</a>)</span></td>
+<td>Weights, sparse</td>
+<td>Trainable key-value lookup inside the model</td>
+<td><a href="https://github.com/facebookresearch/memory">facebookresearch/memory</a></td>
+</tr>
+<tr class="odd">
+<td>Engram <span class="citation" data-cites="engram2026">(<a href="#ref-engram2026" role="doc-biblioref">DeepSeek-AI 2026</a>)</span></td>
+<td>Weights, sparse</td>
+<td>Hashed n-gram memory, constant-time lookup</td>
+<td><a href="https://github.com/deepseek-ai/Engram">deepseek-ai/Engram</a></td>
+</tr>
+<tr class="even">
+<td>Hierarchical memories <span class="citation" data-cites="pouransari2026">(<a href="#ref-pouransari2026" role="doc-biblioref">Pouransari et al. 2026</a>)</span></td>
+<td>Weights + bank</td>
+<td>Small model, long-tail facts in a fetched memory bank</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Titans <span class="citation" data-cites="behrouz2024">(<a href="#ref-behrouz2024" role="doc-biblioref">Behrouz et al. 2024</a>)</span></td>
+<td>Learned at test time</td>
+<td>A neural memory updated during inference</td>
+<td><a href="https://github.com/lucidrains/titans-pytorch">lucidrains/titans-pytorch</a> (unofficial)</td>
+</tr>
+<tr class="even">
+<td>KIVI <span class="citation" data-cites="liu2024kivi">(<a href="#ref-liu2024kivi" role="doc-biblioref">Liu et al. 2024</a>)</span></td>
+<td>Working memory</td>
+<td>2-bit KV cache, no fine-tuning</td>
+<td><a href="https://github.com/jy-yuan/KIVI">jy-yuan/KIVI</a></td>
+</tr>
+<tr class="odd">
+<td>Cartridges <span class="citation" data-cites="eyuboglu2026">(<a href="#ref-eyuboglu2026" role="doc-biblioref"><span class="nocase">Eyuboglu et al.</span> 2026</a>)</span></td>
+<td>Working memory</td>
+<td>A small cache trained offline per corpus</td>
+<td><a href="https://github.com/HazyResearch/cartridges">HazyResearch/cartridges</a></td>
+</tr>
+<tr class="even">
+<td>LLM in a Flash <span class="citation" data-cites="alizadeh2023">(<a href="#ref-alizadeh2023" role="doc-biblioref">Alizadeh et al. 2023</a>)</span></td>
+<td>Weights on flash</td>
+<td>Load only the weights a token needs</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Faiss <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span></td>
+<td>External</td>
+<td>Vector indexes, IVF and beyond</td>
+<td><a href="https://github.com/facebookresearch/faiss">facebookresearch/faiss</a></td>
+</tr>
+<tr class="even">
+<td>MemGPT / Letta <span class="citation" data-cites="packer2023">(<a href="#ref-packer2023" role="doc-biblioref">Packer et al. 2023</a>)</span></td>
+<td>External, agent</td>
+<td>The context as virtual memory</td>
+<td><a href="https://github.com/letta-ai/letta">letta-ai/letta</a></td>
+</tr>
+<tr class="odd">
+<td>Mem0 <span class="citation" data-cites="chhikara2025">(<a href="#ref-chhikara2025" role="doc-biblioref">Chhikara et al. 2025</a>)</span></td>
+<td>External, agent</td>
+<td>Extract and update memories across sessions</td>
+<td><a href="https://github.com/mem0ai/mem0">mem0ai/mem0</a></td>
+</tr>
+<tr class="even">
+<td>A-MEM <span class="citation" data-cites="xu2025amem">(<a href="#ref-xu2025amem" role="doc-biblioref">Xu et al. 2025</a>)</span></td>
+<td>External, agent</td>
+<td>Linked notes that reorganise themselves</td>
+<td><a href="https://github.com/agiresearch/A-mem">agiresearch/A-mem</a></td>
+</tr>
+<tr class="odd">
+<td>llama.cpp</td>
+<td>All, locally</td>
+<td>Quantised weights and KV cache on a laptop</td>
+<td><a href="https://github.com/ggml-org/llama.cpp">ggml-org/llama.cpp</a></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-this-experiment-does-not-show" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-experiment-does-not-show">9. What this experiment does not show</h2>
+<ul>
+<li><strong>My facts are random.</strong> Real knowledge has structure a model can compress, so weights may do better than my networks.</li>
+<li><strong>My networks are tiny:</strong> two layers, at most 19,000 parameters.</li>
+<li><strong>My questions are synthetic.</strong> Real retrieval must embed a question first; it can miss, or find the fact and see the model ignore it.</li>
+<li><strong>Plain fine-tuning is the weakest editor.</strong> Better methods narrow the gap, but still edit weights that every fact shares.</li>
+<li><strong>NumPy is not a serving engine</strong>, which is why Figure 6 also gives the byte count.</li>
+<li><strong>Zipf is a model.</strong> A specialist’s questions may have a shorter tail, which argues for specialists.</li>
+</ul>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">10. Conclusion</h2>
+<p>We say a model <em>knows</em> something as if knowledge lived in one place. It lives in four, at four prices: dense weights read on every token, a working memory that grows with every token, a bulky but cheap and correctable lookup, and habits that cost almost nothing once built. Large models can afford to blur them. Small ones cannot, and that is their advantage. Keep in the weights what is used on every token, keep the working memory short, look up the long tail, compile what repeats.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a><br>
+The architecture these four memories fit into.</p>
+</div>
+<div class="small">
+<p><em>The views in this essay are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-ainslie2023" class="csl-entry" role="listitem">
+Ainslie, Joshua, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. 2023. <span>“<span>GQA</span>: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.”</span> <em>arXiv Preprint arXiv:2305.13245</em>. <a href="https://arxiv.org/abs/2305.13245">https://arxiv.org/abs/2305.13245</a>.
+</div>
+<div id="ref-alizadeh2023" class="csl-entry" role="listitem">
+Alizadeh, Keivan, Iman Mirzadeh, Dmitry Belenko, et al. 2023. <span>“<span>LLM</span> in a Flash: Efficient Large Language Model Inference with Limited Memory.”</span> <em>arXiv Preprint arXiv:2312.11514</em>. <a href="https://arxiv.org/abs/2312.11514">https://arxiv.org/abs/2312.11514</a>.
+</div>
+<div id="ref-allenzhu2025" class="csl-entry" role="listitem">
+Allen-Zhu, Zeyuan, and Yuanzhi Li. 2025. <span>“Physics of Language Models: Part 3.3, Knowledge Capacity Scaling Laws.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2404.05405">https://arxiv.org/abs/2404.05405</a>.
+</div>
+<div id="ref-behrouz2024" class="csl-entry" role="listitem">
+Behrouz, Ali, Peilin Zhong, and Vahab Mirrokni. 2024. <span>“Titans: Learning to Memorize at Test Time.”</span> <em>arXiv Preprint arXiv:2501.00663</em>. <a href="https://arxiv.org/abs/2501.00663">https://arxiv.org/abs/2501.00663</a>.
+</div>
+<div id="ref-berges2024" class="csl-entry" role="listitem">
+Berges, Vincent-Pierre, Barlas Oğuz, Daniel Haziza, Wen-tau Yih, Luke Zettlemoyer, and Gargi Ghosh. 2024. <span>“Memory Layers at Scale.”</span> <em>arXiv Preprint arXiv:2412.09764</em>. <a href="https://arxiv.org/abs/2412.09764">https://arxiv.org/abs/2412.09764</a>.
+</div>
+<div id="ref-chhikara2025" class="csl-entry" role="listitem">
+Chhikara, Prateek, Dev Khant, Saket Aryan, Taranjeet Singh, and Deshraj Yadav. 2025. <span>“<span>Mem0</span>: Building Production-Ready <span>AI</span> Agents with Scalable Long-Term Memory.”</span> <em>arXiv Preprint arXiv:2504.19413</em>. <a href="https://arxiv.org/abs/2504.19413">https://arxiv.org/abs/2504.19413</a>.
+</div>
+<div id="ref-cover1965" class="csl-entry" role="listitem">
+Cover, Thomas M. 1965. <span>“Geometrical and Statistical Properties of Systems of Linear Inequalities with Applications in Pattern Recognition.”</span> <em>IEEE Transactions on Electronic Computers</em> EC-14 (3): 326–34. <a href="https://doi.org/10.1109/PGEC.1965.264137">https://doi.org/10.1109/PGEC.1965.264137</a>.
+</div>
+<div id="ref-engram2026" class="csl-entry" role="listitem">
+DeepSeek-AI. 2026. <em>Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models</em>. Github.com/deepseek-ai/Engram. <a href="https://github.com/deepseek-ai/Engram">https://github.com/deepseek-ai/Engram</a>.
+</div>
+<div id="ref-douze2024" class="csl-entry" role="listitem">
+Douze, Matthijs, Alexandr Guzhva, Chengqi Deng, et al. 2024. <span>“The <span>Faiss</span> Library.”</span> <em>arXiv Preprint arXiv:2401.08281</em>. <a href="https://arxiv.org/abs/2401.08281">https://arxiv.org/abs/2401.08281</a>.
+</div>
+<div id="ref-eyuboglu2026" class="csl-entry" role="listitem">
+<span class="nocase">Eyuboglu, Sabri, Ryan Ehrlich, Simran Arora, et al.</span> 2026. <span>“Cartridges: Lightweight and General-Purpose Long Context Representations via Self-Study.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2506.06266">https://arxiv.org/abs/2506.06266</a>.
+</div>
+<div id="ref-gemma3" class="csl-entry" role="listitem">
+Gemma Team. 2025. <span>“Gemma 3 Technical Report.”</span> <em>arXiv Preprint arXiv:2503.19786</em>. <a href="https://arxiv.org/abs/2503.19786">https://arxiv.org/abs/2503.19786</a>.
+</div>
+<div id="ref-gemma3n" class="csl-entry" role="listitem">
+Google. 2025. <em>Gemma 3n Model Overview</em>. Ai.google.dev. <a href="https://ai.google.dev/gemma/docs/gemma-3n">https://ai.google.dev/gemma/docs/gemma-3n</a>.
+</div>
+<div id="ref-gupta2024" class="csl-entry" role="listitem">
+Gupta, Akshat, Anurag Rao, and Gopala Anumanchipalli. 2024. <span>“Model Editing at Scale Leads to Gradual and Catastrophic Forgetting.”</span> <em>Findings of the Association for Computational Linguistics (ACL)</em>. <a href="https://arxiv.org/abs/2401.07453">https://arxiv.org/abs/2401.07453</a>.
+</div>
+<div id="ref-kandpal2023" class="csl-entry" role="listitem">
+Kandpal, Nikhil, Haikang Deng, Adam Roberts, Eric Wallace, and Colin Raffel. 2023. <span>“Large Language Models Struggle to Learn Long-Tail Knowledge.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.08411">https://arxiv.org/abs/2211.08411</a>.
+</div>
+<div id="ref-lewis2020" class="csl-entry" role="listitem">
+Lewis, Patrick, Ethan Perez, Aleksandra Piktus, et al. 2020. <span>“Retrieval-Augmented Generation for Knowledge-Intensive <span>NLP</span> Tasks.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
+</div>
+<div id="ref-liu2024kivi" class="csl-entry" role="listitem">
+Liu, Zirui, Jiayi Yuan, Hongye Jin, et al. 2024. <span>“<span>KIVI</span>: A Tuning-Free Asymmetric 2bit Quantization for <span>KV</span> Cache.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2402.02750">https://arxiv.org/abs/2402.02750</a>.
+</div>
+<div id="ref-mallen2023" class="csl-entry" role="listitem">
+Mallen, Alex, Akari Asai, Victor Zhong, Rajarshi Das, Daniel Khashabi, and Hannaneh Hajishirzi. 2023. <span>“When Not to Trust Language Models: Investigating Effectiveness of Parametric and Non-Parametric Memories.”</span> <em>Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (ACL)</em>. <a href="https://arxiv.org/abs/2212.10511">https://arxiv.org/abs/2212.10511</a>.
+</div>
+<div id="ref-mccloskey1989" class="csl-entry" role="listitem">
+McCloskey, Michael, and Neal J. Cohen. 1989. <span>“Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem.”</span> In <em>Psychology of Learning and Motivation</em>, vol. 24. Academic Press. <a href="https://doi.org/10.1016/S0079-7421(08)60536-8">https://doi.org/10.1016/S0079-7421(08)60536-8</a>.
+</div>
+<div id="ref-meng2022" class="csl-entry" role="listitem">
+Meng, Kevin, David Bau, Alex Andonian, and Yonatan Belinkov. 2022. <span>“Locating and Editing Factual Associations in <span>GPT</span>.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2202.05262">https://arxiv.org/abs/2202.05262</a>.
+</div>
+<div id="ref-meng2023" class="csl-entry" role="listitem">
+Meng, Kevin, Arnab Sen Sharma, Alex Andonian, Yonatan Belinkov, and David Bau. 2023. <span>“Mass-Editing Memory in a Transformer.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2210.07229">https://arxiv.org/abs/2210.07229</a>.
+</div>
+<div id="ref-llama32" class="csl-entry" role="listitem">
+Meta. 2024. <em>Llama 3.2 Model Card</em>. Github.com/meta-llama/llama-models. <a href="https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md">https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md</a>.
+</div>
+<div id="ref-packer2023" class="csl-entry" role="listitem">
+Packer, Charles, Sarah Wooders, Kevin Lin, et al. 2023. <span>“<span>MemGPT</span>: Towards <span>LLMs</span> as Operating Systems.”</span> <em>arXiv Preprint arXiv:2310.08560</em>. <a href="https://arxiv.org/abs/2310.08560">https://arxiv.org/abs/2310.08560</a>.
+</div>
+<div id="ref-pouransari2026" class="csl-entry" role="listitem">
+Pouransari, Hadi, David Grangier, C Thomas, Michael Kirchhof, and Oncel Tuzel. 2026. <span>“Pretraining with Hierarchical Memories: Separating Long-Tail and Common Knowledge.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2510.02375">https://arxiv.org/abs/2510.02375</a>.
+</div>
+<div id="ref-xu2025amem" class="csl-entry" role="listitem">
+Xu, Wujiang, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, and Yongfeng Zhang. 2025. <span>“<span>A-MEM</span>: Agentic Memory for <span>LLM</span> Agents.”</span> <em>arXiv Preprint arXiv:2502.12110</em>. <a href="https://arxiv.org/abs/2502.12110">https://arxiv.org/abs/2502.12110</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Where {Memory} {Lives}},
+  date = {2026-10-26},
+  url = {https://scuenat.github.io/posts/2026-10-26-where-memory-lives/},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Where Memory Lives.”</span> October 26.
+<a href="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/">https://scuenat.github.io/posts/2026-10-26-where-memory-lives/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

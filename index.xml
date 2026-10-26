@@ -15,7 +15,374 @@
 <link>https://scuenat.github.io/</link>
 </image>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Sat, 24 Oct 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 26 Oct 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Where Memory Lives</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-10-26-where-memory-lives/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>An experiment, October 2026.</strong> Every number in Experiments 1 to 4 comes from <a href="sim.py">sim.py</a>, plain NumPy on a 4-core cloud CPU, with results in <a href="results.json">results.json</a> and figures from <a href="figs.py">figs.py</a>. Other people’s numbers are cited where they appear. The networks are deliberately tiny: they test the shape of an argument, not any product. This essay puts to the test two ideas from <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> and <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>: bandwidth, and memory outside the weights.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> A language model keeps what it knows in four places: its weights, its working memory (the KV cache), whatever it can look up, and the habits it has compiled. Each is paid for at a different moment, and for a small model on a laptop that decides the design. Four experiments led me to one rule: <strong>keep in the weights what is used on every token; look up everything else, and keep what you look up short.</strong></p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Weights are the densest memory, and the most expensive to read.</strong> My networks held up to 1.7 bits per parameter, and a model reads all of them for every token.</li>
+<li><strong>Weights are hard to edit.</strong> Fine-tuning on 150 changed or new facts never kept both the edits and the other facts. Rehearsing everything did, after 630,000 training examples. A table needed 150 writes.</li>
+<li><strong>Looking up is cheap; rereading what you looked up is not.</strong> An index searched four million facts in 0.5 ms. But three retrieved passages then cost a 1B model 29 MB on every generated token.</li>
+<li><strong>Small models hit the working-memory wall first.</strong> At 4-bit weights, the cache of Llama 3.2 1B outweighs its weights from about 19,000 tokens.</li>
+<li><strong>Knowledge has a long tail.</strong> Under Zipf’s law, each tenfold increase in facts held answers the same extra slice of questions. Weights cover the head; the tail belongs in a lookup.</li>
+</ul>
+</div>
+</div>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">1. The question</h2>
+<p>Debates about small language models usually ask how much of a large model fits on a laptop. That treats a model as one block of knowledge to compress. I think the better question is <em>what should live where?</em></p>
+<p>Generating a token on a laptop is limited by memory bandwidth, not arithmetic: the machine reads every weight, and the whole cache of the conversation, for every token <span class="citation" data-cites="alizadeh2023">(Alizadeh et al. 2023)</span>. So where knowledge lives decides what it costs.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic, my own. Four memories of a language model, ordered by how often you pay for them."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.svg" class="img-fluid figure-img" alt="Four cards side by side. Weights, parametric memory: what the model knows, read in full for every token. KV cache, working memory: what it is reading now, grows with the context and is read for every token. Lookup, external memory: documents, records, past cases, a few rows only when asked. Habits, compiled memory: verified answers and small models, built once and reused in milliseconds. An arrow underneath runs from paid on every token to paid rarely."></a></p>
+<figcaption><strong>Figure 1.</strong> Schematic, my own. Four memories of a language model, ordered by how often you pay for them.</figcaption>
+</figure>
+</div>
+</section>
+<section id="experiment-1-how-many-facts-fit-in-the-weights" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-1-how-many-facts-fit-in-the-weights">2. Experiment 1: how many facts fit in the weights</h2>
+<p><strong>Setup.</strong> A fact is a key (a random vector of 32 numbers, standing for a question) and a value, one of <img src="https://latex.codecogs.com/png.latex?V%20=%20256"> answers: <img src="https://latex.codecogs.com/png.latex?%5Clog_2%20256%20=%208"> bits. The memory is a two-layer network,</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Af_%5Ctheta(x)%20=%20W_2%5C,%5Cmathrm%7BReLU%7D(W_1%20x%20+%20b_1)%20+%20b_2,%20%5Cqquad%20%7C%5Ctheta%7C%20=%2032h%20+%20h%20+%20256h%20+%20256,%0A"></p>
+<p>with hidden width <img src="https://latex.codecogs.com/png.latex?h%20%5Cin%20%5C%7B8,%2016,%2032,%2064%5C%7D">: 2,568 to 18,752 parameters. Each network learned <img src="https://latex.codecogs.com/png.latex?N"> facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li <span class="citation" data-cites="allenzhu2025">(Allen-Zhu and Li 2025)</span>, I count the bits it holds as</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AB(%5Ctheta)%20=%20%5Csum_%7Bi=1%7D%5E%7BN%7D%20%5Cmax%5C!%5CBig(0,%5C;%20%5Clog_2%20V%20+%20%5Clog_2%20p_%5Ctheta(y_i%20%5Cmid%20x_i)%5CBig),%0A"></p>
+<p>what its prediction knows about each answer beyond a uniform guess.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Experiment 1, measured, three seeds per point. Left: bits stored against bits offered; the band is one standard deviation. Right: bits stored per parameter; amber diamonds repeat three runs with three times more training."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig02.svg" class="img-fluid figure-img" alt="Left, four lines of bits stored against bits offered, for networks of 2,568, 4,880, 9,504 and 18,752 parameters, each the mean of three seeds with a narrow band. Each follows the diagonal, where every bit offered is kept, then peaks and flattens slightly lower. Right, bits stored per parameter against bits offered per parameter, with small error bars: all four networks rise along the same line to a peak of 1.40, 1.53, 1.68 and 1.67, then settle near 1.4. Three amber diamonds for three times more training sit slightly higher: 1.80, 1.55 and 1.49. A dashed amber line at 2 marks the capacity of a perceptron and of language models."></a></p>
+<figcaption><strong>Figure 2.</strong> Experiment 1, measured, three seeds per point. Left: bits stored against bits offered; the band is one standard deviation. Right: bits stored per parameter; amber diamonds repeat three runs with three times more training.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Below capacity, every network kept every bit. Near capacity it peaked at 1.40 bits per parameter for the smallest network, 1.53 for the next, and 1.68 and 1.67 for the two largest, with seeds never more than 0.04 apart. Past capacity it stored less, not more: about 1.4 bits per parameter, with accuracy down to a fifth or a third. Three times more training lifted the peak to 1.80 but barely changed the decline (1.52 to 1.55, 1.45 to 1.49), so the decline is mostly interference between facts, not too little training.</p>
+<p>The number is old: Cover showed in 1965 that a perceptron stores about two bits per weight <span class="citation" data-cites="cover1965">(Cover 1965)</span>, and Allen-Zhu and Li measured about two bits per parameter in transformers <span class="citation" data-cites="allenzhu2025">(Allen-Zhu and Li 2025)</span>. <strong>Weights are a very dense memory</strong>: an 8-bit fact costs about five parameters, under five bytes at 8-bit precision. Quantised to 4 bits after training, the precision most small models run at, their models lost more than half of it.</p>
+</section>
+<section id="experiment-2-changing-ones-mind" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-2-changing-ones-mind">3. Experiment 2: changing one’s mind</h2>
+<p><strong>Setup.</strong> A network of 18,752 parameters learned 1,500 facts perfectly. Then 75 facts changed and 75 new ones appeared. I updated it in two ways, each over 4 learning rates and 3 training lengths: fine-tuning on the 150 <strong>edits only</strong>, or <strong>rehearsing everything</strong>, all 1,575 facts. An external table got the same edits: overwrite 75 rows, add 75.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Experiment 2, measured. Left: each of the 24 fine-tuning runs, by the share of edits learned and of the other 1,425 facts kept; larger markers trained longer. Right: the worse of the two shares against training examples processed."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig03.svg" class="img-fluid figure-img" alt="Left, a scatter plot. Horizontal axis: share of the 150 edits learned. Vertical axis: share of the 1,425 other facts kept. Rehearse everything runs, as squares, sit along the top at 100 percent kept, from 0 to 100 percent of edits learned. Edits only runs, as circles, fall along a diagonal from 100 percent kept with no edits learned to about 30 percent kept with all edits learned. A green diamond at the top right marks the external table. Right, the worse of the two shares against training examples processed on a log scale: edits only runs stay below 50 percent; rehearse everything runs reach 100 percent at about 630,000 examples and above."></a></p>
+<figcaption><strong>Figure 3.</strong> Experiment 2, measured. Left: each of the 24 fine-tuning runs, by the share of edits learned and of the other 1,425 facts kept; larger markers trained longer. Right: the worse of the two shares against training examples processed.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Fine-tuning on the edits alone never got both right. The runs that learned 97% or more of the edits kept only 28% to 35% of the other facts; the best compromise kept 48% and learned 47%. Rehearsing everything got both to 100%, after 630,000 training examples, a cost that grows with everything the network knows. The table needed 150 writes and 0.04 ms.</p>
+<p>Catastrophic interference is not new <span class="citation" data-cites="mccloskey1989">(McCloskey and Cohen 1989)</span>, and editing methods such as ROME and MEMIT do far better than plain fine-tuning <span class="citation" data-cites="meng2022 meng2023">(Meng et al. 2022, 2023)</span>, though models still degrade as edits accumulate <span class="citation" data-cites="gupta2024">(Gupta et al. 2024)</span>. The point is the contrast: in a table, an edit is local by construction; in weights, every fact shares every parameter. Contacts change, prices change, a client asks you to delete their data. A memory you can overwrite row by row is one you can keep true.</p>
+</section>
+<section id="experiment-3-looking-it-up" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-3-looking-it-up">4. Experiment 3: looking it up</h2>
+<p><strong>Setup.</strong> I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, <img src="https://latex.codecogs.com/png.latex?O(Nd)">. An inverted-file index (IVF) groups the keys into <img src="https://latex.codecogs.com/png.latex?c%20=%204%5Csqrt%7BN%7D"> clusters and searches only the <img src="https://latex.codecogs.com/png.latex?p"> nearest, <img src="https://latex.codecogs.com/png.latex?O%5Cbig((c%20+%20pN/c)%5C,d%5Cbig)">, which grows like <img src="https://latex.codecogs.com/png.latex?%5Csqrt%7BN%7D"> <span class="citation" data-cites="douze2024">(Douze et al. 2024)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Experiment 3, measured. Left: time per easy question against facts in memory. Right: one million facts at five noise levels; each line probes 1, 4, 16 and 64 clusters, and the star is exact search."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig04.svg" class="img-fluid figure-img" alt="Left, a log-log chart of time per question against facts in memory, from ten thousand to four million: exact search rises from 0.1 to 100 milliseconds; an index probing 16 clusters from 0.1 to 1.4 milliseconds; probing 4 clusters from 0.03 to 0.5 milliseconds. Right, share of questions answered with the right fact against time per question, for five noise levels: probing 1 cluster finds 80 to 95 percent in about 0.12 milliseconds; probing 4 clusters reaches the same share as exact search, 100 percent for four levels and 95.5 percent against 96 for the noisiest, in about 0.25 milliseconds, while exact search takes about 24 milliseconds."></a></p>
+<figcaption><strong>Figure 4.</strong> Experiment 3, measured. Left: time per easy question against facts in memory. Right: one million facts at five noise levels; each line probes 1, 4, 16 and 64 clusters, and the star is exact search.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> Exact search took 29 ms over a million facts and 100 ms over four million. Probing 4 clusters took 0.25 and 0.5 ms, reading 5 and 11 MB. On harder questions, one cluster missed 5% to 20%, while four clusters matched exact search (95.5% against 96% at the noisiest level). My clustered keys flatter any index: on real embeddings, the same recall takes more clusters, and more time.</p>
+<p>An external memory is less compact than weights: 1,024 bytes per fact here, or 8 to 64 bytes with compressed codes <span class="citation" data-cites="douze2024">(Douze et al. 2024)</span>, against under five in the weights. But weights are read in full for every token. A lookup reads a few megabytes, only when a question needs it.</p>
+<section id="what-a-looked-up-fact-really-costs" class="level3">
+<h3 class="anchored" data-anchor-id="what-a-looked-up-fact-really-costs">What a looked-up fact really costs</h3>
+<p>In retrieval-augmented generation <span class="citation" data-cites="lewis2020">(Lewis et al. 2020)</span>, what the index finds is pasted into the prompt. From then on it sits in the working memory and is reread for every generated token.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Computed for Llama 3.2 1B from the measurements above. Megabytes read per generated token, log scale. The search is paid once per question; retrieved passages on every token."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig05.svg" class="img-fluid figure-img" alt="Horizontal bars on a logarithmic scale, in megabytes read per generated token for Llama 3.2 1B. A model ten times larger, 4-bit 12B: 6,200. Weights of the model, 4-bit 1B: 620. Conversation so far, 2,000 tokens, fp16 cache: 66. Three retrieved passages, 900 tokens, fp16 cache: 29. The same passages with a 2-bit cache: 4. The index search itself, spread over a 200-token answer: 0.05."></a></p>
+<figcaption><strong>Figure 5.</strong> Computed for Llama 3.2 1B from the measurements above. Megabytes read per generated token, log scale. The search is paid once per question; retrieved passages on every token.</figcaption>
+</figure>
+</div>
+<p>Each token of context costs this model 32 KB. Three passages of 300 tokens add 29 MB to every generated token, over five hundred times the search itself. That is still only 5% of the 620 MB of weights, and far less than a model ten times larger, which would read 6,200 MB per token to answer about 11 more points of questions (Section 6). A lookup is cheap only if what it brings back is short: a fact, not three pages.</p>
+<p>That is why recent architectures put the lookup <em>inside</em> the model, where a fetched fact never becomes context. Meta’s memory layers read a few rows of a trainable table per token and beat dense models with more than twice the compute, most on factual questions <span class="citation" data-cites="berges2024">(Berges et al. 2024)</span>. DeepSeek’s Engram adds a hashed n-gram table read in constant time <span class="citation" data-cites="engram2026">(DeepSeek-AI 2026)</span>. Gemma 3n keeps per-layer embeddings on local storage <span class="citation" data-cites="gemma3n">(Google 2025)</span>.</p>
+</section>
+</section>
+<section id="experiment-4-the-working-memory" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-4-the-working-memory">5. Experiment 4: the working memory</h2>
+<p><strong>Setup.</strong> The KV cache stores a key and a value per token, layer and key-value head:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7BKV%20bytes%20per%20token%7D%20=%202%20%5Ccdot%20L%20%5Ccdot%20n_%7Bkv%7D%20%5Ccdot%20d_h%20%5Ccdot%20b.%0A"></p>
+<p>Each new token reads the whole cache and all the weights, so the cache weighs as much as the weights at</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AT%5E%7B*%7D%20=%20%5Cfrac%7B%7C%5Ctheta%7C%20%5Ccdot%20b_w%7D%7B2%20%5Ccdot%20L%20%5Ccdot%20n_%7Bkv%7D%20%5Ccdot%20d_h%20%5Ccdot%20b_%7Bkv%7D%7D.%0A"></p>
+<p>I timed one layer shaped like Llama 3.2 1B <span class="citation" data-cites="llama32">(Meta 2024)</span> generating a token over caches of 1,000 to 131,000 tokens.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig06.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Experiment 4. Left, measured: time per generated token for one Llama-3.2-1B layer, weights against attention over the cache. Right, from published configurations: the context at which cache and weights weigh the same."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig06.svg" class="img-fluid figure-img" alt="Left, a log-log chart of time per generated token for one layer against context length from 1k to 128k tokens: the weights are flat at 3.6 milliseconds; attention over the KV cache rises from 0.3 to 49 milliseconds, crossing the weights at about 15k tokens; a dotted line at 59k marks where cache and weights hold the same number of bytes. Right, horizontal bars of the context at which the cache weighs as much as the weights. Llama 3.2 1B: 76k with 16-bit weights, 19k with 4-bit weights, 151k with 4-bit weights and a 2-bit cache. Llama 3.2 3B: 56k, 14k, 112k. Llama 3.1 8B: 123k, 31k, 245k. Llama 3.1 70B: 431k, 108k, 862k."></a></p>
+<figcaption><strong>Figure 6.</strong> Experiment 4. Left, measured: time per generated token for one Llama-3.2-1B layer, weights against attention over the cache. Right, from published configurations: the context at which cache and weights weigh the same.</figcaption>
+</figure>
+</div>
+<p><strong>Result.</strong> The weights cost 3.6 ms per token at any context. Attention cost 0.3 ms at 1,000 tokens, matched the weights at about 15,000 and took 49 ms at 131,000. By bytes alone the crossover is 59,000; my NumPy attention is slower than a matrix product, so it came earlier.</p>
+<p>The formula gives 76,000 tokens for Llama 3.2 1B in 16 bits. Quantise the weights to 4 bits and it falls to <strong>19,000</strong>: a long document, or one agent loop with a few tool outputs. For Llama 3.1 70B it is 108,000. <strong>Shrinking the weights moves the bottleneck to the working memory.</strong> The remedies all keep that memory short: grouped-query attention <span class="citation" data-cites="ainslie2023">(Ainslie et al. 2023)</span>, sliding windows on five of every six layers in Gemma 3 <span class="citation" data-cites="gemma3">(Gemma Team 2025)</span>, 2-bit caches <span class="citation" data-cites="liu2024kivi">(Liu et al. 2024)</span>, which push the 1B crossover back to 151,000, and Cartridges, small caches trained offline that match in-context learning with 38.6 times less memory <span class="citation" data-cites="eyuboglu2026">(<span class="nocase">Eyuboglu et al.</span> 2026)</span>.</p>
+</section>
+<section id="the-arithmetic-of-the-long-tail" class="level2">
+<h2 class="anchored" data-anchor-id="the-arithmetic-of-the-long-tail">6. The arithmetic of the long tail</h2>
+<p>How much should stay in the weights? Questions are not uniform: models know popular facts far better than rare ones <span class="citation" data-cites="kandpal2023">(Kandpal et al. 2023)</span>, and retrieval helps most on the rare ones <span class="citation" data-cites="mallen2023">(Mallen et al. 2023)</span>. If the <img src="https://latex.codecogs.com/png.latex?k">-th most asked of <img src="https://latex.codecogs.com/png.latex?F"> facts is asked with probability proportional to <img src="https://latex.codecogs.com/png.latex?k%5E%7B-s%7D"> (Zipf’s law), a memory holding the <img src="https://latex.codecogs.com/png.latex?K"> most asked answers</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bcoverage%7D(K)%20=%20%5Cfrac%7BH_%7BK,s%7D%7D%7BH_%7BF,s%7D%7D,%20%5Cqquad%20H_%7Bn,s%7D%20=%20%5Csum_%7Bk=1%7D%5E%7Bn%7D%20k%5E%7B-s%7D.%0A"></p>
+<p>For <img src="https://latex.codecogs.com/png.latex?s%20=%201">, <img src="https://latex.codecogs.com/png.latex?H_n%20%5Capprox%20%5Cln%20n%20+%200.577">, so each tenfold step adds the same share,</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bcoverage%7D(10K)%20-%20%5Ctext%7Bcoverage%7D(K)%20%5Capprox%20%5Cfrac%7B%5Cln%2010%7D%7B%5Cln%20F%20+%200.577%7D,%0A"></p>
+<p>about 11 points with a billion facts.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig07.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Computed. Share of questions answered by a memory holding the most asked facts, in a world of one billion facts, for three tails."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig07.svg" class="img-fluid figure-img" alt="Three rising curves on a logarithmic horizontal axis from a hundred to a billion facts. The Zipf curve with s equal to 1 rises in a nearly straight line, from about 25 percent at a hundred facts to 100 percent at a billion. Two amber arrows mark that each tenfold increase adds the same slice of about 11 points. A flatter tail with s equal to 0.9 lies below, a steeper tail with s equal to 1.1 above."></a></p>
+<figcaption><strong>Figure 7.</strong> Computed. Share of questions answered by a memory holding the most asked facts, in a world of one billion facts, for three tails.</figcaption>
+</figure>
+</div>
+<p>A model ten times larger reads ten times more per token for 11 more points. An index ten times larger reads about three times more, once per question. The head belongs in the weights, where it is used constantly; the tail belongs in a lookup. Apple’s hierarchical memories make this split in pretraining: a 160M model fetching 18M parameters from a 4.6B memory bank matched a regular model over twice its size <span class="citation" data-cites="pouransari2026">(Pouransari et al. 2026)</span>.</p>
+</section>
+<section id="what-it-means-for-small-models-and-fast-ai" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-means-for-small-models-and-fast-ai">7. What it means for small models and Fast AI</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig08.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. A proposal, my own. A small model reasons; a short working memory, an editable external memory and compiled habits surround it; a slow loop moves knowledge between them."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig08.svg" class="img-fluid figure-img" alt="Diagram. A dark card in the centre: small model, reasons; language, reasoning, tools; 1 to 4B parameters at 4 bits. Top left, working memory: sliding window, 2-bit cache, summaries instead of transcripts, labelled bounded per token. Bottom left, lookup: indexed external memory on flash, editable and deletable, labelled a few rows per question. Top right, habits: verified answers, small trees, adapters, labelled checked first, milliseconds. Bottom right, learning: slow consolidation at night. Dashed arrows run from consolidation to habits and to the external memory, labelled writes and corrections."></a></p>
+<figcaption><strong>Figure 8.</strong> A proposal, my own. A small model reasons; a short working memory, an editable external memory and compiled habits surround it; a slow loop moves knowledge between them.</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Keep in the weights what is used on every token:</strong> language, reasoning, tool use, the structure of a domain. Not the price list.</li>
+<li><strong>Keep the working memory short:</strong> summaries rather than transcripts, a compressed cache, a window.</li>
+<li><strong>Look up the long tail, and bring back little:</strong> the fact, not the page. Every row can be inspected, corrected and deleted.</li>
+<li><strong>Compile what repeats,</strong> as in <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>: a verified answer, a small tree or an adapter, checked before the model is called.</li>
+<li><strong>Consolidate slowly:</strong> what is looked up constantly may earn a place in a habit; what is wrong is deleted, in one line, not one training run.</li>
+</ol>
+<p>Agent memory systems are building the top of this stack: MemGPT, now Letta, pages context like an operating system <span class="citation" data-cites="packer2023">(Packer et al. 2023)</span>; Mem0 and A-MEM extract and link memories across sessions <span class="citation" data-cites="chhikara2025 xu2025amem">(Chhikara et al. 2025; Xu et al. 2025)</span>; Titans learns a memory at test time <span class="citation" data-cites="behrouz2024">(Behrouz et al. 2024)</span>. A small model has the least room in its weights and the least bandwidth to spare, so it gains the most from putting each memory in the right place.</p>
+</section>
+<section id="recent-work-with-code" class="level2">
+<h2 class="anchored" data-anchor-id="recent-work-with-code">8. Recent work, with code</h2>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> Recent work on the four memories. Code links checked on 25 October 2026. Benchmarks of agent memory systems are still young, and the vendors’ own scores often disagree with independent ones; I would compare them on your own data.</caption>
+<thead>
+<tr class="header">
+<th>Work</th>
+<th>Memory it addresses</th>
+<th>Idea</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Physics of Language Models 3.3 <span class="citation" data-cites="allenzhu2025">(Allen-Zhu and Li 2025)</span></td>
+<td>Weights</td>
+<td>About 2 bits of knowledge per parameter</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Memory Layers at Scale <span class="citation" data-cites="berges2024">(Berges et al. 2024)</span></td>
+<td>Weights, sparse</td>
+<td>Trainable key-value lookup inside the model</td>
+<td><a href="https://github.com/facebookresearch/memory">facebookresearch/memory</a></td>
+</tr>
+<tr class="odd">
+<td>Engram <span class="citation" data-cites="engram2026">(DeepSeek-AI 2026)</span></td>
+<td>Weights, sparse</td>
+<td>Hashed n-gram memory, constant-time lookup</td>
+<td><a href="https://github.com/deepseek-ai/Engram">deepseek-ai/Engram</a></td>
+</tr>
+<tr class="even">
+<td>Hierarchical memories <span class="citation" data-cites="pouransari2026">(Pouransari et al. 2026)</span></td>
+<td>Weights + bank</td>
+<td>Small model, long-tail facts in a fetched memory bank</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Titans <span class="citation" data-cites="behrouz2024">(Behrouz et al. 2024)</span></td>
+<td>Learned at test time</td>
+<td>A neural memory updated during inference</td>
+<td><a href="https://github.com/lucidrains/titans-pytorch">lucidrains/titans-pytorch</a> (unofficial)</td>
+</tr>
+<tr class="even">
+<td>KIVI <span class="citation" data-cites="liu2024kivi">(Liu et al. 2024)</span></td>
+<td>Working memory</td>
+<td>2-bit KV cache, no fine-tuning</td>
+<td><a href="https://github.com/jy-yuan/KIVI">jy-yuan/KIVI</a></td>
+</tr>
+<tr class="odd">
+<td>Cartridges <span class="citation" data-cites="eyuboglu2026">(<span class="nocase">Eyuboglu et al.</span> 2026)</span></td>
+<td>Working memory</td>
+<td>A small cache trained offline per corpus</td>
+<td><a href="https://github.com/HazyResearch/cartridges">HazyResearch/cartridges</a></td>
+</tr>
+<tr class="even">
+<td>LLM in a Flash <span class="citation" data-cites="alizadeh2023">(Alizadeh et al. 2023)</span></td>
+<td>Weights on flash</td>
+<td>Load only the weights a token needs</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Faiss <span class="citation" data-cites="douze2024">(Douze et al. 2024)</span></td>
+<td>External</td>
+<td>Vector indexes, IVF and beyond</td>
+<td><a href="https://github.com/facebookresearch/faiss">facebookresearch/faiss</a></td>
+</tr>
+<tr class="even">
+<td>MemGPT / Letta <span class="citation" data-cites="packer2023">(Packer et al. 2023)</span></td>
+<td>External, agent</td>
+<td>The context as virtual memory</td>
+<td><a href="https://github.com/letta-ai/letta">letta-ai/letta</a></td>
+</tr>
+<tr class="odd">
+<td>Mem0 <span class="citation" data-cites="chhikara2025">(Chhikara et al. 2025)</span></td>
+<td>External, agent</td>
+<td>Extract and update memories across sessions</td>
+<td><a href="https://github.com/mem0ai/mem0">mem0ai/mem0</a></td>
+</tr>
+<tr class="even">
+<td>A-MEM <span class="citation" data-cites="xu2025amem">(Xu et al. 2025)</span></td>
+<td>External, agent</td>
+<td>Linked notes that reorganise themselves</td>
+<td><a href="https://github.com/agiresearch/A-mem">agiresearch/A-mem</a></td>
+</tr>
+<tr class="odd">
+<td>llama.cpp</td>
+<td>All, locally</td>
+<td>Quantised weights and KV cache on a laptop</td>
+<td><a href="https://github.com/ggml-org/llama.cpp">ggml-org/llama.cpp</a></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-this-experiment-does-not-show" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-experiment-does-not-show">9. What this experiment does not show</h2>
+<ul>
+<li><strong>My facts are random.</strong> Real knowledge has structure a model can compress, so weights may do better than my networks.</li>
+<li><strong>My networks are tiny:</strong> two layers, at most 19,000 parameters.</li>
+<li><strong>My questions are synthetic.</strong> Real retrieval must embed a question first; it can miss, or find the fact and see the model ignore it.</li>
+<li><strong>Plain fine-tuning is the weakest editor.</strong> Better methods narrow the gap, but still edit weights that every fact shares.</li>
+<li><strong>NumPy is not a serving engine</strong>, which is why Figure 6 also gives the byte count.</li>
+<li><strong>Zipf is a model.</strong> A specialist’s questions may have a shorter tail, which argues for specialists.</li>
+</ul>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">10. Conclusion</h2>
+<p>We say a model <em>knows</em> something as if knowledge lived in one place. It lives in four, at four prices: dense weights read on every token, a working memory that grows with every token, a bulky but cheap and correctable lookup, and habits that cost almost nothing once built. Large models can afford to blur them. Small ones cannot, and that is their advantage. Keep in the weights what is used on every token, keep the working memory short, look up the long tail, compile what repeats.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a><br>
+The architecture these four memories fit into.</p>
+</div>
+<div class="small">
+<p><em>The views in this essay are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-ainslie2023" class="csl-entry">
+Ainslie, Joshua, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. 2023. <span>“<span>GQA</span>: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.”</span> <em>arXiv Preprint arXiv:2305.13245</em>. <a href="https://arxiv.org/abs/2305.13245">https://arxiv.org/abs/2305.13245</a>.
+</div>
+<div id="ref-alizadeh2023" class="csl-entry">
+Alizadeh, Keivan, Iman Mirzadeh, Dmitry Belenko, et al. 2023. <span>“<span>LLM</span> in a Flash: Efficient Large Language Model Inference with Limited Memory.”</span> <em>arXiv Preprint arXiv:2312.11514</em>. <a href="https://arxiv.org/abs/2312.11514">https://arxiv.org/abs/2312.11514</a>.
+</div>
+<div id="ref-allenzhu2025" class="csl-entry">
+Allen-Zhu, Zeyuan, and Yuanzhi Li. 2025. <span>“Physics of Language Models: Part 3.3, Knowledge Capacity Scaling Laws.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2404.05405">https://arxiv.org/abs/2404.05405</a>.
+</div>
+<div id="ref-behrouz2024" class="csl-entry">
+Behrouz, Ali, Peilin Zhong, and Vahab Mirrokni. 2024. <span>“Titans: Learning to Memorize at Test Time.”</span> <em>arXiv Preprint arXiv:2501.00663</em>. <a href="https://arxiv.org/abs/2501.00663">https://arxiv.org/abs/2501.00663</a>.
+</div>
+<div id="ref-berges2024" class="csl-entry">
+Berges, Vincent-Pierre, Barlas Oğuz, Daniel Haziza, Wen-tau Yih, Luke Zettlemoyer, and Gargi Ghosh. 2024. <span>“Memory Layers at Scale.”</span> <em>arXiv Preprint arXiv:2412.09764</em>. <a href="https://arxiv.org/abs/2412.09764">https://arxiv.org/abs/2412.09764</a>.
+</div>
+<div id="ref-chhikara2025" class="csl-entry">
+Chhikara, Prateek, Dev Khant, Saket Aryan, Taranjeet Singh, and Deshraj Yadav. 2025. <span>“<span>Mem0</span>: Building Production-Ready <span>AI</span> Agents with Scalable Long-Term Memory.”</span> <em>arXiv Preprint arXiv:2504.19413</em>. <a href="https://arxiv.org/abs/2504.19413">https://arxiv.org/abs/2504.19413</a>.
+</div>
+<div id="ref-cover1965" class="csl-entry">
+Cover, Thomas M. 1965. <span>“Geometrical and Statistical Properties of Systems of Linear Inequalities with Applications in Pattern Recognition.”</span> <em>IEEE Transactions on Electronic Computers</em> EC-14 (3): 326–34. <a href="https://doi.org/10.1109/PGEC.1965.264137">https://doi.org/10.1109/PGEC.1965.264137</a>.
+</div>
+<div id="ref-engram2026" class="csl-entry">
+DeepSeek-AI. 2026. <em>Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models</em>. Github.com/deepseek-ai/Engram. <a href="https://github.com/deepseek-ai/Engram">https://github.com/deepseek-ai/Engram</a>.
+</div>
+<div id="ref-douze2024" class="csl-entry">
+Douze, Matthijs, Alexandr Guzhva, Chengqi Deng, et al. 2024. <span>“The <span>Faiss</span> Library.”</span> <em>arXiv Preprint arXiv:2401.08281</em>. <a href="https://arxiv.org/abs/2401.08281">https://arxiv.org/abs/2401.08281</a>.
+</div>
+<div id="ref-eyuboglu2026" class="csl-entry">
+<span class="nocase">Eyuboglu, Sabri, Ryan Ehrlich, Simran Arora, et al.</span> 2026. <span>“Cartridges: Lightweight and General-Purpose Long Context Representations via Self-Study.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2506.06266">https://arxiv.org/abs/2506.06266</a>.
+</div>
+<div id="ref-gemma3" class="csl-entry">
+Gemma Team. 2025. <span>“Gemma 3 Technical Report.”</span> <em>arXiv Preprint arXiv:2503.19786</em>. <a href="https://arxiv.org/abs/2503.19786">https://arxiv.org/abs/2503.19786</a>.
+</div>
+<div id="ref-gemma3n" class="csl-entry">
+Google. 2025. <em>Gemma 3n Model Overview</em>. Ai.google.dev. <a href="https://ai.google.dev/gemma/docs/gemma-3n">https://ai.google.dev/gemma/docs/gemma-3n</a>.
+</div>
+<div id="ref-gupta2024" class="csl-entry">
+Gupta, Akshat, Anurag Rao, and Gopala Anumanchipalli. 2024. <span>“Model Editing at Scale Leads to Gradual and Catastrophic Forgetting.”</span> <em>Findings of the Association for Computational Linguistics (ACL)</em>. <a href="https://arxiv.org/abs/2401.07453">https://arxiv.org/abs/2401.07453</a>.
+</div>
+<div id="ref-kandpal2023" class="csl-entry">
+Kandpal, Nikhil, Haikang Deng, Adam Roberts, Eric Wallace, and Colin Raffel. 2023. <span>“Large Language Models Struggle to Learn Long-Tail Knowledge.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.08411">https://arxiv.org/abs/2211.08411</a>.
+</div>
+<div id="ref-lewis2020" class="csl-entry">
+Lewis, Patrick, Ethan Perez, Aleksandra Piktus, et al. 2020. <span>“Retrieval-Augmented Generation for Knowledge-Intensive <span>NLP</span> Tasks.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
+</div>
+<div id="ref-liu2024kivi" class="csl-entry">
+Liu, Zirui, Jiayi Yuan, Hongye Jin, et al. 2024. <span>“<span>KIVI</span>: A Tuning-Free Asymmetric 2bit Quantization for <span>KV</span> Cache.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2402.02750">https://arxiv.org/abs/2402.02750</a>.
+</div>
+<div id="ref-mallen2023" class="csl-entry">
+Mallen, Alex, Akari Asai, Victor Zhong, Rajarshi Das, Daniel Khashabi, and Hannaneh Hajishirzi. 2023. <span>“When Not to Trust Language Models: Investigating Effectiveness of Parametric and Non-Parametric Memories.”</span> <em>Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (ACL)</em>. <a href="https://arxiv.org/abs/2212.10511">https://arxiv.org/abs/2212.10511</a>.
+</div>
+<div id="ref-mccloskey1989" class="csl-entry">
+McCloskey, Michael, and Neal J. Cohen. 1989. <span>“Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem.”</span> In <em>Psychology of Learning and Motivation</em>, vol. 24. Academic Press. <a href="https://doi.org/10.1016/S0079-7421(08)60536-8">https://doi.org/10.1016/S0079-7421(08)60536-8</a>.
+</div>
+<div id="ref-meng2022" class="csl-entry">
+Meng, Kevin, David Bau, Alex Andonian, and Yonatan Belinkov. 2022. <span>“Locating and Editing Factual Associations in <span>GPT</span>.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2202.05262">https://arxiv.org/abs/2202.05262</a>.
+</div>
+<div id="ref-meng2023" class="csl-entry">
+Meng, Kevin, Arnab Sen Sharma, Alex Andonian, Yonatan Belinkov, and David Bau. 2023. <span>“Mass-Editing Memory in a Transformer.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2210.07229">https://arxiv.org/abs/2210.07229</a>.
+</div>
+<div id="ref-llama32" class="csl-entry">
+Meta. 2024. <em>Llama 3.2 Model Card</em>. Github.com/meta-llama/llama-models. <a href="https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md">https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md</a>.
+</div>
+<div id="ref-packer2023" class="csl-entry">
+Packer, Charles, Sarah Wooders, Kevin Lin, et al. 2023. <span>“<span>MemGPT</span>: Towards <span>LLMs</span> as Operating Systems.”</span> <em>arXiv Preprint arXiv:2310.08560</em>. <a href="https://arxiv.org/abs/2310.08560">https://arxiv.org/abs/2310.08560</a>.
+</div>
+<div id="ref-pouransari2026" class="csl-entry">
+Pouransari, Hadi, David Grangier, C Thomas, Michael Kirchhof, and Oncel Tuzel. 2026. <span>“Pretraining with Hierarchical Memories: Separating Long-Tail and Common Knowledge.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2510.02375">https://arxiv.org/abs/2510.02375</a>.
+</div>
+<div id="ref-xu2025amem" class="csl-entry">
+Xu, Wujiang, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, and Yongfeng Zhang. 2025. <span>“<span>A-MEM</span>: Agentic Memory for <span>LLM</span> Agents.”</span> <em>arXiv Preprint arXiv:2502.12110</em>. <a href="https://arxiv.org/abs/2502.12110">https://arxiv.org/abs/2502.12110</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Where {Memory} {Lives}},
+  date = {2026-10-26},
+  url = {https://scuenat.github.io/posts/2026-10-26-where-memory-lives/},
+  langid = {en}
+}
+</code></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Where Memory Lives.”</span> October 26.
+<a href="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/">https://scuenat.github.io/posts/2026-10-26-where-memory-lives/</a>.
+</div></div></section></div> ]]></description>
+  <category>essay</category>
+  <category>experiment</category>
+  <category>ai</category>
+  <category>local-ai</category>
+  <category>memory</category>
+  <guid>https://scuenat.github.io/posts/2026-10-26-where-memory-lives/</guid>
+  <pubDate>Mon, 26 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png" medium="image" type="image/png" height="65" width="144"/>
+</item>
 <item>
   <title>Work Has Mass</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
