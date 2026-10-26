@@ -48,13 +48,29 @@ $$
 f_\theta(x) = W_2\,\mathrm{ReLU}(W_1 x + b_1) + b_2, \qquad |\theta| = 32h + h + 256h + 256,
 $$
 
-with hidden width $h \in \{8, 16, 32, 64\}$: 2,568 to 18,752 parameters. Each network learned $N$ facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li [@allenzhu2025], I count the bits it holds as
+where:
+
+- $x$ is the key, the 32 numbers that stand for the question;
+- $W_1$ (a table of $h \times 32$ numbers) and $b_1$ ($h$ numbers) form the first layer, which turns the key into $h$ hidden values;
+- $\mathrm{ReLU}(z) = \max(0, z)$ keeps the positive hidden values and sets the others to zero;
+- $W_2$ ($256 \times h$ numbers) and $b_2$ (256 numbers) form the second layer, which gives one score to each of the 256 possible answers; the highest score is the network's answer;
+- $\theta$ stands for all of these numbers together, and $|\theta|$ counts them: $32h$ in $W_1$, $h$ in $b_1$, $256h$ in $W_2$ and 256 in $b_2$;
+- $h$, the hidden width, sets the size of the network.
+
+I used $h \in \{8, 16, 32, 64\}$: 2,568 to 18,752 parameters. Each network learned $N$ facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li [@allenzhu2025], I count the bits it holds as
 
 $$
 B(\theta) = \sum_{i=1}^{N} \max\!\Big(0,\; \log_2 V + \log_2 p_\theta(y_i \mid x_i)\Big),
 $$
 
-what its prediction knows about each answer beyond a uniform guess.
+what its prediction knows about each answer beyond a uniform guess, where:
+
+- $N$ is the number of facts, and $i$ runs over them;
+- $x_i$ and $y_i$ are the key and the correct answer of fact $i$;
+- $p_\theta(y_i \mid x_i)$ is the probability the network gives to the correct answer;
+- $\log_2 V = 8$ is what a fact is worth: the bits needed to name one answer out of 256;
+- $\log_2 p_\theta(y_i \mid x_i)$ is zero or negative: the bits the network is still missing. Certain of the right answer ($p = 1$), it holds all 8 bits; hesitating between two answers ($p = 1/2$), it holds 7; guessing blindly ($p = 1/256$), it holds none;
+- $\max(0, \cdot)$ counts a prediction worse than a blind guess as zero rather than negative.
 
 ![**Figure 2.** Experiment 1, measured, three seeds per point. Left: bits stored against bits offered; the band is one standard deviation. Right: bits stored per parameter; amber diamonds repeat three runs with three times more training.](figures/fig02.svg){fig-alt="Left, four lines of bits stored against bits offered, for networks of 2,568, 4,880, 9,504 and 18,752 parameters, each the mean of three seeds with a narrow band. Each follows the diagonal, where every bit offered is kept, then peaks and flattens slightly lower. Right, bits stored per parameter against bits offered per parameter, with small error bars: all four networks rise along the same line to a peak of 1.40, 1.53, 1.68 and 1.67, then settle near 1.4. Three amber diamonds for three times more training sit slightly higher: 1.80, 1.55 and 1.49. A dashed amber line at 2 marks the capacity of a perceptron and of language models."}
 
@@ -74,7 +90,7 @@ Catastrophic interference is not new [@mccloskey1989], and editing methods such 
 
 ## 4. Experiment 3: looking it up
 
-**Setup.** I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, $O(Nd)$. An inverted-file index (IVF) groups the keys into $c = 4\sqrt{N}$ clusters and searches only the $p$ nearest, $O\big((c + pN/c)\,d\big)$, which grows like $\sqrt{N}$ [@douze2024].
+**Setup.** I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, which takes $O(Nd)$ operations: $N$ keys of $d = 256$ numbers each ($O(\cdot)$ means "grows in proportion to"). An inverted-file index (IVF) groups the keys into $c = 4\sqrt{N}$ clusters once, then compares a question with the $c$ cluster centres and with the keys of the $p$ nearest clusters only. That takes $O\big((c + pN/c)\,d\big)$ operations: $c$ centres, plus $p$ clusters of about $N/c$ keys each. With $c = 4\sqrt{N}$, both terms grow like $\sqrt{N}$, so a memory a hundred times larger costs only ten times more per question [@douze2024].
 
 ![**Figure 4.** Experiment 3, measured. Left: time per easy question against facts in memory. Right: one million facts at five noise levels; each line probes 1, 4, 16 and 64 clusters, and the star is exact search.](figures/fig04.svg){fig-alt="Left, a log-log chart of time per question against facts in memory, from ten thousand to four million: exact search rises from 0.1 to 100 milliseconds; an index probing 16 clusters from 0.1 to 1.4 milliseconds; probing 4 clusters from 0.03 to 0.5 milliseconds. Right, share of questions answered with the right fact against time per question, for five noise levels: probing 1 cluster finds 80 to 95 percent in about 0.12 milliseconds; probing 4 clusters reaches the same share as exact search, 100 percent for four levels and 95.5 percent against 96 for the noisiest, in about 0.25 milliseconds, while exact search takes about 24 milliseconds."}
 
@@ -100,11 +116,31 @@ $$
 \text{KV bytes per token} = 2 \cdot L \cdot n_{kv} \cdot d_h \cdot b.
 $$
 
+where:
+
+- the factor 2 counts one key and one value;
+- $L$ is the number of layers (16 in Llama 3.2 1B);
+- $n_{kv}$ is the number of key-value heads per layer (8);
+- $d_h$ is the number of values in each head (64);
+- $b$ is the number of bytes per value: 2 at 16 bits, 0.25 at 2 bits.
+
+For Llama 3.2 1B at 16 bits: $2 \cdot 16 \cdot 8 \cdot 64 \cdot 2 = 32{,}768$ bytes, 32 KB for every token in the context.
+
 Each new token reads the whole cache and all the weights, so the cache weighs as much as the weights at
 
 $$
 T^{*} = \frac{|\theta| \cdot b_w}{2 \cdot L \cdot n_{kv} \cdot d_h \cdot b_{kv}}.
 $$
+
+where:
+
+- $T^{*}$ is the context length, in tokens, at which the two weigh the same;
+- $|\theta|$ is the number of parameters (1.24 billion for Llama 3.2 1B);
+- $b_w$ is the bytes per weight: 2 at 16 bits, 0.5 at 4 bits;
+- $b_{kv}$ is the bytes per cache value;
+- the top is the size of the weights in bytes; the bottom is the size of the cache for one token.
+
+For Llama 3.2 1B with 4-bit weights and a 16-bit cache: $1.24 \times 10^9 \times 0.5 \,/\, 32{,}768 \approx 19{,}000$ tokens.
 
 I timed one layer shaped like Llama 3.2 1B [@llama32] generating a token over caches of 1,000 to 131,000 tokens.
 
@@ -122,13 +158,22 @@ $$
 \text{coverage}(K) = \frac{H_{K,s}}{H_{F,s}}, \qquad H_{n,s} = \sum_{k=1}^{n} k^{-s}.
 $$
 
-For $s = 1$, $H_n \approx \ln n + 0.577$, so each tenfold step adds the same share,
+where:
+
+- $F$ is the number of facts in the world (a billion in Figure 7);
+- $k$ is a fact's rank by how often it is asked: 1 for the most asked;
+- $s$ sets how steep the tail is: with $s = 1$, the classic Zipf's law, the second fact is asked half as often as the first and the tenth a tenth as often; a larger $s$ puts more of the questions on the first few facts;
+- $K$ is the number of facts the memory holds, the $K$ most asked;
+- $H_{n,s}$ adds up the popularity of the first $n$ facts;
+- the ratio is the share of all questions that fall on the $K$ facts held.
+
+For $s = 1$, $H_n \approx \ln n + 0.577$, where $\ln$ is the natural logarithm and 0.577 is Euler's constant. So each tenfold step adds the same share,
 
 $$
 \text{coverage}(10K) - \text{coverage}(K) \approx \frac{\ln 10}{\ln F + 0.577},
 $$
 
-about 11 points with a billion facts.
+where $\ln 10 \approx 2.30$ is how much $\ln K$ grows when $K$ is ten times larger, and $\ln F + 0.577 \approx 21.3$ for a billion facts. The ratio, $2.30 / 21.3 \approx 0.11$, does not depend on $K$: going from a thousand to ten thousand facts adds about 11 points, and so does going from a hundred million to a billion.
 
 ![**Figure 7.** Computed. Share of questions answered by a memory holding the most asked facts, in a world of one billion facts, for three tails.](figures/fig07.svg){fig-alt="Three rising curves on a logarithmic horizontal axis from a hundred to a billion facts. The Zipf curve with s equal to 1 rises in a nearly straight line, from about 25 percent at a hundred facts to 100 percent at a billion. Two amber arrows mark that each tenfold increase adds the same slice of about 11 points. A flatter tail with s equal to 0.9 lies below, a steeper tail with s equal to 1.1 above."}
 
