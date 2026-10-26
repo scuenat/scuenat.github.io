@@ -2,11 +2,12 @@
 title: "Coherence Is Measurable"
 subtitle: "What it would mean to build AI around consistency, not only size"
 description: "A popular claim says the next scientific revolution will come from coherence, not bigger models. As physics, it is hard to test. As machine learning, it is not: coherence can be measured, used as a signal, and trained for. One small experiment shows where it helps and where it goes blind."
-date: 2026-10-27
+date: 2026-10-26
 citation: true
 bibliography: references.bib
 toc-depth: 2
 categories: [essay, thought-essay, ai, machine-learning, deep-learning, reliability]
+topics: [fast-ai]   # home-page theme tiles (index.qmd)
 image: figures/fig01.png
 resources:
   - sim.py
@@ -16,7 +17,7 @@ resources:
 ---
 
 ::: {.callout-note appearance="simple"}
-**A thought essay with one experiment, October 2026.** Figures 1, 3, 4 and 5 are my own schematics. Figure 2 is measured: [sim.py](sim.py) trains ten small neural networks on the handwritten digits that ship with scikit-learn, on a 4-core cloud CPU, in under two minutes; results are in [results.json](results.json) and figures come from [figs.py](figs.py). The networks are tiny and the task is easy: the experiment tests the shape of an argument, not a language model. Every other claim is cited.
+**A thought essay, October 2026.** This is an argument, not a paper. Figures 1, 3, 4 and 5 are my own schematics. One small experiment backs the central claim: [sim.py](sim.py) trains ensembles of ten small neural networks on the handwritten digits that ship with scikit-learn, repeated on ten random train/test splits, in about twelve minutes on a 4-core cloud CPU; results are in [results.json](results.json) and Figure 2 comes from [figs.py](figs.py). The networks are tiny and the task is easy: the experiment tests the shape of an argument, not a language model. Every other claim is cited.
 :::
 
 **In short.** A short passage I came across recently, unsigned, makes a bold claim: the next scientific revolution *won't come from more parameters or larger models; it will come from understanding coherence.* I take it as a prompt for thinking, not as a source to cite. As a statement about physics, I can't test it. As a statement about machine learning, I can, because in AI coherence is not a mystical invariant. It is a family of checks: do the answers agree, does the logic run both ways, does the stated reason match the real one, do two views of the world map to one state. Each check can be measured, used at run time, and trained for. My conclusion: **coherence will not replace scale, but it is what we should measure scale by, and a cheap signal for when a model should stop and look. It fails exactly where all the models share the same mistake.**
@@ -25,9 +26,9 @@ resources:
 ## Key takeaways
 
 - **Coherence has four working definitions in AI:** across samples, across logic, between thought and word, and across views and time.
-- **Disagreement is a detector.** In my experiment, when ten networks all agreed, they were right 99.7% of the time; most of the errors fell where they disagreed. Published work finds the same for language models [@farquhar2024].
+- **Disagreement is a detector.** In my experiment, when ten networks all agreed, they were right 99.8% of the time; most of the errors fell where they disagreed. Published work finds the same for language models [@farquhar2024].
 - **Coherence is a training target.** Several recent models are trained to agree with themselves rather than to reproduce every pixel or token [@assran2025; @song2023; @irpan2025].
-- **Coherent is not true.** When every network learned the same misleading shortcut, agreement no longer told right from wrong: its detection score fell from 0.93 to 0.49, chance level.
+- **Coherent is not true.** When every network learned the same misleading shortcut, agreement no longer told right from wrong: its detection score fell from 0.92 to 0.51, chance level. Withholding the shortcut from part of the training data kept it at 0.73.
 - **One rule:** probe, measure agreement, answer when coherent, look up or abstain when not, check the coherent answers against the world, and train on what you learn.
 :::
 
@@ -57,15 +58,15 @@ To do that, we need definitions. Figure 1 gives four.
 
 The first use of coherence needs no retraining: measure it at run time and act on it. I tested the idea on the smallest setup I could make honest.
 
-**Setup.** Ten small neural networks, each trained on a different resampling of 898 handwritten digits, with a different random start; 899 other digits held out for testing. Each network gives one answer. This is an ensemble of independently trained models, not repeated samples from one language model, but the question is the same: *does agreement predict correctness?* I tested on the clean digits, and on the same digits with heavy pixel noise the networks never saw in training.
+**Setup.** Ten small neural networks, each trained on a different resampling of 898 handwritten digits, with a different random start; 899 other digits held out for testing. Each network gives one answer. The whole experiment is repeated on ten random train/test splits, and I report the mean, with the spread across splits where it matters. This is an ensemble of independently trained models, not repeated samples from one language model, but the question is the same: *does agreement predict correctness?* I tested on the clean digits, and on the same digits with heavy pixel noise the networks never saw in training.
 
-![**Figure 2.** Measured, [sim.py](sim.py). Left: ten networks; digits are answered in order of how many networks agree, and the line shows the accuracy of the majority answer so far. AUROC measures how well agreement separates right from wrong answers (1 is perfect, 0.5 is chance). Right: the same setup, but every training digit carries a hint that is usually right; at test time the hint is always wrong. Means of three seeds; bands show the range.](figures/fig02.svg){fig-alt="Left, accuracy of the majority vote against share of digits answered, most agreed first. Clean digits: close to 100 percent until about 95 percent of digits are answered, ending at 97.6 percent when everything is answered; AUROC 0.92. Noisy digits: near 99 percent until about 75 percent are answered, then falling to 89.3 percent; AUROC 0.89. Right, against how often the hint was right during training, 50, 80, 90, 95 and 99 percent. Green line, agreement detects errors, AUROC: 0.93, 0.84, 0.78, 0.68, 0.49, reaching the dotted chance line at 0.5. Red line, the majority follows the wrong hint: 0.03, 0.07, 0.15, 0.25, 0.44."}
+![**Figure 2.** Measured, [sim.py](sim.py), mean of ten train/test splits. Left: digits are answered in order of how many of the ten networks agree, and the line shows the accuracy of the majority answer so far. AUROC measures how well agreement separates right from wrong answers (1 is perfect, 0.5 is chance). Right: every training digit carries a hint that is usually right; at test time the hint is always wrong. Solid: a hint on every training digit. Dashed: the hint withheld on 20% of training digits. Bands show one standard deviation across splits.](figures/fig02.svg){fig-alt="Left, accuracy of the majority vote against share of digits answered, most agreed first. Clean digits: close to 100 percent until about 90 percent of digits are answered, ending at 97.2 percent when everything is answered; AUROC 0.93. Noisy digits: near 99 percent until about 50 percent are answered, then falling to 87.7 percent; AUROC 0.88. Right, against how often the hint was right during training, 50, 80, 90, 95 and 99 percent. With a hint on every training digit, agreement detects errors with AUROC 0.92, 0.85, 0.77, 0.68 and 0.51, reaching the chance line, and the majority follows the wrong hint on 0.02, 0.06, 0.13, 0.21 and 0.41 of digits. With the hint withheld on 20 percent of training digits, AUROC falls only to 0.73 and the majority follows the wrong hint on at most 0.18. Narrow bands show the spread across ten splits."}
 
 **Result.** Agreement worked as a detector (Figure 2, left):
 
-- On clean digits, all ten networks agreed on 81% of them, and were right on 99.7% of those. One network alone was right 94.5% of the time; the majority, 97.6%.
-- On noisy digits, a single network dropped to 77.9%. The networks now agreed fully on only 36% of digits, but were still right on 99.4% of those. Agreement fell where the task got hard, which is exactly what a warning signal should do.
-- Agreement separated right from wrong answers with an AUROC of 0.92 on clean digits and 0.89 on noisy ones.
+- On clean digits, all ten networks agreed on 83% of them, and were right on 99.8% of those. One network alone was right 94.7% of the time; the majority, 97.2%.
+- On noisy digits, a single network dropped to 76.7%. The networks now agreed fully on only 36% of digits, but were still right on 99.6% of those. Agreement fell where the task got hard, which is exactly what a warning signal should do.
+- Agreement separated right from wrong answers with an AUROC of 0.93 on clean digits and 0.88 on noisy ones (spread across splits: ±0.03 and ±0.02).
 
 So agreement ranks answers by trust. The low-agreement ones can go to a lookup, a tool, or an honest "I don't know". This matters because today's training rewards guessing: benchmarks score an abstention like a wrong answer, so models learn to bluff [@kalai2025]. Asking a model how sure it is can help too [@tian2023], but agreement does not depend on the model's own sense of confidence.
 
@@ -91,13 +92,17 @@ Coherence has a hard limit, and the original quote skips it. **Coherent is not t
 
 ![**Figure 4.** Schematic, my own. Coherence and truth are different axes.](figures/fig04.svg){fig-alt="A two by two grid. Columns: coherent, incoherent. Rows: true, false. Coherent and true: knowledge; stable across samples, paraphrases and reasons; answer. Incoherent and true: lucky guess; right this time, wrong next time; treat as unknown. Coherent and false: coherent fiction; a shared bias, a stale fact, a confident myth; only the world can catch it. Incoherent and false: visible error; samples disagree; easy to detect, look up or abstain."}
 
-The second half of the experiment measures the bottom-left cell (Figure 2, right). I gave every training digit a ten-slot *hint* naming a digit, like a hint planted in a prompt. The hint was right some fixed share of the time, from 50% to 99%. At test time, the hint always named a wrong digit.
+The second half of the experiment measures the bottom-left cell (Figure 2, right). I gave every training digit a ten-slot *hint* naming a digit, like a hint planted in a prompt. The hint was right some fixed share of the time, from 50% to 99%, and named a random digit otherwise. At test time, the hint always named a wrong digit.
 
-- With a weak hint (right 50% of the time), the networks mostly ignored it: the majority followed the wrong hint on 3% of digits, and agreement still detected errors (AUROC 0.93).
-- As the hint grew more reliable in training, every network learned to lean on it. With a 99% reliable hint, the majority followed the wrong hint on 44% of digits, and agreement could no longer tell right answers from wrong ones: AUROC 0.49, chance level.
-- A control ensemble trained without hints was unaffected: 97.6% correct with the same wrong hints present. The failure comes from what the networks learned, not from the extra input.
+- With a weak hint (right 50% of the time), the networks mostly ignored it: the majority followed the wrong hint on 2% of digits, and agreement still detected errors (AUROC 0.92).
+- As the hint grew more reliable in training, every network learned to lean on it. With a 99% reliable hint, the majority followed the wrong hint on 41% of digits, and agreement could no longer tell right answers from wrong ones: AUROC 0.51 ± 0.02, chance level. Worse, when all ten networks agreed, they were now right only 31% of the time, against 99.7% with the weak hint.
+- A control ensemble trained without hints was unaffected: 97.2% correct with the same wrong hints present. The failure comes from what the networks learned, not from the extra input.
 
-Ten models, ten random starts, ten different resamplings of the data, and they still agreed on the same mistake, because they all learned the same shortcut from the same data. Diversity among models protects against their independent errors, not against what they share. And the shortcut was not free: trained with the 90% hint, a single network got only 85% of *clean* digits right, against 94.5% without it, because it had learned to lean on a clue that was no longer there.
+Ten models, ten random starts, ten different resamplings of the data, and they still agreed on the same mistake, because they all learned the same shortcut from the same data. Diversity among models protects against their independent errors, not against what they share.
+
+The shortcut also has a cost when it is not misleading, only useless. Given a random hint, a kind of input they saw in training, networks trained with a 90% reliable hint got 74.6% of digits right, against 94.7% for the control.
+
+One change helped. When the hint was withheld on a random 20% of training digits, every network also had to learn to read the pixels. With the same 99% reliable hint, the majority followed the wrong hint on 18% of digits instead of 41%, and agreement kept an AUROC of 0.73. This is a crude version of the consistency training of section 4: show the model the same input with and without the cue, so it cannot rely on the cue alone. It reduced the blind spot; it did not remove it.
 
 Language models are in a worse position than my ensemble. Repeated samples from one language model share not part of their training but all of it. A shortcut learned in training is therefore largely invisible to the self-consistency checks of section 3: every sample carries it.
 

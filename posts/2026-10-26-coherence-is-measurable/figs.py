@@ -172,7 +172,8 @@ def fig_agreement():
         s = S["control:None"][cond]
         curve = np.array(R["mean_selective_curve"][cond])
         cov = np.arange(1, n + 1) / n * 100
-        a.plot(cov, curve * 100, color=col, lw=2, label=f"{lab}  ·  AUROC {s['auroc']['mean']:.2f}")
+        keep = cov >= 3          # the first few points are an average of a handful of digits
+        a.plot(cov[keep], curve[keep] * 100, color=col, lw=2, label=f"{lab}  ·  AUROC {s['auroc']['mean']:.2f}")
         m = s["majority_acc"]["mean"] * 100
         a.plot(100, m, "o", color=col, ms=4)
         a.annotate(f"{m:.1f}% if it\nanswers everything", (100, m), xytext=(-6, -6),
@@ -194,8 +195,10 @@ def fig_agreement():
             b.plot(x, mean, ls=ls, marker=mk, color=col, lw=2 if ls == "-" else 1.5, ms=4.5)
             if regime == "always":
                 for xi, m in zip(x, mean):
-                    b.annotate(f"{m:.2f}", (xi, m), xytext=(0, 8), textcoords="offset points",
-                               ha="center", fontsize=7.2, color=col)
+                    last = xi == len(ps) - 1
+                    off = (0, 8) if key != "auroc" or xi == 0 else ((-9, 5) if last else (0, -14))
+                    b.annotate(f"{m:.2f}", (xi, m), xytext=off, textcoords="offset points",
+                               ha="right" if key == "auroc" and last else "center", fontsize=7.2, color=col)
     b.axhline(0.5, color=MUTED, ls=":", lw=1)
     b.text(-0.1, 0.515, "chance", fontsize=7.3, color=MUTED, ha="left")
     from matplotlib.lines import Line2D
@@ -203,7 +206,7 @@ def fig_agreement():
                Line2D([], [], color=RED, lw=2, label="majority follows the wrong hint"),
                Line2D([], [], color=MUTED, lw=1.6, ls="-", marker="o", ms=4, label="hint on every training digit"),
                Line2D([], [], color=MUTED, lw=1.4, ls="--", marker="s", ms=4, label="hint withheld on 20%")]
-    b.legend(handles=handles, loc="center left", bbox_to_anchor=(0, 0.66), fontsize=7.4)
+    b.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2, fontsize=7.4)
     b.set_xticks(x, [f"{p*100:.0f}%" for p in ps])
     b.set_xlabel("how often the hint was right during training")
     b.set_ylabel("share or score")
