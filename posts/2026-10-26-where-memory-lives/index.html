@@ -534,11 +534,28 @@ window.Quarto = {
 <p><span class="math display">
 f_\theta(x) = W_2\,\mathrm{ReLU}(W_1 x + b_1) + b_2, \qquad |\theta| = 32h + h + 256h + 256,
 </span></p>
-<p>with hidden width <span class="math inline">h \in \{8, 16, 32, 64\}</span>: 2,568 to 18,752 parameters. Each network learned <span class="math inline">N</span> facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu and Li 2025</a>)</span>, I count the bits it holds as</p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">x</span> is the key, the 32 numbers that stand for the question;</li>
+<li><span class="math inline">W_1</span> (a table of <span class="math inline">h \times 32</span> numbers) and <span class="math inline">b_1</span> (<span class="math inline">h</span> numbers) form the first layer, which turns the key into <span class="math inline">h</span> hidden values;</li>
+<li><span class="math inline">\mathrm{ReLU}(z) = \max(0, z)</span> keeps the positive hidden values and sets the others to zero;</li>
+<li><span class="math inline">W_2</span> (<span class="math inline">256 \times h</span> numbers) and <span class="math inline">b_2</span> (256 numbers) form the second layer, which gives one score to each of the 256 possible answers; the highest score is the network’s answer;</li>
+<li><span class="math inline">\theta</span> stands for all of these numbers together, and <span class="math inline">|\theta|</span> counts them: <span class="math inline">32h</span> in <span class="math inline">W_1</span>, <span class="math inline">h</span> in <span class="math inline">b_1</span>, <span class="math inline">256h</span> in <span class="math inline">W_2</span> and 256 in <span class="math inline">b_2</span>;</li>
+<li><span class="math inline">h</span>, the hidden width, sets the size of the network.</li>
+</ul>
+<p>I used <span class="math inline">h \in \{8, 16, 32, 64\}</span>: 2,568 to 18,752 parameters. Each network learned <span class="math inline">N</span> facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu and Li 2025</a>)</span>, I count the bits it holds as</p>
 <p><span class="math display">
 B(\theta) = \sum_{i=1}^{N} \max\!\Big(0,\; \log_2 V + \log_2 p_\theta(y_i \mid x_i)\Big),
 </span></p>
-<p>what its prediction knows about each answer beyond a uniform guess.</p>
+<p>what its prediction knows about each answer beyond a uniform guess, where:</p>
+<ul>
+<li><span class="math inline">N</span> is the number of facts, and <span class="math inline">i</span> runs over them;</li>
+<li><span class="math inline">x_i</span> and <span class="math inline">y_i</span> are the key and the correct answer of fact <span class="math inline">i</span>;</li>
+<li><span class="math inline">p_\theta(y_i \mid x_i)</span> is the probability the network gives to the correct answer;</li>
+<li><span class="math inline">\log_2 V = 8</span> is what a fact is worth: the bits needed to name one answer out of 256;</li>
+<li><span class="math inline">\log_2 p_\theta(y_i \mid x_i)</span> is zero or negative: the bits the network is still missing. Certain of the right answer (<span class="math inline">p = 1</span>), it holds all 8 bits; hesitating between two answers (<span class="math inline">p = 1/2</span>), it holds 7; guessing blindly (<span class="math inline">p = 1/256</span>), it holds none;</li>
+<li><span class="math inline">\max(0, \cdot)</span> counts a prediction worse than a blind guess as zero rather than negative.</li>
+</ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Experiment 1, measured, three seeds per point. Left: bits stored against bits offered; the band is one standard deviation. Right: bits stored per parameter; amber diamonds repeat three runs with three times more training."><img src="figures/fig02.svg" class="img-fluid figure-img" alt="Left, four lines of bits stored against bits offered, for networks of 2,568, 4,880, 9,504 and 18,752 parameters, each the mean of three seeds with a narrow band. Each follows the diagonal, where every bit offered is kept, then peaks and flattens slightly lower. Right, bits stored per parameter against bits offered per parameter, with small error bars: all four networks rise along the same line to a peak of 1.40, 1.53, 1.68 and 1.67, then settle near 1.4. Three amber diamonds for three times more training sit slightly higher: 1.80, 1.55 and 1.49. A dashed amber line at 2 marks the capacity of a perceptron and of language models."></a></p>
@@ -562,7 +579,7 @@ B(\theta) = \sum_{i=1}^{N} \max\!\Big(0,\; \log_2 V + \log_2 p_\theta(y_i \mid x
 </section>
 <section id="experiment-3-looking-it-up" class="level2">
 <h2 class="anchored" data-anchor-id="experiment-3-looking-it-up">4. Experiment 3: looking it up</h2>
-<p><strong>Setup.</strong> I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, <span class="math inline">O(Nd)</span>. An inverted-file index (IVF) groups the keys into <span class="math inline">c = 4\sqrt{N}</span> clusters and searches only the <span class="math inline">p</span> nearest, <span class="math inline">O\big((c + pN/c)\,d\big)</span>, which grows like <span class="math inline">\sqrt{N}</span> <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span>.</p>
+<p><strong>Setup.</strong> I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, which takes <span class="math inline">O(Nd)</span> operations: <span class="math inline">N</span> keys of <span class="math inline">d = 256</span> numbers each (<span class="math inline">O(\cdot)</span> means “grows in proportion to”). An inverted-file index (IVF) groups the keys into <span class="math inline">c = 4\sqrt{N}</span> clusters once, then compares a question with the <span class="math inline">c</span> cluster centres and with the keys of the <span class="math inline">p</span> nearest clusters only. That takes <span class="math inline">O\big((c + pN/c)\,d\big)</span> operations: <span class="math inline">c</span> centres, plus <span class="math inline">p</span> clusters of about <span class="math inline">N/c</span> keys each. With <span class="math inline">c = 4\sqrt{N}</span>, both terms grow like <span class="math inline">\sqrt{N}</span>, so a memory a hundred times larger costs only ten times more per question <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Experiment 3, measured. Left: time per easy question against facts in memory. Right: one million facts at five noise levels; each line probes 1, 4, 16 and 64 clusters, and the star is exact search."><img src="figures/fig04.svg" class="img-fluid figure-img" alt="Left, a log-log chart of time per question against facts in memory, from ten thousand to four million: exact search rises from 0.1 to 100 milliseconds; an index probing 16 clusters from 0.1 to 1.4 milliseconds; probing 4 clusters from 0.03 to 0.5 milliseconds. Right, share of questions answered with the right fact against time per question, for five noise levels: probing 1 cluster finds 80 to 95 percent in about 0.12 milliseconds; probing 4 clusters reaches the same share as exact search, 100 percent for four levels and 95.5 percent against 96 for the noisiest, in about 0.25 milliseconds, while exact search takes about 24 milliseconds."></a></p>
@@ -590,10 +607,28 @@ B(\theta) = \sum_{i=1}^{N} \max\!\Big(0,\; \log_2 V + \log_2 p_\theta(y_i \mid x
 <p><span class="math display">
 \text{KV bytes per token} = 2 \cdot L \cdot n_{kv} \cdot d_h \cdot b.
 </span></p>
+<p>where:</p>
+<ul>
+<li>the factor 2 counts one key and one value;</li>
+<li><span class="math inline">L</span> is the number of layers (16 in Llama 3.2 1B);</li>
+<li><span class="math inline">n_{kv}</span> is the number of key-value heads per layer (8);</li>
+<li><span class="math inline">d_h</span> is the number of values in each head (64);</li>
+<li><span class="math inline">b</span> is the number of bytes per value: 2 at 16 bits, 0.25 at 2 bits.</li>
+</ul>
+<p>For Llama 3.2 1B at 16 bits: <span class="math inline">2 \cdot 16 \cdot 8 \cdot 64 \cdot 2 = 32{,}768</span> bytes, 32 KB for every token in the context.</p>
 <p>Each new token reads the whole cache and all the weights, so the cache weighs as much as the weights at</p>
 <p><span class="math display">
 T^{*} = \frac{|\theta| \cdot b_w}{2 \cdot L \cdot n_{kv} \cdot d_h \cdot b_{kv}}.
 </span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">T^{*}</span> is the context length, in tokens, at which the two weigh the same;</li>
+<li><span class="math inline">|\theta|</span> is the number of parameters (1.24 billion for Llama 3.2 1B);</li>
+<li><span class="math inline">b_w</span> is the bytes per weight: 2 at 16 bits, 0.5 at 4 bits;</li>
+<li><span class="math inline">b_{kv}</span> is the bytes per cache value;</li>
+<li>the top is the size of the weights in bytes; the bottom is the size of the cache for one token.</li>
+</ul>
+<p>For Llama 3.2 1B with 4-bit weights and a 16-bit cache: <span class="math inline">1.24 \times 10^9 \times 0.5 \,/\, 32{,}768 \approx 19{,}000</span> tokens.</p>
 <p>I timed one layer shaped like Llama 3.2 1B <span class="citation" data-cites="llama32">(<a href="#ref-llama32" role="doc-biblioref">Meta 2024</a>)</span> generating a token over caches of 1,000 to 131,000 tokens.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -610,11 +645,20 @@ T^{*} = \frac{|\theta| \cdot b_w}{2 \cdot L \cdot n_{kv} \cdot d_h \cdot b_{kv}}
 <p><span class="math display">
 \text{coverage}(K) = \frac{H_{K,s}}{H_{F,s}}, \qquad H_{n,s} = \sum_{k=1}^{n} k^{-s}.
 </span></p>
-<p>For <span class="math inline">s = 1</span>, <span class="math inline">H_n \approx \ln n + 0.577</span>, so each tenfold step adds the same share,</p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">F</span> is the number of facts in the world (a billion in Figure 7);</li>
+<li><span class="math inline">k</span> is a fact’s rank by how often it is asked: 1 for the most asked;</li>
+<li><span class="math inline">s</span> sets how steep the tail is: with <span class="math inline">s = 1</span>, the classic Zipf’s law, the second fact is asked half as often as the first and the tenth a tenth as often; a larger <span class="math inline">s</span> puts more of the questions on the first few facts;</li>
+<li><span class="math inline">K</span> is the number of facts the memory holds, the <span class="math inline">K</span> most asked;</li>
+<li><span class="math inline">H_{n,s}</span> adds up the popularity of the first <span class="math inline">n</span> facts;</li>
+<li>the ratio is the share of all questions that fall on the <span class="math inline">K</span> facts held.</li>
+</ul>
+<p>For <span class="math inline">s = 1</span>, <span class="math inline">H_n \approx \ln n + 0.577</span>, where <span class="math inline">\ln</span> is the natural logarithm and 0.577 is Euler’s constant. So each tenfold step adds the same share,</p>
 <p><span class="math display">
 \text{coverage}(10K) - \text{coverage}(K) \approx \frac{\ln 10}{\ln F + 0.577},
 </span></p>
-<p>about 11 points with a billion facts.</p>
+<p>where <span class="math inline">\ln 10 \approx 2.30</span> is how much <span class="math inline">\ln K</span> grows when <span class="math inline">K</span> is ten times larger, and <span class="math inline">\ln F + 0.577 \approx 21.3</span> for a billion facts. The ratio, <span class="math inline">2.30 / 21.3 \approx 0.11</span>, does not depend on <span class="math inline">K</span>: going from a thousand to ten thousand facts adds about 11 points, and so does going from a hundred million to a billion.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="figures/fig07.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Computed. Share of questions answered by a memory holding the most asked facts, in a world of one billion facts, for three tails."><img src="figures/fig07.svg" class="img-fluid figure-img" alt="Three rising curves on a logarithmic horizontal axis from a hundred to a billion facts. The Zipf curve with s equal to 1 rises in a nearly straight line, from about 25 percent at a hundred facts to 100 percent at a billion. Two amber arrows mark that each tenfold increase adds the same slice of about 11 points. A flatter tail with s equal to 0.9 lies below, a steeper tail with s equal to 1.1 above."></a></p>

@@ -71,9 +71,26 @@
 <h2 class="anchored" data-anchor-id="experiment-1-how-many-facts-fit-in-the-weights">2. Experiment 1: how many facts fit in the weights</h2>
 <p><strong>Setup.</strong> A fact is a key (a random vector of 32 numbers, standing for a question) and a value, one of <img src="https://latex.codecogs.com/png.latex?V%20=%20256"> answers: <img src="https://latex.codecogs.com/png.latex?%5Clog_2%20256%20=%208"> bits. The memory is a two-layer network,</p>
 <p><img src="https://latex.codecogs.com/png.latex?%0Af_%5Ctheta(x)%20=%20W_2%5C,%5Cmathrm%7BReLU%7D(W_1%20x%20+%20b_1)%20+%20b_2,%20%5Cqquad%20%7C%5Ctheta%7C%20=%2032h%20+%20h%20+%20256h%20+%20256,%0A"></p>
-<p>with hidden width <img src="https://latex.codecogs.com/png.latex?h%20%5Cin%20%5C%7B8,%2016,%2032,%2064%5C%7D">: 2,568 to 18,752 parameters. Each network learned <img src="https://latex.codecogs.com/png.latex?N"> facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li <span class="citation" data-cites="allenzhu2025">(Allen-Zhu and Li 2025)</span>, I count the bits it holds as</p>
+<p>where:</p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?x"> is the key, the 32 numbers that stand for the question;</li>
+<li><img src="https://latex.codecogs.com/png.latex?W_1"> (a table of <img src="https://latex.codecogs.com/png.latex?h%20%5Ctimes%2032"> numbers) and <img src="https://latex.codecogs.com/png.latex?b_1"> (<img src="https://latex.codecogs.com/png.latex?h"> numbers) form the first layer, which turns the key into <img src="https://latex.codecogs.com/png.latex?h"> hidden values;</li>
+<li><img src="https://latex.codecogs.com/png.latex?%5Cmathrm%7BReLU%7D(z)%20=%20%5Cmax(0,%20z)"> keeps the positive hidden values and sets the others to zero;</li>
+<li><img src="https://latex.codecogs.com/png.latex?W_2"> (<img src="https://latex.codecogs.com/png.latex?256%20%5Ctimes%20h"> numbers) and <img src="https://latex.codecogs.com/png.latex?b_2"> (256 numbers) form the second layer, which gives one score to each of the 256 possible answers; the highest score is the network’s answer;</li>
+<li><img src="https://latex.codecogs.com/png.latex?%5Ctheta"> stands for all of these numbers together, and <img src="https://latex.codecogs.com/png.latex?%7C%5Ctheta%7C"> counts them: <img src="https://latex.codecogs.com/png.latex?32h"> in <img src="https://latex.codecogs.com/png.latex?W_1">, <img src="https://latex.codecogs.com/png.latex?h"> in <img src="https://latex.codecogs.com/png.latex?b_1">, <img src="https://latex.codecogs.com/png.latex?256h"> in <img src="https://latex.codecogs.com/png.latex?W_2"> and 256 in <img src="https://latex.codecogs.com/png.latex?b_2">;</li>
+<li><img src="https://latex.codecogs.com/png.latex?h">, the hidden width, sets the size of the network.</li>
+</ul>
+<p>I used <img src="https://latex.codecogs.com/png.latex?h%20%5Cin%20%5C%7B8,%2016,%2032,%2064%5C%7D">: 2,568 to 18,752 parameters. Each network learned <img src="https://latex.codecogs.com/png.latex?N"> facts, offering from half to four times as many bits as it has parameters, in 3,000 full-batch Adam steps, three seeds each. Following Allen-Zhu and Li <span class="citation" data-cites="allenzhu2025">(Allen-Zhu and Li 2025)</span>, I count the bits it holds as</p>
 <p><img src="https://latex.codecogs.com/png.latex?%0AB(%5Ctheta)%20=%20%5Csum_%7Bi=1%7D%5E%7BN%7D%20%5Cmax%5C!%5CBig(0,%5C;%20%5Clog_2%20V%20+%20%5Clog_2%20p_%5Ctheta(y_i%20%5Cmid%20x_i)%5CBig),%0A"></p>
-<p>what its prediction knows about each answer beyond a uniform guess.</p>
+<p>what its prediction knows about each answer beyond a uniform guess, where:</p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?N"> is the number of facts, and <img src="https://latex.codecogs.com/png.latex?i"> runs over them;</li>
+<li><img src="https://latex.codecogs.com/png.latex?x_i"> and <img src="https://latex.codecogs.com/png.latex?y_i"> are the key and the correct answer of fact <img src="https://latex.codecogs.com/png.latex?i">;</li>
+<li><img src="https://latex.codecogs.com/png.latex?p_%5Ctheta(y_i%20%5Cmid%20x_i)"> is the probability the network gives to the correct answer;</li>
+<li><img src="https://latex.codecogs.com/png.latex?%5Clog_2%20V%20=%208"> is what a fact is worth: the bits needed to name one answer out of 256;</li>
+<li><img src="https://latex.codecogs.com/png.latex?%5Clog_2%20p_%5Ctheta(y_i%20%5Cmid%20x_i)"> is zero or negative: the bits the network is still missing. Certain of the right answer (<img src="https://latex.codecogs.com/png.latex?p%20=%201">), it holds all 8 bits; hesitating between two answers (<img src="https://latex.codecogs.com/png.latex?p%20=%201/2">), it holds 7; guessing blindly (<img src="https://latex.codecogs.com/png.latex?p%20=%201/256">), it holds none;</li>
+<li><img src="https://latex.codecogs.com/png.latex?%5Cmax(0,%20%5Ccdot)"> counts a prediction worse than a blind guess as zero rather than negative.</li>
+</ul>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Experiment 1, measured, three seeds per point. Left: bits stored against bits offered; the band is one standard deviation. Right: bits stored per parameter; amber diamonds repeat three runs with three times more training."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig02.svg" class="img-fluid figure-img" alt="Left, four lines of bits stored against bits offered, for networks of 2,568, 4,880, 9,504 and 18,752 parameters, each the mean of three seeds with a narrow band. Each follows the diagonal, where every bit offered is kept, then peaks and flattens slightly lower. Right, bits stored per parameter against bits offered per parameter, with small error bars: all four networks rise along the same line to a peak of 1.40, 1.53, 1.68 and 1.67, then settle near 1.4. Three amber diamonds for three times more training sit slightly higher: 1.80, 1.55 and 1.49. A dashed amber line at 2 marks the capacity of a perceptron and of language models."></a></p>
@@ -97,7 +114,7 @@
 </section>
 <section id="experiment-3-looking-it-up" class="level2">
 <h2 class="anchored" data-anchor-id="experiment-3-looking-it-up">4. Experiment 3: looking it up</h2>
-<p><strong>Setup.</strong> I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, <img src="https://latex.codecogs.com/png.latex?O(Nd)">. An inverted-file index (IVF) groups the keys into <img src="https://latex.codecogs.com/png.latex?c%20=%204%5Csqrt%7BN%7D"> clusters and searches only the <img src="https://latex.codecogs.com/png.latex?p"> nearest, <img src="https://latex.codecogs.com/png.latex?O%5Cbig((c%20+%20pN/c)%5C,d%5Cbig)">, which grows like <img src="https://latex.codecogs.com/png.latex?%5Csqrt%7BN%7D"> <span class="citation" data-cites="douze2024">(Douze et al. 2024)</span>.</p>
+<p><strong>Setup.</strong> I stored ten thousand to four million facts as unit vectors of 256 numbers, clustered around 2,000 topics as real embeddings are. A question is a stored key plus noise, a paraphrase. Exact search compares it with every key, which takes <img src="https://latex.codecogs.com/png.latex?O(Nd)"> operations: <img src="https://latex.codecogs.com/png.latex?N"> keys of <img src="https://latex.codecogs.com/png.latex?d%20=%20256"> numbers each (<img src="https://latex.codecogs.com/png.latex?O(%5Ccdot)"> means “grows in proportion to”). An inverted-file index (IVF) groups the keys into <img src="https://latex.codecogs.com/png.latex?c%20=%204%5Csqrt%7BN%7D"> clusters once, then compares a question with the <img src="https://latex.codecogs.com/png.latex?c"> cluster centres and with the keys of the <img src="https://latex.codecogs.com/png.latex?p"> nearest clusters only. That takes <img src="https://latex.codecogs.com/png.latex?O%5Cbig((c%20+%20pN/c)%5C,d%5Cbig)"> operations: <img src="https://latex.codecogs.com/png.latex?c"> centres, plus <img src="https://latex.codecogs.com/png.latex?p"> clusters of about <img src="https://latex.codecogs.com/png.latex?N/c"> keys each. With <img src="https://latex.codecogs.com/png.latex?c%20=%204%5Csqrt%7BN%7D">, both terms grow like <img src="https://latex.codecogs.com/png.latex?%5Csqrt%7BN%7D">, so a memory a hundred times larger costs only ten times more per question <span class="citation" data-cites="douze2024">(Douze et al. 2024)</span>.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Experiment 3, measured. Left: time per easy question against facts in memory. Right: one million facts at five noise levels; each line probes 1, 4, 16 and 64 clusters, and the star is exact search."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig04.svg" class="img-fluid figure-img" alt="Left, a log-log chart of time per question against facts in memory, from ten thousand to four million: exact search rises from 0.1 to 100 milliseconds; an index probing 16 clusters from 0.1 to 1.4 milliseconds; probing 4 clusters from 0.03 to 0.5 milliseconds. Right, share of questions answered with the right fact against time per question, for five noise levels: probing 1 cluster finds 80 to 95 percent in about 0.12 milliseconds; probing 4 clusters reaches the same share as exact search, 100 percent for four levels and 95.5 percent against 96 for the noisiest, in about 0.25 milliseconds, while exact search takes about 24 milliseconds."></a></p>
@@ -123,8 +140,26 @@
 <h2 class="anchored" data-anchor-id="experiment-4-the-working-memory">5. Experiment 4: the working memory</h2>
 <p><strong>Setup.</strong> The KV cache stores a key and a value per token, layer and key-value head:</p>
 <p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7BKV%20bytes%20per%20token%7D%20=%202%20%5Ccdot%20L%20%5Ccdot%20n_%7Bkv%7D%20%5Ccdot%20d_h%20%5Ccdot%20b.%0A"></p>
+<p>where:</p>
+<ul>
+<li>the factor 2 counts one key and one value;</li>
+<li><img src="https://latex.codecogs.com/png.latex?L"> is the number of layers (16 in Llama 3.2 1B);</li>
+<li><img src="https://latex.codecogs.com/png.latex?n_%7Bkv%7D"> is the number of key-value heads per layer (8);</li>
+<li><img src="https://latex.codecogs.com/png.latex?d_h"> is the number of values in each head (64);</li>
+<li><img src="https://latex.codecogs.com/png.latex?b"> is the number of bytes per value: 2 at 16 bits, 0.25 at 2 bits.</li>
+</ul>
+<p>For Llama 3.2 1B at 16 bits: <img src="https://latex.codecogs.com/png.latex?2%20%5Ccdot%2016%20%5Ccdot%208%20%5Ccdot%2064%20%5Ccdot%202%20=%2032%7B,%7D768"> bytes, 32 KB for every token in the context.</p>
 <p>Each new token reads the whole cache and all the weights, so the cache weighs as much as the weights at</p>
 <p><img src="https://latex.codecogs.com/png.latex?%0AT%5E%7B*%7D%20=%20%5Cfrac%7B%7C%5Ctheta%7C%20%5Ccdot%20b_w%7D%7B2%20%5Ccdot%20L%20%5Ccdot%20n_%7Bkv%7D%20%5Ccdot%20d_h%20%5Ccdot%20b_%7Bkv%7D%7D.%0A"></p>
+<p>where:</p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?T%5E%7B*%7D"> is the context length, in tokens, at which the two weigh the same;</li>
+<li><img src="https://latex.codecogs.com/png.latex?%7C%5Ctheta%7C"> is the number of parameters (1.24 billion for Llama 3.2 1B);</li>
+<li><img src="https://latex.codecogs.com/png.latex?b_w"> is the bytes per weight: 2 at 16 bits, 0.5 at 4 bits;</li>
+<li><img src="https://latex.codecogs.com/png.latex?b_%7Bkv%7D"> is the bytes per cache value;</li>
+<li>the top is the size of the weights in bytes; the bottom is the size of the cache for one token.</li>
+</ul>
+<p>For Llama 3.2 1B with 4-bit weights and a 16-bit cache: <img src="https://latex.codecogs.com/png.latex?1.24%20%5Ctimes%2010%5E9%20%5Ctimes%200.5%20%5C,/%5C,%2032%7B,%7D768%20%5Capprox%2019%7B,%7D000"> tokens.</p>
 <p>I timed one layer shaped like Llama 3.2 1B <span class="citation" data-cites="llama32">(Meta 2024)</span> generating a token over caches of 1,000 to 131,000 tokens.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -139,9 +174,18 @@
 <h2 class="anchored" data-anchor-id="the-arithmetic-of-the-long-tail">6. The arithmetic of the long tail</h2>
 <p>How much should stay in the weights? Questions are not uniform: models know popular facts far better than rare ones <span class="citation" data-cites="kandpal2023">(Kandpal et al. 2023)</span>, and retrieval helps most on the rare ones <span class="citation" data-cites="mallen2023">(Mallen et al. 2023)</span>. If the <img src="https://latex.codecogs.com/png.latex?k">-th most asked of <img src="https://latex.codecogs.com/png.latex?F"> facts is asked with probability proportional to <img src="https://latex.codecogs.com/png.latex?k%5E%7B-s%7D"> (Zipf’s law), a memory holding the <img src="https://latex.codecogs.com/png.latex?K"> most asked answers</p>
 <p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bcoverage%7D(K)%20=%20%5Cfrac%7BH_%7BK,s%7D%7D%7BH_%7BF,s%7D%7D,%20%5Cqquad%20H_%7Bn,s%7D%20=%20%5Csum_%7Bk=1%7D%5E%7Bn%7D%20k%5E%7B-s%7D.%0A"></p>
-<p>For <img src="https://latex.codecogs.com/png.latex?s%20=%201">, <img src="https://latex.codecogs.com/png.latex?H_n%20%5Capprox%20%5Cln%20n%20+%200.577">, so each tenfold step adds the same share,</p>
+<p>where:</p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?F"> is the number of facts in the world (a billion in Figure 7);</li>
+<li><img src="https://latex.codecogs.com/png.latex?k"> is a fact’s rank by how often it is asked: 1 for the most asked;</li>
+<li><img src="https://latex.codecogs.com/png.latex?s"> sets how steep the tail is: with <img src="https://latex.codecogs.com/png.latex?s%20=%201">, the classic Zipf’s law, the second fact is asked half as often as the first and the tenth a tenth as often; a larger <img src="https://latex.codecogs.com/png.latex?s"> puts more of the questions on the first few facts;</li>
+<li><img src="https://latex.codecogs.com/png.latex?K"> is the number of facts the memory holds, the <img src="https://latex.codecogs.com/png.latex?K"> most asked;</li>
+<li><img src="https://latex.codecogs.com/png.latex?H_%7Bn,s%7D"> adds up the popularity of the first <img src="https://latex.codecogs.com/png.latex?n"> facts;</li>
+<li>the ratio is the share of all questions that fall on the <img src="https://latex.codecogs.com/png.latex?K"> facts held.</li>
+</ul>
+<p>For <img src="https://latex.codecogs.com/png.latex?s%20=%201">, <img src="https://latex.codecogs.com/png.latex?H_n%20%5Capprox%20%5Cln%20n%20+%200.577">, where <img src="https://latex.codecogs.com/png.latex?%5Cln"> is the natural logarithm and 0.577 is Euler’s constant. So each tenfold step adds the same share,</p>
 <p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bcoverage%7D(10K)%20-%20%5Ctext%7Bcoverage%7D(K)%20%5Capprox%20%5Cfrac%7B%5Cln%2010%7D%7B%5Cln%20F%20+%200.577%7D,%0A"></p>
-<p>about 11 points with a billion facts.</p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Cln%2010%20%5Capprox%202.30"> is how much <img src="https://latex.codecogs.com/png.latex?%5Cln%20K"> grows when <img src="https://latex.codecogs.com/png.latex?K"> is ten times larger, and <img src="https://latex.codecogs.com/png.latex?%5Cln%20F%20+%200.577%20%5Capprox%2021.3"> for a billion facts. The ratio, <img src="https://latex.codecogs.com/png.latex?2.30%20/%2021.3%20%5Capprox%200.11">, does not depend on <img src="https://latex.codecogs.com/png.latex?K">: going from a thousand to ten thousand facts adds about 11 points, and so does going from a hundred million to a billion.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><a href="figures/fig07.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Computed. Share of questions answered by a memory holding the most asked facts, in a world of one billion facts, for three tails."><img src="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig07.svg" class="img-fluid figure-img" alt="Three rising curves on a logarithmic horizontal axis from a hundred to a billion facts. The Zipf curve with s equal to 1 rises in a nearly straight line, from about 25 percent at a hundred facts to 100 percent at a billion. Two amber arrows mark that each tenfold increase adds the same slice of about 11 points. A flatter tail with s equal to 0.9 lies below, a steeper tail with s equal to 1.1 above."></a></p>
