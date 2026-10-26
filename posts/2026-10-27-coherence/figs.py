@@ -1,5 +1,5 @@
 """Figures for "Coherence Is Measurable". Same style as "Where Memory Lives".
-Run: python figs.py  (no other input; the toy simulation in Figure 2 is seeded)
+Run sim.py first (it writes results.json), then: python figs.py
 Each figure is written twice: a vector SVG (used in the page) and a 400 dpi PNG."""
 import json
 import numpy as np
@@ -150,7 +150,7 @@ def fig_four():
     w, h, gap = 4.6, 4.6, 0.55
     for i, (t, s, c, eb, tag) in enumerate(cards):
         x = 0.3 + i * (w + gap)
-        card(ax, x, 1.7, w, h, t, s, accent=c, eyebrow=eb, fs=11, subfs=8.6)
+        card(ax, x, 1.7, w, h, t, s, accent=c, eyebrow=eb, fs=10.4, subfs=8.6)
         chip(ax, x + w / 2 + 0.1, 0.95, tag, color=c if c != DEEP else NAVY,
              fill=SAND_T, fs=6.8)
     arrow(ax, (0.6, 0.15), (20.4, 0.15), color=RULE, lw=1.2)
@@ -160,64 +160,48 @@ def fig_four():
     save(fig, "fig01")
 
 
-# ---------- Figure 2: toy simulation of self-consistency ----------
-def simulate(n_q=4000, n_s=25, n_wrong=4, seed=7):
-    """Each question has a chance p of a correct sample; wrong samples fall on
-    n_wrong alternatives with uneven weights, so some errors are repeated (coherent)."""
-    rng = np.random.default_rng(seed)
-    p = np.where(rng.random(n_q) < 0.6, rng.beta(5, 2, n_q), rng.beta(1.2, 3, n_q))
-    wrong_w = rng.dirichlet(np.full(n_wrong, 0.35), n_q)
-    probs = np.column_stack([p, (1 - p)[:, None] * wrong_w])          # answer 0 is right
-    cum = probs.cumsum(1)
-    draws = (rng.random((n_q, n_s, 1)) > cum[:, None, :]).sum(2)       # (n_q, n_s)
-    return draws
+# ---------- Figure 2: measured, ensembles of small networks (sim.py) ----------
+R = json.load(open("results.json"))
 
 
-def majority(d):
-    counts = np.apply_along_axis(np.bincount, 1, d, minlength=5)
-    return counts.argmax(1), counts.max(1) / d.shape[1]
+def fig_agreement():
+    n = R["n_test"]
+    fig, (a, b) = plt.subplots(1, 2, figsize=(10.2, 3.8), gridspec_kw=dict(wspace=0.3))
+    for cond, col, lab in (("clean", NAVY, "clean digits"), ("noisy", WARM, "noisy digits (unseen)")):
+        r = R["control"][cond]
+        curve = np.array(r["selective_curve"])
+        cov = (np.arange(len(curve)) * 9 + 1) / n * 100
+        a.plot(cov, curve * 100, color=col, lw=2, label=f"{lab}  ·  AUROC {r['auroc_agreement_detects_error']:.2f}")
+        a.plot(100, r["majority_acc"] * 100, "o", color=col, ms=4)
+        a.annotate(f"{r['majority_acc']*100:.1f}% if it\nanswers everything", (100, r["majority_acc"] * 100),
+                   xytext=(-6, -6), textcoords="offset points", ha="right", va="top", fontsize=7.3, color=col)
+    a.set_xlabel("share of digits answered, most agreed first (%)")
+    a.set_ylabel("of those, majority vote correct (%)")
+    a.set_xlim(0, 102); a.set_ylim(84, 100.8)
+    a.legend(loc="lower left", fontsize=7.8)
+    tidy(a); title(a, "A · AGREEMENT AS A SIGNAL", "Disagreement points at the errors")
 
-
-def fig_selfcons():
-    d = simulate()
-    ns = [1, 3, 5, 9, 15, 25]
-    acc = [(majority(d[:, :n])[0] == 0).mean() for n in ns]
-    ans, agree = majority(d[:, :10])
-    right = ans == 0
-    order = np.argsort(-agree, kind="stable")
-    cov = np.arange(1, len(order) + 1) / len(order)
-    sel_acc = np.cumsum(right[order]) / np.arange(1, len(order) + 1)
-    coh_wrong = ((agree >= 0.8) & ~right).mean()
-
-    fig, (a, b) = plt.subplots(1, 2, figsize=(10.2, 3.7), gridspec_kw=dict(wspace=0.32))
-    a.plot(ns, [x * 100 for x in acc], "-o", color=NAVY, lw=2, ms=5)
-    a.axhline(acc[0] * 100, color=AMBER, ls="--", lw=1.2)
-    a.text(25, acc[0] * 100 - 1.6, "one sample", color=WARM, fontsize=8, ha="right", va="top")
-    for n, v in zip(ns, acc):
-        a.annotate(f"{v*100:.0f}%", (n, v * 100), xytext=(0, 7), textcoords="offset points",
-                   ha="center", fontsize=7.5, color=INK)
-    a.set_xlabel("samples per question (majority vote)")
-    a.set_ylabel("questions answered correctly (%)")
-    a.set_ylim(acc[0] * 100 - 8, max(acc) * 100 + 7)
-    tidy(a); title(a, "A · AGREEMENT AS A VOTE", "More samples, more often right")
-
-    b.plot(cov * 100, sel_acc * 100, color=GREEN, lw=2)
-    b.axhline(right.mean() * 100, color=AMBER, ls="--", lw=1.2)
-    b.text(2, right.mean() * 100 - 1.6, "answer everything", color=WARM, fontsize=8, va="top")
-    for c in (0.5, 0.8):
-        k = int(c * len(order)) - 1
-        b.plot(cov[k] * 100, sel_acc[k] * 100, "o", color=GREEN, ms=5)
-        b.annotate(f"{sel_acc[k]*100:.0f}% right\nanswering {c*100:.0f}%", (cov[k] * 100, sel_acc[k] * 100),
-                   xytext=(-8, -8), textcoords="offset points", ha="right", va="top", fontsize=7.5, color=INK)
-    b.set_xlabel("share of questions answered (most coherent first, %)")
-    b.set_ylabel("of those, answered correctly (%)")
-    b.set_xlim(0, 100); b.set_ylim(right.mean() * 100 - 8, 101)
-    tidy(b); title(b, "B · AGREEMENT AS A SIGNAL", "Abstain when the samples disagree")
-    b.text(98, 99, f"yet {coh_wrong*100:.0f}% of all questions get a confident wrong answer\n(8+ of 10 samples agree, and they are wrong)",
-           ha="right", va="top", fontsize=7.3, color=RED)
+    sw = R["sweep"]
+    ps = sorted({r["hint_p"] for r in sw})
+    x = np.arange(len(ps))
+    for key, col, lab in (("auroc", GREEN, "agreement detects errors (AUROC)"),
+                          ("followed_hint_share", RED, "majority follows the wrong hint")):
+        v = np.array([[r[key] for r in sw if r["hint_p"] == p] for p in ps])
+        b.fill_between(x, v.min(1), v.max(1), color=col, alpha=0.15, lw=0)
+        b.plot(x, v.mean(1), "-o", color=col, lw=2, ms=4.5, label=lab)
+        for xi, m in zip(x, v.mean(1)):
+            dy = 7 if key == "auroc" else (8 if xi < len(ps) - 1 else -13)
+            b.annotate(f"{m:.2f}", (xi, m), xytext=(0, dy),
+                       textcoords="offset points", ha="center", fontsize=7.3, color=col)
+    b.axhline(0.5, color=MUTED, ls=":", lw=1)
+    b.text(-0.1, 0.515, "chance", fontsize=7.3, color=MUTED, ha="left")
+    b.set_xticks(x, [f"{p*100:.0f}%" for p in ps])
+    b.set_xlabel("how often the hint was right during training")
+    b.set_ylim(0, 1.02)
+    b.legend(loc="center left", bbox_to_anchor=(0, 0.62), fontsize=7.8)
+    b.set_ylabel("share or score")
+    tidy(b); title(b, "B · A SHARED SHORTCUT", "When all models learn it, agreement goes blind")
     save(fig, "fig02")
-    return dict(acc=acc, ns=ns, base=right.mean(), coh_wrong=coh_wrong,
-                sel50=sel_acc[len(order) // 2 - 1], sel80=sel_acc[int(0.8 * len(order)) - 1])
 
 
 # ---------- Figure 3: predict the pixels vs predict the representation ----------
@@ -287,8 +271,4 @@ def fig_loop():
 
 
 if __name__ == "__main__":
-    fig_four()
-    stats = fig_selfcons()
-    fig_jepa(); fig_grid(); fig_loop()
-    print(json.dumps({k: (np.round(v, 3).tolist() if isinstance(v, (list, np.ndarray)) else round(float(v), 3)
-                      if not isinstance(v, list) else v) for k, v in stats.items()}))
+    fig_four(); fig_agreement(); fig_jepa(); fig_grid(); fig_loop()
