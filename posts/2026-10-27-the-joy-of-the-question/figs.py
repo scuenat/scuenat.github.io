@@ -136,15 +136,13 @@ def fig02():
     save(fig, "fig02")
 
 
-# ---------- Figure 3: same tool, different people ----------
+# ---------- Figure 3: inside and beyond the frontier ----------
 def fig03():
-    rows = [("Consultants, tasks AI does well", "more tasks completed", 12.2, "+12.2%", NAVY),
+    rows = [("Tasks AI does well", "more tasks completed", 12.2, "+12.2%", NAVY),
             ("", "faster", 25.1, "+25.1%", NAVY),
-            ("Consultants, a task just beyond AI", "correct answers", -19, "−19 points", RED),
-            ("Entrepreneurs, strong before the study", "business performance", 15, "over +15%", GREEN),
-            ("Entrepreneurs, weak before the study", "business performance", -10, "about −10%", RED)]
-    fig, ax = plt.subplots(figsize=(10, 4.2))
-    ys = [5.9, 5.2, 3.8, 2.3, 0.9]
+            ("A task just beyond AI", "correct answers", -19, "−19 points", RED)]
+    fig, ax = plt.subplots(figsize=(10, 2.6))
+    ys = [3.7, 3.0, 1.2]
     for (grp, what, v, lab, col), y in zip(rows, ys):
         ax.barh(y, v, height=0.5, color=col, edgecolor=BG, linewidth=2)
         ax.text(v + (0.8 if v > 0 else -0.8), y, lab, va="center", ha="left" if v > 0 else "right",
@@ -153,9 +151,8 @@ def fig03():
         if grp:
             ax.text(-62, y + 0.42, grp, va="bottom", ha="left", fontsize=9.4, color=INK, weight="bold")
     ax.axvline(0, color=MUTED, lw=0.8)
-    ax.axhline(3.15, color=RULE, lw=1)
-    ax.text(-62, 7.05, "With AI, compared with similar people without it", fontsize=9.8, color=INK)
-    ax.set_xlim(-62, 34); ax.set_ylim(0.4, 7.4)
+    ax.text(-62, 4.85, "Consultants with AI, compared with consultants without it (n = 758)", fontsize=9.8, color=INK)
+    ax.set_xlim(-62, 34); ax.set_ylim(0.7, 5.2)
     ax.axis("off")
     save(fig, "fig03")
 
