@@ -90,7 +90,7 @@ def fig01():
     ax.text(cx, cy + 2.3, "WHICH", ha="center", va="center", fontsize=11.5, weight="bold", color=WARM, zorder=3)
     ax.text(cx, cy + 3.65, "WHY", ha="center", va="center", fontsize=11.5, weight="bold", color=GREEN, zorder=3)
     rows = [(cy + 3.6, GREEN, "Why does it matter to us?",
-             "Care, motivation, meaning. The reason to start,\nand the joy of the climb. No machine needs it."),
+             "Care, motivation, meaning. The reason to start,\nand the joy of the climb. Ours to bring."),
             (cy + 0.75, WARM, "Which problem, and what counts as good?",
              "Noticing, framing, choosing, checking.\nCreativity, imagination and judgement."),
             (cy - 2.4, NAVY, "How do we solve it?",
@@ -124,8 +124,7 @@ def fig02():
     ax.text(1947, 7.1, "what people choose to learn and attempt", fontsize=9.5, color=WARM, weight="bold")
     ax.text(1947, 6.6, "rises when we keep climbing", fontsize=8.8, color=WARM, style="italic")
     ax.text(2008, 0.35, "work handed to machines", fontsize=9.5, color=NAVY, weight="bold", ha="center")
-    notes = [(1997, 4.6, "After strong chess engines, the quality\nof human play rose (Strittmatter 2020)"),
-             (2016, 6.1, "After AlphaGo, professionals played\nbetter and more novel moves (Shin 2023)")]
+    notes = [(2016, 6.1, "After AlphaGo, professionals played\nbetter and more novel moves (Shin 2023)")]
     for x, y, t in notes:
         ax.annotate(t, xy=(x + 0.5, y - 0.95), xytext=(x - 17 if x == 1997 else x - 15, y + 0.9),
                     fontsize=8.4, color=INK, linespacing=1.3,
