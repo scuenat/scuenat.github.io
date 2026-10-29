@@ -52,5 +52,5 @@ Once, by hand: verify the site in [Google Search Console](https://search.google.
 
 ## Optional
 
-- **Comments:** set up https://giscus.app, then uncomment the block in `posts/_metadata.yml`
+- **Comments:** every post ends with a "Questions or objections?" note pointing to LinkedIn (`discuss.lua`; opt out per post with `discuss: false`). For comments on the site instead, set up https://giscus.app, then uncomment the block in `posts/_metadata.yml`
 - **Email list:** Buttondown can send new posts from the RSS feed (`/index.xml`)
