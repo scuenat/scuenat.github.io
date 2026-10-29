@@ -41,24 +41,29 @@ function cloud(cx, cy, r, n, bright) {
 
 const artQuestion = `<svg viewBox="0 0 900 330" width="900" height="330">
   <circle cx="190" cy="160" r="150" fill="${C.navyT}"/>${cloud(190, 160, 140, 140, true)}
-  <text x="190" y="325" text-anchor="middle" class="cap">Before: every answer possible</text>
+  <text x="190" y="325" text-anchor="middle" class="cap">Before: all possible</text>
   <path d="M370 160 H520" stroke="${C.amber}" stroke-width="6" marker-end="url(#ah)"/>
   <text x="445" y="140" text-anchor="middle" class="capb" fill="${C.warm}">a question</text>
   <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="${C.amber}"/></marker></defs>
   <circle cx="710" cy="160" r="150" fill="${C.navyT}"/>${cloud(710, 160, 140, 140, false)}
   <circle cx="742" cy="128" r="30" fill="${C.amber}" opacity=".25"/><circle cx="742" cy="128" r="15" fill="${C.amber}"/>
-  <text x="710" y="325" text-anchor="middle" class="cap">After: one answer, chosen</text>
+  <text x="710" y="325" text-anchor="middle" class="cap">After: one chosen</text>
 </svg>`;
 
 const artCompare = `<svg viewBox="0 0 900 300" width="900" height="300">
-  <rect x="20" y="40" width="250" height="150" rx="16" fill="#fff" stroke="${C.rule}" stroke-width="3"/>
-  <text x="145" y="100" text-anchor="middle" class="capb">Record A</text><text x="145" y="140" text-anchor="middle" class="cap">one view</text>
-  <rect x="630" y="40" width="250" height="150" rx="16" fill="#fff" stroke="${C.rule}" stroke-width="3"/>
-  <text x="755" y="100" text-anchor="middle" class="capb">Record B</text><text x="755" y="140" text-anchor="middle" class="cap">another view</text>
-  <path d="M275 115 C360 115 380 210 440 210" fill="none" stroke="${C.navy}" stroke-width="5"/>
-  <path d="M625 115 C540 115 520 210 460 210" fill="none" stroke="${C.navy}" stroke-width="5"/>
-  <circle cx="450" cy="215" r="44" fill="${C.green}"/><path d="M430 215 l14 14 l24 -28" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="450" y="292" text-anchor="middle" class="capb" fill="${C.green}">they meet, and agree</text>
+  <rect x="20" y="10" width="250" height="110" rx="16" fill="#fff" stroke="${C.rule}" stroke-width="3"/>
+  <text x="145" y="58" text-anchor="middle" class="capb">Model A</text><text x="145" y="94" text-anchor="middle" class="cap">its answer</text>
+  <rect x="630" y="10" width="250" height="110" rx="16" fill="#fff" stroke="${C.rule}" stroke-width="3"/>
+  <text x="755" y="58" text-anchor="middle" class="capb">Model B</text><text x="755" y="94" text-anchor="middle" class="cap">its answer</text>
+  <path d="M275 65 C370 65 390 145 438 145" fill="none" stroke="${C.navy}" stroke-width="5"/>
+  <path d="M625 65 C530 65 510 145 462 145" fill="none" stroke="${C.navy}" stroke-width="5"/>
+  <circle cx="450" cy="147" r="16" fill="${C.navy}"/>
+  <text x="425" y="192" text-anchor="end" class="capb" fill="${C.navy}">they agree…</text>
+  <path d="M450 168 V202" stroke="${C.muted}" stroke-width="4" marker-end="url(#dn)"/>
+  <defs><marker id="dn" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="${C.muted}"/></marker></defs>
+  <rect x="200" y="212" width="500" height="80" rx="18" fill="${C.greenT}" stroke="${C.green}" stroke-width="3"/>
+  <circle cx="250" cy="252" r="24" fill="${C.green}"/><path d="M239 252 l8 8 l14 -16" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="290" y="262" class="capb" fill="${C.green}">…then check the world</text>
 </svg>`;
 
 const artMass = `<svg viewBox="0 0 900 300" width="900" height="300">
@@ -71,13 +76,17 @@ const artMass = `<svg viewBox="0 0 900 300" width="900" height="300">
   <text x="860" y="285" text-anchor="end" class="cap">time with AI → (schematic)</text>
 </svg>`;
 
-const artEffort = `<div class="bars">
-  <div class="b"><div class="v" style="color:${C.amber}">−17%</div><div class="bar neg" style="height:120px;background:${C.amber}"></div>
-    <p>Practised with a plain chatbot</p></div>
-  <div class="b"><div class="v" style="color:${C.navy}">≈ 0</div><div class="bar" style="height:6px;background:${C.navy}"></div>
-    <p>Practised with a tutor that gives hints, not answers</p></div>
-  <p class="note">Exam scores once the AI was taken away, compared with students who never had it (~1,000 students; Bastani et al., <i>PNAS</i>, 2025)</p>
-</div>`;
+const artEffort = `<div class="effort"><svg viewBox="0 0 900 330" width="900" height="330">
+  <text x="270" y="34" text-anchor="middle" class="capb">Plain chatbot</text>
+  <text x="640" y="34" text-anchor="middle" class="capb">Tutor giving hints</text>
+  <rect x="190" y="110" width="160" height="140" rx="6" fill="${C.amber}"/>
+  <text x="270" y="318" text-anchor="middle" class="bignum" fill="${C.warm}">−17%</text>
+  <rect x="560" y="104" width="160" height="12" rx="4" fill="${C.navy}"/>
+  <text x="640" y="200" text-anchor="middle" class="bignum" fill="${C.navy}">≈ 0</text>
+  <line x1="40" y1="110" x2="860" y2="110" stroke="${C.ink}" stroke-width="3"/>
+  <text x="40" y="96" class="cap">0 = students who never had AI</text>
+</svg>
+  <p class="note">Exam scores once the AI was taken away (~1,000 high-school students; Bastani et al., <i>PNAS</i>, 2025)</p></div>`;
 
 const artHill = `<svg viewBox="0 0 900 300" width="900" height="300">
   <path d="M0 290 C200 290 380 60 560 50 C700 45 800 160 900 290 Z" fill="${C.greenT}"/>
@@ -97,7 +106,7 @@ const slides = [
     "In recent calculations, a closed universe seen from outside holds nothing to know. Information begins with someone inside, asking. A language model works a bit like that: every answer waits until a question arrives.",
     "Nothing From Outside, Everything From Inside"),
   scene(1, "Agreement is not truth.", artCompare,
-    "Ten of my models that agreed were right <b>99.8%</b> of the time, unless they had all learned the same mistake. Then their agreement was worth no more than chance. Compare, then check against the world.",
+    "When ten of my models all agreed, they were right <b>99.8%</b> of the time, unless they had all learned the same mistake. Then their agreement was worth no more than chance.",
     "What Survives Comparison · Coherence Is Measurable"),
   scene(2, "Everything you make, you carry.", artMass,
     "AI lowers the cost of making, not of carrying. So make less, approve only what you cannot undo, watch the rest, and keep processes light.",
@@ -105,7 +114,7 @@ const slides = [
   scene(3, "The skill is in the effort.", artEffort,
     "A tool that does the climbing for you takes the learning with it. A tool that keeps the effort does no harm.",
     "The Joy of the Question"),
-  scene(4, "A machine has no reason to want an answer. We&nbsp;do.", artHill,
+  scene(4, "A machine has no reason of its own to want an answer. We&nbsp;do.", artHill,
     "“One must imagine Sisyphus happy,” wrote Camus. Being first at the top is not the same as being glad to be there. Choosing the question, and caring about it, stays ours.",
     "The Joy of the Question"),
   page(7, `<h1 class="msg">Answers are cheap.<br><span>Questions are ours.</span></h1>
@@ -121,8 +130,12 @@ const slides = [
 ];
 
 const css = `
+.bignum { font: 600 72px "Source Serif 4", serif; }
+.effort { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.effort .note { font-size: 25px; color: ${C.muted}; text-align: center; line-height: 1.35; }
 .cover h1 { font-size: 104px; line-height: 1.04; }
-h1 span, .msg span { color: ${C.amber}; }
+.cover h1 span { color: ${C.amber}; }
+.msg span { color: ${C.warm}; }
 .cover .sub { font-size: 44px; }
 .cover .zoom { margin-top: 50px; }
 .cover .zoom span { color: #aab6c3; }
@@ -139,11 +152,11 @@ h1 span, .msg span { color: ${C.amber}; }
 h2.t { font-family: "Source Serif 4", serif; font-weight: 600; font-size: 82px; line-height: 1.08; letter-spacing: -.015em; color: ${C.ink}; margin-top: -8px; }
 h2.t::after { display: none; }
 .art { display: flex; justify-content: center; }
-.cap { font: 400 24px Inter; fill: ${C.muted}; }
-.capb { font: 700 28px Inter; fill: ${C.ink}; }
+.cap { font: 400 28px Inter; fill: ${C.muted}; }
+.capb { font: 700 31px Inter; fill: ${C.ink}; }
 .scene .body { font-size: 39px; line-height: 1.42; }
 .scene .body b { color: ${C.navy}; }
-.essays { margin-top: auto; font-size: 24px; color: ${C.navy}; font-weight: 600; }
+.essays { margin-top: auto; font-size: 28px; color: ${C.navy}; font-weight: 600; }
 .essays span { color: ${C.muted}; font-weight: 400; }
 .bars { display: grid; grid-template-columns: 1fr 1fr; column-gap: 60px; width: 100%; padding: 0 40px; }
 .b { display: flex; flex-direction: column; align-items: center; }
