@@ -28,7 +28,7 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 - Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `social-card.jpg`
 - Every post needs `topics:` (the home-page tiles it appears in: `agentic-coding`, `fast-ai`, `dashboards`, `physics`; a post may have several). The tiles are defined in `index.qmd` and `fr/index.qmd`; a post with no known topic lands in a "More essays" tile. The full list by date, with category filters, is `archive.qmd`
 - Every page needs a `description:`: it is the snippet in Google results (the first ~155 characters show) and the summary in the listing
-- A translation lives at the same path under `fr/`; the two are linked automatically (hreflang, language switch, `translationOfWork`)
+- A translation lives at the same path under `fr/`; the two are linked automatically (hreflang, language switch, `translationOfWork`). To translate a post (or every missing one), ask Claude Code to use the `translate-fr` skill (`.claude/skills/translate-fr/SKILL.md`)
 
 ## Search engines
 
