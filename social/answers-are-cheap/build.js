@@ -19,8 +19,8 @@ const page = (n, inner, cls = "") => `
 const zoom = (k) => `<ol class="zoom">${SCALES.map((s, i) =>
   `<li class="${i === k ? "now" : i < k ? "done" : ""}"><i style="width:${46 - i * 7}px;height:${46 - i * 7}px"></i><span>${s}</span></li>`).join("")}</ol>`;
 
-const scene = (k, label, title, art, body, essays) => page(k + 2, `${zoom(k)}
-  <p class="label">${label}</p><h2 class="t">${title}</h2>
+const scene = (k, title, art, body, essays) => page(k + 2, `${zoom(k)}
+  <h2 class="t">${title}</h2>
   <div class="art">${art}</div>
   <p class="body">${body}</p>
   <p class="essays"><span>${essays.includes("·") ? "Essays" : "Essay"} · </span>${essays}</p>`, "scene");
@@ -66,8 +66,8 @@ const artMass = `<svg viewBox="0 0 900 300" width="900" height="300">
   <line x1="60" y1="20" x2="60" y2="250" stroke="${C.muted}" stroke-width="2"/>
   <path d="M60 60 C240 70 300 220 860 232" fill="none" stroke="${C.amber}" stroke-width="7"/>
   <path d="M60 225 C320 210 600 120 860 40" fill="none" stroke="${C.navy}" stroke-width="7"/>
-  <text x="250" y="62" class="capb" fill="${C.warm}">cost of making</text>
-  <text x="600" y="178" class="capb" fill="${C.navy}">cost of carrying</text>
+  <text x="80" y="40" class="capb" fill="${C.warm}">cost of making</text>
+  <text x="860" y="20" text-anchor="end" class="capb" fill="${C.navy}">cost of carrying</text>
   <text x="860" y="285" text-anchor="end" class="cap">time with AI → (schematic)</text>
 </svg>`;
 
@@ -82,33 +82,35 @@ const artEffort = `<div class="bars">
 const artHill = `<svg viewBox="0 0 900 300" width="900" height="300">
   <path d="M0 290 C200 290 380 60 560 50 C700 45 800 160 900 290 Z" fill="${C.greenT}"/>
   <path d="M0 290 C200 290 380 60 560 50 C700 45 800 160 900 290" fill="none" stroke="${C.green}" stroke-width="5"/>
-  <circle cx="470" cy="90" r="30" fill="${C.amber}"/>
-  <circle cx="430" cy="120" r="11" fill="${C.navy}"/><path d="M430 131 L448 168 M436 146 L462 112" stroke="${C.navy}" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="455" cy="78" r="34" fill="${C.amber}"/>
+  <path d="M250 230 C300 190 350 140 400 112" fill="none" stroke="${C.navy}" stroke-width="5" stroke-dasharray="4 12" stroke-linecap="round" marker-end="url(#up)"/>
+  <defs><marker id="up" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="${C.navy}"/></marker></defs>
+  <text x="700" y="250" text-anchor="middle" class="cap">the climb is the point</text>
 </svg>`;
 
 const slides = [
-  page(1, `<p class="kicker">Six essays · from physics to the classroom</p>
+  page(1, `<p class="kicker">Six essays, one question</p>
     <h1>Answers are cheap.<br><span>Questions are ours.</span></h1>
     <p class="sub">What stays human when AI can answer almost anything, seen at five scales.</p>
     ${zoom(-1)}`, "cover"),
-  scene(0, "Physics", "An answer needs someone asking.", artQuestion,
-    "Seen from outside, a closed universe has exactly one possible state: nothing to know. Put an observer inside and the possibilities come back. A language model is similar: it holds every answer, weighted, none chosen, until a question arrives from somewhere.",
+  scene(0, "An answer needs someone asking.", artQuestion,
+    "In recent calculations, a closed universe seen from outside holds nothing to know. Information begins with someone inside, asking. A language model works a bit like that: every answer waits until a question arrives.",
     "Nothing From Outside, Everything From Inside"),
-  scene(1, "AI experiments", "Truth is what survives comparison.", artCompare,
-    "When ten of my networks all agreed, they were right <b>99.8%</b> of the time. But when they had all learned the same shortcut, their agreement was worth no more than chance. Coherent is not true. Check against the world.",
+  scene(1, "Agreement is not truth.", artCompare,
+    "Ten of my models that agreed were right <b>99.8%</b> of the time, unless they had all learned the same mistake. Then their agreement was worth no more than chance. Compare, then check against the world.",
     "What Survives Comparison · Coherence Is Measurable"),
-  scene(2, "Teams", "Everything you make, you carry.", artMass,
-    "AI lowers the cost of making, not of carrying. So make less, and carry it well: approve only what you cannot undo, watch everything else, and let processes get lighter as the work gets heavier.",
+  scene(2, "Everything you make, you carry.", artMass,
+    "AI lowers the cost of making, not of carrying. So make less, approve only what you cannot undo, watch the rest, and keep processes light.",
     "Work Has Mass · Stop Reviewing Pull Requests"),
-  scene(3, "Classroom", "The skill is in the effort.", artEffort,
+  scene(3, "The skill is in the effort.", artEffort,
     "A tool that does the climbing for you takes the learning with it. A tool that keeps the effort does no harm.",
     "The Joy of the Question"),
-  scene(4, "Philosophy", "A machine has no reason to want an answer. We do.", artHill,
-    "“One must imagine Sisyphus happy,” wrote Camus. Being first at the top is not the same as being glad to be there. Choosing the question, and caring about it, is not a task to automate.",
+  scene(4, "A machine has no reason to want an answer. We&nbsp;do.", artHill,
+    "“One must imagine Sisyphus happy,” wrote Camus. Being first at the top is not the same as being glad to be there. Choosing the question, and caring about it, stays ours.",
     "The Joy of the Question"),
   page(7, `<h1 class="msg">Answers are cheap.<br><span>Questions are ours.</span></h1>
     <ul class="rules">
-      <li><b>Ask from somewhere.</b> An answer means something only to someone.</li>
+      <li><b>Ask your own question.</b> An answer means something only to someone.</li>
       <li><b>Compare, then check against the world.</b> Agreement is not truth.</li>
       <li><b>Carry only what matters.</b> Making is free; keeping is not.</li>
       <li><b>Keep the effort, and the joy.</b> That is where the skill comes from.</li>
@@ -134,13 +136,12 @@ h1 span, .msg span { color: ${C.amber}; }
 .zoom li.now span { color: ${C.warm}; font-weight: 800; }
 .scene .content { justify-content: flex-start; padding-top: 40px; gap: 26px; }
 .scene .zoom { margin-bottom: 20px; padding-bottom: 26px; border-bottom: 2px solid ${C.rule}; }
-.label { font-size: 28px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: ${C.warm}; }
-h2.t { font-family: "Source Serif 4", serif; font-weight: 600; font-size: 76px; line-height: 1.08; letter-spacing: -.015em; color: ${C.ink}; margin-top: -8px; }
+h2.t { font-family: "Source Serif 4", serif; font-weight: 600; font-size: 82px; line-height: 1.08; letter-spacing: -.015em; color: ${C.ink}; margin-top: -8px; }
 h2.t::after { display: none; }
 .art { display: flex; justify-content: center; }
 .cap { font: 400 24px Inter; fill: ${C.muted}; }
 .capb { font: 700 28px Inter; fill: ${C.ink}; }
-.scene .body { font-size: 35px; line-height: 1.42; }
+.scene .body { font-size: 39px; line-height: 1.42; }
 .scene .body b { color: ${C.navy}; }
 .essays { margin-top: auto; font-size: 24px; color: ${C.navy}; font-weight: 600; }
 .essays span { color: ${C.muted}; font-weight: 400; }
