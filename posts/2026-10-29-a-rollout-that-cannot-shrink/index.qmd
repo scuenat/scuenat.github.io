@@ -1,0 +1,151 @@
+---
+title: "A Rollout That Cannot Shrink"
+subtitle: "A deep dive into LeHami, a world model whose predictor is built from Hamilton's equations"
+description: "A close reading of LeHami: a JEPA world model whose predictor is a learned Hamiltonian flow. What the symplectic step guarantees, what it buys on two pendulums, and where it still loses."
+date: 2026-10-29
+categories: [essay, ai, world-models, deep-dive]
+topics: [physics]   # home-page theme tiles (index.qmd)
+image: figures/fig01.png
+resources:
+  - figs.py
+---
+
+::: {.callout-note appearance="simple"}
+**A deep dive into one paper.** This essay reads *LeHami: Symplectic Latent Dynamics for World Models* by Romina Yalovetzky, Randall Balestriero and Yann LeCun (arXiv:2610.15267, October 2026). Every claim about the paper points to the section, figure or table it comes from, written as (§2), (Fig. 4) or (Table 7). Figures 1 to 4 are my own toys on a true pendulum, not the paper's trained models. Figure 5 redraws numbers from the paper's tables. The code for all five is in [figs.py](figs.py).
+:::
+
+**In short.** A world model that predicts by feeding its own output back in can slowly squeeze its picture of the world until different states look the same. LeHami stops this by building its predictor from Hamilton's equations, the rules of classical mechanics, and stepping it with an integrator that keeps volume exactly (Yalovetzky, Balestriero and LeCun, 2026, §2, Proposition 1). On two pendulums it predicts velocity much better than its unconstrained baseline, with fewer parameters and less training compute (§3.2, Tables 4, 5 and 7). But it still loses some planning tasks to a baseline with a wider time window (§3.4, Table 2). The guarantee is real and narrow: it rules out collapse, not error.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Key takeaways
+
+- **The problem is shrinkage, not noise.** An autoregressive predictor that contracts even slightly per step compounds it over the horizon (§1). The trained optimum of a one-step loss is a conditional mean, which pulls in exactly this direction (Appendix C.2, Remark 3).
+- **The fix is geometric.** A leapfrog step on a learned separable Hamiltonian is exactly symplectic for every step size, every parameter and every action. Volume cannot shrink, states cannot merge, and no attracting fixed point can exist (Proposition 2, Appendix C.1).
+- **Velocity comes free, and with its sign.** Momentum is not learned. A fixed Savitzky–Golay stencil reads it off the encoder's trajectory (§2.1, Appendix C.4). It is odd in time, so forward and backward motion never collapse to the same latent (Appendix E.3).
+- **The measured gain is in velocity.** 2.8× lower velocity error over the first ten rollout steps, 1.5× at the end of the horizon (Table 7); a constant latent volume where the baseline loses about 125 units of log-volume over 70 steps (Fig. 4, right).
+- **It is not a clean win.** The baseline reaches goal angles more often, and an untied three-frame baseline wins every velocity clause in planning (Table 2). The authors say so themselves (§3.4, §4).
+:::
+
+## 1. The problem: a predictor that eats itself
+
+A world model in the JEPA family does not predict pixels. It encodes each frame into a latent vector and learns to predict the next latent from the current one and the action (Yalovetzky et al., 2026, §1). To look far ahead you roll it out: each prediction becomes the next input.
+
+Most work on these models fights *encoder collapse*, where everything maps to the same representation, with regularizers or frozen backbones (§1). The paper points at a second, quieter failure: *predictor contraction*. If the one-step map shrinks the latent cloud by a little, the rollout shrinks it by that little to the power of the horizon (§1).
+
+There is a reason to expect this, not just fear it. Trained with a squared error under any noise, the best one-step predictor is the conditional mean of the next state. Averaging is contraction: it shrinks volume and sends latents that differ only in uncertain directions to the same image (Appendix C.2, Remark 3). So the loss itself pushes the predictor toward the failure.
+
+The paper measures it. On the conservative pendulum, the cumulative log-determinant of the one-step map stays at exactly zero for LeHami, while the baseline, LeWorldModel, declines linearly to about −125 over 70 steps (§3.2, Fig. 4 right). The same holds for the full three-latent context the baseline uses (Appendix E.2, Fig. 13).
+
+![**Figure 1.** What contraction does to a rollout. A blob of states on a pendulum's phase space, after 0, 20, 40 and 60 steps. Left: a good step followed by a 3% pull toward the mean, a stand-in for a conditional-mean predictor. The blob shrinks to a dot, and every state in it becomes the same state. Middle: a leapfrog step. The blob is sheared and bent but keeps its area. Right: the log of the blob's area. My own toy on a true pendulum, not the paper's models; it echoes the shape of the paper's Fig. 4 (right).](figures/fig01.png){fig-alt="Three panels. Left and middle: contour lines of a pendulum's energy with four blobs along an orbit; on the left the blobs shrink to almost nothing, in the middle they deform but stay the same size. Right: two lines of log area against rollout step; the leapfrog line stays at zero, the other falls in a straight line to about minus 4.6."}
+
+## 2. The idea: borrow the structure physics already has
+
+Physics has a known answer to this. Hamiltonian mechanics describes a system by one scalar function, the energy $H$, and two blocks of coordinates, position $q$ and momentum $p$. Its flow preserves phase-space volume at every instant: a cloud of states can stretch, rotate and shear, but never be squeezed (Appendix B, Liouville's theorem). The authors note that this survives actuation as long as the action enters through the Hamiltonian (§1).
+
+LeHami puts this structure in the latent space. The encoder outputs a position-like block $q_t$, and the predictor advances the pair $(q_t, p_t)$ with Hamilton's equations for a learned, action-conditioned energy (§2.1, Eqs. 1–2):
+
+$$
+\dot q = \frac{\partial H_\phi}{\partial p}, \qquad \dot p = -\frac{\partial H_\phi}{\partial q}, \qquad H_\phi(q, p, u) = K_{\phi_1}(p) + V_{\phi_2}(q, u).
+$$
+
+Two details matter. The action $u$ enters the potential, so the force it creates is always a gradient in $q$, and the step stays in Hamiltonian form for every action (§2.1, "Action-conditioned Hamiltonian"; Appendix C.4, Eq. 9). And the energy is *separable*: kinetic in $p$ only, potential in $q$ and $u$ only. That is what allows the cheap, explicit integrator of the next section (§2.1, "Design choices").
+
+A boundary is drawn clearly. LeHami does not try to recover the pendulum's true energy. $H_\phi$ is never fitted to a known Hamiltonian, and the true equations of motion appear only as targets for frozen probes at evaluation (Appendix C.2, Remark 5). This is the difference from Hamiltonian neural networks, where recovering the physical $H$ is the goal (Remark 5). Here the physics is a prior on the latent map, nothing more. The latent $q$ is not even assumed to be a position in the world (Remark 5).
+
+## 3. The leapfrog step: three shears, each with area one
+
+The integrator is the leapfrog, or Störmer–Verlet, step: half a kick to the momentum, a full drift of the position, another half kick (§2.1, Eq. 4). A learned diagonal scale $S = \mathrm{diag}(e^\sigma)$ absorbs the relative units of $q$ and $p$, which the self-supervised objective leaves free (§2.1, Eq. 3; Appendix C.4).
+
+The proof of exactness is short, and I find it beautiful (Appendix C.1, Proposition 2). Each half-step changes only one block, by an amount that depends only on the other block. Its Jacobian is block-triangular with identities on the diagonal, so its determinant is exactly 1. The off-diagonal block is a Hessian, which is symmetric, and that symmetry is exactly what makes each shear symplectic. Compositions of symplectic maps are symplectic. So the full step, and every iterate of it, keeps volume exactly, for every step size $h$, every action $u$ and every parameter $\phi$ (Proposition 2).
+
+![**Figure 2.** The leapfrog step, one shear at a time. A square cell of states is pushed by a half kick (only $p$ changes, by an amount set by $q$), then a drift (only $q$ changes, by an amount set by $p$), then another half kick. Each shear bends the cell; none changes its area. My own illustration of the structure in the paper's Eq. 4 and Appendix C.1, with a pendulum-like potential.](figures/fig02.png){fig-alt="Four panels on a light grid. A grey square, then the same area pushed vertically into a slanted shape, then pushed horizontally into a tilted shape, then pushed vertically again. Under each panel: area equals 1.0000."}
+
+From determinant 1 the paper draws three consequences, each the end of a collapse mode (Proposition 2, (i)–(iii)):
+
+1. **No uniform contraction.** The singular values of the $K$-step Jacobian multiply to 1. If one direction shrinks, another must grow.
+2. **No asymptotically stable fixed point.** An attractor would squeeze a small ball of states into an ever smaller one, which a volume-preserving map cannot do.
+3. **No merging.** Every step is a diffeomorphism, so two latents that differ at the start stay different at every horizon.
+
+What the guarantee does *not* say is just as clearly stated. It controls shape, not size: a cloud that cannot be squeezed can still be stretched without limit, so error can still grow (Appendix C.2, Remark 3). It does not replace the regularizer either. SIGReg shapes the encoder's distribution during training; symplecticity carries whatever it is handed at every inference step. Keeping SIGReg's isotropic Gaussian invariant under the flow would be a separate, stronger constraint that a free-form learned Hamiltonian has no reason to meet (Remark 4). The two are complements, not substitutes (Remark 4).
+
+The authors also explain why they chose Hamilton over Lagrange: the volume guarantee lives on phase space, and a separable $H$ makes the integrator explicit and exactly symplectic at any $h$ (Appendix C.3).
+
+## 4. Momentum without learning it
+
+The cleverest design choice, to my eye, is that $p$ is never learned. It is read off the encoder's trajectory by a Savitzky–Golay stencil: fit a quadratic to the last few encoded positions by least squares and take its derivative at the current frame (§2.1, Eq. 1; Appendix C.4). The stencil is linear with constant coefficients, has no parameters, and so cannot collapse on its own. Whatever the momentum block carries, it carries because the encoder trajectory moves (Appendix C.4).
+
+Two versions are used. A causal four-frame stencil initialises each rollout, so the model never reads frames it is about to predict. A centred five-frame stencil, with weights $(-2,-1,0,1,2)/10$, builds the momentum targets for the loss (Appendix C.4; Appendix D.2). The centred one amplifies frame noise 24.5× less than the causal one and maps $p \mapsto -p$ exactly when time is reversed (Appendix C.4).
+
+A side effect: no mass is learned. Defining $p$ as $\dot q$ already fixes the mass to the identity in learned coordinates, and for a constant-mass system the encoder can absorb the true mass with a linear change of coordinates (Appendix C.4, Eqs. 11–12). The authors note where this breaks: if mass depends on configuration, as in a double pendulum, $p$ becomes a velocity rather than a canonical momentum (Appendix C.4).
+
+### Why the sign of velocity is the real prize
+
+The obvious way to give a per-frame encoder a sense of motion is to show it several frames. The paper shows why that can quietly fail (Appendix E.1; Appendix E.3, Eq. 16). With a three-frame temporal kernel whose outer weights are tied, $(a, b, a)$, reversing the frames leaves the output unchanged. A pendulum at angle $\theta$ moving at $+\omega$ and one at the same angle moving at $-\omega$ map to the same latent. Speed survives; direction does not. The tied three-frame baseline decodes $|\omega|$ at $R^2 = 0.921$ but signed $\omega$ at $-0.115$, below the predict-the-mean floor (Table 9).
+
+The Savitzky–Golay stencil is antisymmetric, so it is odd in time by construction: reversing the frames flips its output (Appendix E.3). The authors' phrase for it: LeHami does not get velocity "by seeing more frames or learning unrestricted asymmetric weights, but by applying an antisymmetric structural operator" (Appendix E.3).
+
+![**Figure 3.** Even versus odd in time. Left: two short clips of a pendulum that share the middle frame, one swinging forward and one swinging back. Right: what each operator returns as the true velocity varies. The tied window $(a, b, a)$ returns the same value for $+\omega$ and $-\omega$ (the paper's Eq. 16, here with $a = b$). The centred Savitzky–Golay stencil returns a value whose sign follows $\omega$. My own computation of the two operators named in Appendices C.4 and E.3.](figures/fig03.png){fig-alt="Left: two lines of five dots crossing at the middle frame, one rising, one falling. Right: a red curve nearly flat near 1 and symmetric about zero velocity; a blue straight line through the origin from minus 1 to plus 1."}
+
+This matters for planning. On the actuated pendulum, 92% of the goal states need the right sign of velocity: arriving at the goal spinning the wrong way fails no matter how good the speed is (Appendix E.3; Fig. 16).
+
+## 5. One flow, any step, both directions
+
+Because $H_\phi$ defines a continuous vector field, the step size is an argument, not a weight (§3.3; Appendix D.2). The model is trained only at $\Delta t = 0.1$ s, yet integrating at $\Delta t/2$ or $\Delta t/4$ traces the same trajectory against an exact Runge–Kutta reference, while doubling the step breaks it, since an explicit integrator then leaves its stability band (§3.3, Fig. 5 left).
+
+The same structure gives time reversal: flip $\Delta t \to -\Delta t$ and run back. The round-trip error of the learned latent stays below $10^{-4}\%$ out to 30 steps (§3.3, Fig. 5 right). It is reported as approximate rather than exact, partly because the anchor's momentum comes from the causal stencil, which is not odd under reversal (Appendix D.2).
+
+![**Figure 4.** What the leapfrog gives on a true pendulum, as a reference point for the paper's Fig. 5. Left: angle error against an exact solution for three step sizes; refining the step lowers the error, coarsening it raises it. Right: run $K$ steps forward, flip the sign of $h$, run $K$ back. With the exact energy only floating-point rounding is left. My own toy; the paper's learned model shows larger round-trip errors, below $10^{-4}\%$ (§3.3), and breaks at $2\Delta t$, which my exact pendulum does not.](figures/fig04.png){fig-alt="Left: three error curves on a log scale over four seconds; the coarsest step is highest near 10 to the minus 2, the finest lowest near 10 to the minus 5. Right: round-trip error on a log scale stays between 10 to the minus 17 and 10 to the minus 15 for up to 60 steps."}
+
+The authors frame reversal as a primitive for computing backward reachable sets and online safety guarantees in control (§1, item iii). The paper does not run those experiments. Training across recording rates is also described but not tested: every model is trained and evaluated at one rate (Appendix D.2).
+
+## 6. The experiments
+
+The test bed is small on purpose: two pendulums rendered as 64×64 RGB images (§3, Fig. 3). The conservative one has no torque and three rod lengths. The actuated one adds a recorded torque, held for three frames, and nine combinations of rod length and mass (Appendix D.3, Table 3).
+
+The comparison is careful. LeHami replaces only the predictor of LeWorldModel (LeWM) and adds the stencil. Encoder, projector, data, optimiser, schedule and multi-step objective are the same, so differences in rollout cannot come from training (§3.1; Appendix D.1). Physics is read by three probes of growing capacity, ridge, 25-nearest-neighbour and a small MLP, fitted once and frozen (§3.1, "Probing").
+
+**Velocity in rollout.** On the conservative pendulum the angle error is level early, and LeHami pulls ahead from about step 11 (§3.2, Fig. 4 left). On velocity it leads from the start: 0.364 against 1.020 rad/s over steps 1–10, 1.534 against 2.331 over steps 21–70 (Table 7). At the anchor, the frozen encoder features give $R^2(\omega) = +0.975$ for LeHami and $-0.667$ for LeWM (Table 7). A single frame does not show motion, so a per-frame encoder cannot supply it; LeHami reads it from the stencil (§3.2). The learned energy also keeps each rollout on its own level set, while LeWM's rollouts cross them (Appendix E.2, Figs. 10–11).
+
+**Cheaper, not bigger.** LeHami has about 32% fewer parameters, 3.03 M against 4.44 M, mostly because the two Hamiltonian MLPs (2.23 M) replace a six-layer transformer (3.31 M) (Appendix E.1, Table 5). At every matched training budget its error is lower, by 1.45–4.2× on angle and 1.4–2.3× on velocity, and its 0.75 PFLOP checkpoint already beats LeWM's best within 6 PFLOP (Appendix E.1, Table 4). These budget results come from one seed per model (Table 4).
+
+**Not tied to one encoder.** With a tiny ViT or a ConvNet, LeHami decodes velocity at $R^2 \approx 0.93$ while the baseline stays below zero in both cases (Appendix E.2, "Encoder independence"). On top of a frozen DINOv2 encoder, DINO-LeHami beats DINO-WM on velocity, with the angle advantage smaller (Appendix E.2, Fig. 12).
+
+**With actions.** At the anchor, LeHami's MLP probe reads velocity at $R^2 = 0.987$; all of LeWM's probes stay below the mean floor. On angle the order flips: LeWM decodes $\theta$ better at every probe tier (§3.2, Table 1). The authors attribute this to the split: each of $q$ and $p$ has 32 dimensions, half of LeWM's 64 (Appendix E.3). Along the rollout LeHami leads on velocity until about step 10, when the baseline's predictor has seen enough context to infer motion (§3.2; Fig. 15).
+
+![**Figure 5.** Two of the paper's results, redrawn. Left: velocity error along the rollout on the conservative pendulum, by band of steps, with the ratio LeWM ÷ LeHami above each pair (data from Table 7). Right: goal-reaching success on the actuated pendulum at a matched budget of at most 15 TFLOP per episode, by goal clause (data from Table 2). Charts mine; numbers are means over three model seeds as reported.](figures/fig05.png){fig-alt="Left: paired bars of velocity error for three step bands; LeHami's bar is lower in every band, with ratios 2.80, 1.75 and 1.52. Right: grouped bars of success for position, velocity and both; LeWM with one frame is best on position at 0.80, LeWM with an untied three-frame window is best on velocity at 0.80 and on both at 0.64, LeHami scores 0.48, 0.53 and 0.30."}
+
+## 7. Planning: where the structure helps and where it does not
+
+Planning uses the actuated pendulum. Goals are recorded states 30 frames ahead in held-out episodes. The action sequence is optimised in each model's own latent space with the Cross-Entropy Method under model-predictive control, within a budget of 15 TFLOP per episode (§3.1, "Planning"; Appendix D.4.2). Success needs the angle within 0.1 rad and the velocity within 0.5 rad/s (Appendix D.4.2).
+
+The results are mixed, and the paper reports them plainly (§3.4, Table 2):
+
+- **Position goals:** LeWM with a single frame wins, 0.800 against LeHami's 0.480.
+- **Velocity goals:** single-frame LeWM fails at 0.184, since its goal latent carries no velocity. LeHami reaches 0.527. But LeWM with an *untied* three-frame window reaches 0.800.
+- **Both:** untied LeWM 0.636, tied LeWM 0.400, LeHami 0.304.
+
+The decomposition explains it (Appendix E.3, Table 10). On the sign of velocity LeHami reaches 0.800, where single-frame and tied LeWM stay just below the 0.680 floor of doing nothing, and it does so at 0.59× the compute of untied LeWM (8.05 against 13.65 TFLOP). Only untied LeWM does better, at 0.962. Among plans that reach the goal angle, LeHami's final velocity has the right sign in 91–95% of cases (Appendix E.3). What holds it back is reaching the angle in the first place: at a replanning interval of 9 it gets there in 48% of plans, against 63–70% for the three-frame baselines (Appendix E.3). The bottleneck is position, not direction.
+
+Compute helps LeHami's side of the ledger. Over 99% of a planning episode's arithmetic is the rollout, and LeHami's MLP flow costs 13.6 MFLOP per step per candidate against 21.7 for LeWM, so an episode costs it 0.63× as much (Appendix E.3, "Planning compute"). That lets it replan more often within the same budget (§3.4). The authors' own conclusion: untied LeWM wins, LeHami is "a structurally rigorous alternative," and replacing the fixed stencil with a jointly learned momentum is the path to close the gap (§3.4).
+
+## 8. What I take from it
+
+**A guarantee at inference, not an average in training.** Most of the machinery that keeps learned representations healthy works in expectation over batches. This one holds on every step, for every input, at any horizon (§2). That is a different kind of promise, and the paper is careful about its size (Appendix C.2).
+
+**Structure can replace architecture tuning.** To give LeWM signed velocity you must widen its window *and* untie its kernel, a choice that only shows up when you probe a single latent (Appendix E.1). LeHami gets the sign from an operator whose parity is fixed by design (Appendix E.3). I like that trade: one fewer decision left to luck.
+
+**The prior is narrow, and the authors know it.** Volume preservation is the right prior only for systems that preserve volume. Heavy friction contracts phase space, and a symplectic latent could only fake it by inventing diverging dimensions (Appendix C.4). Port-Hamiltonian extensions, with a learned positive semi-definite damping term, are named as future work (§4; Appendix C.4). Pure pose tasks are better served by unconstrained, spatially focused predictors (§4).
+
+**What would convince me more.** Every experiment is a single pendulum, one degree of freedom, 64×64 pixels (§3; Appendix D.3). The latent-space checks are self-referential: the momentum block's $R^2$ against its own reference falls below zero by step 25, while the position block holds at 0.646 (Appendix E.2, Table 6). Some results rest on one seed (Tables 4, 6; Figs. 12–13). The obvious next tests are a double pendulum, where the stencil's no-mass argument stops working (Appendix C.4), a dissipative system, and a robot arm.
+
+## 9. Conclusion
+
+A world model is only as good as its longest useful rollout, and an unconstrained predictor trained on a one-step loss is pulled toward shrinking what it rolls out. LeHami's answer is old physics used in a new place: give the latent a position and a momentum, move them with a learned energy, and step with an integrator whose Jacobian has determinant one (Yalovetzky et al., 2026, §2). The result cannot contract, cannot settle, cannot merge, and gets velocity with its sign for free (Proposition 2; Appendix C.4). It does not make the model accurate, and on two pendulums it does not win every task (Table 2). But it changes the question from "will this rollout collapse?" to "how far can it go before error, not geometry, is the limit?" That is a better question to have.
+
+## Reference
+
+Romina Yalovetzky, Randall Balestriero and Yann LeCun, ["LeHami: Symplectic Latent Dynamics for World Models"](https://arxiv.org/abs/2610.15267), arXiv:2610.15267 [cs.LG] (2026). Code: [github.com/rominay/LeHami](https://github.com/rominay/LeHami).
+
+::: {.small}
+*The views in this essay are my own and do not describe any product or plan of my employer.*
+:::
