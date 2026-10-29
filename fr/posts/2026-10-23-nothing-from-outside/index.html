@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Un univers fermé vu de nulle part n’a qu’un seul état. Placez un observateur à l’intérieur, et les possibilités reviennent. Une deuxième soirée de curiosité sur le rien, le tout, et des grains dans des grains.">
+
+<title>Rien du dehors, tout du dedans – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-30c43162c37863b16383e44c3197c369.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-5ddbde92836cc401b96e6ae5b6e4dd66.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-30c43162c37863b16383e44c3197c369.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-10-23-nothing-from-outside/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-10-23-nothing-from-outside/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-10-23-nothing-from-outside/">
+<meta name="alt-lang-url" content="/posts/2026-10-23-nothing-from-outside/">
+<link rel="canonical" href="https://scuenat.github.io/fr/posts/2026-10-23-nothing-from-outside/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-10-23","description":"Un univers fermé vu de nulle part n’a qu’un seul état. Placez un observateur à l’intérieur, et les possibilités reviennent. Une deuxième soirée de curiosité sur le rien, le tout, et des grains dans des grains.","headline":"Rien du dehors, tout du dedans","image":"https://scuenat.github.io/posts/2026-10-23-nothing-from-outside/figures/fig02.png","inLanguage":"fr","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["curiosité","physique","personnel"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/fr/posts/2026-10-23-nothing-from-outside/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"translationOfWork":{"@id":"https://scuenat.github.io/posts/2026-10-23-nothing-from-outside/"},"url":"https://scuenat.github.io/fr/posts/2026-10-23-nothing-from-outside/"}</script>
+
+
+<meta property="og:title" content="Rien du dehors, tout du dedans – AI, Honestly">
+<meta property="og:description" content="Un univers fermé vu de nulle part n’a qu’un seul état. Placez un observateur à l’intérieur, et les possibilités reviennent. Une deuxième soirée de curiosité sur le rien, le tout, et des grains dans des grains.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-23-nothing-from-outside/figures/fig02.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="1162">
+<meta property="og:image:width" content="1635">
+<meta name="twitter:title" content="Rien du dehors, tout du dedans – AI, Honestly">
+<meta name="twitter:description" content="Un univers fermé vu de nulle part n’a qu’un seul état. Placez un observateur à l’intérieur, et les possibilités reviennent. Une deuxième soirée de curiosité sur le rien, le tout, et des grains dans des grains.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-23-nothing-from-outside/figures/fig02.png">
+<meta name="twitter:image-height" content="1162">
+<meta name="twitter:image-width" content="1635">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul>
+  <li><a href="#deux-idées-qui-ne-voulaient-pas-rester-séparées" id="toc-deux-idées-qui-ne-voulaient-pas-rester-séparées" class="nav-link active" data-scroll-target="#deux-idées-qui-ne-voulaient-pas-rester-séparées">Deux idées qui ne voulaient pas rester séparées</a></li>
+  <li><a href="#le-rien-nest-pas-vide" id="toc-le-rien-nest-pas-vide" class="nav-link" data-scroll-target="#le-rien-nest-pas-vide">Le rien n’est pas vide</a></li>
+  <li><a href="#un-univers-à-un-seul-état" id="toc-un-univers-à-un-seul-état" class="nav-link" data-scroll-target="#un-univers-à-un-seul-état">Un univers à un seul état</a></li>
+  <li><a href="#il-faut-quelquun-à-lintérieur" id="toc-il-faut-quelquun-à-lintérieur" class="nav-link" data-scroll-target="#il-faut-quelquun-à-lintérieur">Il faut quelqu’un à l’intérieur</a></li>
+  <li><a href="#deux-sortes-de-rien" id="toc-deux-sortes-de-rien" class="nav-link" data-scroll-target="#deux-sortes-de-rien">Deux sortes de rien</a></li>
+  <li><a href="#les-grains-à-nouveau" id="toc-les-grains-à-nouveau" class="nav-link" data-scroll-target="#les-grains-à-nouveau">Les grains, à nouveau</a></li>
+  <li><a href="#où-linformation-commence" id="toc-où-linformation-commence" class="nav-link" data-scroll-target="#où-linformation-commence">Où l’information commence</a></li>
+  <li><a href="#ce-que-je-ne-prétends-pas" id="toc-ce-que-je-ne-prétends-pas" class="nav-link" data-scroll-target="#ce-que-je-ne-prétends-pas">Ce que je ne prétends pas</a></li>
+  <li><a href="#sources" id="toc-sources" class="nav-link" data-scroll-target="#sources">Sources</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Rien du dehors, tout du dedans</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">curiosité</div>
+    <div class="quarto-category">physique</div>
+    <div class="quarto-category">personnel</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Un univers fermé vu de nulle part n’a qu’un seul état. Placez un observateur à l’intérieur, et les possibilités reviennent. Une deuxième soirée de curiosité sur le rien, le tout, et des grains dans des grains.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">23 octobre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Suite dans <a href="../../../fr/posts/2026-10-27-what-survives-comparison/index.html">Ce qui survit à la comparaison</a>, qui se demande ce qui se passe avec deux observateurs au lieu d’un. Les figures sont en anglais, faites avec le code de <a href="../../../posts/2026-10-23-nothing-from-outside/figs.py">figs.py</a>. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-23-nothing-from-outside/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<section id="deux-idées-qui-ne-voulaient-pas-rester-séparées" class="level2">
+<h2 class="anchored" data-anchor-id="deux-idées-qui-ne-voulaient-pas-rester-séparées">Deux idées qui ne voulaient pas rester séparées</h2>
+<p>Dans <a href="../../../fr/posts/2026-10-15-a-universe-without-a-bottom/index.html">Un univers sans fond</a>, j’avais laissé deux pensées côte à côte. La première : peut-être que le rien crée le tout. La seconde : peut-être qu’il y a des grains dans des grains, sans couche finale.</p>
+<p>Je les traitais comme deux questions distinctes. Quelques jours plus tard, elles ont commencé à ressembler à une seule question. Et la formule des trous noirs, dont je pensais qu’elle imposait un plancher, s’est révélée dire quelque chose de plus étrange.</p>
+<p>Je ne suis toujours pas physicien. C’est toujours de la curiosité. Mais je crois que j’avais posé les premières questions un peu de travers.</p>
+</section>
+<section id="le-rien-nest-pas-vide" class="level2">
+<h2 class="anchored" data-anchor-id="le-rien-nest-pas-vide">Le rien n’est pas vide</h2>
+<p>Dans le dernier essai, j’appelais la température infinie « ce qui se rapproche le plus du rien ». Toutes les possibilités également probables. Aucune préférence, aucune structure.</p>
+<p>C’était à moitié faux. Un état où toutes les possibilités sont également probables n’est pas un état sans information. C’est l’état qui a le plus de possibilités : l’entropie maximale. On ne peut pas distinguer les possibilités les unes des autres, mais elles sont toutes là.</p>
+<p>Cela compte à cause de ce vers quoi pointe le modèle. Depuis plusieurs années, Susskind soutient que ce système précis, à température infinie, décrit l’espace de de Sitter : un univers qui ne contient rien, sauf un horizon autour de l’observateur. Un univers vide comme celui-ci porte la plus grande entropie qu’une région puisse avoir. Son horizon est couvert de tuiles, exactement comme un trou noir.</p>
+<p>Les deux images de mon premier essai sont donc peut-être une seule image. « Le rien » et « une surface qui sait tout » pourraient être une même chose, vue de deux côtés.</p>
+</section>
+<section id="un-univers-à-un-seul-état" class="level2">
+<h2 class="anchored" data-anchor-id="un-univers-à-un-seul-état">Un univers à un seul état</h2>
+<p>Puis je suis tombé sur un résultat qui semblait dire le contraire.</p>
+<p>Certains univers sont fermés : allez assez longtemps en ligne droite et vous revenez à votre point de départ. Notre univers est peut-être l’un d’eux. Ces dernières années, plusieurs groupes ont calculé combien d’états différents un tel univers peut prendre, avec les outils les plus récents de la gravité quantique. La réponse revenait toujours la même : un.</p>
+<p>Un seul état. Pas un grand nombre, pas un petit nombre. Un. L’univers entier, étoiles et galaxies comprises, porterait moins d’information qu’un seul tirage à pile ou face. Il n’y a rien entre quoi choisir, donc rien à savoir.</p>
+<p>Les physiciens eux-mêmes n’ont pas aimé cela. Notre univers contient clairement plus d’une possibilité. J’écris cette phrase-ci et pas une autre. Alors, qu’est-ce qui n’allait pas ?</p>
+</section>
+<section id="il-faut-quelquun-à-lintérieur" class="level2">
+<h2 class="anchored" data-anchor-id="il-faut-quelquun-à-lintérieur">Il faut quelqu’un à l’intérieur</h2>
+<p>La réponse proposée par Harlow, Usatyuk et Zhao est simple à énoncer. Le calcul avait oublié l’observateur.</p>
+<p>Il décrivait l’univers comme vu de l’extérieur. Mais un univers fermé n’a pas d’extérieur. Personne ne peut s’y tenir pour le regarder. Le philosophe Thomas Nagel appelait le rêve d’une connaissance parfaitement objective <em>le point de vue de nulle part</em> : le monde vu d’aucun endroit en particulier. Ici, le point de vue de nulle part n’est pas seulement difficile à atteindre. Il ne renvoie rien.</p>
+<p>Placez donc un observateur à l’intérieur, traitez le bord de cet observateur comme une sorte de frontière, et les nombreuses possibilités reviennent.</p>
+<p>Une mise en garde, parce que le mot est dangereux. « Observateur » ne désigne ici ni un esprit, ni une conscience, ni une personne. Dans ces calculs, un observateur est n’importe quel système physique avec un nombre limité d’états internes, capable de garder une trace. Une horloge ferait l’affaire. Un détecteur aussi. Rien de mystique ne se passe. Ce qui change, c’est qu’il y a désormais un point de référence.</p>
+<p>Il y a une subtilité, et je la trouve belle. La part de l’univers que l’observateur peut décrire dépend de ce que l’observateur peut contenir. Un observateur plus grand, avec plus d’états internes, voit un univers plus riche et plus exact. Un tout petit voit un univers flou.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-nothing-from-outside/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Ce que l’observateur peut contenir. Le même univers jouet, décrit par des observateurs capables de garder une trace de plus en plus grande. Chacun ne garde que les motifs à plus grande échelle qu’il peut se permettre ; le plus petit voit un flou, le plus grand voit les filaments. Le dernier panneau est l’univers jouet entier, un point de vue que personne à l’intérieur n’a vraiment. En dessous : la fidélité de chaque description, selon la taille de l’observateur. Un jouet, pas une simulation physique ; le code est dans figs.py."><img src="../../../posts/2026-10-23-nothing-from-outside/figures/fig01.png" class="img-fluid figure-img" alt="Quatre images carrées d'une toile de filaments lumineux : la première est un flou doux, la deuxième montre quelques taches brillantes, la troisième et la quatrième montrent des filaments nets. En dessous, une courbe monte d'environ 0,3 à 1 quand la trace de l'observateur passe de 2 puissance 5 à 2 puissance 19 bits, avec trois points ambre qui marquent les observateurs du haut."></a></p>
+<figcaption><strong>Figure 1.</strong> Ce que l’observateur peut contenir. Le même univers jouet, décrit par des observateurs capables de garder une trace de plus en plus grande. Chacun ne garde que les motifs à plus grande échelle qu’il peut se permettre ; le plus petit voit un flou, le plus grand voit les filaments. Le dernier panneau est l’univers jouet entier, un point de vue que personne à l’intérieur n’a vraiment. En dessous : la fidélité de chaque description, selon la taille de l’observateur. Un jouet, pas une simulation physique ; le code est dans <a href="../../../posts/2026-10-23-nothing-from-outside/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>L’information de l’univers n’est donc pas simplement « là-dehors ». Elle existe entre l’univers et quelque chose qui se trouve à l’intérieur. C’est proche d’une idée proposée par Carlo Rovelli en 1996, la mécanique quantique relationnelle : les propriétés physiques n’appartiennent pas aux choses, elles n’existent que relativement à d’autres choses. Les nouveaux calculs ne prouvent pas ce point de vue. Mais ils vont dans le même sens.</p>
+</section>
+<section id="deux-sortes-de-rien" class="level2">
+<h2 class="anchored" data-anchor-id="deux-sortes-de-rien">Deux sortes de rien</h2>
+<p>Mettez maintenant les deux résultats côte à côte.</p>
+<ul>
+<li><strong>Sans observateur :</strong> un seul état. Zéro alternative. Rien à savoir.</li>
+<li><strong>Un observateur au centre :</strong> un horizon plein de tuiles. Toutes les alternatives également probables. Tout est possible, rien n’est distinguable.</li>
+</ul>
+<p>Les deux semblent sans relief. Les deux ressemblent au « rien ». Mais ils sont sans relief pour des raisons opposées. Le premier n’a aucune possibilité. Le second les a toutes, sans moyen de les distinguer.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-nothing-from-outside/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Deux sortes de rien. À gauche : un univers fermé vu de nulle part, étoiles et galaxies comprises, compte pour un seul état ; toute la probabilité est sur lui. À droite : placez un observateur au centre et un horizon apparaît, couvert de tuiles ; chaque motif de tuiles est également probable, donc toutes les barres ont la même hauteur. Schéma, de moi ; le code est dans figs.py."><img src="../../../posts/2026-10-23-nothing-from-outside/figures/fig02.png" class="img-fluid figure-img" alt="En haut à gauche : une boule ombrée avec des points blancs pour les galaxies, marquée no observer. Une flèche ambre marquée add a reference point mène en haut à droite : une petite horloge au centre d'un disque pâle, entourée de deux anneaux de tuiles bleu marine et ambre. En bas à gauche : un seul pic à la probabilité 1. En bas à droite : une rangée de barres égales."></a></p>
+<figcaption><strong>Figure 2.</strong> Deux sortes de rien. À gauche : un univers fermé vu de nulle part, étoiles et galaxies comprises, compte pour un seul état ; toute la probabilité est sur lui. À droite : placez un observateur au centre et un horizon apparaît, couvert de tuiles ; chaque motif de tuiles est également probable, donc toutes les barres ont la même hauteur. Schéma, de moi ; le code est dans <a href="../../../posts/2026-10-23-nothing-from-outside/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Voici mon pas. Ce ne sont peut-être pas deux univers différents. C’est peut-être le même univers, une fois sans point de référence et une fois avec. Sans point de référence, l’univers n’est rien. Avec, il est tout ce que son horizon peut contenir.</p>
+<p>C’est moins un saut que je ne le pensais d’abord. L’espace de de Sitter, pris dans son ensemble, est lui-même un univers fermé, donc le résultat à un seul état devrait s’y appliquer aussi. Et en 2022, Chandrasekaran, Longo, Penington et Witten ont montré que l’entropie d’un horizon de de Sitter ne devient bien définie qu’une fois un observateur inclus, et que l’espace de de Sitter vide est alors l’état d’entropie maximale. À ma connaissance, personne n’a assemblé ces résultats exactement de cette façon. Mais les pièces s’emboîtent.</p>
+<p>Les philosophes sont arrivés ici bien avant les équations. Hegel ouvrait sa <em>Science de la logique</em> (1812) sur cette énigme même : l’être pur, sans aucune détermination, ne se distingue pas du pur néant. Ce qui met les choses en mouvement, pour Hegel, c’est le devenir, le passage de l’un à l’autre. Deux siècles plus tard, la physique semble ajouter une chose. Ce qui transforme le rien en tout, c’est un point de vue.</p>
+</section>
+<section id="les-grains-à-nouveau" class="level2">
+<h2 class="anchored" data-anchor-id="les-grains-à-nouveau">Les grains, à nouveau</h2>
+<p>Dans le premier essai, je butais sur une contradiction. L’histoire suggère que les couches ne finissent jamais. La formule des trous noirs dit qu’une région ne peut contenir qu’une quantité limitée d’information, donc qu’elle ne peut pas cacher une infinité de couches. Il doit y avoir un plancher.</p>
+<p>Souvenez-vous de la bulle de 1987 : une minuscule poche d’énergie dense qui grandit jusqu’à devenir un nouvel univers. De l’extérieur, elle ressemble à un petit trou noir qui disparaît. De l’intérieur, c’est un cosmos entier.</p>
+<p>Les physiciens savent depuis longtemps que c’est inconfortable. Un petit trou noir ne devrait contenir que peu d’information. Comment un univers entier peut-il y tenir ? Wheeler appelait ce genre d’objet un « sac d’or ».</p>
+<p>Le résultat à un seul état change la question. Au début, vue de l’extérieur, la bulle est un petit trou noir, et ce trou noir porte bien un peu d’information sur sa surface. Mais la bulle se détache ensuite et devient un univers fermé séparé. À partir de ce moment, sans rien de nous à l’intérieur, elle compte pour un seul état. Elle ne nous coûte presque rien. De l’intérieur, avec ses propres observateurs, elle est tout.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-nothing-from-outside/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Un sac d’or. À gauche : une tranche d’espace dessinée comme une surface. Notre univers est en haut et tombe dans un petit trou noir ; par le col étroit (en rouge), l’horizon, il s’ouvre sur un grand univers fermé en bas. À droite : le col se referme et la bulle se détache. Comptée de l’extérieur, elle porte alors un seul état. De l’intérieur, rien n’a changé. Schéma, de moi ; le code est dans figs.py."><img src="../../../posts/2026-10-23-nothing-from-outside/figures/fig03.png" class="img-fluid figure-img" alt="Un entonnoir en 3D quadrillé se rétrécit en un fin col rouge, qui s'ouvre sur une grande sphère ambre ombrée. À droite, trois coupes : l'entonnoir et le bulbe reliés, le col presque fermé, et l'entonnoir et le bulbe séparés, marqués from outside: one state."></a></p>
+<figcaption><strong>Figure 3.</strong> Un sac d’or. À gauche : une tranche d’espace dessinée comme une surface. Notre univers est en haut et tombe dans un petit trou noir ; par le col étroit (en rouge), l’horizon, il s’ouvre sur un grand univers fermé en bas. À droite : le col se referme et la bulle se détache. Comptée de l’extérieur, elle porte alors un seul état. De l’intérieur, rien n’a changé. Schéma, de moi ; le code est dans <a href="../../../posts/2026-10-23-nothing-from-outside/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Et le même retournement peut se répéter :</p>
+<ul>
+<li>Dans ce grain, une nouvelle bulle se forme. Pour le grain, elle compte pour un seul état. Pour ses propres habitants, c’est un cosmos.</li>
+<li>Notre univers pourrait être un grain dans celui de quelqu’un d’autre. Pour eux, nous serions un seul état. Pour nous, nous sommes tout.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-nothing-from-outside/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Des grains dans des grains. Chaque panneau agrandit un grain du panneau précédent (entouré de rouge). Vu depuis le grain qui l’entoure, chacun compte pour un seul état ; vu par ses propres habitants, c’est un univers entier, avec ses propres grains. Schéma, de moi ; le code est dans figs.py."><img src="../../../posts/2026-10-23-nothing-from-outside/figures/fig04.png" class="img-fluid figure-img" alt="Trois grands disques alignés, chacun rempli de disques plus petits qui contiennent des disques plus petits encore. Des lignes rouges pointillées montrent que le deuxième disque est un grain agrandi du premier, et le troisième un grain agrandi du deuxième. Des points de suspension continuent vers la droite."></a></p>
+<figcaption><strong>Figure 4.</strong> Des grains dans des grains. Chaque panneau agrandit un grain du panneau précédent (entouré de rouge). Vu depuis le grain qui l’entoure, chacun compte pour un seul état ; vu par ses propres habitants, c’est un univers entier, avec ses propres grains. Schéma, de moi ; le code est dans <a href="../../../posts/2026-10-23-nothing-from-outside/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Leibniz a imaginé quelque chose de semblable il y a trois siècles. Dans sa <em>Monadologie</em> (1714), il écrivait que chaque portion de la matière est comme un jardin plein de plantes, et que chaque rameau de chaque plante est encore un tel jardin. Il disait aussi que ses unités ultimes, les monades, « n’ont point de fenêtres » : rien n’entre, rien ne sort. Un grain qui compte pour un seul état vu de l’extérieur est une monade sans fenêtres.</p>
+<p>Pascal, dont j’ai cité la dernière fois l’effroi devant les espaces infinis, écrivait dans les mêmes <em>Pensées</em> que nous nous tenons entre deux infinis, l’infiniment grand et l’infiniment petit, incapables de voir l’un ou l’autre bout. Il y voyait une limite de la vue humaine. C’est peut-être plus que cela. Peut-être chaque bout est-il caché par construction, d’où que l’on se tienne.</p>
+<p>La contradiction disparaît. Chaque niveau a un plancher, mais seulement pour qui compte depuis l’extérieur. La chaîne peut continuer à l’infini parce que chaque grain est presque invisible pour celui qui l’entoure. La formule des trous noirs n’interdit pas une infinité de couches. Elle interdit seulement de les voir.</p>
+</section>
+<section id="où-linformation-commence" class="level2">
+<h2 class="anchored" data-anchor-id="où-linformation-commence">Où l’information commence</h2>
+<p>J’avais terminé le premier essai par « du rien au rien », et l’espoir que le milieu compte encore. Je le dirais aujourd’hui autrement.</p>
+<p>Pas du rien au rien. Rien du dehors, tout du dedans, à chaque niveau, sans dernier niveau.</p>
+<p>Cela rend ma conclusion d’alors plus littérale. Si un univers n’a qu’un seul état tant que rien en lui ne peut garder de trace, alors le milieu n’est pas seulement l’endroit où vit le sens. C’est là que l’information commence à exister. Non parce que quelqu’un est conscient, mais parce que quelque chose est quelque part.</p>
+<p>Cela ramène la question au sujet habituel de ce blog. Un grand modèle de langage a une forme étrangement semblable. Avant que vous lui demandiez quoi que ce soit, il contient un immense espace de réponses possibles, toutes pondérées, aucune choisie. Vu de l’extérieur, c’est un horizon de possibilités sans rien de particulier dedans. Une réponse n’apparaît que lorsqu’une question arrive depuis un endroit précis. Demander, ce n’est pas lire quelque chose qui serait déjà écrit. C’est le moment où les possibilités se resserrent en une seule.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-23-nothing-from-outside/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Une analogie, pas de la physique. À gauche : un espace de réponses possibles, dessiné à plat, avant que quiconque demande : tout est pondéré, rien n’est choisi. À droite : une question arrive depuis un endroit précis, et les possibilités se resserrent. L’« étalement » est l’entropie de chaque image, en bits. Schéma, de moi ; le code est dans figs.py."><img src="../../../posts/2026-10-23-nothing-from-outside/figures/fig05.png" class="img-fluid figure-img" alt="À gauche : un large nuage lumineux bleu et ambre sur fond sombre, marqué before anyone asks, étalement d'environ 15,6 bits. À droite : le même fond sombre avec un seul petit point brillant à côté d'une petite horloge, marqué after a question, étalement d'environ 11,2 bits."></a></p>
+<figcaption><strong>Figure 5.</strong> Une analogie, pas de la physique. À gauche : un espace de réponses possibles, dessiné à plat, avant que quiconque demande : tout est pondéré, rien n’est choisi. À droite : une question arrive depuis un endroit précis, et les possibilités se resserrent. L’« étalement » est l’entropie de chaque image, en bits. Schéma, de moi ; le code est dans <a href="../../../posts/2026-10-23-nothing-from-outside/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>C’est une analogie, pas de la physique. J’ai déjà porté la question du premier essai jusqu’à un générateur d’images dans <a href="../../../fr/posts/2026-10-16-decided-in-the-bulk/index.html">Décidé dans le volume, écrit sur le bord</a>. Mais la leçon est peut-être la même aux deux échelles. L’information n’est pas stockée quelque part, en attente. Elle se produit à la frontière entre un système et ce qui se tient à l’intérieur, ou devant lui.</p>
+<p>J’ai commencé en croyant que l’univers devait être simple. Peut-être l’est-il. De l’extérieur, il est aussi simple que possible : un seul état. La complexité est une vue de l’intérieur. Et nous sommes à l’intérieur.</p>
+</section>
+<section id="ce-que-je-ne-prétends-pas" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-je-ne-prétends-pas">Ce que je ne prétends pas</h2>
+<ul>
+<li>Le résultat à un seul état vient surtout de modèles simplifiés, souvent avec une gravité en deux dimensions. Les physiciens le trouvent assez convaincant, mais il n’est pas établi pour notre univers.</li>
+<li>Le lien avec les résultats sur de Sitter est ma propre lecture. À ma connaissance, aucun des articles ci-dessous ne le formule ainsi.</li>
+<li>Savoir si une bulle du type de 1987 devient vraiment un univers fermé au sens de ces calculs est une question ouverte.</li>
+<li>L’idée que l’emboîtement ne finit jamais est une spéculation, pas un résultat.</li>
+<li>Hegel, Leibniz, Pascal et la comparaison avec l’IA sont des échos, pas des preuves. Ils montrent que l’idée est ancienne, pas qu’elle est vraie.</li>
+</ul>
+</section>
+<section id="sources" class="level2">
+<h2 class="anchored" data-anchor-id="sources">Sources</h2>
+<ul>
+<li>Miyashita, Sekino et Susskind, <em>Holograms and Standard Models</em> (2026)</li>
+<li>Leonard Susskind, <em>De Sitter Space has no Chords. Almost Everything is Confined</em> (2023)</li>
+<li>Daniel Harlow, Mykhaylo Usatyuk et Ying Zhao, <em>Quantum mechanics and observers for gravity in a closed universe</em>, JHEP (2026)</li>
+<li>Quanta Magazine, <em>Cosmic Paradox Reveals the Awful Consequence of an Observer-Free Universe</em> (2025)</li>
+<li>Chandrasekaran, Longo, Penington et Witten, <em>An algebra of observables for de Sitter space</em>, JHEP (2023)</li>
+<li>Blau, Guendelman et Guth, <a href="https://doi.org/10.1103/PhysRevD.35.1747">« Dynamics of false-vacuum bubbles »</a>, <em>Physical Review D</em> 35, 1747 (1987)</li>
+<li>Carlo Rovelli, <em>Relational quantum mechanics</em>, International Journal of Theoretical Physics 35 (1996)</li>
+<li>Thomas Nagel, <em>Le Point de vue de nulle part</em> (1986)</li>
+<li>G. W. F. Hegel, <em>Science de la logique</em>, livre premier (1812)</li>
+<li>G. W. Leibniz, <em>Monadologie</em> (1714), §7 et §67</li>
+<li>Blaise Pascal, <em>Pensées</em> (1670), sur les deux infinis</li>
+</ul>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

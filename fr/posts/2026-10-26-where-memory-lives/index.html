@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="J’ai mesuré combien de faits tiennent dans les poids d’un petit réseau, ce que coûte d’en changer un, à quelle vitesse répond une mémoire externe, et quand le cache KV pèse plus que le modèle. Le résultat est une règle de conception pour une IA petite, locale et rapide.">
+
+<title>Là où vit la mémoire – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-30c43162c37863b16383e44c3197c369.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-5ddbde92836cc401b96e6ae5b6e4dd66.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-30c43162c37863b16383e44c3197c369.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/">
+<meta name="alt-lang-url" content="/posts/2026-10-26-where-memory-lives/">
+<link rel="canonical" href="https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-10-26","description":"J’ai mesuré combien de faits tiennent dans les poids d’un petit réseau, ce que coûte d’en changer un, à quelle vitesse répond une mémoire externe, et quand le cache KV pèse plus que le modèle. Le résultat est une règle de conception pour une IA petite, locale et rapide.","headline":"Là où vit la mémoire","image":"https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png","inLanguage":"fr","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["essai","expérience","ia","ia-locale","mémoire"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"translationOfWork":{"@id":"https://scuenat.github.io/posts/2026-10-26-where-memory-lives/"},"url":"https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/"}</script>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Là où vit la mémoire – AI, Honestly">
+<meta property="og:description" content="J’ai mesuré combien de faits tiennent dans les poids d’un petit réseau, ce que coûte d’en changer un, à quelle vitesse répond une mémoire externe, et quand le cache KV pèse plus que le modèle. Le résultat est une règle de conception pour une IA petite, locale et rapide.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="1684">
+<meta property="og:image:width" content="3716">
+<meta name="twitter:title" content="Là où vit la mémoire – AI, Honestly">
+<meta name="twitter:description" content="J’ai mesuré combien de faits tiennent dans les poids d’un petit réseau, ce que coûte d’en changer un, à quelle vitesse répond une mémoire externe, et quand le cache KV pèse plus que le modèle. Le résultat est une règle de conception pour une IA petite, locale et rapide.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png">
+<meta name="twitter:image-height" content="1684">
+<meta name="twitter:image-width" content="3716">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#la-question" id="toc-la-question" class="nav-link active" data-scroll-target="#la-question">1. La question</a></li>
+  <li><a href="#expérience-1-combien-de-faits-tiennent-dans-les-poids" id="toc-expérience-1-combien-de-faits-tiennent-dans-les-poids" class="nav-link" data-scroll-target="#expérience-1-combien-de-faits-tiennent-dans-les-poids">2. Expérience 1 : combien de faits tiennent dans les poids</a></li>
+  <li><a href="#expérience-2-changer-davis" id="toc-expérience-2-changer-davis" class="nav-link" data-scroll-target="#expérience-2-changer-davis">3. Expérience 2 : changer d’avis</a></li>
+  <li><a href="#expérience-3-aller-chercher" id="toc-expérience-3-aller-chercher" class="nav-link" data-scroll-target="#expérience-3-aller-chercher">4. Expérience 3 : aller chercher</a></li>
+  <li><a href="#expérience-4-la-mémoire-de-travail" id="toc-expérience-4-la-mémoire-de-travail" class="nav-link" data-scroll-target="#expérience-4-la-mémoire-de-travail">5. Expérience 4 : la mémoire de travail</a></li>
+  <li><a href="#larithmétique-de-la-longue-traîne" id="toc-larithmétique-de-la-longue-traîne" class="nav-link" data-scroll-target="#larithmétique-de-la-longue-traîne">6. L’arithmétique de la longue traîne</a></li>
+  <li><a href="#ce-que-cela-signifie-pour-les-petits-modèles-et-fast-ai" id="toc-ce-que-cela-signifie-pour-les-petits-modèles-et-fast-ai" class="nav-link" data-scroll-target="#ce-que-cela-signifie-pour-les-petits-modèles-et-fast-ai">7. Ce que cela signifie pour les petits modèles et Fast AI</a></li>
+  <li><a href="#travaux-récents-avec-code" id="toc-travaux-récents-avec-code" class="nav-link" data-scroll-target="#travaux-récents-avec-code">8. Travaux récents, avec code</a></li>
+  <li><a href="#ce-que-cette-expérience-ne-montre-pas" id="toc-ce-que-cette-expérience-ne-montre-pas" class="nav-link" data-scroll-target="#ce-que-cette-expérience-ne-montre-pas">9. Ce que cette expérience ne montre pas</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">10. Conclusion</a></li>
+  <li><a href="#références" id="toc-références" class="nav-link" data-scroll-target="#références">Références</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Là où vit la mémoire</h1>
+<p class="subtitle lead">Quatre expériences sur ce qu’un petit modèle doit retenir, et ce qu’il doit aller chercher</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">expérience</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">ia-locale</div>
+    <div class="quarto-category">mémoire</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    J’ai mesuré combien de faits tiennent dans les poids d’un petit réseau, ce que coûte d’en changer un, à quelle vitesse répond une mémoire externe, et quand le cache KV pèse plus que le modèle. Le résultat est une règle de conception pour une IA petite, locale et rapide.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">26 octobre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Une expérience, octobre 2026.</strong> Chaque nombre des expériences 1 à 4 vient de <a href="../../../posts/2026-10-26-where-memory-lives/sim.py">sim.py</a>, en NumPy simple sur un processeur cloud à 4 cœurs, avec les résultats dans <a href="../../../posts/2026-10-26-where-memory-lives/results.json">results.json</a> et les figures produites par <a href="../../../posts/2026-10-26-where-memory-lives/figs.py">figs.py</a>. Les chiffres d’autres auteurs sont cités là où ils apparaissent. Les réseaux sont volontairement minuscules : ils testent la forme d’un argument, pas un produit. Cet essai met à l’épreuve deux idées de <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a> et d’<a href="../../../fr/posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">Un écosystème, pas un oracle</a> : la bande passante, et la mémoire hors des poids. Les figures sont en anglais. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-26-where-memory-lives/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Un modèle de langage garde ce qu’il sait à quatre endroits : ses poids, sa mémoire de travail (le cache KV), ce qu’il peut aller chercher, et les habitudes qu’il a compilées. Chacun se paie à un moment différent, et pour un petit modèle sur un ordinateur portable, c’est cela qui décide de la conception. Quatre expériences m’ont mené à une règle : <strong>garder dans les poids ce qui sert à chaque token ; chercher tout le reste, et garder court ce que l’on va chercher.</strong></p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Les poids sont la mémoire la plus dense, et la plus chère à lire.</strong> Mes réseaux ont stocké jusqu’à 1,7 bit par paramètre, et un modèle les lit tous pour chaque token.</li>
+<li><strong>Les poids sont difficiles à modifier.</strong> Un fine-tuning sur 150 faits modifiés ou nouveaux n’a jamais gardé à la fois les modifications et les autres faits. Tout répéter y est parvenu, après 630 000 exemples d’entraînement. Une table a demandé 150 écritures.</li>
+<li><strong>Chercher est bon marché ; relire ce que l’on a trouvé ne l’est pas.</strong> Un index a cherché parmi quatre millions de faits en 0,5 ms. Mais trois passages récupérés coûtent ensuite 29 Mo à un modèle de 1 milliard de paramètres, à chaque token généré.</li>
+<li><strong>Les petits modèles heurtent d’abord le mur de la mémoire de travail.</strong> Avec des poids en 4 bits, le cache de Llama 3.2 1B pèse plus que ses poids à partir d’environ 19 000 tokens.</li>
+<li><strong>La connaissance a une longue traîne.</strong> Sous la loi de Zipf, chaque multiplication par dix des faits retenus répond à la même tranche supplémentaire de questions. Les poids couvrent la tête ; la traîne relève d’une recherche.</li>
+</ul>
+</div>
+</div>
+<section id="la-question" class="level2">
+<h2 class="anchored" data-anchor-id="la-question">1. La question</h2>
+<p>Les débats sur les petits modèles de langage demandent en général quelle part d’un grand modèle tient sur un ordinateur portable. Cela traite un modèle comme un seul bloc de connaissance à comprimer. Je pense que la meilleure question est : <em>qu’est-ce qui doit vivre où ?</em></p>
+<p>Générer un token sur un ordinateur portable est limité par la bande passante mémoire, pas par le calcul : la machine lit chaque poids, et tout le cache de la conversation, pour chaque token <span class="citation" data-cites="alizadeh2023">(<a href="#ref-alizadeh2023" role="doc-biblioref">Alizadeh et al. 2023</a>)</span>. L’endroit où vit la connaissance décide donc de ce qu’elle coûte.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma, de moi. Quatre mémoires d’un modèle de langage, classées selon la fréquence à laquelle on les paie."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig01.svg" class="img-fluid figure-img" alt="Quatre cartes côte à côte. Les poids, mémoire paramétrique : ce que le modèle sait, lu en entier pour chaque token. Le cache KV, mémoire de travail : ce qu'il est en train de lire, grandit avec le contexte et est lu pour chaque token. La recherche, mémoire externe : documents, fiches, cas passés, quelques lignes seulement à la demande. Les habitudes, mémoire compilée : réponses vérifiées et petits modèles, construits une fois et réutilisés en millisecondes. Une flèche en dessous va de payé à chaque token à payé rarement."></a></p>
+<figcaption><strong>Figure 1.</strong> Schéma, de moi. Quatre mémoires d’un modèle de langage, classées selon la fréquence à laquelle on les paie.</figcaption>
+</figure>
+</div>
+</section>
+<section id="expérience-1-combien-de-faits-tiennent-dans-les-poids" class="level2">
+<h2 class="anchored" data-anchor-id="expérience-1-combien-de-faits-tiennent-dans-les-poids">2. Expérience 1 : combien de faits tiennent dans les poids</h2>
+<p><strong>Dispositif.</strong> Un fait est une clé (un vecteur aléatoire de 32 nombres, qui tient lieu de question) et une valeur, l’une de <span class="math inline">V = 256</span> réponses : <span class="math inline">\log_2 256 = 8</span> bits. La mémoire est un réseau à deux couches,</p>
+<p><span class="math display">
+f_\theta(x) = W_2\,\mathrm{ReLU}(W_1 x + b_1) + b_2, \qquad |\theta| = 32h + h + 256h + 256,
+</span></p>
+<p>où :</p>
+<ul>
+<li><span class="math inline">x</span> est la clé, les 32 nombres qui tiennent lieu de question ;</li>
+<li><span class="math inline">W_1</span> (une table de <span class="math inline">h \times 32</span> nombres) et <span class="math inline">b_1</span> (<span class="math inline">h</span> nombres) forment la première couche, qui transforme la clé en <span class="math inline">h</span> valeurs cachées ;</li>
+<li><span class="math inline">\mathrm{ReLU}(z) = \max(0, z)</span> garde les valeurs cachées positives et met les autres à zéro ;</li>
+<li><span class="math inline">W_2</span> (<span class="math inline">256 \times h</span> nombres) et <span class="math inline">b_2</span> (256 nombres) forment la seconde couche, qui donne un score à chacune des 256 réponses possibles ; le score le plus élevé est la réponse du réseau ;</li>
+<li><span class="math inline">\theta</span> désigne tous ces nombres ensemble, et <span class="math inline">|\theta|</span> les compte : <span class="math inline">32h</span> dans <span class="math inline">W_1</span>, <span class="math inline">h</span> dans <span class="math inline">b_1</span>, <span class="math inline">256h</span> dans <span class="math inline">W_2</span> et 256 dans <span class="math inline">b_2</span> ;</li>
+<li><span class="math inline">h</span>, la largeur cachée, fixe la taille du réseau.</li>
+</ul>
+<p>J’ai utilisé <span class="math inline">h \in \{8, 16, 32, 64\}</span> : de 2 568 à 18 752 paramètres. Chaque réseau a appris <span class="math inline">N</span> faits, représentant de la moitié à quatre fois autant de bits qu’il a de paramètres, en 3 000 pas d’Adam sur le lot complet, avec trois graines chacun. À la suite d’Allen-Zhu et Li <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu et Li 2025</a>)</span>, je compte les bits qu’il retient comme</p>
+<p><span class="math display">
+B(\theta) = \sum_{i=1}^{N} \max\!\Big(0,\; \log_2 V + \log_2 p_\theta(y_i \mid x_i)\Big),
+</span></p>
+<p>ce que sa prédiction sait de chaque réponse au-delà d’un tirage uniforme, où :</p>
+<ul>
+<li><span class="math inline">N</span> est le nombre de faits, et <span class="math inline">i</span> les parcourt ;</li>
+<li><span class="math inline">x_i</span> et <span class="math inline">y_i</span> sont la clé et la bonne réponse du fait <span class="math inline">i</span> ;</li>
+<li><span class="math inline">p_\theta(y_i \mid x_i)</span> est la probabilité que le réseau donne à la bonne réponse ;</li>
+<li><span class="math inline">\log_2 V = 8</span> est ce que vaut un fait : les bits nécessaires pour désigner une réponse parmi 256 ;</li>
+<li><span class="math inline">\log_2 p_\theta(y_i \mid x_i)</span> est nul ou négatif : les bits qui manquent encore au réseau. Certain de la bonne réponse (<span class="math inline">p = 1</span>), il retient les 8 bits ; hésitant entre deux réponses (<span class="math inline">p = 1/2</span>), il en retient 7 ; devinant à l’aveugle (<span class="math inline">p = 1/256</span>), il n’en retient aucun ;</li>
+<li><span class="math inline">\max(0, \cdot)</span> compte une prédiction pire qu’un tirage à l’aveugle comme nulle plutôt que négative.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Expérience 1, mesurée, trois graines par point. À gauche : bits retenus selon les bits offerts ; la bande représente un écart-type. À droite : bits retenus par paramètre ; les losanges ambre répètent trois essais avec trois fois plus d’entraînement."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig02.svg" class="img-fluid figure-img" alt="À gauche, quatre lignes de bits retenus selon les bits offerts, pour des réseaux de 2 568, 4 880, 9 504 et 18 752 paramètres, chacune la moyenne de trois graines avec une bande étroite. Chacune suit la diagonale, où chaque bit offert est gardé, puis culmine et se stabilise un peu plus bas. À droite, bits retenus par paramètre selon les bits offerts par paramètre, avec de petites barres d'erreur : les quatre réseaux montent le long de la même ligne jusqu'à un pic de 1,40, 1,53, 1,68 et 1,67, puis se stabilisent près de 1,4. Trois losanges ambre, pour trois fois plus d'entraînement, sont un peu plus haut : 1,80, 1,55 et 1,49. Une ligne ambre pointillée à 2 marque la capacité d'un perceptron et des modèles de langage."></a></p>
+<figcaption><strong>Figure 2.</strong> Expérience 1, mesurée, trois graines par point. À gauche : bits retenus selon les bits offerts ; la bande représente un écart-type. À droite : bits retenus par paramètre ; les losanges ambre répètent trois essais avec trois fois plus d’entraînement.</figcaption>
+</figure>
+</div>
+<p><strong>Résultat.</strong> Sous la capacité, chaque réseau a gardé chaque bit. Près de la capacité, il a culminé à 1,40 bit par paramètre pour le plus petit réseau, 1,53 pour le suivant, et 1,68 et 1,67 pour les deux plus grands, les graines ne s’écartant jamais de plus de 0,04. Au-delà de la capacité, il a retenu moins, pas plus : environ 1,4 bit par paramètre, avec une précision tombée à un cinquième ou un tiers. Trois fois plus d’entraînement a relevé le pic à 1,80 mais a à peine changé le déclin (de 1,52 à 1,55, de 1,45 à 1,49) : le déclin vient donc surtout de l’interférence entre les faits, pas d’un manque d’entraînement.</p>
+<p>Le chiffre est ancien : Cover a montré en 1965 qu’un perceptron stocke environ deux bits par poids <span class="citation" data-cites="cover1965">(<a href="#ref-cover1965" role="doc-biblioref">Cover 1965</a>)</span>, et Allen-Zhu et Li ont mesuré environ deux bits par paramètre dans des transformers <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu et Li 2025</a>)</span>. <strong>Les poids sont une mémoire très dense</strong> : un fait de 8 bits coûte environ cinq paramètres, moins de cinq octets en précision 8 bits. Quantifiés en 4 bits après l’entraînement, la précision à laquelle tournent la plupart des petits modèles, leurs modèles en ont perdu plus de la moitié.</p>
+</section>
+<section id="expérience-2-changer-davis" class="level2">
+<h2 class="anchored" data-anchor-id="expérience-2-changer-davis">3. Expérience 2 : changer d’avis</h2>
+<p><strong>Dispositif.</strong> Un réseau de 18 752 paramètres a appris parfaitement 1 500 faits. Puis 75 faits ont changé et 75 nouveaux sont apparus. Je l’ai mis à jour de deux façons, chacune avec 4 taux d’apprentissage et 3 durées d’entraînement : un fine-tuning sur les <strong>seules modifications</strong>, les 150, ou <strong>tout répéter</strong>, les 1 575 faits. Une table externe a reçu les mêmes modifications : écraser 75 lignes, en ajouter 75.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Expérience 2, mesurée. À gauche : chacun des 24 essais de fine-tuning, selon la part des modifications apprises et des 1 425 autres faits gardés ; les marqueurs plus grands ont été entraînés plus longtemps. À droite : la moins bonne des deux parts selon le nombre d’exemples d’entraînement traités."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig03.svg" class="img-fluid figure-img" alt="À gauche, un nuage de points. Abscisse : part des 150 modifications apprises. Ordonnée : part des 1 425 autres faits gardés. Les essais tout répéter, en carrés, sont alignés en haut à 100 % gardés, de 0 à 100 % de modifications apprises. Les essais modifications seules, en cercles, descendent le long d'une diagonale, de 100 % gardés sans modification apprise à environ 30 % gardés avec toutes les modifications apprises. Un losange vert en haut à droite marque la table externe. À droite, la moins bonne des deux parts selon les exemples d'entraînement traités, en échelle logarithmique : les essais modifications seules restent sous 50 % ; les essais tout répéter atteignent 100 % à partir d'environ 630 000 exemples."></a></p>
+<figcaption><strong>Figure 3.</strong> Expérience 2, mesurée. À gauche : chacun des 24 essais de fine-tuning, selon la part des modifications apprises et des 1 425 autres faits gardés ; les marqueurs plus grands ont été entraînés plus longtemps. À droite : la moins bonne des deux parts selon le nombre d’exemples d’entraînement traités.</figcaption>
+</figure>
+</div>
+<p><strong>Résultat.</strong> Le fine-tuning sur les seules modifications n’a jamais réussi les deux. Les essais qui ont appris 97 % ou plus des modifications n’ont gardé que 28 % à 35 % des autres faits ; le meilleur compromis en a gardé 48 % et appris 47 %. Tout répéter a amené les deux à 100 %, après 630 000 exemples d’entraînement, un coût qui croît avec tout ce que le réseau sait. La table a demandé 150 écritures et 0,04 ms.</p>
+<p>L’interférence catastrophique n’est pas nouvelle <span class="citation" data-cites="mccloskey1989">(<a href="#ref-mccloskey1989" role="doc-biblioref">McCloskey et Cohen 1989</a>)</span>, et des méthodes d’édition comme ROME et MEMIT font bien mieux qu’un simple fine-tuning <span class="citation" data-cites="meng2022 meng2023">(<a href="#ref-meng2022" role="doc-biblioref">Meng et al. 2022</a>, <a href="#ref-meng2023" role="doc-biblioref">2023</a>)</span>, même si les modèles se dégradent encore à mesure que les modifications s’accumulent <span class="citation" data-cites="gupta2024">(<a href="#ref-gupta2024" role="doc-biblioref">Gupta et al. 2024</a>)</span>. Ce qui compte, c’est le contraste : dans une table, une modification est locale par construction ; dans des poids, chaque fait partage chaque paramètre. Les contacts changent, les prix changent, un client demande que l’on efface ses données. Une mémoire que l’on peut réécrire ligne par ligne est une mémoire que l’on peut garder vraie.</p>
+</section>
+<section id="expérience-3-aller-chercher" class="level2">
+<h2 class="anchored" data-anchor-id="expérience-3-aller-chercher">4. Expérience 3 : aller chercher</h2>
+<p><strong>Dispositif.</strong> J’ai stocké de dix mille à quatre millions de faits sous forme de vecteurs unitaires de 256 nombres, regroupés autour de 2 000 thèmes, comme le sont les vrais plongements. Une question est une clé stockée plus du bruit, une paraphrase. La recherche exacte la compare à chaque clé, ce qui demande <span class="math inline">O(Nd)</span> opérations : <span class="math inline">N</span> clés de <span class="math inline">d = 256</span> nombres chacune (<span class="math inline">O(\cdot)</span> signifie « croît proportionnellement à »). Un index à fichiers inversés (IVF) regroupe une fois les clés en <span class="math inline">c = 4\sqrt{N}</span> grappes, puis compare une question aux <span class="math inline">c</span> centres de grappes et aux seules clés des <span class="math inline">p</span> grappes les plus proches. Cela demande <span class="math inline">O\big((c + pN/c)\,d\big)</span> opérations : <span class="math inline">c</span> centres, plus <span class="math inline">p</span> grappes d’environ <span class="math inline">N/c</span> clés chacune. Avec <span class="math inline">c = 4\sqrt{N}</span>, les deux termes croissent comme <span class="math inline">\sqrt{N}</span> : une mémoire cent fois plus grande ne coûte que dix fois plus par question <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Expérience 3, mesurée. À gauche : temps par question facile selon le nombre de faits en mémoire. À droite : un million de faits à cinq niveaux de bruit ; chaque ligne sonde 1, 4, 16 et 64 grappes, et l’étoile est la recherche exacte."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig04.svg" class="img-fluid figure-img" alt="À gauche, un graphique log-log du temps par question selon le nombre de faits en mémoire, de dix mille à quatre millions : la recherche exacte monte de 0,1 à 100 millisecondes ; un index qui sonde 16 grappes de 0,1 à 1,4 milliseconde ; qui sonde 4 grappes, de 0,03 à 0,5 milliseconde. À droite, part des questions qui trouvent le bon fait selon le temps par question, pour cinq niveaux de bruit : sonder 1 grappe en trouve 80 à 95 % en environ 0,12 milliseconde ; sonder 4 grappes atteint la même part que la recherche exacte, 100 % pour quatre niveaux et 95,5 % contre 96 pour le plus bruité, en environ 0,25 milliseconde, alors que la recherche exacte prend environ 24 millisecondes."></a></p>
+<figcaption><strong>Figure 4.</strong> Expérience 3, mesurée. À gauche : temps par question facile selon le nombre de faits en mémoire. À droite : un million de faits à cinq niveaux de bruit ; chaque ligne sonde 1, 4, 16 et 64 grappes, et l’étoile est la recherche exacte.</figcaption>
+</figure>
+</div>
+<p><strong>Résultat.</strong> La recherche exacte a pris 29 ms sur un million de faits et 100 ms sur quatre millions. Sonder 4 grappes a pris 0,25 et 0,5 ms, en lisant 5 et 11 Mo. Sur des questions plus difficiles, une seule grappe en ratait 5 % à 20 %, alors que quatre grappes égalaient la recherche exacte (95,5 % contre 96 % au niveau le plus bruité). Mes clés regroupées flattent n’importe quel index : sur de vrais plongements, le même rappel demande plus de grappes, et plus de temps.</p>
+<p>Une mémoire externe est moins compacte que des poids : 1 024 octets par fait ici, ou 8 à 64 octets avec des codes compressés <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span>, contre moins de cinq dans les poids. Mais les poids sont lus en entier pour chaque token. Une recherche lit quelques mégaoctets, seulement quand une question le demande.</p>
+<section id="ce-que-coûte-vraiment-un-fait-trouvé" class="level3">
+<h3 class="anchored" data-anchor-id="ce-que-coûte-vraiment-un-fait-trouvé">Ce que coûte vraiment un fait trouvé</h3>
+<p>Dans la génération augmentée par la recherche <span class="citation" data-cites="lewis2020">(<a href="#ref-lewis2020" role="doc-biblioref">Lewis et al. 2020</a>)</span>, ce que l’index trouve est collé dans le prompt. Dès lors, cela se trouve dans la mémoire de travail et est relu pour chaque token généré.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Calculé pour Llama 3.2 1B à partir des mesures ci-dessus. Mégaoctets lus par token généré, en échelle logarithmique. La recherche se paie une fois par question ; les passages récupérés, à chaque token."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig05.svg" class="img-fluid figure-img" alt="Des barres horizontales en échelle logarithmique, en mégaoctets lus par token généré pour Llama 3.2 1B. Un modèle dix fois plus grand, 12B en 4 bits : 6 200. Les poids du modèle, 1B en 4 bits : 620. La conversation jusqu'ici, 2 000 tokens, cache fp16 : 66. Trois passages récupérés, 900 tokens, cache fp16 : 29. Les mêmes passages avec un cache 2 bits : 4. La recherche dans l'index elle-même, répartie sur une réponse de 200 tokens : 0,05."></a></p>
+<figcaption><strong>Figure 5.</strong> Calculé pour Llama 3.2 1B à partir des mesures ci-dessus. Mégaoctets lus par token généré, en échelle logarithmique. La recherche se paie une fois par question ; les passages récupérés, à chaque token.</figcaption>
+</figure>
+</div>
+<p>Chaque token de contexte coûte 32 Ko à ce modèle. Trois passages de 300 tokens ajoutent 29 Mo à chaque token généré, plus de cinq cents fois la recherche elle-même. Cela ne représente encore que 5 % des 620 Mo de poids, et bien moins qu’un modèle dix fois plus grand, qui lirait 6 200 Mo par token pour répondre à environ 11 points de questions de plus (section 6). Une recherche n’est bon marché que si ce qu’elle rapporte est court : un fait, pas trois pages.</p>
+<p>C’est pourquoi des architectures récentes placent la recherche <em>à l’intérieur</em> du modèle, là où un fait récupéré ne devient jamais du contexte. Les couches de mémoire de Meta lisent quelques lignes d’une table entraînable par token et battent des modèles denses qui utilisent plus de deux fois plus de calcul, surtout sur les questions factuelles <span class="citation" data-cites="berges2024">(<a href="#ref-berges2024" role="doc-biblioref">Berges et al. 2024</a>)</span>. Engram, de DeepSeek, ajoute une table de n-grammes hachés lue en temps constant <span class="citation" data-cites="engram2026">(<a href="#ref-engram2026" role="doc-biblioref">DeepSeek-AI 2026</a>)</span>. Gemma 3n garde des plongements par couche sur le stockage local <span class="citation" data-cites="gemma3n">(<a href="#ref-gemma3n" role="doc-biblioref">Google 2025</a>)</span>.</p>
+</section>
+</section>
+<section id="expérience-4-la-mémoire-de-travail" class="level2">
+<h2 class="anchored" data-anchor-id="expérience-4-la-mémoire-de-travail">5. Expérience 4 : la mémoire de travail</h2>
+<p><strong>Dispositif.</strong> Le cache KV stocke une clé et une valeur par token, par couche et par tête clé-valeur :</p>
+<p><span class="math display">
+\text{octets KV par token} = 2 \cdot L \cdot n_{kv} \cdot d_h \cdot b.
+</span></p>
+<p>où :</p>
+<ul>
+<li>le facteur 2 compte une clé et une valeur ;</li>
+<li><span class="math inline">L</span> est le nombre de couches (16 dans Llama 3.2 1B) ;</li>
+<li><span class="math inline">n_{kv}</span> est le nombre de têtes clé-valeur par couche (8) ;</li>
+<li><span class="math inline">d_h</span> est le nombre de valeurs dans chaque tête (64) ;</li>
+<li><span class="math inline">b</span> est le nombre d’octets par valeur : 2 en 16 bits, 0,25 en 2 bits.</li>
+</ul>
+<p>Pour Llama 3.2 1B en 16 bits : <span class="math inline">2 \cdot 16 \cdot 8 \cdot 64 \cdot 2 = 32\,768</span> octets, 32 Ko pour chaque token du contexte.</p>
+<p>Chaque nouveau token lit tout le cache et tous les poids, si bien que le cache pèse autant que les poids à</p>
+<p><span class="math display">
+T^{*} = \frac{|\theta| \cdot b_w}{2 \cdot L \cdot n_{kv} \cdot d_h \cdot b_{kv}}.
+</span></p>
+<p>où :</p>
+<ul>
+<li><span class="math inline">T^{*}</span> est la longueur de contexte, en tokens, à laquelle les deux pèsent autant ;</li>
+<li><span class="math inline">|\theta|</span> est le nombre de paramètres (1,24 milliard pour Llama 3.2 1B) ;</li>
+<li><span class="math inline">b_w</span> est le nombre d’octets par poids : 2 en 16 bits, 0,5 en 4 bits ;</li>
+<li><span class="math inline">b_{kv}</span> est le nombre d’octets par valeur du cache ;</li>
+<li>le numérateur est la taille des poids en octets ; le dénominateur, la taille du cache pour un token.</li>
+</ul>
+<p>Pour Llama 3.2 1B avec des poids en 4 bits et un cache en 16 bits : <span class="math inline">1{,}24 \times 10^9 \times 0{,}5 \,/\, 32\,768 \approx 19\,000</span> tokens.</p>
+<p>J’ai chronométré une couche ayant la forme de celles de Llama 3.2 1B <span class="citation" data-cites="llama32">(<a href="#ref-llama32" role="doc-biblioref">Meta 2024</a>)</span> générant un token sur des caches de 1 000 à 131 000 tokens.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig06.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Expérience 4. À gauche, mesuré : temps par token généré pour une couche de Llama 3.2 1B, les poids face à l’attention sur le cache. À droite, d’après les configurations publiées : le contexte à partir duquel le cache et les poids pèsent autant."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig06.svg" class="img-fluid figure-img" alt="À gauche, un graphique log-log du temps par token généré pour une couche selon la longueur de contexte, de 1k à 128k tokens : les poids restent plats à 3,6 millisecondes ; l'attention sur le cache KV monte de 0,3 à 49 millisecondes, croisant les poids vers 15k tokens ; une ligne pointillée à 59k marque l'endroit où le cache et les poids contiennent le même nombre d'octets. À droite, des barres horizontales donnant le contexte à partir duquel le cache pèse autant que les poids. Llama 3.2 1B : 76k avec des poids en 16 bits, 19k avec des poids en 4 bits, 151k avec des poids en 4 bits et un cache en 2 bits. Llama 3.2 3B : 56k, 14k, 112k. Llama 3.1 8B : 123k, 31k, 245k. Llama 3.1 70B : 431k, 108k, 862k."></a></p>
+<figcaption><strong>Figure 6.</strong> Expérience 4. À gauche, mesuré : temps par token généré pour une couche de Llama 3.2 1B, les poids face à l’attention sur le cache. À droite, d’après les configurations publiées : le contexte à partir duquel le cache et les poids pèsent autant.</figcaption>
+</figure>
+</div>
+<p><strong>Résultat.</strong> Les poids ont coûté 3,6 ms par token quel que soit le contexte. L’attention a coûté 0,3 ms à 1 000 tokens, a égalé les poids vers 15 000 et a pris 49 ms à 131 000. En octets seuls, le croisement est à 59 000 ; mon attention en NumPy est plus lente qu’un produit matriciel, il est donc arrivé plus tôt.</p>
+<p>La formule donne 76 000 tokens pour Llama 3.2 1B en 16 bits. Quantifiez les poids en 4 bits et cela tombe à <strong>19 000</strong> : un long document, ou une seule boucle d’agent avec quelques sorties d’outils. Pour Llama 3.1 70B, c’est 108 000. <strong>Réduire les poids déplace le goulot d’étranglement vers la mémoire de travail.</strong> Les remèdes gardent tous cette mémoire courte : l’attention à requêtes groupées <span class="citation" data-cites="ainslie2023">(<a href="#ref-ainslie2023" role="doc-biblioref">Ainslie et al. 2023</a>)</span>, des fenêtres glissantes sur cinq couches sur six dans Gemma 3 <span class="citation" data-cites="gemma3">(<a href="#ref-gemma3" role="doc-biblioref">Gemma Team 2025</a>)</span>, des caches en 2 bits <span class="citation" data-cites="liu2024kivi">(<a href="#ref-liu2024kivi" role="doc-biblioref">Liu et al. 2024</a>)</span>, qui repoussent le croisement du modèle 1B à 151 000, et les Cartridges, de petits caches entraînés hors ligne qui égalent l’apprentissage en contexte avec 38,6 fois moins de mémoire <span class="citation" data-cites="eyuboglu2026">(<a href="#ref-eyuboglu2026" role="doc-biblioref"><span class="nocase">Eyuboglu et al.</span> 2026</a>)</span>.</p>
+</section>
+<section id="larithmétique-de-la-longue-traîne" class="level2">
+<h2 class="anchored" data-anchor-id="larithmétique-de-la-longue-traîne">6. L’arithmétique de la longue traîne</h2>
+<p>Combien doit rester dans les poids ? Les questions ne sont pas uniformes : les modèles connaissent bien mieux les faits populaires que les rares <span class="citation" data-cites="kandpal2023">(<a href="#ref-kandpal2023" role="doc-biblioref">Kandpal et al. 2023</a>)</span>, et la recherche aide surtout pour les rares <span class="citation" data-cites="mallen2023">(<a href="#ref-mallen2023" role="doc-biblioref">Mallen et al. 2023</a>)</span>. Si le <span class="math inline">k</span>-ième fait le plus demandé parmi <span class="math inline">F</span> est demandé avec une probabilité proportionnelle à <span class="math inline">k^{-s}</span> (loi de Zipf), une mémoire qui contient les <span class="math inline">K</span> réponses les plus demandées couvre</p>
+<p><span class="math display">
+\text{couverture}(K) = \frac{H_{K,s}}{H_{F,s}}, \qquad H_{n,s} = \sum_{k=1}^{n} k^{-s}.
+</span></p>
+<p>où :</p>
+<ul>
+<li><span class="math inline">F</span> est le nombre de faits dans le monde (un milliard dans la figure 7) ;</li>
+<li><span class="math inline">k</span> est le rang d’un fait selon la fréquence à laquelle il est demandé : 1 pour le plus demandé ;</li>
+<li><span class="math inline">s</span> fixe la raideur de la traîne : avec <span class="math inline">s = 1</span>, la loi de Zipf classique, le deuxième fait est demandé deux fois moins souvent que le premier et le dixième dix fois moins ; un <span class="math inline">s</span> plus grand concentre davantage de questions sur les premiers faits ;</li>
+<li><span class="math inline">K</span> est le nombre de faits que la mémoire contient, les <span class="math inline">K</span> plus demandés ;</li>
+<li><span class="math inline">H_{n,s}</span> additionne la popularité des <span class="math inline">n</span> premiers faits ;</li>
+<li>le rapport est la part de toutes les questions qui tombent sur les <span class="math inline">K</span> faits retenus.</li>
+</ul>
+<p>Pour <span class="math inline">s = 1</span>, <span class="math inline">H_n \approx \ln n + 0{,}577</span>, où <span class="math inline">\ln</span> est le logarithme naturel et 0,577 la constante d’Euler. Chaque pas d’un facteur dix ajoute donc la même part,</p>
+<p><span class="math display">
+\text{couverture}(10K) - \text{couverture}(K) \approx \frac{\ln 10}{\ln F + 0{,}577},
+</span></p>
+<p>où <span class="math inline">\ln 10 \approx 2{,}30</span> est la hausse de <span class="math inline">\ln K</span> quand <span class="math inline">K</span> est dix fois plus grand, et <span class="math inline">\ln F + 0{,}577 \approx 21{,}3</span> pour un milliard de faits. Le rapport, <span class="math inline">2{,}30 / 21{,}3 \approx 0{,}11</span>, ne dépend pas de <span class="math inline">K</span> : passer de mille à dix mille faits ajoute environ 11 points, et passer de cent millions à un milliard aussi.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig07.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Calculé. Part des questions auxquelles répond une mémoire contenant les faits les plus demandés, dans un monde d’un milliard de faits, pour trois traînes."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig07.svg" class="img-fluid figure-img" alt="Trois courbes montantes sur un axe horizontal logarithmique, de cent à un milliard de faits. La courbe de Zipf avec s égal à 1 monte presque en ligne droite, d'environ 25 % à cent faits jusqu'à 100 % à un milliard. Deux flèches ambre indiquent que chaque multiplication par dix ajoute la même tranche d'environ 11 points. Une traîne plus plate, avec s égal à 0,9, est en dessous ; une traîne plus raide, avec s égal à 1,1, au-dessus."></a></p>
+<figcaption><strong>Figure 7.</strong> Calculé. Part des questions auxquelles répond une mémoire contenant les faits les plus demandés, dans un monde d’un milliard de faits, pour trois traînes.</figcaption>
+</figure>
+</div>
+<p>Un modèle dix fois plus grand lit dix fois plus par token pour 11 points de plus. Un index dix fois plus grand lit environ trois fois plus, une fois par question. La tête relève des poids, où elle sert constamment ; la traîne relève d’une recherche. Les mémoires hiérarchiques d’Apple font ce partage dès le pré-entraînement : un modèle de 160 millions de paramètres allant chercher 18 millions de paramètres dans une banque de mémoire de 4,6 milliards a égalé un modèle classique plus de deux fois plus grand <span class="citation" data-cites="pouransari2026">(<a href="#ref-pouransari2026" role="doc-biblioref">Pouransari et al. 2026</a>)</span>.</p>
+</section>
+<section id="ce-que-cela-signifie-pour-les-petits-modèles-et-fast-ai" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-cela-signifie-pour-les-petits-modèles-et-fast-ai">7. Ce que cela signifie pour les petits modèles et Fast AI</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-26-where-memory-lives/figures/fig08.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. Une proposition, de moi. Un petit modèle raisonne ; une mémoire de travail courte, une mémoire externe modifiable et des habitudes compilées l’entourent ; une boucle lente déplace la connaissance de l’une à l’autre."><img src="../../../posts/2026-10-26-where-memory-lives/figures/fig08.svg" class="img-fluid figure-img" alt="Un schéma. Une carte sombre au centre : petit modèle, raisonne ; langage, raisonnement, outils ; 1 à 4 milliards de paramètres en 4 bits. En haut à gauche, la mémoire de travail : fenêtre glissante, cache 2 bits, résumés plutôt que transcriptions, marquée bornée par token. En bas à gauche, la recherche : mémoire externe indexée sur flash, modifiable et effaçable, marquée quelques lignes par question. En haut à droite, les habitudes : réponses vérifiées, petits arbres, adaptateurs, marquées consultées d'abord, millisecondes. En bas à droite, l'apprentissage : consolidation lente, la nuit. Des flèches pointillées vont de la consolidation aux habitudes et à la mémoire externe, marquées écritures et corrections."></a></p>
+<figcaption><strong>Figure 8.</strong> Une proposition, de moi. Un petit modèle raisonne ; une mémoire de travail courte, une mémoire externe modifiable et des habitudes compilées l’entourent ; une boucle lente déplace la connaissance de l’une à l’autre.</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Garder dans les poids ce qui sert à chaque token :</strong> la langue, le raisonnement, l’usage des outils, la structure d’un domaine. Pas la liste de prix.</li>
+<li><strong>Garder la mémoire de travail courte :</strong> des résumés plutôt que des transcriptions, un cache compressé, une fenêtre.</li>
+<li><strong>Aller chercher la longue traîne, et rapporter peu :</strong> le fait, pas la page. Chaque ligne peut être inspectée, corrigée et effacée.</li>
+<li><strong>Compiler ce qui se répète,</strong> comme dans <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a> : une réponse vérifiée, un petit arbre ou un adaptateur, consultés avant d’appeler le modèle.</li>
+<li><strong>Consolider lentement :</strong> ce qui est cherché constamment peut mériter une place dans une habitude ; ce qui est faux est effacé, en une ligne, pas en un entraînement.</li>
+</ol>
+<p>Les systèmes de mémoire pour agents construisent le haut de cette pile : MemGPT, devenu Letta, pagine le contexte comme un système d’exploitation <span class="citation" data-cites="packer2023">(<a href="#ref-packer2023" role="doc-biblioref">Packer et al. 2023</a>)</span> ; Mem0 et A-MEM extraient et relient des souvenirs d’une session à l’autre <span class="citation" data-cites="chhikara2025 xu2025amem">(<a href="#ref-chhikara2025" role="doc-biblioref">Chhikara et al. 2025</a>; <a href="#ref-xu2025amem" role="doc-biblioref">Xu et al. 2025</a>)</span> ; Titans apprend une mémoire au moment de l’inférence <span class="citation" data-cites="behrouz2024">(<a href="#ref-behrouz2024" role="doc-biblioref">Behrouz et al. 2024</a>)</span>. Un petit modèle a le moins de place dans ses poids et le moins de bande passante à revendre, c’est donc lui qui gagne le plus à mettre chaque mémoire au bon endroit.</p>
+</section>
+<section id="travaux-récents-avec-code" class="level2">
+<h2 class="anchored" data-anchor-id="travaux-récents-avec-code">8. Travaux récents, avec code</h2>
+<table class="caption-top table">
+<caption><strong>Tableau 1.</strong> Travaux récents sur les quatre mémoires. Liens vers le code vérifiés le 25 octobre 2026. Les bancs d’essai des systèmes de mémoire pour agents sont encore jeunes, et les scores annoncés par les éditeurs divergent souvent des scores indépendants ; je les comparerais sur vos propres données.</caption>
+<thead>
+<tr class="header">
+<th>Travail</th>
+<th>Mémoire concernée</th>
+<th>Idée</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Physics of Language Models 3.3 <span class="citation" data-cites="allenzhu2025">(<a href="#ref-allenzhu2025" role="doc-biblioref">Allen-Zhu et Li 2025</a>)</span></td>
+<td>Poids</td>
+<td>Environ 2 bits de connaissance par paramètre</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>Memory Layers at Scale <span class="citation" data-cites="berges2024">(<a href="#ref-berges2024" role="doc-biblioref">Berges et al. 2024</a>)</span></td>
+<td>Poids, creux</td>
+<td>Recherche clé-valeur entraînable dans le modèle</td>
+<td><a href="https://github.com/facebookresearch/memory">facebookresearch/memory</a></td>
+</tr>
+<tr class="odd">
+<td>Engram <span class="citation" data-cites="engram2026">(<a href="#ref-engram2026" role="doc-biblioref">DeepSeek-AI 2026</a>)</span></td>
+<td>Poids, creux</td>
+<td>Mémoire de n-grammes hachés, recherche en temps constant</td>
+<td><a href="https://github.com/deepseek-ai/Engram">deepseek-ai/Engram</a></td>
+</tr>
+<tr class="even">
+<td>Mémoires hiérarchiques <span class="citation" data-cites="pouransari2026">(<a href="#ref-pouransari2026" role="doc-biblioref">Pouransari et al. 2026</a>)</span></td>
+<td>Poids + banque</td>
+<td>Petit modèle, faits de la longue traîne dans une banque de mémoire consultée</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Titans <span class="citation" data-cites="behrouz2024">(<a href="#ref-behrouz2024" role="doc-biblioref">Behrouz et al. 2024</a>)</span></td>
+<td>Apprise à l’inférence</td>
+<td>Une mémoire neuronale mise à jour pendant l’inférence</td>
+<td><a href="https://github.com/lucidrains/titans-pytorch">lucidrains/titans-pytorch</a> (non officiel)</td>
+</tr>
+<tr class="even">
+<td>KIVI <span class="citation" data-cites="liu2024kivi">(<a href="#ref-liu2024kivi" role="doc-biblioref">Liu et al. 2024</a>)</span></td>
+<td>Mémoire de travail</td>
+<td>Cache KV en 2 bits, sans fine-tuning</td>
+<td><a href="https://github.com/jy-yuan/KIVI">jy-yuan/KIVI</a></td>
+</tr>
+<tr class="odd">
+<td>Cartridges <span class="citation" data-cites="eyuboglu2026">(<a href="#ref-eyuboglu2026" role="doc-biblioref"><span class="nocase">Eyuboglu et al.</span> 2026</a>)</span></td>
+<td>Mémoire de travail</td>
+<td>Un petit cache entraîné hors ligne pour chaque corpus</td>
+<td><a href="https://github.com/HazyResearch/cartridges">HazyResearch/cartridges</a></td>
+</tr>
+<tr class="even">
+<td>LLM in a Flash <span class="citation" data-cites="alizadeh2023">(<a href="#ref-alizadeh2023" role="doc-biblioref">Alizadeh et al. 2023</a>)</span></td>
+<td>Poids sur flash</td>
+<td>Ne charger que les poids dont un token a besoin</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>Faiss <span class="citation" data-cites="douze2024">(<a href="#ref-douze2024" role="doc-biblioref">Douze et al. 2024</a>)</span></td>
+<td>Externe</td>
+<td>Index vectoriels, IVF et au-delà</td>
+<td><a href="https://github.com/facebookresearch/faiss">facebookresearch/faiss</a></td>
+</tr>
+<tr class="even">
+<td>MemGPT / Letta <span class="citation" data-cites="packer2023">(<a href="#ref-packer2023" role="doc-biblioref">Packer et al. 2023</a>)</span></td>
+<td>Externe, agent</td>
+<td>Le contexte comme mémoire virtuelle</td>
+<td><a href="https://github.com/letta-ai/letta">letta-ai/letta</a></td>
+</tr>
+<tr class="odd">
+<td>Mem0 <span class="citation" data-cites="chhikara2025">(<a href="#ref-chhikara2025" role="doc-biblioref">Chhikara et al. 2025</a>)</span></td>
+<td>Externe, agent</td>
+<td>Extraire et mettre à jour des souvenirs d’une session à l’autre</td>
+<td><a href="https://github.com/mem0ai/mem0">mem0ai/mem0</a></td>
+</tr>
+<tr class="even">
+<td>A-MEM <span class="citation" data-cites="xu2025amem">(<a href="#ref-xu2025amem" role="doc-biblioref">Xu et al. 2025</a>)</span></td>
+<td>Externe, agent</td>
+<td>Des notes reliées qui se réorganisent d’elles-mêmes</td>
+<td><a href="https://github.com/agiresearch/A-mem">agiresearch/A-mem</a></td>
+</tr>
+<tr class="odd">
+<td>llama.cpp</td>
+<td>Toutes, en local</td>
+<td>Poids et cache KV quantifiés sur un ordinateur portable</td>
+<td><a href="https://github.com/ggml-org/llama.cpp">ggml-org/llama.cpp</a></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="ce-que-cette-expérience-ne-montre-pas" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-cette-expérience-ne-montre-pas">9. Ce que cette expérience ne montre pas</h2>
+<ul>
+<li><strong>Mes faits sont aléatoires.</strong> La vraie connaissance a une structure qu’un modèle peut comprimer, si bien que des poids peuvent faire mieux que mes réseaux.</li>
+<li><strong>Mes réseaux sont minuscules :</strong> deux couches, au plus 19 000 paramètres.</li>
+<li><strong>Mes questions sont synthétiques.</strong> Une vraie recherche doit d’abord plonger la question ; elle peut rater, ou trouver le fait et voir le modèle l’ignorer.</li>
+<li><strong>Le simple fine-tuning est le plus faible des éditeurs.</strong> De meilleures méthodes réduisent l’écart, mais modifient toujours des poids que chaque fait partage.</li>
+<li><strong>NumPy n’est pas un moteur de service</strong>, c’est pourquoi la figure 6 donne aussi le décompte en octets.</li>
+<li><strong>Zipf est un modèle.</strong> Les questions d’un spécialiste peuvent avoir une traîne plus courte, ce qui plaide pour les spécialistes.</li>
+</ul>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">10. Conclusion</h2>
+<p>Nous disons qu’un modèle <em>sait</em> quelque chose, comme si la connaissance vivait à un seul endroit. Elle vit à quatre, à quatre prix : des poids denses lus à chaque token, une mémoire de travail qui grandit à chaque token, une recherche encombrante mais bon marché et corrigeable, et des habitudes qui ne coûtent presque rien une fois construites. Les grands modèles peuvent se permettre de les confondre. Les petits non, et c’est leur avantage. Gardez dans les poids ce qui sert à chaque token, gardez la mémoire de travail courte, allez chercher la longue traîne, compilez ce qui se répète.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">Un écosystème, pas un oracle</a> L’architecture dans laquelle s’inscrivent ces quatre mémoires.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-ainslie2023" class="csl-entry" role="listitem">
+Ainslie, Joshua, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, et Sumit Sanghai. 2023. <span>«&nbsp;<span>GQA</span>: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints&nbsp;»</span>. <em>arXiv preprint arXiv:2305.13245</em>. <a href="https://arxiv.org/abs/2305.13245">https://arxiv.org/abs/2305.13245</a>.
+</div>
+<div id="ref-alizadeh2023" class="csl-entry" role="listitem">
+Alizadeh, Keivan, Iman Mirzadeh, Dmitry Belenko, et al. 2023. <span>«&nbsp;<span>LLM</span> in a Flash: Efficient Large Language Model Inference with Limited Memory&nbsp;»</span>. <em>arXiv preprint arXiv:2312.11514</em>. <a href="https://arxiv.org/abs/2312.11514">https://arxiv.org/abs/2312.11514</a>.
+</div>
+<div id="ref-allenzhu2025" class="csl-entry" role="listitem">
+Allen-Zhu, Zeyuan, et Yuanzhi Li. 2025. <span>«&nbsp;Physics of Language Models: Part 3.3, Knowledge Capacity Scaling Laws&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2404.05405">https://arxiv.org/abs/2404.05405</a>.
+</div>
+<div id="ref-behrouz2024" class="csl-entry" role="listitem">
+Behrouz, Ali, Peilin Zhong, et Vahab Mirrokni. 2024. <span>«&nbsp;Titans: Learning to Memorize at Test Time&nbsp;»</span>. <em>arXiv preprint arXiv:2501.00663</em>. <a href="https://arxiv.org/abs/2501.00663">https://arxiv.org/abs/2501.00663</a>.
+</div>
+<div id="ref-berges2024" class="csl-entry" role="listitem">
+Berges, Vincent-Pierre, Barlas Oğuz, Daniel Haziza, Wen-tau Yih, Luke Zettlemoyer, et Gargi Ghosh. 2024. <span>«&nbsp;Memory Layers at Scale&nbsp;»</span>. <em>arXiv preprint arXiv:2412.09764</em>. <a href="https://arxiv.org/abs/2412.09764">https://arxiv.org/abs/2412.09764</a>.
+</div>
+<div id="ref-chhikara2025" class="csl-entry" role="listitem">
+Chhikara, Prateek, Dev Khant, Saket Aryan, Taranjeet Singh, et Deshraj Yadav. 2025. <span>«&nbsp;<span>Mem0</span>: Building Production-Ready <span>AI</span> Agents with Scalable Long-Term Memory&nbsp;»</span>. <em>arXiv preprint arXiv:2504.19413</em>. <a href="https://arxiv.org/abs/2504.19413">https://arxiv.org/abs/2504.19413</a>.
+</div>
+<div id="ref-cover1965" class="csl-entry" role="listitem">
+Cover, Thomas M. 1965. <span>«&nbsp;Geometrical and Statistical Properties of Systems of Linear Inequalities with Applications in Pattern Recognition&nbsp;»</span>. <em>IEEE Transactions on Electronic Computers</em> EC-14 (3): 326‑34. <a href="https://doi.org/10.1109/PGEC.1965.264137">https://doi.org/10.1109/PGEC.1965.264137</a>.
+</div>
+<div id="ref-engram2026" class="csl-entry" role="listitem">
+DeepSeek-AI. 2026. <em>Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models</em>. Github.com/deepseek-ai/Engram. <a href="https://github.com/deepseek-ai/Engram">https://github.com/deepseek-ai/Engram</a>.
+</div>
+<div id="ref-douze2024" class="csl-entry" role="listitem">
+Douze, Matthijs, Alexandr Guzhva, Chengqi Deng, et al. 2024. <span>«&nbsp;The <span>Faiss</span> Library&nbsp;»</span>. <em>arXiv preprint arXiv:2401.08281</em>. <a href="https://arxiv.org/abs/2401.08281">https://arxiv.org/abs/2401.08281</a>.
+</div>
+<div id="ref-eyuboglu2026" class="csl-entry" role="listitem">
+<span class="nocase">Eyuboglu, Sabri, Ryan Ehrlich, Simran Arora, et al.</span> 2026. <span>«&nbsp;Cartridges: Lightweight and General-Purpose Long Context Representations via Self-Study&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2506.06266">https://arxiv.org/abs/2506.06266</a>.
+</div>
+<div id="ref-gemma3" class="csl-entry" role="listitem">
+Gemma Team. 2025. <span>«&nbsp;Gemma 3 Technical Report&nbsp;»</span>. <em>arXiv preprint arXiv:2503.19786</em>. <a href="https://arxiv.org/abs/2503.19786">https://arxiv.org/abs/2503.19786</a>.
+</div>
+<div id="ref-gemma3n" class="csl-entry" role="listitem">
+Google. 2025. <em>Gemma 3n Model Overview</em>. Ai.google.dev. <a href="https://ai.google.dev/gemma/docs/gemma-3n">https://ai.google.dev/gemma/docs/gemma-3n</a>.
+</div>
+<div id="ref-gupta2024" class="csl-entry" role="listitem">
+Gupta, Akshat, Anurag Rao, et Gopala Anumanchipalli. 2024. <span>«&nbsp;Model Editing at Scale Leads to Gradual and Catastrophic Forgetting&nbsp;»</span>. <em>Findings of the Association for Computational Linguistics (ACL)</em>. <a href="https://arxiv.org/abs/2401.07453">https://arxiv.org/abs/2401.07453</a>.
+</div>
+<div id="ref-kandpal2023" class="csl-entry" role="listitem">
+Kandpal, Nikhil, Haikang Deng, Adam Roberts, Eric Wallace, et Colin Raffel. 2023. <span>«&nbsp;Large Language Models Struggle to Learn Long-Tail Knowledge&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.08411">https://arxiv.org/abs/2211.08411</a>.
+</div>
+<div id="ref-lewis2020" class="csl-entry" role="listitem">
+Lewis, Patrick, Ethan Perez, Aleksandra Piktus, et al. 2020. <span>«&nbsp;Retrieval-Augmented Generation for Knowledge-Intensive <span>NLP</span> Tasks&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
+</div>
+<div id="ref-liu2024kivi" class="csl-entry" role="listitem">
+Liu, Zirui, Jiayi Yuan, Hongye Jin, et al. 2024. <span>«&nbsp;<span>KIVI</span>: A Tuning-Free Asymmetric 2bit Quantization for <span>KV</span> Cache&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2402.02750">https://arxiv.org/abs/2402.02750</a>.
+</div>
+<div id="ref-mallen2023" class="csl-entry" role="listitem">
+Mallen, Alex, Akari Asai, Victor Zhong, Rajarshi Das, Daniel Khashabi, et Hannaneh Hajishirzi. 2023. <span>«&nbsp;When Not to Trust Language Models: Investigating Effectiveness of Parametric and Non-Parametric Memories&nbsp;»</span>. <em>Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (ACL)</em>. <a href="https://arxiv.org/abs/2212.10511">https://arxiv.org/abs/2212.10511</a>.
+</div>
+<div id="ref-mccloskey1989" class="csl-entry" role="listitem">
+McCloskey, Michael, et Neal J. Cohen. 1989. <span>«&nbsp;Catastrophic Interference in Connectionist Networks: The Sequential Learning Problem&nbsp;»</span>. In <em>Psychology of Learning and Motivation</em>, vol. 24. Academic Press. <a href="https://doi.org/10.1016/S0079-7421(08)60536-8">https://doi.org/10.1016/S0079-7421(08)60536-8</a>.
+</div>
+<div id="ref-meng2022" class="csl-entry" role="listitem">
+Meng, Kevin, David Bau, Alex Andonian, et Yonatan Belinkov. 2022. <span>«&nbsp;Locating and Editing Factual Associations in <span>GPT</span>&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2202.05262">https://arxiv.org/abs/2202.05262</a>.
+</div>
+<div id="ref-meng2023" class="csl-entry" role="listitem">
+Meng, Kevin, Arnab Sen Sharma, Alex Andonian, Yonatan Belinkov, et David Bau. 2023. <span>«&nbsp;Mass-Editing Memory in a Transformer&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2210.07229">https://arxiv.org/abs/2210.07229</a>.
+</div>
+<div id="ref-llama32" class="csl-entry" role="listitem">
+Meta. 2024. <em>Llama 3.2 Model Card</em>. Github.com/meta-llama/llama-models. <a href="https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md">https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md</a>.
+</div>
+<div id="ref-packer2023" class="csl-entry" role="listitem">
+Packer, Charles, Sarah Wooders, Kevin Lin, et al. 2023. <span>«&nbsp;<span>MemGPT</span>: Towards <span>LLMs</span> as Operating Systems&nbsp;»</span>. <em>arXiv preprint arXiv:2310.08560</em>. <a href="https://arxiv.org/abs/2310.08560">https://arxiv.org/abs/2310.08560</a>.
+</div>
+<div id="ref-pouransari2026" class="csl-entry" role="listitem">
+Pouransari, Hadi, David Grangier, C Thomas, Michael Kirchhof, et Oncel Tuzel. 2026. <span>«&nbsp;Pretraining with Hierarchical Memories: Separating Long-Tail and Common Knowledge&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2510.02375">https://arxiv.org/abs/2510.02375</a>.
+</div>
+<div id="ref-xu2025amem" class="csl-entry" role="listitem">
+Xu, Wujiang, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, et Yongfeng Zhang. 2025. <span>«&nbsp;<span>A-MEM</span>: Agentic Memory for <span>LLM</span> Agents&nbsp;»</span>. <em>arXiv preprint arXiv:2502.12110</em>. <a href="https://arxiv.org/abs/2502.12110">https://arxiv.org/abs/2502.12110</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Là où vit la mémoire},
+  date = {2026-10-26},
+  url = {https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/},
+  langid = {fr}
+}
+</code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Là où vit la mémoire.”</span> October 26.
+<a href="https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/">https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
