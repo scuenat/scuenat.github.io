@@ -3,7 +3,6 @@ title: "A Grammar for Tools"
 subtitle: "MCP gave AI agents a dictionary. What it still lacks is a way to say how tools combine"
 description: "MCP lets every tool define itself, like words in a dictionary. Nothing in the protocol says how tools combine, so every agent rebuilds that knowledge on every run and forgets it at the end. I argue that the missing piece is a small grammar: rules over kinds of tools, and habits of specific tools, computed from schemas, declared by authors, observed in use and imposed by policy. OpenAPI, Arazzo and the semantic web tried parts of this before; what is new is a reader that can use it. I borrow the design principles from neural networks, without training one."
 date: 2026-10-30
-draft: true
 citation: true
 google-scholar: true
 toc-depth: 2
@@ -28,7 +27,7 @@ resources:
 - **MCP is a dictionary.** Each tool is defined on its own. The links between tools exist only inside one agent's run.
 - **The missing object is the relation.** MCP has first-class tools, resources and prompts, and groups of tools are being proposed. It has no typed relation between tools, so nobody can publish, share, version or check one.
 - **Resemblance is not complementarity.** Searching descriptions finds tools like the request. A task needs tools that complete each other, and those rarely look alike. Tool-retrieval research since 2024 says the same.
-- **The bottleneck is already visible.** 2025 benchmarks with hundreds of MCP tools find that retrieval causes nearly half of agent failures, and that cross-server orchestration is what separates strong models from weak ones.
+- **The bottleneck is already visible.** 2025 benchmarks with hundreds of MCP tools find that finding the right tool is the dominant failure, and that planning across steps and servers remains hard.
 - **A grammar has two levels.** Rules over roles ("pays requires approves") hold for tools never seen before. Habits of named tools ("this payment tool is usually followed by that converter") are sharp for known work and silent for new work.
 - **Four sources, four owners.** Edges are computed from schemas by any reader, declared by servers, observed by clients and imposed by the organisation's gateway. Every edge should say where it came from.
 - **This was tried before, in part.** OpenAPI links, Arazzo workflows and semantic web services described how operations connect. Arazzo and agents.json write *sentences* (fixed workflows), not a grammar. The older efforts lacked a reader that could use a cheap, imperfect grammar. A language model is that reader.
@@ -74,7 +73,7 @@ The first is the cost of looking. MCP-Zero counts about 4,600 tokens for the 26 
 
 The second is the space of compositions. With $N$ tools there are $N^k$ ordered chains of $k$ of them. The chains anyone actually uses are a vanishing fraction of that space. The useful structure is small, roughly linear in $N$, but nobody writes it down. So every run looks for it again inside a space that grows with the fourth power.
 
-This is no longer a projection. LiveMCPBench gave agents 70 MCP servers and 527 tools: most models completed only 30% to 50% of its tasks, retrieval was the main cause of failure, and agents that actively combined tools did better [@mo2025livemcpbench]. MCP-Bench, with 250 tools on 28 servers, concluded that calling a tool correctly is no longer the hard part; planning across steps and orchestrating across servers is [@wang2025mcpbench]. Both point at the same gap: knowing which tools go together.
+This is no longer a projection. LiveMCPBench gave agents 70 MCP servers and 527 tools across 95 everyday tasks. The best model completed 79% of them, most models only 30% to 50%, and the authors identify finding the right tool as the dominant bottleneck [@mo2025livemcpbench]. MCP-Bench connected 20 models to 250 tools on 28 live servers, in tasks that chain tools within and across servers, and found persistent difficulty with long-horizon planning, with weaker models degrading most on multi-server tasks [@wang2025mcpbench]. Both point at the same gap: knowing which tools go together.
 
 The field has noticed, and the answers so far tell the story:
 
