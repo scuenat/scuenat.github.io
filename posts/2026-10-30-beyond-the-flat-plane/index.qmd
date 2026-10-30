@@ -1,0 +1,248 @@
+---
+title: "Beyond the Flat Plane"
+subtitle: "MCP gives an agent a catalogue of points. With thousands of tools, it needs edges, neighbourhoods, and the couplings between them"
+description: "MCP describes every tool on its own, like points scattered on a plane. The graph that links them is drawn by the orchestrator at run time, then forgotten. That works for a few dozen tools. A simulation with up to 10,000 tools shows where it breaks, why a layer on top does not fix it, and why local edges published with the tools do. I end with a borrowed idea, entanglement, to describe clusters of tools that cannot be understood one at a time."
+date: 2026-10-30
+draft: true
+citation: true
+google-scholar: true
+toc-depth: 2
+bibliography: references.bib
+categories: [essay, experiment, ai, agents, architecture, mcp]
+topics: [agentic-coding]   # home-page theme tiles (index.qmd)
+image: figures/fig01.png
+resources:
+  - sim.py
+  - figs.py
+  - results.json
+  - figures/*.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essay, October 2026.** A follow-up to [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd). The numbers in Figures 3, 4, 5, 8 and 9 come from [sim.py](sim.py), a toy world of tools and tasks in plain NumPy, with results in [results.json](results.json). The figures are drawn with [figs.py](figs.py). The world is synthetic and deliberately simple: it tests the shape of an argument, not any product. The JSON in Figure 7 is a proposal of mine, not part of the MCP specification.
+:::
+
+**In short.** The Model Context Protocol (MCP) is a remarkable piece of design: every tool describes itself, and any caller can read the description when it needs it. But each description stands alone. Mathematically, MCP gives us a set of points on a plane. The lines between them, which tool feeds which, which ones belong together, are drawn by the orchestrator at run time, for one task, and then thrown away. With a few dozen tools, that is fine: the model sees everything and draws good lines. With thousands, it is not. The model can no longer see every point, and the tools a task needs are often not the ones that *look* like the request. I built a small simulation to test this. Choosing tools by resemblance alone found every tool a task needed in 46% of tasks with 100 tools, and in none with 3,000. A layer on top, which first picks the right domain and then the right tool, did no better. Edges between tools, published by their authors or learned from past use, kept that rate between 84% and 98% at every size up to 10,000. My conclusion is that we do not need a new central layer on top of MCP. We need the protocol to carry a little structure of its own: each tool publishing its neighbourhood, the way a web page carries its links. And for the deeper structure, clusters of tools whose use is bound together across domains, I borrow a word from physics: *entanglement*. Not because anything quantum happens, but because the mathematics of systems that cannot be described one part at a time is the right picture for what a large tool ecosystem has become.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Key takeaways
+
+- **MCP is flat by design.** Each tool is a self-contained point. The graph that connects tools exists only inside one run of one orchestrator.
+- **Flat works for dozens of tools, not thousands.** The cost of listing every tool grows with $N$; the number of ways to chain four tools grows with $N^4$. The useful chains are a tiny, sparse part of that space.
+- **Resemblance is not complementarity.** In my simulation, tools used together across domains resembled each other no more than two tools picked at random. Search by meaning cannot find them.
+- **A layer on top does not fix this.** Routing first to the closest domain, then to the closest tool, scored like flat search, because it still ranks by resemblance.
+- **Local edges do.** Edges declared by tool authors, or learned from past traces, kept tasks fully covered at 84% to 98% up to 10,000 tools. A thousand past tasks were enough to learn most of them.
+- **Edges between clusters carry over to new tasks.** For workflows never seen before, searching only the clusters coupled to the first tool (15% of the catalogue) found the whole workflow 1.7 to 3.2 times as often as searching everything, from 1,000 tools up.
+- **"Entanglement" is a useful word, used carefully.** It names clusters whose joint use cannot be written as the product of their separate uses. The mathematics is classical; the intuition is borrowed.
+:::
+
+## 1. Points on a plane
+
+Think of every MCP tool as a point. Its position is its meaning: what its description says it does. Two invoice tools sit close together; an invoice tool and a calendar tool sit far apart. A server publishes a handful of such points. A client connects to several servers and sees the union: a cloud of points, with no lines between them [@mcpspec2025].
+
+This is not a flaw. It is what makes MCP so easy to adopt. A server does not need to know who else exists. A tool does not need to name its neighbours. Anyone can add a point, and every client can read it. That is the strength I described in [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd): the interface becomes data, read at run time.
+
+But a task is never a point. "Pay this supplier invoice" is a path: check the invoice, convert the currency, pay, post the ledger entry, send a confirmation. That path crosses three or four servers. Somebody has to draw it.
+
+![**Figure 1.** Schematic, my own, with seeded positions. Left: today, the tools are a cloud of points, and the orchestrator draws a path through them for one task. Right: the same points with edges that persist: dense inside clusters, and a few strong bridges between them.](figures/fig01.png){fig-alt="Two panels of scattered points. Left, titled Today, a flat catalogue: grey circles with no connections, and one dashed orange path through four highlighted points, numbered 1 to 4, labelled 'the graph lives for one task, then it is forgotten'. Right, titled Proposed, a local graph: the same kind of points grouped into six coloured clusters named invoices, currency, mail, documents, identity and calendar, with thin edges inside each cluster and a few thick orange edges between clusters, labelled 'edges inside clusters, and a few strong bridges between them'."}
+
+## 2. Where the graph lives today
+
+Today the path is drawn by the orchestrator: the model in its loop, reading tool descriptions and choosing the next call. The graph exists, but only in one place and for one moment. It lives in the context window of one run. When the run ends, the graph is gone. The next agent, facing the same task, draws it again from scratch.
+
+With a few dozen tools, this is the right design. The model reads every description and is very good at drawing the path. Nothing needs to be stored, nothing goes stale.
+
+The industry has already felt the limit, and the fixes so far tell the story:
+
+- **Search instead of listing.** Tools are kept out of the context and found by a search when the model needs them. Anthropic's tool search with deferred loading [@anthropic2025advtools] and RAG-MCP [@gan2025] work this way. They index the points better. They do not connect them.
+- **A hierarchy above the points.** MCP-Zero first chooses a server, then a tool inside it [@fei2025mcpzero]. The MCP Registry lists servers in one place [@mcpregistry2025]. Both add a layer of folders above the plane.
+- **Bundles written by hand.** Agent Skills package instructions, scripts and tool use for one job [@anthropic2025skills]. Code execution with MCP lays tools out as a file tree the agent can browse [@anthropic2025codeexec]. These are clusters, made by people.
+- **Graphs of tools, in research.** ToolNet walks a graph whose edges are transitions between tools, learned from trajectories [@liu2024toolnet]. Graph RAG-Tool Fusion follows dependency edges after a first vector search, and reports large gains over plain retrieval [@lumer2025graphrag].
+
+The last line matters most. The research already points to edges. What is missing is a place for them in the protocol itself.
+
+## 3. Why a thousand tools is a different problem
+
+Two things grow as the catalogue grows, and neither grows politely.
+
+The first is the cost of looking. Listing every definition costs a few hundred tokens per tool. MCP-Zero counts about 4,600 tokens for the 26 tools of the GitHub server alone [@fei2025mcpzero]. At 350 tokens per tool, a thousand tools fill a third of a million tokens before the task has begun.
+
+The second is the number of possible compositions. With $N$ tools, there are $N^k$ ways to chain $k$ of them. For four steps and a thousand tools, that is $10^{12}$. The chains that are actually useful are a vanishing part of that space: in my simulation, about one per two tools. A sparse graph with three edges per tool contains almost all of them.
+
+![**Figure 2.** Plain counting. Left: tokens needed to list every tool definition, at an illustrative 350 tokens per tool. Right: the number of possible four-step chains against the size of a sparse graph and the number of workflows actually used in my simulation.](figures/fig02.png){fig-alt="Two log-log charts against the number of tools, from 10 to 10,000. Left: tokens to list every definition rise in a straight line from about 3,500 to 3.5 million, crossing a 200k-token context window near 570 tools and a 1M-token window near 2,900 tools. Right: possible four-step chains grow as N to the fourth, from ten thousand to ten to the sixteenth; edges in a sparse graph grow as 3N and workflows actually run as N over 2, both many orders of magnitude lower."}
+
+This is the whole argument in one picture. The useful structure is small. It is linear in $N$. But in a flat catalogue it is not written anywhere, so every run must rediscover it inside a space that grows with the fourth power.
+
+### Resemblance is not complementarity
+
+Search fixes the first problem but not the second, for a simple reason. Search finds tools that *resemble* the request. A task needs tools that *complete* each other.
+
+The request "pay this supplier invoice" resembles the invoice tools. It does not resemble the currency converter, the ledger, or the mail server, yet the task needs all three. In my simulation, I measured how close in meaning two tools were, for pairs actually used together.
+
+![**Figure 3.** Simulation (sim.py), 1,000 tools in 20 domains, 2,500 past tasks. How much two tool descriptions resemble each other, for random pairs and for pairs used in the same task. Partners from the same domain look alike; partners from different domains look like strangers.](figures/fig03.png){fig-alt="Three overlapping distributions of cosine similarity between tool descriptions. Two tools picked at random cluster around zero. Tools used together from the same domain cluster around 0.5, with a small second peak near 0.85. Tools used together from different domains lie on top of the random distribution, around zero. A note says 94% of the partners used across domains resemble each other no more than two tools picked at random."}
+
+Partners within a domain looked alike, around 0.5. Partners across domains looked like strangers: on average 0.02, against 0.05 for random pairs. 94% of them scored below 0.3. There is no signal to find. The relation between an invoice and a currency rate is not in either description. It is in the *use*.
+
+## 4. An experiment
+
+**Setup.** I built a world of $N$ tools, from 100 to 10,000, spread over 20 domains. Each tool is a point in a 64-dimensional space of meaning:
+
+$$
+e_t = \mathrm{unit}\big(c_{d(t)} + 0.8\,v_{a(t)} + 0.55\,u_t\big),
+$$
+
+where:
+
+- $c_{d(t)}$ is the centre of the tool's domain (invoices, currency, mail...);
+- $v_{a(t)}$ is its action, one of 12 shared by all domains (search, create, send, convert...);
+- $u_t$ is what is specific to the tool;
+- $\mathrm{unit}(\cdot)$ scales a vector to length one, so that resemblance is a cosine.
+
+Each domain leans on two partner domains. A workflow has four tools: a main tool, then three helpers, each taken at random from the main tool's own domain or from one of its partners. There are $N/2$ kinds of workflow, and some are much more common than others (popularity follows $1/\text{rank}$). A request mostly describes the main tool, and only faintly the helpers:
+
+$$
+q = \mathrm{unit}\Big(e_{t_1} + 0.3 \sum_{i=2}^{4} e_{t_i} + 0.45\,\varepsilon\Big),
+$$
+
+where $t_1$ is the main tool, $t_2$ to $t_4$ the helpers, and $\varepsilon$ random noise of length one.
+
+A caller may put $K = 12$ tools in front of the model. A task counts as covered only if all four of its tools are among the twelve. I compared four ways to choose them:
+
+1. **Flat.** The twelve tools closest to the request.
+2. **A layer on top.** The two domains whose centres are closest to the request, then the twelve closest tools inside them.
+3. **Local graph, declared.** The three tools closest to the request, then their neighbours, weighted by how close each starting tool is to the request. The edges are the ones authors would declare: every pair of tools that appear in the same kind of workflow.
+4. **Local graph, learned.** The same, but the edges are counted from past tasks, five per kind of workflow. Edges that are used often weigh more.
+
+Each point is the mean over five random worlds, with 400 test tasks each.
+
+![**Figure 4.** Simulation (sim.py). Share of tasks with every needed tool among the twelve offered, against the size of the catalogue. Mean and standard deviation over five worlds.](figures/fig04.png){fig-alt="Line chart against the number of tools on a log scale, 100 to 10,000. Flat search, nearest descriptions, falls from 46% at 100 tools to 9% at 300, 1% at 1,000 and 0% from 3,000. The layer on top, nearest domains then tools, falls from 32% to 10%, 1% and 0%. Local graphs stay high: with edges declared by authors, 98%, 94%, 89%, 87% and 84%; with edges learned from traces, 94%, 89%, 87%, 88% and 87%."}
+
+**Result.** Flat search covered 46% of tasks with 100 tools, 9% with 300, 1% with 1,000, and none from 3,000 on. The layer on top did no better: 32%, 10%, 1%, then none. It even did worse at 100 tools, because once it commits to the main tool's domain, the helpers from partner domains are gone. Both local graphs held: 84% to 98% with declared edges, 87% to 94% with learned ones, all the way to 10,000 tools.
+
+The lesson is not that hierarchy is useless. It is that a hierarchy built on *resemblance* inherits the blind spot of resemblance. Folders sort points; they do not connect them.
+
+### How much history the edges need
+
+Declared edges cost the authors some effort; learned edges cost history. How much?
+
+![**Figure 5.** Simulation (sim.py), 1,000 tools and 500 kinds of workflow. Share of tasks fully covered against the number of past tasks from which edges are learned.](figures/fig05.png){fig-alt="Line chart against the number of past tasks observed, on a log scale from none to 30,000. Flat search stays near 1% to 2%. Edges declared by authors stay near 88% to 90%. Edges learned from traces start at 2% with no history, then rise to 57% after 100 tasks, 73% after 300, 83% after 1,000, 88% after 3,000 and 90% after 30,000, matching the declared edges from about 3,000."}
+
+With no history, learned edges are worth nothing. After 100 past tasks they covered 57% of tasks, after 1,000 they covered 83%, and from about 3,000 they matched the edges declared by authors. Because popular workflows appear first, a little history goes a long way: the edges that matter most are learned first.
+
+## 5. A layer on top, or a new paradigm?
+
+So: does MCP need something more? I see three answers, and they are not equally good.
+
+![**Figure 6.** Schematic, my own. Three ways to give a catalogue structure. A: a central registry routes requests. B: each server publishes the neighbourhood of its tools. C: edges are drawn from traces of real use.](figures/fig06.png){fig-alt="Three panels. A, a layer on top: a red router or registry box, one index of everything, with arrows to four servers; pros and cons: easy to add, one place to govern; a single point of truth and of failure; knows names, not how tools combine. B, edges in the protocol: four clusters of points with edges inside them and orange edges between them; no centre, each node knows its neighbours; travels with the tool, versioned with it; authors see only their own side. C, edges from use: three traces of four steps each, with an arrow down to a small graph whose edges have different thicknesses; weights show what is really used; finds partners nobody declared; needs history, private by default."}
+
+**A. A layer on top.** A registry, a router, a gateway that knows every server and dispatches requests. This is the natural first move, and some of it is needed anyway: someone must say which servers exist and which can be trusted [@mcpregistry2025]. But as a solution to composition, it repeats a mistake the web made once and corrected. Early web directories sorted pages into folders by topic. They were overtaken by something that read the *links between pages* [@brin1998]. A central layer knows names. It does not know how tools combine, unless someone tells it, and then it becomes the single place where that knowledge must be kept true.
+
+**B. Edges in the protocol.** Each tool publishes, next to its schema, a short list of typed edges: what it requires, what it feeds, what it can replace, what it usually calls on another server. Nothing central is needed. The edge travels with the tool, is versioned with it, and is read by any caller, exactly like the rest of the description. This is the web's own answer: hypermedia, where each resource carries the links to the next ones [@fielding2000]. MCP today is a web of pages without links.
+
+**C. Edges from use.** Every orchestrator already draws the graph, then throws it away. If it kept the trace, even locally, it could count which tools follow which, and offer the counts back as weights. This finds partners nobody declared, and shows which declared edges are actually used.
+
+My answer is **B and C together, and no new central layer.** The protocol should carry the *local* structure: each tool knows its neighbourhood, nothing more. The *global* structure, the clusters and the strong bridges, then emerges from the local one, the way the shape of the web emerged from links nobody planned. That is what I mean by pushing the paradigm rather than adding a layer: the description of a tool grows from "what I am" to "what I am, and who I work with".
+
+## 6. A local graph inside the protocol
+
+What would that look like? Less than one might think. MCP already lets a tool carry free metadata in a `_meta` field [@mcpspec2025]. Edges could start there, as a convention, and move into a field of their own if they prove useful.
+
+![**Figure 7.** A proposal of mine, not part of MCP. One `tools/list` entry carrying its neighbourhood: typed edges to tools on the same server and on others, a weight learned from use, and the cluster it belongs to.](figures/fig07.png){fig-alt="A dark code panel showing one JSON entry for a tool named pay_supplier_invoice, with a description, schemas, a destructive hint and a _meta object. Inside _meta, an edges list: requires approve_invoice; feeds post_ledger_entry; uses convert on the server fx-rates with weight 0.71; notifies send_message on the server mail; alternative schedule_payment. Then a cluster field set to accounts-payable. Four cards on the right explain the parts: where it goes, today in the _meta field and later in a field of its own; typed edges, the local shape of a workflow; edges across servers, with a weight learned from use; membership, which sub-graph the tool belongs to, so a caller can load it as one."}
+
+Three design choices matter.
+
+**Edges are local.** A tool names only its direct neighbours, a handful at most. No one has to hold the whole map. In the language of geometry, each server publishes a *chart*, a small flat map of its own neighbourhood, and the charts overlap where tools from two servers meet. The whole atlas is never written down, and never needs to be. A caller walks from chart to chart.
+
+**Edges are typed.** "Requires", "feeds" and "alternative to" mean different things to a planner. A required tool must come first; an alternative can be swapped in when the first one fails. A typed edge is a small, checkable promise, in the spirit of the schemas MCP already has.
+
+**Edges carry weights, and weights come from use.** An author can declare that `pay_supplier_invoice` sometimes uses a currency converter. Only traces can say that it does so 71% of the time, and which converter. Declared edges give the shape; learned weights give the emphasis.
+
+With this, the orchestrator's job changes. It no longer searches a plane of ten thousand points for four of them. It finds one good starting point by meaning, then follows the edges. Search finds the door; the graph shows the rooms behind it.
+
+## 7. Entanglement: when clusters cannot be described one at a time
+
+Edges between tools solve the workflows we have seen. In my simulation they did nothing for workflows nobody had run before: with a single request and tool edges only, new workflows were fully covered in 27% of cases at 100 tools and in none from 3,000. A new workflow uses new pairs of tools. There is no edge yet.
+
+But there is still structure, one level up. The invoice domain leans on the currency domain and on the mail domain, whichever tools a particular task picks. That is a relation between *sub-graphs*, not between points. This is where I find the word *entanglement* useful.
+
+### What the word borrows
+
+In quantum mechanics, two systems are entangled when their joint state cannot be written as the product of a state of each [@horodecki2009]:
+
+$$
+|\psi_{AB}\rangle \neq |\psi_A\rangle \otimes |\psi_B\rangle.
+$$
+
+You cannot describe A completely, then B completely, and multiply. The description of the pair contains something that neither part contains alone.
+
+A classical version of the same idea fits tool clusters exactly. Let $A$ and $B$ be two clusters, and $P(a, b)$ the share of tasks that use tool $a$ from $A$ together with tool $b$ from $B$. If the two clusters were independent, the joint use would be a product, $P(a, b) = P(a)\,P(b)$, and the matrix $P$ would have rank one. When it does not factor, the clusters are coupled. A singular value decomposition, the classical cousin of the Schmidt decomposition used for quantum states, measures by how much:
+
+$$
+P = \sum_{k} \sigma_k\, \mathbf{x}_k \mathbf{y}_k^{\top}, \qquad
+S(A{:}B) = -\sum_k \lambda_k \log \lambda_k, \quad \lambda_k = \frac{\sigma_k^2}{\sum_j \sigma_j^2},
+$$
+
+where:
+
+- $\sigma_k$ are the singular values of $P$, from largest to smallest;
+- $\mathbf{x}_k$ and $\mathbf{y}_k$ are patterns of use inside $A$ and inside $B$ that go together;
+- $\lambda_k$ is the share of the coupling carried by the $k$-th pattern;
+- $S(A{:}B)$ is zero when one pattern explains everything, and grows with the number of distinct ways the two clusters are used together.
+
+Paired with the plain mutual information between the two clusters' use, this gives two numbers: how strongly two clusters are bound, and in how many different ways. Both can be computed from traces. Clusters themselves can be found by the usual community detection on the edge graph [@newman2006]. Neither needs anyone to agree on a global map.
+
+![**Figure 8.** Left: schematic, my own. Choosing a tool in one cluster changes which tools are likely in another, not because they look alike, but because they are used together. Right: simulation (sim.py). Coupling between 20 domains learned from 2,500 past tasks: how often a task led by a tool of one domain used a helper from another.](figures/fig08.png){fig-alt="Left, two dashed ellipses labelled invoices and currency. One invoice tool is filled in; orange lines of different thickness run from it to three currency tools, which are drawn larger and darker than the others. Captions: you pick this tool, and these become likely; not because they look alike, but because they are used together. Right, a 20 by 20 heat map of learned coupling between domains, with the domain of the main tool on the vertical axis and the domain of a helper tool on the horizontal axis. Most cells are empty; each row has about two dark cells, the partner domains that domain leans on."}
+
+### What it buys
+
+The test is whether coupling between clusters helps where edges between tools cannot. I gave the agent a different strategy for new workflows, close to what MCP-Zero does [@fei2025mcpzero]: find the main tool, then ask again for each helper with a short request of its own. A helper's request says what it must do ("convert this amount") and says little about where that tool lives. I compared searching for each helper across the whole catalogue with searching only inside the main tool's domain and the two domains most coupled to it, as learned from past tasks.
+
+![**Figure 9.** Simulation (sim.py). Workflows never seen before. Share fully found against the size of the catalogue: one request with tool edges only; a request per step over the whole catalogue; a request per step over the coupled clusters only. Mean and standard deviation over five worlds.](figures/fig09.png){fig-alt="Line chart against the number of tools on a log scale, 100 to 10,000. One request with tool edges only falls from 27% at 100 tools to 4%, then near 0% from 1,000. A request per step over the whole catalogue falls from 93% at 100 tools to 79%, 53%, 35% and 18% at 10,000. A request per step over the coupled clusters only scores 80% at 100 tools, then 97% at 300, 88% at 1,000, 75% at 3,000 and 56% at 10,000. A note says the coupled clusters hold about 15% of the catalogue."}
+
+**Result.** Searching the whole catalogue found every helper of a new workflow in 93% of cases at 100 tools, 53% at 1,000 and 18% at 10,000. Searching only the coupled clusters, about 15% of the catalogue, found them in 88% at 1,000 and 56% at 10,000: 1.7 and 3.2 times as often. The reason is simple. Many tools across domains do the same *kind* of thing: there is a "send" in mail, in chat and in SMS. A request for the action alone cannot tell them apart. Knowing which clusters are coupled to the one you are in can.
+
+At 100 tools the coupled search did worse, 80% against 93%. There, 250 past tasks were too few to learn every coupling, and the whole catalogue was small enough to search directly. Structure pays when the plane gets large, not before.
+
+### Where the metaphor stops
+
+I want to be careful here. Nothing in a tool catalogue is quantum. There is no superposition, no measurement in the physical sense, no violation of a Bell inequality. Every correlation in my simulation is classical, and the mathematics above is ordinary linear algebra and information theory. The word is borrowed for three intuitions, not for any physics:
+
+- **Non-separability.** Some clusters cannot be understood one at a time. Their joint use carries information that neither has alone.
+- **Choosing one informs the other.** Once the agent commits to a tool in one cluster, the likely tools in a coupled cluster change, however far apart they sit in meaning.
+- **A weak echo of monogamy.** In physics, a system strongly entangled with one partner cannot be equally entangled with many others [@ckw2000]. Tools show something similar, for information-theoretic rather than physical reasons: a tool coupled to everything, like "send an email", tells you almost nothing about any one partner. Its edges are noise. The informative couplings are the selective ones.
+
+If the word helps people see that the unit of design is no longer the tool but the coupled sub-graph, it has done its job. If it suggests anything more, it should be dropped.
+
+## 8. What it costs, and what can go wrong
+
+**An edge is a recommendation, and recommendations can be attacked.** A malicious server could declare edges to itself from every popular tool, the graph version of tool poisoning. Declared edges across servers need the same trust as the servers themselves, and learned weights should count only edges that a trusted client actually walked.
+
+**Traces are private.** What an organisation's agents do is sensitive. Learned edges should stay local by default: computed inside one company, or shared only as aggregated weights. Federated counting is an old problem with known tools.
+
+**The rich get richer.** If agents follow heavy edges, heavy edges get heavier, and a better new tool may never be tried. Some exploration has to be built in, as in any recommender.
+
+**Edges go stale.** Tools change. An edge versioned with its tool, and a weight that decays without use, limit the damage. The flat catalogue never has this problem; it also never learns.
+
+**Structure can freeze creativity.** The strength of the flat plane is that the model may draw a path no one foresaw. Edges should guide the search, not fence it in. The model must still be able to leave the graph.
+
+## 9. What would prove me wrong
+
+- **If context windows and tool search grow faster than catalogues**, so that an agent can always read every relevant description, then flat is enough and edges add only maintenance.
+- **If real tool descriptions carry the complementary signal** that my synthetic ones lack (if "pay an invoice" did, in practice, sit close to "convert a currency" in embedding space), then search by meaning would do most of the work. This can be measured on real registries and real traces.
+- **If hand-made bundles such as skills cover the frequent workflows**, the gain from edges would shrink to the long tail. I suspect the tail is where the value is, but that is a hypothesis.
+- **If learned edges cannot be shared safely**, then option C stays inside each organisation, and only declared edges, the weaker half, can travel.
+
+## 10. Conclusion
+
+MCP got the hardest part right: it turned every tool into a self-describing point that any caller can read. What it left out, for good reasons at first, is the space between the points. Today that space is crossed again by every agent, on every run, and the map is thrown away at the end.
+
+With a few dozen tools that is a fair price. With thousands it is not, and the obvious repair, a layer on top that sorts tools into folders, does not help, because the tools a task needs are related by use, not by resemblance.
+
+The better move is smaller and more radical. Let each tool publish its neighbourhood, as a page publishes its links. Let agents keep the paths they walk, and turn them into weights. Let clusters, and the couplings between them, emerge from those local edges rather than from a central plan. Nothing needs to sit on top of MCP. The plane just needs to become a graph, and the graph to become aware of its own sub-graphs.
+
+That is what I mean by entanglement in a tool ecosystem: the point at which a set of tools can no longer be understood one at a time. We are reaching it. The protocol should be able to say so.
+
+## References
+
+::: {#refs}
+:::
