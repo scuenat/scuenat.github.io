@@ -4,8 +4,8 @@ Same style as "The Interface Is Data": Inter type, white cards with a faint shad
 and a coloured accent, colours taken from the site's palette.
 
 Figure 3 is plain counting with an illustrative token cost per tool. Every other figure
-is a schematic with hand-placed or seeded positions. The JSON in Figure 6 is a proposal,
-not part of the MCP specification.
+is a schematic with hand-placed or seeded positions; the weights in Figure 6 are
+illustrative. The JSON in Figure 7 is a proposal, not part of the MCP specification.
 """
 import json
 import re
@@ -298,7 +298,7 @@ def fig_neurons():
     pill(ax, 15.6, 0.25, "task A · pay an invoice in euros, confirm by mail", color=WARM, fs=7.6)
     pill(ax, 24.6, 0.25, "task B · sign a contract, book the meeting", color=TEAL, fs=7.6)
     ax.plot([9.6, 9.6], [0.6, 12.0], color=RULE, lw=1)
-    fig.savefig(OUT + "fig07.png"); plt.close(fig)
+    fig.savefig(OUT + "fig08.png"); plt.close(fig)
 
 
 
@@ -352,21 +352,22 @@ def fig_sources():
     heading(ax, 0.2, 11.6, "Four sources", "Where the grammar comes from, and how far to trust it", NAVY)
     cols = [
         ("Computed", "from types", "outputSchema of A\nmatches inputSchema of B", NAVY,
-         ["cheap, automatic", "verifiable", "finds data flow only"], "checked"),
+         ["cheap, automatic", "verifiable", "finds data flow only"], "checked", "derived by any reader"),
         ("Declared", "by authors", "“pay requires approve”,\n“schedule is an alternative”", PLUM,
-         ["knows intent", "partial: one side only", "can be self-serving"], "claimed"),
+         ["knows intent", "partial: one side only", "can be self-serving"], "claimed", "published by the server"),
         ("Observed", "from use", "paths agents actually\nwalked, with weights", GREEN,
-         ["what really happens", "needs history", "private by default"], "measured"),
+         ["what really happens", "needs history", "private by default"], "measured", "kept by the client"),
         ("Imposed", "by the organisation", "pairs that must never\nrun in one task", RED,
-         ["encodes policy", "small, deliberate", "overrides the rest"], "enforced"),
+         ["encodes policy", "small, deliberate", "overrides the rest"], "enforced", "held by the gateway"),
     ]
-    for i, (t, sub, ex, col, notes, trust) in enumerate(cols):
+    for i, (t, sub, ex, col, notes, trust, home) in enumerate(cols):
         x = 0.2 + i * 7.45
         card(ax, x, 5.4, 6.9, 4.3, t, ex, accent=col, eyebrow=sub, fs=11, subfs=8)
         for j, n in enumerate(notes):
             ax.text(x + 0.5, 4.5 - j * 0.85, ("+ " if j == 0 or (i in (0, 3) and j == 1) else "– ") + n,
                     fontsize=8.2, color=MUTED, va="center")
-        pill(ax, x + 3.45, 0.6, "trust: " + trust, color=col, fs=8)
+        pill(ax, x + 3.45, 1.15, "trust: " + trust, color=col, fs=8)
+        ax.text(x + 3.45, 0.2, home, ha="center", fontsize=8, color=MUTED, style="italic")
     fig.savefig(OUT + "fig04.png"); plt.close(fig)
 
 
@@ -404,50 +405,46 @@ JSON = """{
   "description": "Pays an approved invoice.",
   "inputSchema": { ... },
   "outputSchema": { ... },
+  "annotations": { "destructiveHint": true,
+                   "openWorldHint": true },
   "_meta": {
+    "roles": ["pays"],
     "grammar": [
-      { "rel": "requires",   "tool": "approve_invoice",
-        "source": "declared" },
-      { "rel": "feeds",      "tool": "post_ledger_entry",
-        "source": "computed", "via": "payment_id" },
-      { "rel": "usedWith",   "server": "fx-rates",
-        "tool": "convert",   "source": "observed",
-        "weight": 0.71 },
-      { "rel": "alternative","tool": "schedule_payment",
-        "source": "declared" },
-      { "rel": "excludes",   "server": "mail",
-        "tool": "send_external", "source": "policy" }
+      { "rel": "requires",    "role": "approves" },
+      { "rel": "usedWith",    "role": "converts" },
+      { "rel": "requires",    "tool": "approve_invoice" },
+      { "rel": "alternative", "tool": "schedule_payment" }
     ]
   }
 }"""
 
 
 def fig_entry():
-    fig, ax = canvas(10.4, 6.0, 25, 14.4)
-    shadow(ax, 0.2, 0.3, 13.9, 13.8, r=0.35)
-    ax.add_patch(FancyBboxPatch((0.2, 0.3), 13.9, 13.8, boxstyle="round,pad=0,rounding_size=0.35",
+    fig, ax = canvas(10.4, 5.6, 25, 13.4)
+    shadow(ax, 0.2, 1.4, 13.9, 11.8, r=0.35)
+    ax.add_patch(FancyBboxPatch((0.2, 1.4), 13.9, 11.8, boxstyle="round,pad=0,rounding_size=0.35",
                                 fc=DEEP, ec="none", zorder=2))
     for i, c in enumerate(("#e06c5f", AMBER, "#5fb98a")):
-        ax.add_patch(Circle((0.75 + i * 0.45, 13.6), 0.13, fc=c, ec="none", zorder=3))
-    ax.text(13.7, 13.6, "tools/list → one entry, with its grammar", ha="right", va="center",
+        ax.add_patch(Circle((0.75 + i * 0.45, 12.7), 0.13, fc=c, ec="none", zorder=3))
+    ax.text(13.7, 12.7, "tools/list → what the server publishes", ha="right", va="center",
             fontsize=7.4, color="#8592a3", fontfamily=MONO, zorder=3)
     lines = JSON.split("\n")
-    top, step = 12.85, 0.535
+    top, step = 11.95, 0.56
     ys = {}
     for i, line in enumerate(lines):
         y = top - i * step
-        _json_line(ax, 0.7, y, line, 7.5)
-        for key in ("grammar", "requires", "feeds", "usedWith", "excludes"):
-            if f'"{key}"' in line and key not in ys:
+        _json_line(ax, 0.7, y, line, 7.6)
+        for key, pat in (("ann", '"annotations"'), ("roles", '"roles"'), ("rule", '"role": "approves"'),
+                         ("tool", '"tool": "approve_invoice"')):
+            if pat in line and key not in ys:
                 ys[key] = y
     notes = [
-        ("grammar", "Where it lives", "today in _meta, which the spec already\nallows; later, a field of its own", MUTED),
-        ("requires", "A small set of relations", "requires, feeds, usedWith, alternative,\nexcludes: enough to write a workflow", NAVY),
-        ("feeds", "Every edge names its source", "computed, declared, observed or\npolicy, so readers can weigh it", GREEN),
-        ("usedWith", "Weights come from use", "observed edges carry a weight that\nrises with use and fades without it", WARM),
-        ("excludes", "A grammar can forbid", "pairs that must never meet in one\ntask, such as private data and the web", RED),
+        ("ann", "Parts of speech MCP already has", "annotations say read-only, destructive,\nopen-world: the start of a role system", NAVY),
+        ("roles", "Roles: what kind of word", "a small shared list: approves, pays,\nconverts, notifies, reads private data", PLUM),
+        ("rule", "Rules over roles", "apply to tools never seen before:\nanything that pays needs an approval", GREEN),
+        ("tool", "Edges to named tools", "the author's local knowledge; names are\nunique per server, so they need a registry", WARM),
     ]
-    ny = [12.9, 10.2, 7.5, 4.8, 2.1]
+    ny = [11.7, 8.9, 6.1, 3.3]
     for (key, t, txt, col), yy in zip(notes, ny):
         y0 = ys[key]
         ax.plot([14.15, 14.6], [y0, y0], color=col, lw=1.1, zorder=4)
@@ -456,6 +453,37 @@ def fig_entry():
         card(ax, 15.05, yy - 1.1, 9.8, 2.2, "", None, accent=col, bar=True)
         ax.text(15.55, yy + 0.5, t, fontsize=9.8, weight="semibold", va="center", zorder=6)
         ax.text(15.55, yy - 0.32, txt, fontsize=7.9, color=MUTED, va="center", zorder=6, linespacing=1.35)
+    pill(ax, 12.5, 0.45, "not published here: observed weights (kept by the client) and policy rules (kept by the gateway)",
+         color=MUTED, fs=7.8)
+    fig.savefig(OUT + "fig07.png"); plt.close(fig)
+
+
+# ---------- Figure 6: two levels of grammar ----------
+def fig_levels():
+    fig, ax = canvas(11.6, 5.2, 30, 13.4)
+    heading(ax, 0.2, 13.1, "Level 1 · grammar rules", "Rules over roles", GREEN)
+    heading(ax, 15.4, 13.1, "Level 2 · collocations", "Habits of named tools", WARM)
+    rules = [("pays", "requires", "approves", NAVY), ("returns payment_id", "feeds", "needs payment_id", GREEN),
+             ("pays", "used with", "notifies", WARM), ("reads private data", "excludes", "sends externally", RED)]
+    for i, (a, rel, b, col) in enumerate(rules):
+        y = 10.2 - i * 2.35
+        chip(ax, 3.0, y, a, color=INK, fill=SAND_T, fs=8)
+        chip(ax, 11.4, y, b, color=INK, fill=SAND_T, fs=8)
+        arrow(ax, (5.4, y), (8.9, y), color=col, lw=1.5)
+        pill(ax, 7.15, y + 0.62, rel, color=col, fs=7.4, mono=True)
+    ax.text(7.2, 0.9, "written once, about kinds of tools:\nholds for tools nobody has used yet", ha="center",
+            fontsize=8.2, color=GREEN, linespacing=1.45)
+    ax.plot([14.6, 14.6], [0.4, 12.4], color=RULE, lw=1)
+    coll = [("pay_supplier_invoice", "fx-rates · convert", 0.71), ("pay_supplier_invoice", "mail · send_message", 0.64),
+            ("create_contract", "sign · request_signature", 0.88), ("book_meeting", "calendar · find_slot", 0.93)]
+    for i, (a, b, wgt) in enumerate(coll):
+        y = 10.2 - i * 2.35
+        chip(ax, 18.6, y, a, color=INK, fill=AMBER_T, fs=7.4)
+        chip(ax, 26.6, y, b, color=INK, fill=AMBER_T, fs=7.4)
+        arrow(ax, (21.0, y), (23.8, y), color=WARM, lw=0.8 + 3 * wgt)
+        ax.text(22.4, y + 0.5, f"{wgt:.2f}", ha="center", fontsize=7.6, color=WARM, fontfamily=MONO)
+    ax.text(22.6, 0.9, "learned from use, about specific tools:\nsharp for known work, silent for new work",
+            ha="center", fontsize=8.2, color=WARM, linespacing=1.45)
     fig.savefig(OUT + "fig06.png"); plt.close(fig)
 
 
@@ -482,9 +510,9 @@ def fig_readers():
         lc = {AMBER: AMBER, PLUM: "#b49cc0"}.get(col, "#9db3c6")
         ax.add_patch(Circle(p, 0.11, fc=lc, ec="none", zorder=5))
         arrow(ax, p, q, color=lc, lw=1.5, z=5)
-    fig.savefig(OUT + "fig08.png"); plt.close(fig)
+    fig.savefig(OUT + "fig09.png"); plt.close(fig)
 
 
 if __name__ == "__main__":
     fig_plane(); fig_grammar(); fig_growth(); fig_sources(); fig_types()
-    fig_entry(); fig_neurons(); fig_readers()
+    fig_levels(); fig_entry(); fig_neurons(); fig_readers()
