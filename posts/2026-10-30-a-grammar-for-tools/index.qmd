@@ -1,0 +1,204 @@
+---
+title: "A Grammar for Tools"
+subtitle: "MCP gave AI agents a dictionary. What it still lacks is a way to say how tools combine"
+description: "MCP lets every tool define itself, like words in a dictionary. Nothing in the protocol says how tools combine, so every agent rebuilds that knowledge on every run and forgets it at the end. I argue that the missing piece is a small grammar: typed edges between tools, computed from schemas, declared by authors, observed in use and imposed by policy. I borrow the design principles from neural networks, without training one."
+date: 2026-10-30
+draft: true
+citation: true
+google-scholar: true
+toc-depth: 2
+bibliography: references.bib
+categories: [essay, ai, agents, architecture, mcp]
+topics: [agentic-coding]   # home-page theme tiles (index.qmd)
+image: figures/fig02.png
+resources:
+  - figs.py
+  - figures/*.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essay, October 2026.** A follow-up to [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd). The figures are my own, drawn with [figs.py](figs.py); all are schematics except Figure 3, which is plain counting. The edge vocabulary in Figures 2 and 6 is a proposal of mine, not part of the MCP specification.
+:::
+
+**In short.** The Model Context Protocol (MCP) gave AI agents a dictionary. Every tool defines itself: a name, a description, a schema for what it takes and what it returns. What MCP does not have is a grammar, a way to say how tools combine: which one must come first, which one feeds which, which ones are used together, which ones replace each other, and which ones must never meet in the same task. Today every agent rebuilds that grammar inside its context window, on every run, and forgets it at the end. With a few dozen tools that works. With thousands it does not, and the usual fix, searching tool descriptions, finds tools that look like the request, not tools that complete each other. I argue that the missing piece is not an algorithm but a kind of object: the edge between two tools, published as data next to the tools themselves. Edges can come from four sources, each with its own level of trust: computed from schemas, declared by authors, observed in use, and imposed by the organisation. The protocol needs very little to carry them. Once it does, many readers can use them, and only one of them needs AI. The design principles come from neural networks: locality, sparse activation, plasticity, modularity and gating. But I no longer think we need to train a network to apply them.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Key takeaways
+
+- **MCP is a dictionary.** Each tool is defined on its own. The links between tools exist only inside one agent's run.
+- **The missing object is the edge.** MCP has first-class tools, resources and prompts. It has no first-class relation between them, so nobody can publish, share, version or check one.
+- **Resemblance is not complementarity.** Searching descriptions finds tools like the request. A task needs tools that complete each other, and those rarely look alike.
+- **A small grammar is enough.** Five relations cover most workflows: *requires*, *feeds*, *used with*, *alternative* and *excludes*.
+- **Four sources, four levels of trust.** Edges can be computed from schemas (checked), declared by authors (claimed), observed in use (measured) or imposed by policy (enforced). Every edge should say where it came from.
+- **Borrow principles from neural networks, not the network.** Locality, sparse activation, plasticity, modularity and gating describe how the grammar should behave. A learned router is an optimisation for later.
+- **The grammar is data with many readers.** The language model, a workflow engine, a policy gateway, contract tests, a catalogue: only the first needs AI.
+:::
+
+## 1. Points on a plane
+
+Think of every MCP tool as a point. Its position is its meaning, what its description says it does. Two invoice tools sit close together; an invoice tool and a calendar tool sit far apart. A server publishes a handful of such points. A client connects to several servers and sees the union: a cloud of points with no lines between them [@mcpspec2025].
+
+This is not a flaw. It is what made MCP so easy to adopt. A server does not need to know who else exists. Anyone can add a point, and every client can read it. That is the strength I described in [The Interface Is Data](../2026-10-20-the-interface-is-data/index.qmd): the interface became data, read when it is used.
+
+But a task is never a point. "Pay this supplier invoice in euros and let them know" is a path: approve the invoice, convert the amount, pay, post the ledger entry, send a message. That path crosses three or four servers. Somebody has to draw it.
+
+![**Figure 1.** Schematic, with seeded positions. Left: today, tools are points, and the agent draws a path through them for one task, then forgets it. Right: the same points with lines that persist, dense inside clusters, with a few strong bridges between them.](figures/fig01.png){fig-alt="Two panels of scattered points. Left, titled Today, a flat catalogue: grey circles with no connections and one dashed orange path through four highlighted points numbered 1 to 4, labelled 'the graph lives for one task, then it is forgotten'. Right, titled Proposed, a local graph: the same kind of points grouped into six coloured clusters named invoices, currency, mail, documents, identity and calendar, with thin edges inside each cluster and a few thick orange edges between clusters."}
+
+Today, the agent draws it. The model reads the tool descriptions, reasons about the task and chooses each call. The path exists, but only in one place and for one moment: the context window of one run. When the run ends, the path is gone. The next agent facing the same task draws it again from scratch.
+
+## 2. A dictionary without a grammar
+
+A better image than points is language. MCP gives us a **dictionary**. Each entry defines one word clearly and in a standard form. What a dictionary does not tell you is how to build a sentence: which words go together, in what order, which ones can stand in for each other, which combinations are wrong. That is the job of a **grammar**.
+
+![**Figure 2.** Schematic, with my own example tools. Left: what MCP describes today, each tool on its own. Right: the same tools with a grammar, typed relations that say how they combine. The relation names are a proposal.](figures/fig02.png){fig-alt="Two panels. Left, titled MCP today, a dictionary: every word defined, alone. Six cards list approve_invoice, pay_supplier_invoice, convert, post_ledger_entry, send_message and schedule_payment, each with a one-line description. Right, titled What is missing, a grammar: how the words combine. pay_supplier_invoice sits in the centre. approve_invoice points to it with 'requires'. convert points to it with 'used with'. It points to post_ledger_entry with 'feeds' and to send_message with 'used with'. schedule_payment points to it with a dashed 'alternative'. A caption reads: approve, convert, pay, then post and notify, a sentence the grammar allows."}
+
+So what is missing from MCP is not an algorithm. It is a **kind of object**. MCP has first-class tools, resources and prompts. It has no first-class *relation* between them. As long as relations are not part of the vocabulary, nobody can publish one, share one, version one or check one. Every agent keeps its own private grammar, and nobody else can read it.
+
+### Resemblance is not complementarity
+
+The current answer to large catalogues is search. Tools stay out of the context and are found by matching the request against their descriptions [@anthropic2025advtools; @gan2025], sometimes server first, then tool [@fei2025mcpzero]. This finds tools that *resemble* the request. A task needs tools that *complete* each other.
+
+"Pay this supplier invoice in euros" resembles the invoice tools. It does not resemble the ledger or the mail server, yet the task needs both. The relation between paying an invoice and posting a ledger entry is not in either description. It is in the use.
+
+Recommender systems learned this long ago. Shops distinguish products that *substitute* for each other (two similar cameras) from products that *complement* each other (a camera and a memory card), and the two kinds of relation have to be learned differently [@mcauley2015]. The oldest working answer, "customers who bought this also bought that", does not look at descriptions at all: it counts what is used together [@linden2003]. Tool search today is stuck at the first kind of relation. A grammar is how we write down the second.
+
+## 3. Why it matters now
+
+With a few dozen tools, the agent can read every definition and draw the path itself. Nothing needs to be stored, nothing goes stale. The cost appears when catalogues grow, and two things grow with them.
+
+![**Figure 3.** Plain counting. Left: tokens needed to list every tool definition, at an illustrative 350 tokens per tool. Right: the number of possible four-step chains against the size of a sparse grammar (three edges per tool) and an illustrative number of real workflows.](figures/fig03.png){fig-alt="Two log-log charts against the number of tools, from 10 to 10,000. Left: tokens to list every definition rise from about 3,500 to 3.5 million, crossing a 200k-token context window near 570 tools and a 1M-token window near 2,900 tools. Right: possible four-step chains grow as N to the fourth, from ten thousand to ten to the sixteenth; edges in a sparse graph grow as 3N and workflows actually run as N over 2, many orders of magnitude lower."}
+
+The first is the cost of looking. MCP-Zero counts about 4,600 tokens for the 26 tools of the GitHub server alone [@fei2025mcpzero]. A thousand tools fill a large context window before the task has begun.
+
+The second is the space of compositions. With $N$ tools there are $N^k$ ordered chains of $k$ of them. The chains anyone actually uses are a vanishing fraction of that space. The useful structure is small, roughly linear in $N$, but nobody writes it down. So every run looks for it again inside a space that grows with the fourth power.
+
+The field has noticed. Agent Skills package instructions and tool use for one job [@anthropic2025skills]. Code execution exposes tools as a file tree the agent can browse [@anthropic2025codeexec]. Research systems walk graphs of tool transitions learned from past runs [@liu2024toolnet] or follow dependency edges after a first search [@lumer2025graphrag]. Each of these is a grammar, but a private one: written by hand for one bundle, or learned inside one system. None of them can be read by anyone else, because the protocol has nowhere to put it.
+
+## 4. Where the grammar comes from
+
+If edges are to become data, the first question is where they come from. I see four sources, and they differ in cost and in how far a reader should trust them.
+
+![**Figure 4.** Schematic. Four sources of edges between tools, what each is good and bad at, and the kind of trust it deserves.](figures/fig04.png){fig-alt="Four cards. Computed, from types: the outputSchema of A matches the inputSchema of B; cheap and automatic, verifiable, finds data flow only; trust: checked. Declared, by authors: 'pay requires approve', 'schedule is an alternative'; knows intent, partial because authors see one side only, can be self-serving; trust: claimed. Observed, from use: paths agents actually walked, with weights; shows what really happens, needs history, private by default; trust: measured. Imposed, by the organisation: pairs that must never run in one task; encodes policy, small and deliberate, overrides the rest; trust: enforced."}
+
+### 4.1 Computed from types
+
+Since its June 2025 revision, MCP lets a tool declare an `outputSchema`, the shape of what it returns, next to its `inputSchema` [@mcpspec2025]. That is enough to derive some edges with no one declaring anything. If one tool returns a `payment_id` and another requires one, the first probably *feeds* the second.
+
+![**Figure 5.** Schematic, with my own example schemas. An identifier created by one tool and required by another is strong evidence of a *feeds* edge. A shared generic field such as `amount` is not.](figures/fig05.png){fig-alt="Two schema cards. Left, pay_supplier_invoice, outputSchema: payment_id string, amount number, currency string, paid_at date-time. Right, post_ledger_entry, required inputSchema: payment_id string, account string, amount number. A thick green arrow joins the two payment_id fields, labelled 'feeds via payment_id'. A thin grey arrow joins the two amount fields, labelled 'same name, too weak alone'. A note says an identifier that one tool creates and another requires is strong evidence; a shared generic field is not."}
+
+Computed edges are cheap, automatic and checkable: a test can confirm that the output of one tool still fits the input of the other. They are also limited. They find data flow, not intent, and field names are noisy. An identifier one tool creates and another requires is good evidence; two tools that both mention `amount` is not.
+
+### 4.2 Declared by authors
+
+Some relations only the author knows. That paying requires an approval first. That `schedule_payment` is an alternative to paying now. That a tool is usually followed by a notification. These are short statements, and MCP already lets a tool carry extra metadata where they could live.
+
+Declared edges carry intent, which no other source has. They are also partial, since an author sees only their own side of a workflow, and they can be self-serving: every server has a reason to declare edges toward itself.
+
+### 4.3 Observed in use
+
+Every agent already draws the grammar on every run. If clients kept the paths they walked, even locally, they could count which tools are used together and turn the counts into weights. This is the truest source: it shows what actually happens, including partners nobody thought to declare.
+
+It is also the most sensitive. What an organisation's agents do is private, so observed edges should stay inside the organisation by default, or be shared only as aggregated weights.
+
+### 4.4 Imposed by the organisation
+
+A grammar does not only say what goes together. It can also say what must not. Simon Willison's "lethal trifecta" names a dangerous combination: an agent that reads private data, is exposed to untrusted content and can communicate externally [@willison2025]. Each tool may be safe on its own; the danger is in the combination. An organisation should be able to write that down as an edge, *excludes*, and have it enforced, whatever the other sources say.
+
+## 5. A small vocabulary
+
+How much grammar is needed? Less than one might fear. Five relations cover most of what a workflow needs to say:
+
+| Relation | Meaning | Typical source |
+|---|---|---|
+| **requires** | must have run before | declared |
+| **feeds** | its output is the other's input | computed |
+| **used with** | often in the same task | observed |
+| **alternative** | can replace the other | declared |
+| **excludes** | must not run in the same task | policy |
+
+: **Table 1.** A proposed minimal vocabulary of relations between tools.
+
+Each edge also says where it came from, so a reader can weigh it, and observed edges carry a weight.
+
+![**Figure 6.** A proposal of mine, not part of MCP. One `tools/list` entry carrying its grammar in the `_meta` field the specification already allows. Each edge has a relation, a target (on the same server or another), a source and, if observed, a weight.](figures/fig06.png){fig-alt="A dark code panel showing one JSON entry for a tool named pay_supplier_invoice with a description, schemas and a _meta object holding a grammar list: requires approve_invoice, source declared; feeds post_ledger_entry, source computed, via payment_id; usedWith convert on the server fx-rates, source observed, weight 0.71; alternative schedule_payment, source declared; excludes send_external on the server mail, source policy. Five cards explain: where it lives, today in _meta and later in a field of its own; a small set of relations, enough to write a workflow; every edge names its source; weights come from use, rising with use and fading without it; a grammar can forbid pairs that must never meet in one task."}
+
+What the protocol needs is therefore small:
+
+1. **A place for edges.** Today a convention in `_meta`, which MCP already allows on tools [@mcpspec2025]; later a field of its own, if the convention proves useful.
+2. **A shared vocabulary.** The five relations above, plus the four sources.
+3. **A standard trace format.** So that observed edges can be counted the same way by any client, and exchanged when an organisation chooses to.
+
+And what it should *not* include is just as important: any particular way of using the edges. How a client ranks tools, walks the graph or loads a neighbourhood is the client's business. MCP should carry the grammar, not decide how to read it.
+
+### Not a layer on top
+
+One could put all of this in a central registry that knows every server and every edge. Part of that is needed anyway: someone has to say which servers exist and which can be trusted [@mcpregistry2025]. But for composition, a central layer repeats a mistake the web made once. Early web directories sorted pages into folders. They were overtaken by search that read the *links* pages carried themselves [@brin1998]. Links worked because each page published its own and nobody had to hold the map [@fielding2000]. MCP today is a web of pages without links. Each tool should carry its own.
+
+## 6. Borrowing from neural networks
+
+My first idea for this essay was to treat the tool ecosystem as a neural network: tools as neurons, edges as synapses, and a graph neural network [@gilmer2017] deciding which tools fire for each task. I built one in a small simulation. It worked, but no better than a plain walk along the edges, and it struggled on workflows it had never seen. What survived was not the network. It was the principles.
+
+![**Figure 7.** Schematic. Left: in a neural network, few units fire for a given input. Right: the same idea applied to tools. Two tasks light two small neighbourhoods of one grammar; most of the catalogue stays dark.](figures/fig07.png){fig-alt="Left, a small three-layer neural network with grey connections; a few neurons are filled in orange and joined by orange connections, labelled 'weights learned, few units fire per input'. Right, six dashed clusters of tools named invoices, currency, mail, documents, identity and calendar, with grey edges. Task A, pay an invoice in euros and confirm by mail, lights an orange path through invoices, currency and mail. Task B, sign a contract and book the meeting, lights a teal path through documents, identity and calendar."}
+
+Large neural networks work because they are built on a handful of ideas. Each of them becomes a design rule for a tool grammar:
+
+| Concept | In a neural network | As a design rule for tools |
+|---|---|---|
+| **Locality** | a unit only receives messages from its neighbours | a tool knows only its neighbours; nobody holds the global map |
+| **Sparse activation** | few units fire for any input [@olshausen2004; @shazeer2017] | a task loads one neighbourhood, never the catalogue |
+| **Plasticity** | connections that fire together strengthen [@hebb1949] | observed edges strengthen with use and fade without it |
+| **Modularity** | modules are assembled differently for each question [@andreas2016] | clusters that work together become units, across servers |
+| **Gating** | the input decides which paths open | the task decides which edges count: a *notify* edge matters for a payment, not for a report |
+
+: **Table 2.** Five principles borrowed from neural networks, and what each means for a tool grammar.
+
+Sparse activation is the one that pays most directly. Instead of searching a catalogue of thousands, an agent finds one good starting tool by meaning, then loads its neighbourhood: a handful of tools that the grammar says belong with it. Search finds the door; the grammar shows the rooms behind it.
+
+Modularity is where my first intuition about *entanglement* belongs. Some clusters of tools cannot be understood one at a time: what happens in invoicing tells you a lot about what will happen in currency and mail, whatever the description of any single tool says. Physicists call systems that cannot be described part by part *entangled* [@horodecki2009]. Nothing quantum happens in a tool catalogue, and the useful mathematics here is ordinary statistics. But the intuition holds. The unit of design is no longer the single tool. It is the group of tools that work together, which can be found from the edges themselves [@newman2006]. Skills are such groups, written by hand. A grammar lets them emerge from use and cross server boundaries.
+
+## 7. Who reads the grammar
+
+The strongest argument for edges as data is the one I made for tool descriptions: once something is data, many readers can use it, and most of them need no AI.
+
+![**Figure 8.** Schematic. One grammar, six readers. Only the language model needs AI; a small learned router is an optional optimisation for later.](figures/fig08.png){fig-alt="A central green card, Tool grammar, data: typed edges, sources, weights. Six readers around it. Language model, needs AI: loads a neighbourhood, not the catalogue. Workflow engine, no AI: runs a known path without a model. Policy gateway, no AI: blocks pairs the grammar excludes. Contract tests, no AI: checks every feeds edge still type-checks. Catalogue, no AI: shows how tools combine, not just what. Small router, optional: learned later, once the same routes repeat."}
+
+- **The language model** is the main reader. It does not need a smarter ranking function; it needs the right few tools in its context. Given a tool and its neighbourhood, a model reasons about them far better than it can about a list of thousands.
+- **A workflow engine** can run a path the grammar already knows, with no model at all.
+- **A policy gateway** can block any call that would complete an *excluded* pair in the same task.
+- **Contract tests** can check, on every release, that each *feeds* edge still type-checks.
+- **A catalogue** can show people how tools combine, not just what each one does.
+- **A small learned router** can come later, once the same routing decisions repeat often enough to be worth compiling, as I argued in [Fast AI](../2026-10-11-fast-ai/index.qmd) and [The Junior Colleague](../2026-10-18-the-junior-colleague/index.qmd). It is an optimisation, not the paradigm.
+
+## 8. Objections
+
+**"Keep MCP small. Composition belongs to clients and skills."** This is the strongest objection. My answer is that skills prove the need, because each skill is a hand-made bundle of edges. But skills are written by one author, live inside one vendor, are never learned and never shared across servers. An optional field and a five-word vocabulary cost the protocol little. Leaving them out guarantees that every client invents its own version, and none can read the others'.
+
+**"The model can work out complementarity by itself."** Often it can. A model knows that paying in euros may need a currency conversion. It does not know that *your* company requires `approve_invoice` before any payment, or that your ledger tool must follow your payment tool. Local conventions are exactly what a grammar records. It also saves the tokens and the time of working them out again on every run.
+
+**"Declared edges will be gamed."** Some will. That is why every edge names its source. A client can trust computed and policy edges, discount declared ones from servers it does not know, and let observed weights correct both. A declared edge that nobody ever walks fades.
+
+**"Observed edges leak what we do."** They should stay local by default. The protocol only needs a common trace format so that each organisation can count its own; sharing aggregated weights is a choice, not a requirement.
+
+**"Structure will fence the model in."** The strength of the flat catalogue is that a model may draw a path nobody foresaw. A grammar should decide what to show first, not what is allowed, except for the *excludes* edges an organisation imposes on purpose.
+
+**"Edges will go stale."** Tools change. Edges versioned with their tools, computed edges re-checked on every release, and observed weights that decay without use limit the damage. The flat catalogue never goes stale, but it never learns either.
+
+## 9. What would prove me wrong
+
+- **If context windows and tool search grow faster than catalogues**, so that an agent can always read every relevant description, then the grammar adds maintenance and little else.
+- **If real tool descriptions carry the complementary signal**, so that "pay an invoice" does in practice sit close to "post a ledger entry" in embedding space, then search by meaning would do most of the work. This can be measured on real servers and real traces.
+- **If computed edges turn out to be mostly noise**, the cheapest source disappears. This too can be checked: derive *feeds* edges from the output and input schemas of public MCP servers and see how many a person would accept.
+- **If skills cover the frequent workflows**, the gain from a shared grammar would shrink to the long tail. I suspect the tail is where much of the value is, but that is a hypothesis.
+
+## 10. Conclusion
+
+MCP got the hardest part right. It turned every tool into a definition that any caller can read. What it left out, for good reasons at first, is how the definitions combine. Today every agent rebuilds that knowledge in its context window and throws it away at the end of the run.
+
+What is missing is not a new layer and not a trained network. It is a small grammar: typed edges between tools, published as data next to the tools, computed from schemas, declared by authors, observed in use and imposed by policy, each one saying where it came from. The ideas that make neural networks scale, locality, sparse activation, plasticity, modularity and gating, tell us how that grammar should behave. We can borrow them without building a network.
+
+A dictionary lets you look words up. A grammar lets you say something. MCP has the first. The second is what large ecosystems of tools now need.
+
+## References
+
+::: {#refs}
+:::
