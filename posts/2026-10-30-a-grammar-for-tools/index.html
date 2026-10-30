@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-10-30">
+<meta name="description" content="MCP lets every tool define itself, like words in a dictionary. Nothing in the protocol says how tools combine, so every agent rebuilds that knowledge on every run and forgets it at the end. I argue that the missing piece is a small grammar: rules over kinds of tools, and habits of specific tools, computed from schemas, declared by authors, observed in use and imposed by policy. OpenAPI, Arazzo and the semantic web tried parts of this before; what is new is a reader that can use it. I borrow the design principles from neural networks, without training one.">
+
+<title>A Grammar for Tools – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-07b83147eb962dfefc9e13e3d67c6c73.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-a7e7c27719c1a6864fbf656aa4fe7072.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-07b83147eb962dfefc9e13e3d67c6c73.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="canonical" href="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-10-30","description":"MCP lets every tool define itself, like words in a dictionary. Nothing in the protocol says how tools combine, so every agent rebuilds that knowledge on every run and forgets it at the end. I argue that the missing piece is a small grammar: rules over kinds of tools, and habits of specific tools, computed from schemas, declared by authors, observed in use and imposed by policy. OpenAPI, Arazzo and the semantic web tried parts of this before; what is new is a reader that can use it. I borrow the design principles from neural networks, without training one.","headline":"A Grammar for Tools","image":"https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig02.png","inLanguage":"en","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["essay","ai","agents","architecture","mcp"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"url":"https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/"}</script>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="A Grammar for Tools – AI, Honestly">
+<meta property="og:description" content="MCP lets every tool define itself, like words in a dictionary. Nothing in the protocol says how tools combine, so every agent rebuilds that knowledge on every run and forgets it at the end. I argue that the missing piece is a small grammar: rules over kinds of tools, and habits of specific tools, computed from schemas, declared by authors, observed in use and imposed by policy. OpenAPI, Arazzo and the semantic web tried parts of this before; what is new is a reader that can use it. I borrow the design principles from neural networks, without training one.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig02.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="932">
+<meta property="og:image:width" content="2048">
+<meta name="twitter:title" content="A Grammar for Tools – AI, Honestly">
+<meta name="twitter:description" content="MCP lets every tool define itself, like words in a dictionary. Nothing in the protocol says how tools combine, so every agent rebuilds that knowledge on every run and forgets it at the end. I argue that the missing piece is a small grammar: rules over kinds of tools, and habits of specific tools, computed from schemas, declared by authors, observed in use and imposed by policy. OpenAPI, Arazzo and the semantic web tried parts of this before; what is new is a reader that can use it. I borrow the design principles from neural networks, without training one.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig02.png">
+<meta name="twitter:image-height" content="932">
+<meta name="twitter:image-width" content="2048">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="citation_title" content="A Grammar for Tools">
+<meta name="citation_author" content="Stéphane Cuenat">
+<meta name="citation_publication_date" content="2026-10-30">
+<meta name="citation_cover_date" content="2026-10-30">
+<meta name="citation_year" content="2026">
+<meta name="citation_online_date" content="2026-10-30">
+<meta name="citation_fulltext_html_url" content="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/">
+<meta name="citation_language" content="en">
+<meta name="citation_reference" content="citation_title=Model context protocol specification, version 2025-06-18;,citation_author=Model Context Protocol;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://modelcontextprotocol.io/specification/2025-06-18;">
+<meta name="citation_reference" content="citation_title=Code execution with MCP: Building more efficient agents;,citation_author=Anthropic;,citation_publication_date=2025-11;,citation_cover_date=2025-11;,citation_year=2025;,citation_fulltext_html_url=https://www.anthropic.com/engineering/code-execution-with-mcp;,citation_publisher=Anthropic Engineering;">
+<meta name="citation_reference" content="citation_title=Equipping agents for the real world with agent skills;,citation_author=Anthropic;,citation_publication_date=2025-10;,citation_cover_date=2025-10;,citation_year=2025;,citation_fulltext_html_url=https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills;,citation_publisher=Anthropic Engineering;">
+<meta name="citation_reference" content="citation_title=Introducing advanced tool use on the claude developer platform;,citation_author=Anthropic;,citation_publication_date=2025-11;,citation_cover_date=2025-11;,citation_year=2025;,citation_fulltext_html_url=https://www.anthropic.com/engineering/advanced-tool-use;,citation_publisher=Anthropic Engineering;">
+<meta name="citation_reference" content="citation_title=RAG-MCP: Mitigating prompt bloat in LLM tool selection via retrieval-augmented generation;,citation_author=Tiantian Gan;,citation_author=Qiyao Sun;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://arxiv.org/abs/2505.03275;,citation_journal_title=arXiv preprint arXiv:2505.03275;">
+<meta name="citation_reference" content="citation_title=Architectural styles and the design of network-based software architectures;,citation_author=Roy Thomas Fielding;,citation_publication_date=2000;,citation_cover_date=2000;,citation_year=2000;,citation_fulltext_html_url=https://ics.uci.edu/~fielding/pubs/dissertation/top.htm;,citation_dissertation_institution=University of California, Irvine;">
+<meta name="citation_reference" content="citation_title=ToolNet: Connecting large language models with massive tools via tool graph;,citation_author=Xukun Liu;,citation_author=Zhiyuan Peng;,citation_author=Xiaoyuan Yi;,citation_author=Xing Xie;,citation_author=Lirong Xiang;,citation_author=Yuchen Liu;,citation_author=Dongkuan Xu;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://arxiv.org/abs/2403.00839;,citation_journal_title=arXiv preprint arXiv:2403.00839;">
+<meta name="citation_reference" content="citation_title=MCP-Zero: Proactive toolchain construction for LLM agents from scratch;,citation_author=Xiang Fei;,citation_author=Xiawu Zheng;,citation_author=Hao Feng;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://arxiv.org/abs/2506.01056;,citation_journal_title=arXiv preprint arXiv:2506.01056;">
+<meta name="citation_reference" content="citation_title=Graph RAG-tool fusion;,citation_author=Elias Lumer;,citation_author=others;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://arxiv.org/abs/2502.07223;,citation_journal_title=arXiv preprint arXiv:2502.07223;">
+<meta name="citation_reference" content="citation_title=Introducing the MCP registry;,citation_author=Model Context Protocol;,citation_publication_date=2025-09;,citation_cover_date=2025-09;,citation_year=2025;,citation_fulltext_html_url=https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/;">
+<meta name="citation_reference" content="citation_title=The anatomy of a large-scale hypertextual web search engine;,citation_author=Sergey Brin;,citation_author=Lawrence Page;,citation_publication_date=1998;,citation_cover_date=1998;,citation_year=1998;,citation_fulltext_html_url=https://doi.org/10.1016/S0169-7552(98)00110-X;,citation_issue=1–7;,citation_volume=30;,citation_journal_title=Computer Networks and ISDN Systems;">
+<meta name="citation_reference" content="citation_title=Modularity and community structure in networks;,citation_author=Mark E. J. Newman;,citation_publication_date=2006;,citation_cover_date=2006;,citation_year=2006;,citation_fulltext_html_url=https://doi.org/10.1073/pnas.0601602103;,citation_issue=23;,citation_volume=103;,citation_journal_title=Proceedings of the National Academy of Sciences;">
+<meta name="citation_reference" content="citation_title=Quantum entanglement;,citation_author=Ryszard Horodecki;,citation_author=Paweł Horodecki;,citation_author=Michał Horodecki;,citation_author=Karol Horodecki;,citation_publication_date=2009;,citation_cover_date=2009;,citation_year=2009;,citation_fulltext_html_url=https://doi.org/10.1103/RevModPhys.81.865;,citation_issue=2;,citation_volume=81;,citation_journal_title=Reviews of Modern Physics;">
+<meta name="citation_reference" content="citation_title=Neural message passing for quantum chemistry;,citation_author=Justin Gilmer;,citation_author=Samuel S. Schoenholz;,citation_author=Patrick F. Riley;,citation_author=Oriol Vinyals;,citation_author=George E. Dahl;,citation_publication_date=2017;,citation_cover_date=2017;,citation_year=2017;,citation_fulltext_html_url=https://arxiv.org/abs/1704.01212;,citation_conference_title=International conference on machine learning (ICML);">
+<meta name="citation_reference" content="citation_title=Outrageously large neural networks: The sparsely-gated mixture-of-experts layer;,citation_author=Noam Shazeer;,citation_author=Azalia Mirhoseini;,citation_author=Krzysztof Maziarz;,citation_author=Andy Davis;,citation_author=Quoc Le;,citation_author=Geoffrey Hinton;,citation_author=Jeff Dean;,citation_publication_date=2017;,citation_cover_date=2017;,citation_year=2017;,citation_fulltext_html_url=https://arxiv.org/abs/1701.06538;,citation_conference_title=International conference on learning representations (ICLR);">
+<meta name="citation_reference" content="citation_title=Neural module networks;,citation_author=Jacob Andreas;,citation_author=Marcus Rohrbach;,citation_author=Trevor Darrell;,citation_author=Dan Klein;,citation_publication_date=2016;,citation_cover_date=2016;,citation_year=2016;,citation_fulltext_html_url=https://arxiv.org/abs/1511.02799;,citation_conference_title=IEEE conference on computer vision and pattern recognition (CVPR);">
+<meta name="citation_reference" content="citation_title=The organization of behavior: A neuropsychological theory;,citation_author=Donald O. Hebb;,citation_publication_date=1949;,citation_cover_date=1949;,citation_year=1949;">
+<meta name="citation_reference" content="citation_title=Sparse coding of sensory inputs;,citation_author=Bruno A. Olshausen;,citation_author=David J. Field;,citation_publication_date=2004;,citation_cover_date=2004;,citation_year=2004;,citation_fulltext_html_url=https://doi.org/10.1016/j.conb.2004.07.007;,citation_issue=4;,citation_volume=14;,citation_journal_title=Current Opinion in Neurobiology;">
+<meta name="citation_reference" content="citation_title=The lethal trifecta for AI agents: Private data, untrusted content, and external communication;,citation_author=Simon Willison;,citation_publication_date=2025-06;,citation_cover_date=2025-06;,citation_year=2025;,citation_fulltext_html_url=https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/;">
+<meta name="citation_reference" content="citation_title=Inferring networks of substitutable and complementary products;,citation_author=Julian McAuley;,citation_author=Rahul Pandey;,citation_author=Jure Leskovec;,citation_publication_date=2015;,citation_cover_date=2015;,citation_year=2015;,citation_fulltext_html_url=https://doi.org/10.1145/2783258.2783381;,citation_conference_title=Proceedings of the 21st ACM SIGKDD international conference on knowledge discovery and data mining;">
+<meta name="citation_reference" content="citation_title=Amazon.com recommendations: Item-to-item collaborative filtering;,citation_author=Greg Linden;,citation_author=Brent Smith;,citation_author=Jeremy York;,citation_publication_date=2003;,citation_cover_date=2003;,citation_year=2003;,citation_fulltext_html_url=https://doi.org/10.1109/MIC.2003.1167344;,citation_issue=1;,citation_volume=7;,citation_journal_title=IEEE Internet Computing;">
+<meta name="citation_reference" content="citation_title=OpenAPI specification, version 3.0.0: Link object;,citation_author=OpenAPI Initiative;,citation_publication_date=2017;,citation_cover_date=2017;,citation_year=2017;,citation_fulltext_html_url=https://spec.openapis.org/oas/v3.0.0#link-object;">
+<meta name="citation_reference" content="citation_title=OWL-S: Semantic markup for web services;,citation_author=David Martin;,citation_author=Mark Burstein;,citation_author=Jerry Hobbs;,citation_author=Ora Lassila;,citation_author=Drew McDermott;,citation_author=Sheila McIlraith;,citation_author=Srini Narayanan;,citation_author=Massimo Paolucci;,citation_author=Bijan Parsia;,citation_author=Terry Payne;,citation_author=Evren Sirin;,citation_author=Naveen Srinivasan;,citation_author=Katia Sycara;,citation_publication_date=2004-11;,citation_cover_date=2004-11;,citation_year=2004;,citation_fulltext_html_url=https://www.w3.org/submissions/OWL-S/;,citation_publisher=W3C Member Submission;">
+<meta name="citation_reference" content="citation_title=Web service modeling ontology (WSMO);,citation_author=Jos Bruijn;,citation_author=others;,citation_publication_date=2005-06;,citation_cover_date=2005-06;,citation_year=2005;,citation_fulltext_html_url=https://www.w3.org/submissions/WSMO/;,citation_publisher=W3C Member Submission;">
+<meta name="citation_reference" content="citation_title=SEP-1300: Tool filtering with groups and tags;,citation_author=Model Context Protocol;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300;,citation_publisher=GitHub issue, modelcontextprotocol/modelcontextprotocol;">
+<meta name="citation_reference" content="citation_title=The 2026 MCP roadmap;,citation_author=Model Context Protocol;,citation_publication_date=2026;,citation_cover_date=2026;,citation_year=2026;,citation_fulltext_html_url=https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/;">
+<meta name="citation_reference" content="citation_title=Donating the model context protocol and establishing the agentic AI foundation;,citation_author=Anthropic;,citation_publication_date=2025-12;,citation_cover_date=2025-12;,citation_year=2025;,citation_fulltext_html_url=https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation;">
+<meta name="citation_reference" content="citation_title=The arazzo specification, version 1.0.0;,citation_author=OpenAPI Initiative;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://spec.openapis.org/arazzo/v1.0.0.html;">
+<meta name="citation_reference" content="citation_title=Agents.json: An open specification for AI agents to use APIs;,citation_author=Wildcard AI;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://github.com/wild-card-ai/agents-json;,citation_publisher=GitHub, wild-card-ai/agents-json;">
+<meta name="citation_reference" content="citation_title=COLT: Towards completeness-oriented tool retrieval for large language models;,citation_author=Changle Qu;,citation_author=Sunhao Dai;,citation_author=Xiaochi Wei;,citation_author=Hengyi Cai;,citation_author=Shuaiqiang Wang;,citation_author=Dawei Yin;,citation_author=Jun Xu;,citation_author=Ji-Rong Wen;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://arxiv.org/abs/2405.16089;,citation_conference_title=Proceedings of the 33rd ACM international conference on information and knowledge management (CIKM);">
+<meta name="citation_reference" content="citation_title=Efficient and scalable estimation of tool representations in vector space;,citation_author=Suhong Moon;,citation_author=Siddharth Jha;,citation_author=Lutfi Eren Erdogan;,citation_author=Sehoon Kim;,citation_author=Woosang Lim;,citation_author=Kurt Keutzer;,citation_author=Amir Gholami;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://arxiv.org/abs/2409.02141;,citation_journal_title=arXiv preprint arXiv:2409.02141;">
+<meta name="citation_reference" content="citation_title=TaskBench: Benchmarking large language models for task automation;,citation_author=Yongliang Shen;,citation_author=Kaitao Song;,citation_author=Xu Tan;,citation_author=Wenqi Zhang;,citation_author=Kan Ren;,citation_author=Siyu Yuan;,citation_author=Weiming Lu;,citation_author=Dongsheng Li;,citation_author=Yueting Zhuang;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://arxiv.org/abs/2311.18760;,citation_conference_title=Advances in neural information processing systems (NeurIPS), datasets and benchmarks track;">
+<meta name="citation_reference" content="citation_title=LiveMCPBench: Can agents navigate an ocean of MCP tools?;,citation_author=Guozhao Mo;,citation_author=Wenliang Zhong;,citation_author=Jiawei Chen;,citation_author=Xuanang Chen;,citation_author=Yaojie Lu;,citation_author=Hongyu Lin;,citation_author=Ben He;,citation_author=Xianpei Han;,citation_author=Le Sun;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://arxiv.org/abs/2508.01780;,citation_journal_title=arXiv preprint arXiv:2508.01780;">
+<meta name="citation_reference" content="citation_title=MCP-Bench: Benchmarking tool-using LLM agents with complex real-world tasks via MCP servers;,citation_author=Zhenting Wang;,citation_author=Qi Chang;,citation_author=Hemani Patel;,citation_author=Shashank Biju;,citation_author=Cheng-En Wu;,citation_author=Quan Liu;,citation_author=Aolin Ding;,citation_author=Alireza Rezazadeh;,citation_author=Ankit Shah;,citation_author=Yujia Bao;,citation_author=Eugene Siow;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://arxiv.org/abs/2508.20453;,citation_journal_title=arXiv preprint arXiv:2508.20453;">
+<meta name="citation_reference" content="citation_title=Model context protocol specification, version 2025-11-25: Key changes;,citation_author=Model Context Protocol;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://modelcontextprotocol.io/specification/2025-11-25/changelog;">
+<meta name="citation_reference" content="citation_title=Model context protocol specification, version 2025-03-26: Key changes;,citation_author=Model Context Protocol;,citation_publication_date=2025;,citation_cover_date=2025;,citation_year=2025;,citation_fulltext_html_url=https://modelcontextprotocol.io/specification/2025-03-26/changelog;">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#points-on-a-plane" id="toc-points-on-a-plane" class="nav-link active" data-scroll-target="#points-on-a-plane">1. Points on a plane</a></li>
+  <li><a href="#a-dictionary-without-a-grammar" id="toc-a-dictionary-without-a-grammar" class="nav-link" data-scroll-target="#a-dictionary-without-a-grammar">2. A dictionary without a grammar</a></li>
+  <li><a href="#why-it-matters-now" id="toc-why-it-matters-now" class="nav-link" data-scroll-target="#why-it-matters-now">3. Why it matters now</a></li>
+  <li><a href="#this-was-tried-before" id="toc-this-was-tried-before" class="nav-link" data-scroll-target="#this-was-tried-before">4. This was tried before</a></li>
+  <li><a href="#where-the-grammar-comes-from" id="toc-where-the-grammar-comes-from" class="nav-link" data-scroll-target="#where-the-grammar-comes-from">5. Where the grammar comes from</a></li>
+  <li><a href="#a-grammar-at-two-levels" id="toc-a-grammar-at-two-levels" class="nav-link" data-scroll-target="#a-grammar-at-two-levels">6. A grammar at two levels</a></li>
+  <li><a href="#borrowing-from-neural-networks" id="toc-borrowing-from-neural-networks" class="nav-link" data-scroll-target="#borrowing-from-neural-networks">7. Borrowing from neural networks</a></li>
+  <li><a href="#who-reads-the-grammar" id="toc-who-reads-the-grammar" class="nav-link" data-scroll-target="#who-reads-the-grammar">8. Who reads the grammar</a></li>
+  <li><a href="#objections" id="toc-objections" class="nav-link" data-scroll-target="#objections">9. Objections</a></li>
+  <li><a href="#what-would-prove-me-wrong" id="toc-what-would-prove-me-wrong" class="nav-link" data-scroll-target="#what-would-prove-me-wrong">10. What would prove me wrong</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">11. Conclusion</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">A Grammar for Tools</h1>
+<p class="subtitle lead">MCP gave AI agents a dictionary. What it still lacks is a way to say how tools combine</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essay</div>
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">agents</div>
+    <div class="quarto-category">architecture</div>
+    <div class="quarto-category">mcp</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    MCP lets every tool define itself, like words in a dictionary. Nothing in the protocol says how tools combine, so every agent rebuilds that knowledge on every run and forgets it at the end. I argue that the missing piece is a small grammar: rules over kinds of tools, and habits of specific tools, computed from schemas, declared by authors, observed in use and imposed by policy. OpenAPI, Arazzo and the semantic web tried parts of this before; what is new is a reader that can use it. I borrow the design principles from neural networks, without training one.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 30, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essay, October 2026.</strong> A follow-up to <a href="../../posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a>. The figures are my own, drawn with <a href="figs.py">figs.py</a>; all are schematics except Figure 3, which is plain counting. The roles, relations and JSON in Figures 2, 6 and 7 are a proposal of mine, not part of the MCP specification.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> The Model Context Protocol (MCP) gave AI agents a dictionary. Every tool defines itself: a name, a description, a schema for what it takes and what it returns. What MCP does not have is a grammar, a way to say how tools combine: which one must come first, which one feeds which, which ones are used together, which ones replace each other, and which ones must never meet in the same task. Today every agent rebuilds that grammar inside its context window, on every run, and forgets it at the end. With a few dozen tools that works. With thousands it does not, and the usual fix, searching tool descriptions, finds tools that look like the request, not tools that complete each other. I argue that the missing piece is a kind of object, the relation between tools, published as data. A useful grammar works at two levels: rules about <em>kinds</em> of tools (“anything that pays requires an approval”), which carry over to tools nobody has used yet, and habits of <em>specific</em> tools, learned from use. Relations can come from four sources (schemas, authors, use and policy), and each source has its own owner and its own level of trust. None of this is new in principle: OpenAPI has links between operations, its sister specification Arazzo (2024) writes down whole workflows, and the semantic web services of the 2000s described preconditions and effects. The older efforts stalled because writing a precise grammar cost too much and nothing could read an imprecise one. A language model can. The design principles come from neural networks (locality, sparse activation, plasticity, modularity and gating), but I no longer think we need to train a network to apply them.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>MCP is a dictionary.</strong> Each tool is defined on its own. The links between tools exist only inside one agent’s run.</li>
+<li><strong>The missing object is the relation.</strong> MCP has first-class tools, resources and prompts, and groups of tools are being proposed. It has no typed relation between tools, so nobody can publish, share, version or check one.</li>
+<li><strong>Resemblance is not complementarity.</strong> Searching descriptions finds tools like the request. A task needs tools that complete each other, and those rarely look alike. Tool-retrieval research since 2024 says the same.</li>
+<li><strong>The bottleneck is already visible.</strong> 2025 benchmarks with hundreds of MCP tools find that finding the right tool is the dominant failure, and that planning across steps and servers remains hard.</li>
+<li><strong>A grammar has two levels.</strong> Rules over roles (“pays requires approves”) hold for tools never seen before. Habits of named tools (“this payment tool is usually followed by that converter”) are sharp for known work and silent for new work.</li>
+<li><strong>Four sources, four owners.</strong> Edges are computed from schemas by any reader, declared by servers, observed by clients and imposed by the organisation’s gateway. Every edge should say where it came from.</li>
+<li><strong>This was tried before, in part.</strong> OpenAPI links, Arazzo workflows and semantic web services described how operations connect. Arazzo and agents.json write <em>sentences</em> (fixed workflows), not a grammar. The older efforts lacked a reader that could use a cheap, imperfect grammar. A language model is that reader.</li>
+<li><strong>Edges are local; names are not.</strong> Like links on the web, relations need no central map, but they do need stable names, which means a registry.</li>
+<li><strong>Borrow principles from neural networks, not the network.</strong> Locality, sparse activation, plasticity, modularity and gating describe how the grammar should behave. A learned router is an optimisation for later.</li>
+</ul>
+</div>
+</div>
+<section id="points-on-a-plane" class="level2">
+<h2 class="anchored" data-anchor-id="points-on-a-plane">1. Points on a plane</h2>
+<p>Think of every MCP tool as a point. Its position is its meaning, what its description says it does. Two invoice tools sit close together; an invoice tool and a calendar tool sit far apart. A server publishes a handful of such points. A client connects to several servers and sees the union: a cloud of points with no lines between them <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025c</a>)</span>.</p>
+<p>This is not a flaw. It is what made MCP so easy to adopt. A server does not need to know who else exists. Anyone can add a point, and every client can read it. That is the strength I described in <a href="../../posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a>: the interface became data, read when it is used.</p>
+<p>But a task is never a point. “Pay this supplier invoice in euros and let them know” is a path: approve the invoice, convert the amount, pay, post the ledger entry, send a message. That path crosses three or four servers. Somebody has to draw it.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic, with seeded positions. Left: today, tools are points, and the agent draws a path through them for one task, then forgets it. Right: the same points with lines that persist, dense inside clusters, with a few strong bridges between them."><img src="figures/fig01.png" class="img-fluid figure-img" alt="Two panels of scattered points. Left, titled Today, a flat catalogue: grey circles with no connections and one dashed orange path through four highlighted points numbered 1 to 4, labelled 'the graph lives for one task, then it is forgotten'. Right, titled Proposed, a local graph: the same kind of points grouped into six coloured clusters named invoices, currency, mail, documents, identity and calendar, with thin edges inside each cluster and a few thick orange edges between clusters."></a></p>
+<figcaption><strong>Figure 1.</strong> Schematic, with seeded positions. Left: today, tools are points, and the agent draws a path through them for one task, then forgets it. Right: the same points with lines that persist, dense inside clusters, with a few strong bridges between them.</figcaption>
+</figure>
+</div>
+<p>Today, the agent draws it. The model reads the tool descriptions, reasons about the task and chooses each call. The path exists, but only in one place and for one moment: the context window of one run. When the run ends, the path is gone. The next agent facing the same task draws it again from scratch.</p>
+</section>
+<section id="a-dictionary-without-a-grammar" class="level2">
+<h2 class="anchored" data-anchor-id="a-dictionary-without-a-grammar">2. A dictionary without a grammar</h2>
+<p>A better image than points is language. MCP gives us a <strong>dictionary</strong>. Each entry defines one word clearly and in a standard form. What a dictionary does not tell you is how to build a sentence: which words go together, in what order, which ones can stand in for each other, which combinations are wrong. That is the job of a <strong>grammar</strong>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Schematic, with my own example tools. Left: what MCP describes today, each tool on its own. Right: the same tools with typed relations that say how they combine. The relation names are a proposal."><img src="figures/fig02.png" class="img-fluid figure-img" alt="Two panels. Left, titled MCP today, a dictionary: every word defined, alone. Six cards list approve_invoice, pay_supplier_invoice, convert, post_ledger_entry, send_message and schedule_payment, each with a one-line description. Right, titled What is missing, a grammar: how the words combine. pay_supplier_invoice sits in the centre. approve_invoice points to it with 'requires'. convert points to it with 'used with'. It points to post_ledger_entry with 'feeds' and to send_message with 'used with'. schedule_payment points to it with a dashed 'alternative'. A caption reads: approve, convert, pay, then post and notify, a sentence the grammar allows."></a></p>
+<figcaption><strong>Figure 2.</strong> Schematic, with my own example tools. Left: what MCP describes today, each tool on its own. Right: the same tools with typed relations that say how they combine. The relation names are a proposal.</figcaption>
+</figure>
+</div>
+<p>So what is missing from MCP is not an algorithm. It is a <strong>kind of object</strong>. MCP has first-class tools, resources and prompts. It has no first-class <em>relation</em> between them. As long as relations are not part of the vocabulary, nobody can publish one, share one, version one or check one. Every agent keeps its own private grammar, and nobody else can read it.</p>
+<section id="resemblance-is-not-complementarity" class="level3">
+<h3 class="anchored" data-anchor-id="resemblance-is-not-complementarity">Resemblance is not complementarity</h3>
+<p>The current answer to large catalogues is search. Tools stay out of the context and are found by matching the request against their descriptions <span class="citation" data-cites="anthropic2025advtools gan2025">(<a href="#ref-anthropic2025advtools" role="doc-biblioref">Anthropic 2025c</a>; <a href="#ref-gan2025" role="doc-biblioref">Gan and Sun 2025</a>)</span>, sometimes server first, then tool <span class="citation" data-cites="fei2025mcpzero">(<a href="#ref-fei2025mcpzero" role="doc-biblioref">Fei et al. 2025</a>)</span>. This finds tools that <em>resemble</em> the request. A task needs tools that <em>complete</em> each other.</p>
+<p>“Pay this supplier invoice in euros” resembles the invoice tools. It does not resemble the ledger or the mail server, yet the task needs both. The relation between paying an invoice and posting a ledger entry is not in either description. It is in the use.</p>
+<p>Recommender systems learned this long ago. Shops distinguish products that <em>substitute</em> for each other (two similar cameras) from products that <em>complement</em> each other (a camera and a memory card), and the two kinds of relation have to be learned differently <span class="citation" data-cites="mcauley2015">(<a href="#ref-mcauley2015" role="doc-biblioref">McAuley et al. 2015</a>)</span>. The oldest working answer, “customers who bought this also bought that”, does not look at descriptions at all: it counts what is used together <span class="citation" data-cites="linden2003">(<a href="#ref-linden2003" role="doc-biblioref">Linden et al. 2003</a>)</span>. Tool retrieval has rediscovered the point. COLT showed in 2024 that matching a request to tool descriptions returns redundant tools and misses the complementary ones a multi-part request needs, and proposed retrieval aimed at the <em>complete</em> set <span class="citation" data-cites="qu2024colt">(<a href="#ref-qu2024colt" role="doc-biblioref">Qu et al. 2024</a>)</span>. Tool2Vec embeds each tool from the requests that actually used it rather than from its description, and recalls far better <span class="citation" data-cites="moon2024tool2vec">(<a href="#ref-moon2024tool2vec" role="doc-biblioref">Moon et al. 2024</a>)</span>. Both learn from use; both keep what they learn inside one system. Tool search in production is still mostly stuck at the first kind of relation. A grammar is how we write down the second, in a form others can read.</p>
+</section>
+</section>
+<section id="why-it-matters-now" class="level2">
+<h2 class="anchored" data-anchor-id="why-it-matters-now">3. Why it matters now</h2>
+<p>With a few dozen tools, the agent can read every definition and draw the path itself. Nothing needs to be stored, nothing goes stale. The cost appears when catalogues grow, and two things grow with them.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Plain counting. Left: tokens needed to list every tool definition, at an illustrative 350 tokens per tool. Right: the number of possible four-step chains against the size of a sparse grammar (three edges per tool) and an illustrative number of real workflows."><img src="figures/fig03.png" class="img-fluid figure-img" alt="Two log-log charts against the number of tools, from 10 to 10,000. Left: tokens to list every definition rise from about 3,500 to 3.5 million, crossing a 200k-token context window near 570 tools and a 1M-token window near 2,900 tools. Right: possible four-step chains grow as N to the fourth, from ten thousand to ten to the sixteenth; edges in a sparse graph grow as 3N and workflows actually run as N over 2, many orders of magnitude lower."></a></p>
+<figcaption><strong>Figure 3.</strong> Plain counting. Left: tokens needed to list every tool definition, at an illustrative 350 tokens per tool. Right: the number of possible four-step chains against the size of a sparse grammar (three edges per tool) and an illustrative number of real workflows.</figcaption>
+</figure>
+</div>
+<p>The first is the cost of looking. MCP-Zero counts about 4,600 tokens for the 26 tools of the GitHub server alone <span class="citation" data-cites="fei2025mcpzero">(<a href="#ref-fei2025mcpzero" role="doc-biblioref">Fei et al. 2025</a>)</span>. A thousand tools fill a large context window before the task has begun.</p>
+<p>The second is the space of compositions. With <span class="math inline">N</span> tools there are <span class="math inline">N^k</span> ordered chains of <span class="math inline">k</span> of them. The chains anyone actually uses are a vanishing fraction of that space. The useful structure is small, roughly linear in <span class="math inline">N</span>, but nobody writes it down. So every run looks for it again inside a space that grows with the fourth power.</p>
+<p>This is no longer a projection. LiveMCPBench gave agents 70 MCP servers and 527 tools across 95 everyday tasks. The best model completed 79% of them, most models only 30% to 50%, and the authors identify finding the right tool as the dominant bottleneck <span class="citation" data-cites="mo2025livemcpbench">(<a href="#ref-mo2025livemcpbench" role="doc-biblioref">Mo et al. 2025</a>)</span>. MCP-Bench connected 20 models to 250 tools on 28 live servers, in tasks that chain tools within and across servers, and found persistent difficulty with long-horizon planning, with weaker models degrading most on multi-server tasks <span class="citation" data-cites="wang2025mcpbench">(<a href="#ref-wang2025mcpbench" role="doc-biblioref">Wang et al. 2025</a>)</span>. Both point at the same gap: knowing which tools go together.</p>
+<p>The field has noticed, and the answers so far tell the story:</p>
+<ul>
+<li><strong>Groups.</strong> A proposal for MCP, SEP-1300, lets servers put tools into groups and tags, so a client can load one functional area at a time <span class="citation" data-cites="sep1300">(<a href="#ref-sep1300" role="doc-biblioref">Model Context Protocol 2025e</a>)</span>. Groups are sets: they say which tools belong together, not how they combine. They are the right first step, and relations are the natural next one.</li>
+<li><strong>Prompts.</strong> MCP servers can already publish prompts, templated workflows written in prose <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025c</a>)</span>. A prompt is a sentence, not a grammar: it lives on one server, is chosen by the user and cannot be checked or combined with prompts from other servers.</li>
+<li><strong>Skills.</strong> Agent Skills package instructions, scripts and tool use for one job <span class="citation" data-cites="anthropic2025skills">(<a href="#ref-anthropic2025skills" role="doc-biblioref">Anthropic 2025b</a>)</span>. Each skill contains a small grammar, written by hand, for one bundle.</li>
+<li><strong>Research systems</strong> walk graphs of tool transitions learned from past runs <span class="citation" data-cites="liu2024toolnet">(<a href="#ref-liu2024toolnet" role="doc-biblioref">Liu et al. 2024</a>)</span>, follow dependency edges after a first search <span class="citation" data-cites="lumer2025graphrag">(<a href="#ref-lumer2025graphrag" role="doc-biblioref"><span class="nocase">Lumer et al.</span> 2025</a>)</span>, or learn tool representations from use <span class="citation" data-cites="qu2024colt moon2024tool2vec">(<a href="#ref-qu2024colt" role="doc-biblioref">Qu et al. 2024</a>; <a href="#ref-moon2024tool2vec" role="doc-biblioref">Moon et al. 2024</a>)</span>, each inside one system. Benchmarks such as TaskBench already describe tasks as <em>tool graphs</em>, with tools as nodes and dependencies as edges <span class="citation" data-cites="shen2024taskbench">(<a href="#ref-shen2024taskbench" role="doc-biblioref">Shen et al. 2024</a>)</span>: the research community models the grammar, but only to evaluate agents, not to publish it.</li>
+</ul>
+<p>Each of these holds a piece of the grammar. None can be read by anyone else, because the protocol has nowhere to put a relation. The protocol itself has moved fast: tool annotations arrived in March 2025 <span class="citation" data-cites="mcpspec20250326">(<a href="#ref-mcpspec20250326" role="doc-biblioref">Model Context Protocol 2025b</a>)</span>, output schemas in June <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025c</a>)</span>, and the November 2025 revision added icons, guidance on tool names and long-running tasks <span class="citation" data-cites="mcpspec20251125">(<a href="#ref-mcpspec20251125" role="doc-biblioref">Model Context Protocol 2025d</a>)</span>. None of them adds relations between tools. The 2026 roadmap focuses on transport, agent communication, governance and enterprise readiness <span class="citation" data-cites="mcproadmap2026">(<a href="#ref-mcproadmap2026" role="doc-biblioref">Model Context Protocol 2026</a>)</span>; as far as I can tell, typed relations are not on it.</p>
+</section>
+<section id="this-was-tried-before" class="level2">
+<h2 class="anchored" data-anchor-id="this-was-tried-before">4. This was tried before</h2>
+<p>Describing how operations connect is an old idea, and it is worth asking why it did not take hold.</p>
+<p><strong>OpenAPI links.</strong> Since version 3.0, an OpenAPI description can say that a value returned by one operation is the input of another, with the exact field mapping: the <code>id</code> in the response of <code>createUser</code> becomes the <code>userId</code> parameter of <code>getUser</code> <span class="citation" data-cites="openapi30links">(<a href="#ref-openapi30links" role="doc-biblioref">OpenAPI Initiative 2017</a>)</span>. That is precisely the <em>feeds</em> relation of this essay, standardised in 2017. It exists, it works, and few people use it. REST APIs got links between operations; MCP tools never did.</p>
+<p><strong>Arazzo and agents.json.</strong> In 2024 the OpenAPI Initiative published Arazzo, a specification for describing multi-step workflows across APIs: which operations to call, in which order, and how outputs become inputs <span class="citation" data-cites="arazzo2024">(<a href="#ref-arazzo2024" role="doc-biblioref">OpenAPI Initiative 2024</a>)</span>. In 2025, agents.json built on OpenAPI to give AI agents “flows” and “links” for the same purpose <span class="citation" data-cites="agentsjson2025">(<a href="#ref-agentsjson2025" role="doc-biblioref">Wildcard AI 2025</a>)</span>. These are the closest relatives of this essay, and they show that the need is real. But they write down <em>sentences</em>, complete workflows chosen in advance. They do not give a grammar from which an agent can build a sentence nobody wrote, and they say nothing about what was observed in use or forbidden by policy. A grammar and a set of sentences are complementary: a known workflow is a sentence the grammar allows, and a good workflow format is a natural way to publish one.</p>
+<p><strong>Semantic web services.</strong> In the early 2000s, OWL-S and WSMO described web services with inputs, outputs, preconditions and effects, so that software agents could find and compose them automatically <span class="citation" data-cites="owls2004 wsmo2005">(<a href="#ref-owls2004" role="doc-biblioref">Martin et al. 2004</a>; <a href="#ref-wsmo2005" role="doc-biblioref"><span class="nocase">Bruijn et al.</span> 2005</a>)</span>. “Requires” is a precondition; “feeds” is an output matched to an input. The vision was close to this essay’s. It stalled, for two reasons: writing formal descriptions in shared ontologies cost far more than anyone would pay, and the reasoners that consumed them broke on anything imprecise.</p>
+<p>What changed is the reader, the same argument I made in <a href="../../posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a> for self-describing APIs. A language model does not need a perfect ontology. It can use a relation that is partial, approximate or written in plain words, and weigh it against everything else it knows. And one of the four sources below, observed use, needs no author at all. A grammar that was too expensive to write precisely for a strict reader becomes cheap enough to write roughly for a tolerant one.</p>
+</section>
+<section id="where-the-grammar-comes-from" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-grammar-comes-from">5. Where the grammar comes from</h2>
+<p>If relations are to become data, the first questions are where they come from and who keeps them. I see four sources. They differ in cost, in trust, and in who owns them.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Schematic. Four sources of edges between tools, what each is good and bad at, the kind of trust it deserves, and who keeps it."><img src="figures/fig04.png" class="img-fluid figure-img" alt="Four cards. Computed, from types: the outputSchema of A matches the inputSchema of B; cheap and automatic, verifiable, finds data flow only; trust: checked; derived by any reader. Declared, by authors: 'pay requires approve', 'schedule is an alternative'; knows intent, partial because authors see one side only, can be self-serving; trust: claimed; published by the server. Observed, from use: paths agents actually walked, with weights; shows what really happens, needs history, private by default; trust: measured; kept by the client. Imposed, by the organisation: pairs that must never run in one task; encodes policy, small and deliberate, overrides the rest; trust: enforced; held by the gateway."></a></p>
+<figcaption><strong>Figure 4.</strong> Schematic. Four sources of edges between tools, what each is good and bad at, the kind of trust it deserves, and who keeps it.</figcaption>
+</figure>
+</div>
+<section id="computed-from-types" class="level3">
+<h3 class="anchored" data-anchor-id="computed-from-types">5.1 Computed from types</h3>
+<p>Since its June 2025 revision, MCP lets a tool declare an <code>outputSchema</code>, the shape of what it returns, next to its <code>inputSchema</code> <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025c</a>)</span>. That is enough to derive some edges with no one declaring anything. If one tool returns a <code>payment_id</code> and another requires one, the first probably <em>feeds</em> the second.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Schematic, with my own example schemas. An identifier created by one tool and required by another is strong evidence of a feeds edge. A shared generic field such as amount is not."><img src="figures/fig05.png" class="img-fluid figure-img" alt="Two schema cards. Left, pay_supplier_invoice, outputSchema: payment_id string, amount number, currency string, paid_at date-time. Right, post_ledger_entry, required inputSchema: payment_id string, account string, amount number. A thick green arrow joins the two payment_id fields, labelled 'feeds via payment_id'. A thin grey arrow joins the two amount fields, labelled 'same name, too weak alone'. A note says an identifier that one tool creates and another requires is strong evidence; a shared generic field is not."></a></p>
+<figcaption><strong>Figure 5.</strong> Schematic, with my own example schemas. An identifier created by one tool and required by another is strong evidence of a <em>feeds</em> edge. A shared generic field such as <code>amount</code> is not.</figcaption>
+</figure>
+</div>
+<p>Computed edges are cheap, and anyone can derive them: the client, a gateway, a catalogue. They are also checkable, since a test can confirm that the output of one tool still fits the input of the other. Their limits are real. They find data flow, not intent; field names are noisy; and output schemas are optional in MCP. I have not measured how many public servers declare them today. If few do, this source is a promise rather than a resource, and the first practical step is simply to publish output schemas.</p>
+</section>
+<section id="declared-by-authors" class="level3">
+<h3 class="anchored" data-anchor-id="declared-by-authors">5.2 Declared by authors</h3>
+<p>Some relations only the author knows. That paying requires an approval first. That <code>schedule_payment</code> is an alternative to paying now. That a tool is usually followed by a notification. These are short statements, and MCP already lets a tool carry extra metadata where they could live. They belong to the server, and travel with its tools.</p>
+<p>Declared edges carry intent, which no other source has. They are also partial, since an author sees only their own side of a workflow, and they can be self-serving: every server has a reason to declare edges toward itself.</p>
+</section>
+<section id="observed-in-use" class="level3">
+<h3 class="anchored" data-anchor-id="observed-in-use">5.3 Observed in use</h3>
+<p>Every agent already draws the grammar on every run. If clients kept the paths they walked, they could count which tools are used together and turn the counts into weights. This is the truest source: it shows what actually happens, including partners nobody thought to declare.</p>
+<p>It is also the most sensitive. What an organisation’s agents do is private, so observed edges belong to the client and stay inside the organisation by default, shared only as aggregated weights if at all. Counting them the same way everywhere needs a common trace format. That could be part of MCP, or a convention in an existing tracing standard such as OpenTelemetry; what matters is that it is shared.</p>
+</section>
+<section id="imposed-by-the-organisation" class="level3">
+<h3 class="anchored" data-anchor-id="imposed-by-the-organisation">5.4 Imposed by the organisation</h3>
+<p>A grammar does not only say what goes together. It can also say what must not. Simon Willison’s “lethal trifecta” names a dangerous combination: an agent that reads private data, is exposed to untrusted content and can communicate externally <span class="citation" data-cites="willison2025">(<a href="#ref-willison2025" role="doc-biblioref">Willison 2025</a>)</span>. Each tool may be safe on its own; the danger is in the combination. An organisation should be able to write that down as a rule, <em>excludes</em>, and have it enforced.</p>
+<p>This rule does not belong to any server. A vendor publishes its tools; it does not decide what your company forbids. Policy edges belong to the client or the gateway that sits between agents and servers, and they override every other source.</p>
+</section>
+</section>
+<section id="a-grammar-at-two-levels" class="level2">
+<h2 class="anchored" data-anchor-id="a-grammar-at-two-levels">6. A grammar at two levels</h2>
+<p>A grammar in the linguistic sense does not link specific words. It works on <em>kinds</em> of words: a verb takes an object, an adjective goes before a noun. Specific words that habitually appear together, “strong coffee” rather than “powerful coffee”, are called <em>collocations</em>, and they are learned by use. A tool grammar needs both levels.</p>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> The two levels of a tool grammar, by analogy with language.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>In language</th>
+<th>For tools</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>parts of speech</td>
+<td>roles: what kind of thing a tool does</td>
+<td><em>approves</em>, <em>pays</em>, <em>converts</em>, <em>notifies</em>, <em>reads private data</em></td>
+</tr>
+<tr class="even">
+<td>grammar rules</td>
+<td>relations between roles</td>
+<td>anything that <em>pays</em> requires something that <em>approves</em></td>
+</tr>
+<tr class="odd">
+<td>collocations</td>
+<td>relations between named tools, with weights</td>
+<td>this payment tool is usually used with that converter (0.71)</td>
+</tr>
+<tr class="even">
+<td>a sentence</td>
+<td>the path of one task</td>
+<td>approve, convert, pay, post, notify</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Schematic, with illustrative weights. Left: rules over roles, written once about kinds of tools; they hold for tools nobody has used yet. Right: habits of named tools, learned from use; they are sharp for known work and silent for new work."><img src="figures/fig06.png" class="img-fluid figure-img" alt="Two panels. Left, Level 1, grammar rules, rules over roles: pays requires approves; returns payment_id feeds needs payment_id; pays used with notifies; reads private data excludes sends externally. A note: written once, about kinds of tools, holds for tools nobody has used yet. Right, Level 2, collocations, habits of named tools: pay_supplier_invoice to fx-rates convert, 0.71; pay_supplier_invoice to mail send_message, 0.64; create_contract to sign request_signature, 0.88; book_meeting to calendar find_slot, 0.93. A note: learned from use, about specific tools, sharp for known work, silent for new work."></a></p>
+<figcaption><strong>Figure 6.</strong> Schematic, with illustrative weights. Left: rules over roles, written once about kinds of tools; they hold for tools nobody has used yet. Right: habits of named tools, learned from use; they are sharp for known work and silent for new work.</figcaption>
+</figure>
+</div>
+<p>The two levels fail in opposite ways, which is why both are needed. Collocations are precise for the work an organisation already does, and they say nothing about a tool that was installed yesterday or a workflow nobody has run. Rules over roles carry over to new tools immediately, but they are coarse: they say a payment needs <em>an</em> approval, not which one. A new tool that declares its roles fits into the grammar on the day it appears; use then sharpens the rules into collocations.</p>
+<p>MCP already has the beginning of a role system. Tool annotations say whether a tool is read-only, destructive, idempotent or reaches the open world <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025c</a>)</span>. These are parts of speech in all but name. The lethal-trifecta rule, for instance, can already be written partly over them: a tool with an open-world hint should not run in the same task as one that reads private data. What is missing is a small shared list of roles beyond those hints, and a way to write rules over them.</p>
+<section id="a-starting-vocabulary" class="level3">
+<h3 class="anchored" data-anchor-id="a-starting-vocabulary">6.1 A starting vocabulary</h3>
+<p>Five relations are a reasonable start. They will not cover everything (conditions such as “if this fails, use the alternative”, or order beyond <em>requires</em>, would come next), but they cover a lot.</p>
+<table class="caption-top table">
+<caption><strong>Table 2.</strong> A proposed starting vocabulary of relations, usable between roles or between named tools.</caption>
+<thead>
+<tr class="header">
+<th>Relation</th>
+<th>Meaning</th>
+<th>Typical source</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>requires</strong></td>
+<td>must have run before</td>
+<td>declared</td>
+</tr>
+<tr class="even">
+<td><strong>feeds</strong></td>
+<td>its output is the other’s input</td>
+<td>computed</td>
+</tr>
+<tr class="odd">
+<td><strong>used with</strong></td>
+<td>often in the same task</td>
+<td>observed</td>
+</tr>
+<tr class="even">
+<td><strong>alternative</strong></td>
+<td>can replace the other</td>
+<td>declared</td>
+</tr>
+<tr class="odd">
+<td><strong>excludes</strong></td>
+<td>must not run in the same task</td>
+<td>policy</td>
+</tr>
+</tbody>
+</table>
+<p>Each relation can point to a role or to a named tool, and each edge says where it came from so that a reader can weigh it.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig07.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. A proposal of mine, not part of MCP. What a server would publish for one tool: the annotations MCP already has, a list of roles, rules over roles, and edges to named tools, in the _meta field the specification already allows. Observed weights and policy rules are not published here: the client and the gateway keep them."><img src="figures/fig07.png" class="img-fluid figure-img" alt="A dark code panel showing one JSON entry for a tool named pay_supplier_invoice, with a description, schemas, annotations destructiveHint true and openWorldHint true, and a _meta object with roles: pays, and a grammar list: requires role approves; usedWith role converts; requires tool approve_invoice; alternative tool schedule_payment. Four cards explain: parts of speech MCP already has, annotations as the start of a role system; roles, a small shared list; rules over roles, which apply to tools never seen before; edges to named tools, the author's local knowledge, with names unique per server so they need a registry. A note below says observed weights are kept by the client and policy rules by the gateway."></a></p>
+<figcaption><strong>Figure 7.</strong> A proposal of mine, not part of MCP. What a server would publish for one tool: the annotations MCP already has, a list of roles, rules over roles, and edges to named tools, in the <code>_meta</code> field the specification already allows. Observed weights and policy rules are not published here: the client and the gateway keep them.</figcaption>
+</figure>
+</div>
+</section>
+<section id="what-the-protocol-needs-and-what-it-does-not" class="level3">
+<h3 class="anchored" data-anchor-id="what-the-protocol-needs-and-what-it-does-not">6.2 What the protocol needs, and what it does not</h3>
+<p>What MCP itself would need is small:</p>
+<ol type="1">
+<li><strong>A place for relations.</strong> Today a convention in <code>_meta</code>, which MCP already allows on tools <span class="citation" data-cites="mcpspec2025">(<a href="#ref-mcpspec2025" role="doc-biblioref">Model Context Protocol 2025c</a>)</span>; later a field of its own, if the convention proves useful. Tool groups, if adopted, are a natural home for rules that hold inside a group.</li>
+<li><strong>A shared vocabulary.</strong> A short list of roles, and the five relations above.</li>
+<li><strong>Stable names.</strong> See below.</li>
+<li><strong>A shared way to count use.</strong> Whether in MCP or in an existing tracing convention.</li>
+</ol>
+<p>The route for such a change exists: MCP evolves through public enhancement proposals, and since December 2025 the protocol is stewarded by the Agentic AI Foundation rather than by a single company <span class="citation" data-cites="anthropic2025aaif">(<a href="#ref-anthropic2025aaif" role="doc-biblioref">Anthropic 2025a</a>)</span>. A convention in <code>_meta</code> can be tried first, by a few servers and clients, and proposed once it has shown it is useful.</p>
+<p>What it should <em>not</em> include is just as important: any particular way of using the relations. How a client ranks tools, walks the graph or loads a neighbourhood is the client’s business. MCP should carry the grammar, not decide how to read it.</p>
+</section>
+<section id="edges-are-local-names-are-not" class="level3">
+<h3 class="anchored" data-anchor-id="edges-are-local-names-are-not">6.3 Edges are local; names are not</h3>
+<p>Could all of this live in a central registry instead? For composition, I think not. Early web directories sorted pages into folders and were overtaken by search that read the <em>links</em> pages carried themselves <span class="citation" data-cites="brin1998">(<a href="#ref-brin1998" role="doc-biblioref">Brin and Page 1998</a>)</span>. Links worked because each page published its own and nobody had to hold the map <span class="citation" data-cites="fielding2000">(<a href="#ref-fielding2000" role="doc-biblioref">Fielding 2000</a>)</span>. MCP today is a web of pages without links, and each tool should carry its own.</p>
+<p>But the web analogy cuts both ways. Links needed no central map, yet they did need a central <em>naming</em> system: a URL is only useful because DNS says what a domain is. The same holds here. An edge to “the <code>convert</code> tool on the <code>fx-rates</code> server” is only meaningful if <code>fx-rates</code> names the same server for everyone, and MCP tool names are unique only within one server; the November 2025 revision added guidance on how to name tools, not a way to name them across servers <span class="citation" data-cites="mcpspec20251125">(<a href="#ref-mcpspec20251125" role="doc-biblioref">Model Context Protocol 2025d</a>)</span>. Rules over roles avoid the problem, which is one more reason to prefer them. Edges to named tools across servers need a registry that gives servers stable identities, and the MCP Registry is the obvious candidate <span class="citation" data-cites="mcpregistry2025">(<a href="#ref-mcpregistry2025" role="doc-biblioref">Model Context Protocol 2025a</a>)</span>. So the honest position is: relations are local and decentralised; names are not. That is a modest layer, for identity, not a layer that holds the grammar.</p>
+</section>
+</section>
+<section id="borrowing-from-neural-networks" class="level2">
+<h2 class="anchored" data-anchor-id="borrowing-from-neural-networks">7. Borrowing from neural networks</h2>
+<p>My first idea for this essay was to treat the tool ecosystem as a neural network: tools as neurons, edges as synapses, and a graph neural network <span class="citation" data-cites="gilmer2017">(<a href="#ref-gilmer2017" role="doc-biblioref">Gilmer et al. 2017</a>)</span> deciding which tools fire for each task. I built one in a small simulation. It worked, but no better than a plain walk along the edges, and it struggled on workflows it had never seen, exactly where rules over roles help. What survived was not the network. It was the principles.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig08.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. Schematic. Left: in a neural network, few units fire for a given input. Right: the same idea applied to tools. Two tasks light two small neighbourhoods of one grammar; most of the catalogue stays dark."><img src="figures/fig08.png" class="img-fluid figure-img" alt="Left, a small three-layer neural network with grey connections; a few neurons are filled in orange and joined by orange connections, labelled 'weights learned, few units fire per input'. Right, six dashed clusters of tools named invoices, currency, mail, documents, identity and calendar, with grey edges. Task A, pay an invoice in euros and confirm by mail, lights an orange path through invoices, currency and mail. Task B, sign a contract and book the meeting, lights a teal path through documents, identity and calendar."></a></p>
+<figcaption><strong>Figure 8.</strong> Schematic. Left: in a neural network, few units fire for a given input. Right: the same idea applied to tools. Two tasks light two small neighbourhoods of one grammar; most of the catalogue stays dark.</figcaption>
+</figure>
+</div>
+<p>Large neural networks work because they are built on a handful of ideas. Each of them becomes a design rule for a tool grammar:</p>
+<table class="caption-top table">
+<caption><strong>Table 3.</strong> Five principles borrowed from neural networks, and what each means for a tool grammar.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Concept</th>
+<th>In a neural network</th>
+<th>As a design rule for tools</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Locality</strong></td>
+<td>a unit only receives messages from its neighbours</td>
+<td>a tool knows only its neighbours; nobody holds the global map</td>
+</tr>
+<tr class="even">
+<td><strong>Sparse activation</strong></td>
+<td>few units fire for any input <span class="citation" data-cites="olshausen2004 shazeer2017">(<a href="#ref-olshausen2004" role="doc-biblioref">Olshausen and Field 2004</a>; <a href="#ref-shazeer2017" role="doc-biblioref">Shazeer et al. 2017</a>)</span></td>
+<td>a task loads one neighbourhood, never the catalogue</td>
+</tr>
+<tr class="odd">
+<td><strong>Plasticity</strong></td>
+<td>connections that fire together strengthen <span class="citation" data-cites="hebb1949">(<a href="#ref-hebb1949" role="doc-biblioref">Hebb 1949</a>)</span></td>
+<td>observed edges strengthen with use and fade without it</td>
+</tr>
+<tr class="even">
+<td><strong>Modularity</strong></td>
+<td>modules are assembled differently for each question <span class="citation" data-cites="andreas2016">(<a href="#ref-andreas2016" role="doc-biblioref">Andreas et al. 2016</a>)</span></td>
+<td>clusters that work together become units, across servers</td>
+</tr>
+<tr class="odd">
+<td><strong>Gating</strong></td>
+<td>the input decides which paths open</td>
+<td>the task decides which edges count: a <em>notify</em> edge matters for a payment, not for a report</td>
+</tr>
+</tbody>
+</table>
+<p>Sparse activation is the one that pays most directly. Instead of searching a catalogue of thousands, an agent finds one good starting tool by meaning, then loads its neighbourhood: a handful of tools that the grammar says belong with it. Search finds the door; the grammar shows the rooms behind it.</p>
+<p>Modularity is where my first intuition about <em>entanglement</em> belongs. Some clusters of tools cannot be understood one at a time: what happens in invoicing tells you a lot about what will happen in currency and mail, whatever the description of any single tool says. Physicists call systems that cannot be described part by part <em>entangled</em> <span class="citation" data-cites="horodecki2009">(<a href="#ref-horodecki2009" role="doc-biblioref">Horodecki et al. 2009</a>)</span>. Nothing quantum happens in a tool catalogue, and the useful mathematics here is ordinary statistics. But the intuition holds. The unit of design is no longer the single tool. It is the group of tools that work together, which can be found from the edges themselves <span class="citation" data-cites="newman2006">(<a href="#ref-newman2006" role="doc-biblioref">Newman 2006</a>)</span>. Groups and skills are such units, drawn by hand. A grammar lets them emerge from use and cross server boundaries.</p>
+</section>
+<section id="who-reads-the-grammar" class="level2">
+<h2 class="anchored" data-anchor-id="who-reads-the-grammar">8. Who reads the grammar</h2>
+<p>The strongest argument for relations as data is the one I made for tool descriptions: once something is data, many readers can use it, and most of them need no AI.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig09.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure 9. Schematic. One grammar, six readers. Only the language model needs AI; a small learned router is an optional optimisation for later."><img src="figures/fig09.png" class="img-fluid figure-img" alt="A central green card, Tool grammar, data: typed edges, sources, weights. Six readers around it. Language model, needs AI: loads a neighbourhood, not the catalogue. Workflow engine, no AI: runs a known path without a model. Policy gateway, no AI: blocks pairs the grammar excludes. Contract tests, no AI: checks every feeds edge still type-checks. Catalogue, no AI: shows how tools combine, not just what. Small router, optional: learned later, once the same routes repeat."></a></p>
+<figcaption><strong>Figure 9.</strong> Schematic. One grammar, six readers. Only the language model needs AI; a small learned router is an optional optimisation for later.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>The language model</strong> is the main reader. It does not need a smarter ranking function; it needs the right few tools in its context. Given a tool and its neighbourhood, a model reasons about them far better than it can about a list of thousands. It is also the reader that tolerates an imperfect grammar, which is what makes this attempt different from the last one.</li>
+<li><strong>A workflow engine</strong> can run a path the grammar already knows, with no model at all.</li>
+<li><strong>A policy gateway</strong> can block any call that would complete an <em>excluded</em> pair in the same task.</li>
+<li><strong>Contract tests</strong> can check, on every release, that each <em>feeds</em> edge still type-checks.</li>
+<li><strong>A catalogue</strong> can show people how tools combine, not just what each one does.</li>
+<li><strong>A small learned router</strong> can come later, once the same routing decisions repeat often enough to be worth compiling, as I argued in <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> and <a href="../../posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a>. It is an optimisation, not the paradigm.</li>
+</ul>
+</section>
+<section id="objections" class="level2">
+<h2 class="anchored" data-anchor-id="objections">9. Objections</h2>
+<p><strong>“Keep MCP small. Composition belongs to clients and skills.”</strong> This is the strongest objection. My answer is that skills and groups prove the need: each skill contains a hand-made grammar, and each group is a set of tools someone decided belong together. But skills are written by one author and live inside one vendor, and groups say nothing about order or data flow. A short list of roles and five relations cost the protocol little. Leaving them out guarantees that every client invents its own version, and none can read the others’.</p>
+<p><strong>“This is the semantic web again.”</strong> In ambition, yes. In economics, no. The semantic web needed precise descriptions written by people for strict machines. A tool grammar can start from what is free (schemas and observed use), add a little that authors know, and be read by a model that copes with gaps.</p>
+<p><strong>“Retrieval trained on use already solves this, with no protocol change.”</strong> COLT and Tool2Vec show that learning from use beats matching descriptions <span class="citation" data-cites="qu2024colt moon2024tool2vec">(<a href="#ref-qu2024colt" role="doc-biblioref">Qu et al. 2024</a>; <a href="#ref-moon2024tool2vec" role="doc-biblioref">Moon et al. 2024</a>)</span>, and I agree. But what they learn stays inside one retriever: it cannot be shared between clients, checked against schemas, overridden by policy or read by a workflow engine. A grammar does not replace learned retrieval. It gives learned retrieval somewhere to write what it found, and something to start from on the first day.</p>
+<p><strong>“Arazzo already does this.”</strong> Arazzo describes fixed workflows over OpenAPI operations. MCP tools are not OpenAPI operations, and a fixed workflow does not help an agent build a new one. Arazzo is a good format for the sentences; a grammar is what makes new sentences possible.</p>
+<p><strong>“The model can work out complementarity by itself.”</strong> Often it can. A model knows that paying in euros may need a currency conversion. It does not know that <em>your</em> company requires <code>approve_invoice</code> before any payment, or that your ledger tool must follow your payment tool. Local conventions are exactly what a grammar records. It also saves the tokens and the time of working them out again on every run.</p>
+<p><strong>“Declared edges will be gamed.”</strong> Some will. That is why every edge names its source. A client can trust computed and policy edges, discount declared ones from servers it does not know, and let observed weights correct both. A declared edge that nobody ever walks fades.</p>
+<p><strong>“Observed edges leak what we do.”</strong> They should stay with the client by default. The protocol only needs a common way to count; sharing aggregated weights is a choice, not a requirement.</p>
+<p><strong>“Structure will fence the model in.”</strong> The strength of the flat catalogue is that a model may draw a path nobody foresaw. A grammar should decide what to show first, not what is allowed, except for the <em>excludes</em> rules an organisation imposes on purpose.</p>
+<p><strong>“Edges will go stale.”</strong> Tools change. Edges versioned with their tools, computed edges re-checked on every release, and observed weights that decay without use limit the damage. The flat catalogue never goes stale, but it never learns either.</p>
+</section>
+<section id="what-would-prove-me-wrong" class="level2">
+<h2 class="anchored" data-anchor-id="what-would-prove-me-wrong">10. What would prove me wrong</h2>
+<ul>
+<li><strong>If context windows and tool search grow faster than catalogues</strong>, so that an agent can always read every relevant description, then the grammar adds maintenance and little else.</li>
+<li><strong>If real tool descriptions carry the complementary signal</strong>, so that “pay an invoice” does in practice sit close to “post a ledger entry” in embedding space, then search by meaning would do most of the work. This can be measured on real servers and real traces.</li>
+<li><strong>If computed edges turn out to be rare or noisy</strong>, the cheapest source disappears. This is easy to check: count how many public MCP servers declare output schemas, derive <em>feeds</em> edges from them, and see how many a person would accept.</li>
+<li><strong>If OpenAPI links stay unused for the same reasons in MCP</strong>, the problem is incentives, not the absence of a field, and a field alone will not help.</li>
+<li><strong>If retrieval trained on use, such as Tool2Vec or COLT, closes the gap that benchmarks like LiveMCPBench measure</strong>, without any shared relations, then the grammar’s value shrinks to policy and auditing.</li>
+<li><strong>If groups, skills and explicit workflows (Arazzo-style) cover the frequent work</strong>, the gain from a shared grammar would shrink to the long tail. I suspect the tail is where much of the value is, but that is a hypothesis.</li>
+</ul>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">11. Conclusion</h2>
+<p>MCP got the hardest part right. It turned every tool into a definition that any caller can read. What it left out, for good reasons at first, is how the definitions combine. Today every agent rebuilds that knowledge in its context window and throws it away at the end of the run.</p>
+<p>What is missing is not a new central layer and not a trained network. It is a small grammar at two levels: rules about kinds of tools, which hold for tools nobody has used yet, and habits of specific tools, learned from use. Relations can be computed from schemas, declared by servers, observed by clients and imposed by the organisation, and each one should say where it came from. The idea is old; OpenAPI, Arazzo and the semantic web tried parts of it. What is new is a reader that can use a grammar that is cheap, partial and imperfect. The ideas that make neural networks scale tell us how that grammar should behave, and we can borrow them without building a network.</p>
+<p>A dictionary lets you look words up. A grammar lets you say something. MCP has the first. The second is what large ecosystems of tools now need.</p>
+<div class="discuss">
+<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-andreas2016" class="csl-entry" role="listitem">
+Andreas, Jacob, Marcus Rohrbach, Trevor Darrell, and Dan Klein. 2016. <span>“Neural Module Networks.”</span> <em>IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a href="https://arxiv.org/abs/1511.02799">https://arxiv.org/abs/1511.02799</a>.
+</div>
+<div id="ref-anthropic2025aaif" class="csl-entry" role="listitem">
+Anthropic. 2025a. <em>Donating the Model Context Protocol and Establishing the Agentic AI Foundation</em>. <a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation">https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation</a>.
+</div>
+<div id="ref-anthropic2025skills" class="csl-entry" role="listitem">
+Anthropic. 2025b. <em>Equipping Agents for the Real World with Agent Skills</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a>.
+</div>
+<div id="ref-anthropic2025advtools" class="csl-entry" role="listitem">
+Anthropic. 2025c. <em>Introducing Advanced Tool Use on the Claude Developer Platform</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/advanced-tool-use">https://www.anthropic.com/engineering/advanced-tool-use</a>.
+</div>
+<div id="ref-brin1998" class="csl-entry" role="listitem">
+Brin, Sergey, and Lawrence Page. 1998. <span>“The Anatomy of a Large-Scale Hypertextual Web Search Engine.”</span> <em>Computer Networks and ISDN Systems</em> 30 (1–7): 107–17. <a href="https://doi.org/10.1016/S0169-7552(98)00110-X">https://doi.org/10.1016/S0169-7552(98)00110-X</a>.
+</div>
+<div id="ref-wsmo2005" class="csl-entry" role="listitem">
+<span class="nocase">Bruijn, Jos de et al.</span> 2005. <em>Web Service Modeling Ontology (<span>WSMO</span>)</em>. W3C Member Submission. <a href="https://www.w3.org/submissions/WSMO/">https://www.w3.org/submissions/WSMO/</a>.
+</div>
+<div id="ref-fei2025mcpzero" class="csl-entry" role="listitem">
+Fei, Xiang, Xiawu Zheng, and Hao Feng. 2025. <span>“<span>MCP-Zero</span>: Proactive Toolchain Construction for <span>LLM</span> Agents from Scratch.”</span> <em>arXiv Preprint arXiv:2506.01056</em>. <a href="https://arxiv.org/abs/2506.01056">https://arxiv.org/abs/2506.01056</a>.
+</div>
+<div id="ref-fielding2000" class="csl-entry" role="listitem">
+Fielding, Roy Thomas. 2000. <span>“Architectural Styles and the Design of Network-Based Software Architectures.”</span> PhD thesis, University of California, Irvine. <a href="https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">https://ics.uci.edu/~fielding/pubs/dissertation/top.htm</a>.
+</div>
+<div id="ref-gan2025" class="csl-entry" role="listitem">
+Gan, Tiantian, and Qiyao Sun. 2025. <span>“<span>RAG-MCP</span>: Mitigating Prompt Bloat in <span>LLM</span> Tool Selection via Retrieval-Augmented Generation.”</span> <em>arXiv Preprint arXiv:2505.03275</em>. <a href="https://arxiv.org/abs/2505.03275">https://arxiv.org/abs/2505.03275</a>.
+</div>
+<div id="ref-gilmer2017" class="csl-entry" role="listitem">
+Gilmer, Justin, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals, and George E. Dahl. 2017. <span>“Neural Message Passing for Quantum Chemistry.”</span> <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/1704.01212">https://arxiv.org/abs/1704.01212</a>.
+</div>
+<div id="ref-hebb1949" class="csl-entry" role="listitem">
+Hebb, Donald O. 1949. <em>The Organization of Behavior: A Neuropsychological Theory</em>. Wiley.
+</div>
+<div id="ref-horodecki2009" class="csl-entry" role="listitem">
+Horodecki, Ryszard, Paweł Horodecki, Michał Horodecki, and Karol Horodecki. 2009. <span>“Quantum Entanglement.”</span> <em>Reviews of Modern Physics</em> 81 (2): 865–942. <a href="https://doi.org/10.1103/RevModPhys.81.865">https://doi.org/10.1103/RevModPhys.81.865</a>.
+</div>
+<div id="ref-linden2003" class="csl-entry" role="listitem">
+Linden, Greg, Brent Smith, and Jeremy York. 2003. <span>“Amazon.com Recommendations: Item-to-Item Collaborative Filtering.”</span> <em>IEEE Internet Computing</em> 7 (1): 76–80. <a href="https://doi.org/10.1109/MIC.2003.1167344">https://doi.org/10.1109/MIC.2003.1167344</a>.
+</div>
+<div id="ref-liu2024toolnet" class="csl-entry" role="listitem">
+Liu, Xukun, Zhiyuan Peng, Xiaoyuan Yi, et al. 2024. <span>“<span>ToolNet</span>: Connecting Large Language Models with Massive Tools via Tool Graph.”</span> <em>arXiv Preprint arXiv:2403.00839</em>. <a href="https://arxiv.org/abs/2403.00839">https://arxiv.org/abs/2403.00839</a>.
+</div>
+<div id="ref-lumer2025graphrag" class="csl-entry" role="listitem">
+<span class="nocase">Lumer, Elias et al.</span> 2025. <span>“Graph <span>RAG</span>-Tool Fusion.”</span> <em>arXiv Preprint arXiv:2502.07223</em>. <a href="https://arxiv.org/abs/2502.07223">https://arxiv.org/abs/2502.07223</a>.
+</div>
+<div id="ref-owls2004" class="csl-entry" role="listitem">
+Martin, David, Mark Burstein, Jerry Hobbs, et al. 2004. <em><span>OWL-S</span>: Semantic Markup for Web Services</em>. W3C Member Submission. <a href="https://www.w3.org/submissions/OWL-S/">https://www.w3.org/submissions/OWL-S/</a>.
+</div>
+<div id="ref-mcauley2015" class="csl-entry" role="listitem">
+McAuley, Julian, Rahul Pandey, and Jure Leskovec. 2015. <span>“Inferring Networks of Substitutable and Complementary Products.”</span> <em>Proceedings of the 21st ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, 785–94. <a href="https://doi.org/10.1145/2783258.2783381">https://doi.org/10.1145/2783258.2783381</a>.
+</div>
+<div id="ref-mo2025livemcpbench" class="csl-entry" role="listitem">
+Mo, Guozhao, Wenliang Zhong, Jiawei Chen, et al. 2025. <span>“<span>LiveMCPBench</span>: Can Agents Navigate an Ocean of <span>MCP</span> Tools?”</span> <em>arXiv Preprint arXiv:2508.01780</em>. <a href="https://arxiv.org/abs/2508.01780">https://arxiv.org/abs/2508.01780</a>.
+</div>
+<div id="ref-mcpregistry2025" class="csl-entry" role="listitem">
+Model Context Protocol. 2025a. <em>Introducing the <span>MCP</span> Registry</em>. <a href="https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/">https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/</a>.
+</div>
+<div id="ref-mcpspec20250326" class="csl-entry" role="listitem">
+Model Context Protocol. 2025b. <em>Model Context Protocol Specification, Version 2025-03-26: Key Changes</em>. <a href="https://modelcontextprotocol.io/specification/2025-03-26/changelog">https://modelcontextprotocol.io/specification/2025-03-26/changelog</a>.
+</div>
+<div id="ref-mcpspec2025" class="csl-entry" role="listitem">
+Model Context Protocol. 2025c. <em>Model Context Protocol Specification, Version 2025-06-18</em>. <a href="https://modelcontextprotocol.io/specification/2025-06-18">https://modelcontextprotocol.io/specification/2025-06-18</a>.
+</div>
+<div id="ref-mcpspec20251125" class="csl-entry" role="listitem">
+Model Context Protocol. 2025d. <em>Model Context Protocol Specification, Version 2025-11-25: Key Changes</em>. <a href="https://modelcontextprotocol.io/specification/2025-11-25/changelog">https://modelcontextprotocol.io/specification/2025-11-25/changelog</a>.
+</div>
+<div id="ref-sep1300" class="csl-entry" role="listitem">
+Model Context Protocol. 2025e. <em><span>SEP-1300</span>: Tool Filtering with Groups and Tags</em>. GitHub issue, modelcontextprotocol/modelcontextprotocol. <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300">https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300</a>.
+</div>
+<div id="ref-mcproadmap2026" class="csl-entry" role="listitem">
+Model Context Protocol. 2026. <em>The 2026 <span>MCP</span> Roadmap</em>. <a href="https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/">https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/</a>.
+</div>
+<div id="ref-moon2024tool2vec" class="csl-entry" role="listitem">
+Moon, Suhong, Siddharth Jha, Lutfi Eren Erdogan, et al. 2024. <span>“Efficient and Scalable Estimation of Tool Representations in Vector Space.”</span> <em>arXiv Preprint arXiv:2409.02141</em>. <a href="https://arxiv.org/abs/2409.02141">https://arxiv.org/abs/2409.02141</a>.
+</div>
+<div id="ref-newman2006" class="csl-entry" role="listitem">
+Newman, Mark E. J. 2006. <span>“Modularity and Community Structure in Networks.”</span> <em>Proceedings of the National Academy of Sciences</em> 103 (23): 8577–82. <a href="https://doi.org/10.1073/pnas.0601602103">https://doi.org/10.1073/pnas.0601602103</a>.
+</div>
+<div id="ref-olshausen2004" class="csl-entry" role="listitem">
+Olshausen, Bruno A., and David J. Field. 2004. <span>“Sparse Coding of Sensory Inputs.”</span> <em>Current Opinion in Neurobiology</em> 14 (4): 481–87. <a href="https://doi.org/10.1016/j.conb.2004.07.007">https://doi.org/10.1016/j.conb.2004.07.007</a>.
+</div>
+<div id="ref-openapi30links" class="csl-entry" role="listitem">
+OpenAPI Initiative. 2017. <em>OpenAPI Specification, Version 3.0.0: Link Object</em>. <a href="https://spec.openapis.org/oas/v3.0.0#link-object">https://spec.openapis.org/oas/v3.0.0#link-object</a>.
+</div>
+<div id="ref-arazzo2024" class="csl-entry" role="listitem">
+OpenAPI Initiative. 2024. <em>The Arazzo Specification, Version 1.0.0</em>. <a href="https://spec.openapis.org/arazzo/v1.0.0.html">https://spec.openapis.org/arazzo/v1.0.0.html</a>.
+</div>
+<div id="ref-qu2024colt" class="csl-entry" role="listitem">
+Qu, Changle, Sunhao Dai, Xiaochi Wei, et al. 2024. <span>“<span>COLT</span>: Towards Completeness-Oriented Tool Retrieval for Large Language Models.”</span> <em>Proceedings of the 33rd ACM International Conference on Information and Knowledge Management (CIKM)</em>. <a href="https://arxiv.org/abs/2405.16089">https://arxiv.org/abs/2405.16089</a>.
+</div>
+<div id="ref-shazeer2017" class="csl-entry" role="listitem">
+Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, et al. 2017. <span>“Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer.”</span> <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1701.06538">https://arxiv.org/abs/1701.06538</a>.
+</div>
+<div id="ref-shen2024taskbench" class="csl-entry" role="listitem">
+Shen, Yongliang, Kaitao Song, Xu Tan, et al. 2024. <span>“<span>TaskBench</span>: Benchmarking Large Language Models for Task Automation.”</span> <em>Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track</em>. <a href="https://arxiv.org/abs/2311.18760">https://arxiv.org/abs/2311.18760</a>.
+</div>
+<div id="ref-wang2025mcpbench" class="csl-entry" role="listitem">
+Wang, Zhenting, Qi Chang, Hemani Patel, et al. 2025. <span>“<span>MCP-Bench</span>: Benchmarking Tool-Using <span>LLM</span> Agents with Complex Real-World Tasks via <span>MCP</span> Servers.”</span> <em>arXiv Preprint arXiv:2508.20453</em>. <a href="https://arxiv.org/abs/2508.20453">https://arxiv.org/abs/2508.20453</a>.
+</div>
+<div id="ref-agentsjson2025" class="csl-entry" role="listitem">
+Wildcard AI. 2025. <em>Agents.json: An Open Specification for <span>AI</span> Agents to Use <span>APIs</span></em>. GitHub, wild-card-ai/agents-json. <a href="https://github.com/wild-card-ai/agents-json">https://github.com/wild-card-ai/agents-json</a>.
+</div>
+<div id="ref-willison2025" class="csl-entry" role="listitem">
+Willison, Simon. 2025. <em>The Lethal Trifecta for <span>AI</span> Agents: Private Data, Untrusted Content, and External Communication</em>. <a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {A {Grammar} for {Tools}},
+  date = {2026-10-30},
+  url = {https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“A Grammar for Tools.”</span> October 30.
+<a href="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/">https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
