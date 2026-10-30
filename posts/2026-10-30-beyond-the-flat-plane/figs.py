@@ -1,11 +1,11 @@
-"""Figures for "Beyond the Flat Plane".
+"""Figures for "Tools as Neurons".
 
 Same style as "The Interface Is Data": Inter type, white cards with a faint shadow
 and a coloured accent, colours taken from the site's palette.
 
-Figures 4, 5, 6 and 9 and the heat map in Figure 8 are drawn from results.json,
-written by sim.py. Figure 2 is plain counting with an illustrative token cost per
-tool. Figures 1, 7 and 8 (left) are schematics with hand-placed or seeded positions.
+Figures 5 to 9 and the heat map in Figure 12 are drawn from results.json, written by
+sim.py. Figure 2 is plain counting with an illustrative token cost per tool. Figures 1,
+3, 4, 10, 11 and 12 (left) are schematics with hand-placed or seeded positions.
 """
 import json
 import re
@@ -250,15 +250,15 @@ def fig_growth():
     fig.savefig(OUT + "fig02.png"); plt.close(fig)
 
 
-# ---------- Figure 3: resemblance is not complementarity ----------
+# ---------- Figure 5: resemblance is not complementarity ----------
 def fig_similarity():
     p = R["pairs"]
-    su, same, sr = np.array(p["sim_used"]), np.array(p["same_domain"]), np.array(p["sim_rand"])
+    sr, ss, sc = np.array(p["rand"]), np.array(p["same"]), np.array(p["cross"])
     fig, ax = plt.subplots(figsize=(8.4, 3.8))
     bins = np.linspace(-0.45, 1.0, 59)
     for data, col, lab in ((sr, MUTED, "two tools picked at random"),
-                           (su[same], NAVY, "used together, same domain"),
-                           (su[~same], AMBER, "used together, different domains")):
+                           (ss, NAVY, "used together, same domain"),
+                           (sc, AMBER, "used together, different domains")):
         h, e = np.histogram(data, bins=bins, density=True)
         c = (e[1:] + e[:-1]) / 2
         ax.fill_between(c, h, color=col, alpha=0.18, lw=0)
@@ -267,12 +267,12 @@ def fig_similarity():
     ax.set_ylabel("share of pairs")
     ax.set_yticks([])
     ax.legend(fontsize=8.5, loc="upper right")
-    xs = su[~same]
+    xs = sc
     ax.text(-0.43, ax.get_ylim()[1] * 0.62,
             f"{np.mean(xs < 0.3):.0%} of the partners used\nacross domains resemble\neach other no more than\ntwo tools picked at random",
             fontsize=8.2, color=WARM, va="top", linespacing=1.4)
     tidy(ax, "x")
-    fig.savefig(OUT + "fig03.png"); plt.close(fig)
+    fig.savefig(OUT + "fig05.png"); plt.close(fig)
 
 
 # ---------- Figure 4: the experiment ----------
@@ -283,12 +283,13 @@ def fig_scale():
     series = [("flat", "flat: nearest descriptions", MUTED, "o"),
               ("hierarchy", "layer on top: nearest domains, then tools", RED, "s"),
               ("declared", "local graph: edges declared by authors", NAVY, "D"),
-              ("learned", "local graph: edges learned from traces", GREEN, "^")]
+              ("learned", "local graph: edges learned from traces", GREEN, "^"),
+              ("gnn", "graph neural network over learned edges", AMBER, "v")]
     for key, lab, col, m in series:
         y = np.array([s[str(n)][key][0] for n in ns]) * 100
         e = np.array([s[str(n)][key][1] for n in ns]) * 100
-        ax.errorbar(ns, y, yerr=e, color=col, lw=2, marker=m, ms=6, capsize=3, label=lab,
-                    mec="white", mew=0.8)
+        ax.errorbar(ns, y, yerr=e, color=col if col != AMBER else WARM, lw=2, marker=m, ms=6,
+                    capsize=3, label=lab, mec="white", mew=0.8)
     ax.set_xscale("log")
     ax.set_xticks(ns); ax.set_xticklabels([f"{n:,}" for n in ns])
     ax.set_ylim(-3, 103)
@@ -296,7 +297,7 @@ def fig_scale():
     ax.set_ylabel("tasks with every needed tool\namong the 12 offered (%)")
     ax.legend(fontsize=8.3, loc="center right", bbox_to_anchor=(1.0, 0.45))
     tidy(ax)
-    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+    fig.savefig(OUT + "fig06.png"); plt.close(fig)
 
 
 # ---------- Figure 5: learning the edges ----------
@@ -306,18 +307,19 @@ def fig_learning():
     x = [max(t, 30) for t in ts]
     fig, ax = plt.subplots(figsize=(8.4, 3.7))
     for key, lab, col in (("declared", "edges declared by authors", NAVY),
-                          ("learned", "edges learned from past traces", GREEN),
+                          ("learned", "graph walk over learned edges", GREEN),
+                          ("gnn", "graph neural network over learned edges", WARM),
                           ("flat", "flat: nearest descriptions", MUTED)):
-        ax.plot(x, [L[str(t)][key] * 100 for t in ts], color=col, lw=2, marker="o", ms=5,
-                mec="white", label=lab)
+        pts = [(xx, L[str(t)][key] * 100) for xx, t in zip(x, ts) if key in L[str(t)]]
+        ax.plot(*zip(*pts), color=col, lw=2, marker="o", ms=5, mec="white", label=lab)
     ax.set_xscale("log")
     ax.set_xticks(x); ax.set_xticklabels(["none"] + [f"{t:,}" for t in ts[1:]])
     ax.set_ylim(-3, 100)
     ax.set_xlabel("past tasks observed (1,000 tools, 500 kinds of workflow)")
+    ax.legend(fontsize=8.3, loc="center right")
     ax.set_ylabel("tasks fully covered (%)")
-    ax.legend(fontsize=8.5, loc="center right")
     tidy(ax)
-    fig.savefig(OUT + "fig05.png"); plt.close(fig)
+    fig.savefig(OUT + "fig07.png"); plt.close(fig)
 
 
 # ---------- Figure 6: three answers ----------
@@ -370,7 +372,7 @@ def fig_three_answers():
             ha="center", va="top", fontsize=8, color=MUTED, linespacing=1.5)
     for xx in (9.7, 19.7):
         ax.plot([xx, xx], [0.4, 12.0], color=RULE, lw=1)
-    fig.savefig(OUT + "fig06.png"); plt.close(fig)
+    fig.savefig(OUT + "fig10.png"); plt.close(fig)
 
 
 # ---------- Figure 7: a tool entry with edges ----------
@@ -428,7 +430,7 @@ def fig_entry():
         card(ax, 15.0, yy - 1.15, 9.8, 2.3, "", None, accent=col, bar=True)
         ax.text(15.5, yy + 0.55, t, fontsize=10, weight="semibold", va="center", zorder=6)
         ax.text(15.5, yy - 0.3, txt, fontsize=8.1, color=MUTED, va="center", zorder=6, linespacing=1.35)
-    fig.savefig(OUT + "fig07.png"); plt.close(fig)
+    fig.savefig(OUT + "fig11.png"); plt.close(fig)
 
 
 # ---------- Figure 8: entanglement between sub-graphs ----------
@@ -475,34 +477,146 @@ def fig_entangle():
     ax2.set_title("Learned coupling, 20 domains", loc="left", fontsize=10.5, weight="semibold")
     ax2.text(-0.5, 22.6, "from 2,500 simulated traces (sim.py). Each row has two\ndark cells: the partners that domain really leans on.",
              fontsize=7.6, color=MUTED, va="top", linespacing=1.4)
+    fig.savefig(OUT + "fig12.png"); plt.close(fig)
+
+
+# ---------- Figure 3: tools as neurons ----------
+def fig_neurons():
+    rng = np.random.default_rng(4)
+    fig, ax = canvas(11.6, 5.0, 30, 12.9)
+    heading(ax, 0.2, 12.6, "Analogy", "A layer of neurons", NAVY)
+    heading(ax, 10.6, 12.6, "Proposal", "A network of tools: two tasks, two sparse sub-networks", GREEN)
+    # left: a small neural layer, sparse activation
+    L = [np.c_[np.full(5, 1.5), np.linspace(2.2, 9.6, 5)], np.c_[np.full(7, 4.6), np.linspace(1.4, 10.4, 7)],
+         np.c_[np.full(5, 7.7), np.linspace(2.2, 9.6, 5)]]
+    act = [{1, 3}, {2, 5}, {1}]
+    for a, b in ((0, 1), (1, 2)):
+        for i, p in enumerate(L[a]):
+            for j, q in enumerate(L[b]):
+                on = i in act[a] and j in act[b]
+                ax.plot(*zip(p, q), color=AMBER if on else RULE, lw=1.8 if on else 0.6, zorder=1)
+    for k, layer in enumerate(L):
+        for i, p in enumerate(layer):
+            on = i in act[k]
+            ax.add_patch(Circle(p, 0.42, fc=AMBER if on else "white", ec=WARM if on else MUTED, lw=1.1, zorder=3))
+    ax.text(4.6, 0.25, "weights learned · few units fire per input", ha="center", fontsize=8, color=MUTED)
+    # right: tool network, clusters, two tasks
+    centres = [(13.6, 9.0), (19.0, 9.6), (24.8, 9.0), (14.6, 3.6), (20.2, 3.4), (25.8, 3.9)]
+    names = ["invoices", "currency", "mail", "documents", "identity", "calendar"]
+    pts = []
+    for i, (cx, cy) in enumerate(centres):
+        blob(ax, cx, cy, 2.25, 1.75, DOMCOL[i], alpha=0.06)
+        ax.text(cx, cy - 2.0, names[i], ha="center", va="top", fontsize=7.4, color=DOMCOL[i], weight="semibold")
+        p = np.c_[rng.normal(cx, 0.85, 7), rng.normal(cy, 0.6, 7)]
+        pts.append(p)
+        d = np.linalg.norm(p[:, None] - p[None], axis=-1)
+        for a in range(7):
+            for b in np.argsort(d[a])[1:3]:
+                ax.plot(*zip(p[a], p[b]), color=RULE, lw=0.8, zorder=1)
+    bridges = [(0, 1, 1, 2), (0, 3, 2, 4), (3, 2, 4, 1), (1, 5, 4, 3), (2, 1, 5, 2), (0, 6, 3, 0)]
+    for a, ia, b, ib in bridges:
+        ax.plot(*zip(pts[a][ia], pts[b][ib]), color=RULE, lw=1.2, zorder=1)
+    taskA = [(0, 1), (0, 4), (1, 2), (2, 4)]           # pay an invoice in euros, confirm by mail
+    taskB = [(3, 2), (4, 1), (4, 5), (5, 3)]           # sign a contract, book a meeting
+    for task, col in ((taskA, AMBER), (taskB, TEAL)):
+        for (a, ia), (b, ib) in zip(task, task[1:]):
+            ax.plot(*zip(pts[a][ia], pts[b][ib]), color=col, lw=2.4, zorder=2, solid_capstyle="round")
+    for k, p in enumerate(pts):
+        for i, q in enumerate(p):
+            col = AMBER if (k, i) in taskA else TEAL if (k, i) in taskB else None
+            ax.add_patch(Circle(q, 0.3 if col else 0.2, fc=col or "white", ec=WARM if col == AMBER else (col or MUTED),
+                                lw=1, zorder=3))
+    pill(ax, 15.6, 0.25, "task A · pay an invoice in euros, confirm by mail", color=WARM, fs=7.6)
+    pill(ax, 24.6, 0.25, "task B · sign a contract, book the meeting", color=TEAL, fs=7.6)
+    ax.plot([9.6, 9.6], [0.6, 12.0], color=RULE, lw=1)
+    fig.savefig(OUT + "fig03.png"); plt.close(fig)
+
+
+# ---------- Figure 4: the router as a graph neural network ----------
+def fig_architecture():
+    fig, ax = canvas(11.6, 4.3, 30, 11.0)
+    steps = [
+        (0.2, "Request", "“pay this invoice\nin euros”", MUTED, "input"),
+        (5.2, "Resemblance", "cosine to every\ntool description", NAVY, "s = E q"),
+        (10.2, "k winners fire", "only the 3 closest\ntools are active", WARM, "x0 = top3(s)"),
+        (15.2, "Messages", "one and two hops on\nedges; whole clusters", GREEN, "Âx · Â²x · own · coupled"),
+        (20.2, "Readout", "one small function,\nshared by every tool", PLUM, "z = f(features)"),
+        (25.2, "Top-K", "the 12 tools shown\nto the model", NAVY, "K = 12"),
+    ]
+    for x, t, sub, col, eq in steps:
+        card(ax, x, 4.6, 4.4, 3.4, t, sub, accent=col, fs=10, subfs=7.8)
+        ax.text(x + 2.3, 3.7, eq, ha="center", va="top", fontsize=7.8, color=col if col != AMBER else WARM,
+                fontfamily=MONO)
+    for x, *_ in steps[:-1]:
+        arrow(ax, (x + 4.5, 6.3), (x + 5.1, 6.3), color=MUTED)
+    ax.text(0.2, 10.6, "THE ROUTER", fontsize=7.2, weight="semibold", color=NAVY, va="top")
+    ax.text(0.2, 10.05, "A graph neural network chooses which tools to activate", fontsize=11.5, weight="semibold", va="top")
+    ax.text(15.0, 1.3, "Edges grow from use (Hebbian counts). Only the readout is trained: nine weights and a bias, fitted by logistic regression.",
+            ha="center", fontsize=8.2, color=MUTED, style="italic")
+    fig.savefig(OUT + "fig04.png"); plt.close(fig)
+
+
+# ---------- Figure 8: activation patterns ----------
+def fig_patterns():
+    P = R["patterns"]
+    dom = np.array(P["dom"])
+    order = np.argsort(dom, kind="stable")
+    pos = np.empty_like(order); pos[order] = np.arange(len(order))
+    fig, ax = plt.subplots(figsize=(10.4, 3.8))
+    for r, (pk, tk) in enumerate(zip(P["picks"], P["tasks"])):
+        ax.scatter(pos[pk], np.full(len(pk), r), s=9, color=NAVY_T, edgecolor=NAVY, lw=0.5, zorder=2)
+        hit = [t for t in tk if t in pk]
+        ax.scatter(pos[hit], np.full(len(hit), r), s=16, color=AMBER, edgecolor=WARM, lw=0.6, zorder=3)
+    bounds = np.r_[0, np.flatnonzero(np.diff(dom[order])) + 1, len(order)]
+    for i, (a, b) in enumerate(zip(bounds[:-1], bounds[1:])):
+        if i % 2 == 0:
+            ax.axvspan(a, b, color=SAND_T, zorder=0, lw=0)
+    ax.set_xlim(0, len(order)); ax.set_ylim(-1, len(P["picks"]))
+    ax.invert_yaxis()
+    ax.set_xlabel("1,000 tools, grouped by domain (bands)")
+    ax.set_ylabel("40 test tasks")
+    ax.set_yticks([])
+    ax.set_xticks([])
+    for s_ in ("left", "bottom"):
+        ax.spines[s_].set_visible(False)
+    share = 12 / len(order)
+    ax.set_title(f"Each task activates {share:.1%} of the network; two tasks share {R['overlap']:.0%} of their active tools on average",
+                 loc="left", fontsize=10.5, weight="semibold")
+    from matplotlib.lines import Line2D
+    ax.legend(handles=[Line2D([], [], marker="o", ls="", color=NAVY_T, mec=NAVY, label="activated (shown to the model)"),
+                       Line2D([], [], marker="o", ls="", color=AMBER, mec=WARM, label="activated and needed by the task")],
+              fontsize=8, loc="lower right", bbox_to_anchor=(1, 1.06), ncol=2)
     fig.savefig(OUT + "fig08.png"); plt.close(fig)
 
 
-# ---------- Figure 9: new workflows ----------
-def fig_novel():
+# ---------- Figure 9: step by step, seen and new workflows ----------
+def fig_steps():
     s = R["scale"]
     ns = sorted(int(k) for k in s)
-    fig, ax = plt.subplots(figsize=(8.4, 3.9))
-    for key, lab, col, m in (("learned_novel", "one request, tool edges only", MUTED, "o"),
-                             ("subq_flat_novel", "a request per step, whole catalogue", RED, "s"),
-                             ("subq_coupled_novel", "a request per step, coupled clusters only", GREEN, "^")):
-        y = np.array([s[str(n)][key][0] for n in ns]) * 100
-        e = np.array([s[str(n)][key][1] for n in ns]) * 100
-        ax.errorbar(ns, y, yerr=e, color=col, lw=2, marker=m, ms=6, capsize=3, label=lab,
-                    mec="white", mew=0.8)
-    ax.set_xscale("log")
-    ax.set_xticks(ns); ax.set_xticklabels([f"{n:,}" for n in ns])
-    ax.set_ylim(-3, 103)
-    ax.set_xlabel("tools in the catalogue")
-    ax.set_ylabel("new workflows fully found (%)")
-    ax.legend(fontsize=8.3, loc="center left", bbox_to_anchor=(0.0, 0.4))
-    sh = np.mean([s[str(n)]["searched"][0] for n in ns])
-    ax.text(ns[-1], 96, f"coupled clusters hold ~{sh:.0%} of the catalogue", ha="right",
-            fontsize=8, color=GREEN)
-    tidy(ax)
+    fig, axes = plt.subplots(1, 2, figsize=(10.8, 4.0), sharey=True)
+    series = [("flat", "resemblance, whole catalogue", MUTED, "o"),
+              ("hard", "resemblance, coupled clusters only", GREEN, "s"),
+              ("gnn", "graph neural network", WARM, "v"),
+              ("gated", "gate: network if a neighbour fits, else clusters", PLUM, "D")]
+    for ax, label, title in ((axes[0], "seen", "Workflows seen before"), (axes[1], "novel", "Workflows never seen")):
+        for key, lab, col, m in series:
+            y = np.array([s[str(n)][f"{label}_step_{key}"][0] for n in ns]) * 100
+            e = np.array([s[str(n)][f"{label}_step_{key}"][1] for n in ns]) * 100
+            ax.errorbar(ns, y, yerr=e, color=col, lw=2, marker=m, ms=5.5, capsize=3, label=lab,
+                        mec="white", mew=0.8)
+        ax.set_xscale("log"); ax.set_xticks(ns); ax.set_xticklabels([f"{n:,}" for n in ns])
+        ax.set_ylim(-3, 103)
+        ax.set_title(title, loc="left", fontsize=11, weight="semibold")
+        ax.set_xlabel("tools in the catalogue")
+        tidy(ax)
+    axes[0].set_ylabel("workflows fully found,\nstep by step (%)")
+    h, l = axes[1].get_legend_handles_labels()
+    fig.legend(h, l, fontsize=8.5, loc="lower center", ncol=2, bbox_to_anchor=(0.5, -0.1))
+    fig.tight_layout(w_pad=2)
     fig.savefig(OUT + "fig09.png"); plt.close(fig)
 
 
 if __name__ == "__main__":
-    fig_plane(); fig_growth(); fig_similarity(); fig_scale(); fig_learning()
-    fig_three_answers(); fig_entry(); fig_entangle(); fig_novel()
+    fig_plane(); fig_growth(); fig_similarity(); fig_neurons(); fig_architecture()
+    fig_scale(); fig_learning(); fig_patterns(); fig_steps()
+    fig_three_answers(); fig_entry(); fig_entangle()
