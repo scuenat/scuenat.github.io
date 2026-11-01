@@ -19,7 +19,7 @@ plt.rcParams.update({
     "axes.edgecolor": MUTED, "axes.labelcolor": INK, "xtick.color": MUTED, "ytick.color": MUTED,
     "axes.spines.top": False, "axes.spines.right": False, "axes.linewidth": 0.8,
     "figure.facecolor": BG, "axes.facecolor": BG, "savefig.facecolor": BG,
-    "savefig.bbox": "tight", "savefig.pad_inches": 0.18, "legend.frameon": False,
+    "savefig.bbox": "tight", "savefig.pad_inches": 0.35, "legend.frameon": False,
     "svg.fonttype": "none",
 })
 
