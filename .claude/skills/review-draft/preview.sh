@@ -1,34 +1,24 @@
 #!/usr/bin/env bash
-# Build one self-contained HTML preview of a post: full text, figures, equations, citations.
-# Usage: .claude/skills/review-draft/preview.sh posts/YYYY-MM-DD-slug [quarto-binary]
-# Writes _preview/<slug>.html (git-ignored) and prints its path.
+# Render a post with the site's own theme and screenshot it as it will look online.
+# Usage: .claude/skills/review-draft/preview.sh posts/YYYY-MM-DD-slug [quarto-binary] [width]
+# Writes _preview/<slug>/page-NN.png (git-ignored) and prints the paths.
 set -euo pipefail
-POST="${1:?usage: preview.sh posts/<slug> [quarto]}"
+POST="${1:?usage: preview.sh posts/<slug> [quarto] [width]}"
 QUARTO="${2:-$(command -v quarto || true)}"
+WIDTH="${3:-430}"
 [ -n "$QUARTO" ] || { echo "quarto not found: pass its path as the second argument" >&2; exit 1; }
 ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
+cd "$ROOT"
+POST="${POST%/}"
 SLUG="$(basename "$POST")"
-WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
-# Copy the post outside the Quarto project so the site config does not apply.
-cp -r "$ROOT/$POST/." "$WORK/"
-rm -rf "$WORK/__pycache__"
-cat > "$WORK/_quarto.yml" <<'YML'
-format:
-  html:
-    embed-resources: true
-    html-math-method: mathml
-    toc: true
-    toc-depth: 2
-    number-sections: false
-    theme: cosmo
-    fontsize: 1.05em
-    max-width: 46em
-    title-block-banner: false
-author: "Stéphane Cuenat"
-YML
-( cd "$WORK" && "$QUARTO" render index.qmd --to html --output "$SLUG.html" >/dev/null 2>"$WORK/render.log" ) || { cat "$WORK/render.log" >&2; exit 1; }
-grep -iE "warn|error" "$WORK/render.log" >&2 || true
-mkdir -p "$ROOT/_preview"
-cp "$WORK/$SLUG.html" "$ROOT/_preview/$SLUG.html"
-echo "$ROOT/_preview/$SLUG.html"
+# Render only this page, inside the site project, so it gets the real theme, navbar and footer.
+"$QUARTO" render "$POST/index.qmd" 2>&1 | grep -iE "warn|error" >&2 || true
+[ -f "_site/$POST/index.html" ] || { echo "render failed: _site/$POST/index.html missing" >&2; exit 1; }
+# KaTeX comes from a CDN that the sandbox may block: keep a local copy for the screenshots.
+KATEX="$ROOT/_preview/.katex/package/dist"
+if [ ! -f "$KATEX/katex.min.js" ] && ! curl -sfI https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js >/dev/null 2>&1; then
+  mkdir -p "$ROOT/_preview/.katex"
+  ( cd "$ROOT/_preview/.katex" && npm pack -q katex@0.16.11 >/dev/null 2>&1 && tar xzf katex-0.16.11.tgz ) || echo "warning: KaTeX unavailable, equations will show as raw TeX in the screenshots only" >&2
+fi
+[ -f "$KATEX/katex.min.js" ] && export KATEX_DIR="$KATEX"
+node "$(dirname "$0")/shots.js" _site "$POST/" "_preview/$SLUG" "$WIDTH"
