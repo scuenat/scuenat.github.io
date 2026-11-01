@@ -1,11 +1,11 @@
 ---
 name: write-note
-description: Shape and write a note for this site (kind note, green NOTE badge) — short and practical, it assembles existing ideas into something you could ship, gives a recipe and says how to test it. Use when the user asks for a note, a recipe, a how-to or a practical write-up, or after new-post chose "Note". Starts by confirming the kind (essay, analysis or note) and defers to new-post for files, front matter, translation and publishing to main.
+description: Shape and write a note for this site (kind note, green NOTE badge) — short and practical, it assembles existing ideas into something you could ship, gives a recipe and says how to test it. Use when the user asks for a note, a recipe, a how-to or a practical write-up, or after new-post chose "Note". Starts by confirming the kind (essay, analysis, note or position paper) and defers to new-post for files, front matter, translation and publishing to main.
 ---
 
 # Write a note
 
-**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Note", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis or a note?" (options Note (Recommended) / Essay / Analysis). If the answer is not Note, switch to **write-essay** or **write-analysis**. Then follow **new-post** for files, front matter (`kind: note`, first category `note`), translation, verification and publishing to `main`.
+**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Note", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note or a position paper?" (options Note (Recommended) / Essay / Analysis / Position paper). If the answer is not Note, switch to **write-essay**, **write-analysis** or **write-position-paper**. Then follow **new-post** for files, front matter (`kind: note`, first category `note`), translation, verification and publishing to `main`.
 
 ## What makes it a note
 

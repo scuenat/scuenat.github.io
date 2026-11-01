@@ -8,8 +8,8 @@ const known = new Set(topics.map(x => x.id));
 // The listing is sorted newest first (that order also feeds the RSS feed); tiles read oldest first.
 const posts = [...items].reverse();
 const tiles = topics.map(x => [x, posts.filter(i => (i.topics || []).includes(x.id))]);
-// Card marker: each post's `kind` (essay | analysis | note), labelled from template-params.
-const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note" }, t.kinds || {});
+// Card marker: each post's `kind` (essay | analysis | note | position), labelled from template-params.
+const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note", position: "Position paper" }, t.kinds || {});
 const other = posts.filter(i => !(i.topics || []).some(id => known.has(id)));
 if (other.length && t.other) tiles.push([t.other, other]);
 %>

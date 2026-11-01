@@ -23,8 +23,8 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 ## Writing
 
 - Preview: `quarto preview`
-- New post: ask Claude Code to use the `new-post` skill (`.claude/skills/new-post/SKILL.md`). It asks whether the post is an essay, an analysis or a note, follows `write-essay`, `write-analysis` or `write-note` for the shape, and publishes straight to `main`. By hand: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
-- Every post needs `kind:` (`essay`, `analysis` or `note`): it sets the coloured badge on its card in the home strip, the theme tiles and the archive (`latest-strip.ejs`, `topic-tiles.ejs`, `archive-list.ejs`; French labels in `fr/index.qmd` and `fr/archive.qmd`). Papers use `kind: analysis`
+- New post: ask Claude Code to use the `new-post` skill (`.claude/skills/new-post/SKILL.md`). It asks whether the post is an essay, an analysis, a note or a position paper, follows `write-essay`, `write-analysis`, `write-note` or `write-position-paper` for the shape, and publishes straight to `main`. By hand: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
+- Every post needs `kind:` (`essay`, `analysis`, `note` or `position`): it sets the coloured badge on its card in the home strip, the theme tiles and the archive (`latest-strip.ejs`, `topic-tiles.ejs`, `archive-list.ejs`; French labels in `fr/index.qmd` and `fr/archive.qmd`). Working papers use `kind: analysis`; position papers `kind: position`
 - Paper: publish it as a post (category `paper`, `citation: true`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
 - Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `social-card.jpg`
 - Every post needs `topics:` (the home-page tiles it appears in: `agentic-coding`, `fast-ai`, `human`, `dashboards`, `physics`; a post may have several). The tiles are defined in `index.qmd` and `fr/index.qmd`; a post with no known topic lands in a fallback "Also on the site" tile. The full list by date, with category filters, is `archive.qmd`
