@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Render a post with the site's own theme and print it as ONE PDF that looks as it will online.
 # Usage: .claude/skills/review-draft/preview.sh posts/YYYY-MM-DD-slug [quarto-binary] [width]
-# Writes _preview/<slug>.pdf (git-ignored) and prints its path.
+# Writes _preview/<slug>.pdf, or _preview/<slug>-fr.pdf for a French post (git-ignored), and prints its path.
 set -euo pipefail
 POST="${1:?usage: preview.sh posts/<slug> [quarto] [width]}"
 QUARTO="${2:-$(command -v quarto || true)}"
@@ -11,6 +11,7 @@ ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 cd "$ROOT"
 POST="${POST%/}"
 SLUG="$(basename "$POST")"
+case "$POST" in fr/*) SLUG="$SLUG-fr" ;; esac   # keep English and French previews apart
 # Render only this page, inside the site project, so it gets the real theme, navbar and footer.
 "$QUARTO" render "$POST/index.qmd" 2>&1 | grep -iE "warn|error" >&2 || true
 [ -f "_site/$POST/index.html" ] || { echo "render failed: _site/$POST/index.html missing" >&2; exit 1; }
