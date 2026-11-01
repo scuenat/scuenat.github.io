@@ -17,6 +17,502 @@
 <generator>quarto-1.10.20</generator>
 <lastBuildDate>Fri, 30 Oct 2026 00:00:00 GMT</lastBuildDate>
 <item>
+  <title>Une grammaire pour les outils</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-10-30-a-grammar-for-tools/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, octobre 2026.</strong> La suite de <a href="../../../fr/posts/2026-10-20-the-interface-is-data/index.html">L’interface est une donnée</a>. Les figures sont de moi, dessinées avec <a href="../../../posts/2026-10-30-a-grammar-for-tools/figs.py">figs.py</a> ; toutes sont des schémas, sauf la figure 3, qui est un simple comptage. Les rôles, les relations et le JSON des figures 2, 6 et 7 sont une proposition de ma part, pas une partie de la spécification MCP. Les figures sont en anglais. <em>Traduit de l’anglais : <a href="../../../posts/2026-10-30-a-grammar-for-tools/index.html">version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Le Model Context Protocol (MCP) a donné un dictionnaire aux agents d’IA. Chaque outil se définit lui-même : un nom, une description, un schéma de ce qu’il prend et de ce qu’il renvoie. Ce que MCP n’a pas, c’est une grammaire, une façon de dire comment les outils se combinent : lequel doit venir d’abord, lequel alimente lequel, lesquels s’utilisent ensemble, lesquels se remplacent, et lesquels ne doivent jamais se rencontrer dans la même tâche. Aujourd’hui, chaque agent reconstruit cette grammaire dans sa fenêtre de contexte, à chaque exécution, et l’oublie à la fin. Avec quelques dizaines d’outils, cela fonctionne. Avec des milliers, non, et le remède habituel, chercher dans les descriptions d’outils, trouve des outils qui ressemblent à la demande, pas des outils qui se complètent. Je soutiens que la pièce manquante est un type d’objet, la relation entre outils, publiée sous forme de données. Une grammaire utile travaille à deux niveaux : des règles sur des <em>types</em> d’outils (« tout ce qui paie exige une approbation »), qui s’appliquent à des outils que personne n’a encore utilisés, et des habitudes d’outils <em>précis</em>, apprises à l’usage. Les relations peuvent venir de quatre sources (les schémas, les auteurs, l’usage et les règles de l’organisation), et chaque source a son propre propriétaire et son propre niveau de confiance. Rien de tout cela n’est nouveau dans son principe : OpenAPI a des liens entre opérations, sa spécification sœur Arazzo (2024) décrit des workflows entiers, et les services web sémantiques des années 2000 décrivaient des préconditions et des effets. Ces efforts se sont enlisés parce qu’écrire une grammaire précise coûtait trop cher et que rien ne savait lire une grammaire imprécise. Un modèle de langage le sait. Les principes de conception viennent des réseaux de neurones (localité, activation clairsemée, plasticité, modularité et filtrage), mais je ne pense plus qu’il faille entraîner un réseau pour les appliquer.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>MCP est un dictionnaire.</strong> Chaque outil est défini seul. Les liens entre outils n’existent qu’à l’intérieur de l’exécution d’un agent.</li>
+<li><strong>L’objet manquant est la relation.</strong> MCP a des outils, des ressources et des prompts de premier rang, et des groupes d’outils sont proposés. Il n’a pas de relation typée entre outils, si bien que personne ne peut en publier, en partager, en versionner ni en vérifier une.</li>
+<li><strong>La ressemblance n’est pas la complémentarité.</strong> Chercher dans les descriptions trouve des outils qui ressemblent à la demande. Une tâche a besoin d’outils qui se complètent, et ceux-là se ressemblent rarement. La recherche sur la sélection d’outils dit la même chose depuis 2024.</li>
+<li><strong>Le goulot d’étranglement est déjà visible.</strong> Des bancs d’essai de 2025, avec des centaines d’outils MCP, montrent que trouver le bon outil est la principale cause d’échec, et que planifier sur plusieurs étapes et plusieurs serveurs reste difficile.</li>
+<li><strong>Une grammaire a deux niveaux.</strong> Les règles sur des rôles (« payer exige approuver ») valent pour des outils jamais vus. Les habitudes d’outils nommés (« cet outil de paiement est d’ordinaire suivi de ce convertisseur ») sont précises pour le travail connu et muettes pour le travail nouveau.</li>
+<li><strong>Quatre sources, quatre propriétaires.</strong> Les arêtes sont calculées à partir des schémas par n’importe quel lecteur, déclarées par les serveurs, observées par les clients et imposées par la passerelle de l’organisation. Chaque arête devrait dire d’où elle vient.</li>
+<li><strong>On l’a déjà tenté, en partie.</strong> Les liens OpenAPI, les workflows Arazzo et les services web sémantiques décrivaient comment les opérations s’enchaînent. Arazzo et agents.json écrivent des <em>phrases</em> (des workflows fixes), pas une grammaire. Il manquait aux efforts plus anciens un lecteur capable d’utiliser une grammaire bon marché et imparfaite. Un modèle de langage est ce lecteur.</li>
+<li><strong>Les arêtes sont locales ; les noms ne le sont pas.</strong> Comme les liens du web, les relations n’ont pas besoin de carte centrale, mais elles ont besoin de noms stables, donc d’un registre.</li>
+<li><strong>Emprunter aux réseaux de neurones leurs principes, pas le réseau.</strong> Localité, activation clairsemée, plasticité, modularité et filtrage décrivent comment la grammaire doit se comporter. Un routeur appris est une optimisation pour plus tard.</li>
+</ul>
+</div>
+</div>
+<section id="des-points-sur-un-plan" class="level2">
+<h2 class="anchored" data-anchor-id="des-points-sur-un-plan">1. Des points sur un plan</h2>
+<p>Imaginez chaque outil MCP comme un point. Sa position est son sens, ce que sa description dit qu’il fait. Deux outils de facturation sont proches ; un outil de facturation et un outil d’agenda sont éloignés. Un serveur publie une poignée de ces points. Un client se connecte à plusieurs serveurs et voit leur réunion : un nuage de points sans aucune ligne entre eux <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025c)</span>.</p>
+<p>Ce n’est pas un défaut. C’est ce qui a rendu MCP si facile à adopter. Un serveur n’a pas besoin de savoir qui d’autre existe. N’importe qui peut ajouter un point, et tout client peut le lire. C’est la force que j’ai décrite dans <a href="../../../fr/posts/2026-10-20-the-interface-is-data/index.html">L’interface est une donnée</a> : l’interface est devenue une donnée, lue au moment où on l’utilise.</p>
+<p>Mais une tâche n’est jamais un point. « Payer cette facture fournisseur en euros et le prévenir » est un chemin : approuver la facture, convertir le montant, payer, passer l’écriture comptable, envoyer un message. Ce chemin traverse trois ou quatre serveurs. Quelqu’un doit le tracer.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma, avec des positions tirées au hasard (graine fixe). À gauche : aujourd’hui, les outils sont des points, et l’agent trace un chemin entre eux pour une tâche, puis l’oublie. À droite : les mêmes points avec des lignes qui durent, denses à l’intérieur des groupes, avec quelques ponts solides entre eux."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig01.png" class="img-fluid figure-img" alt="Deux panneaux de points dispersés. À gauche, intitulé « Today », un catalogue plat : des cercles gris sans connexions et un chemin orange en pointillés à travers quatre points mis en évidence, numérotés de 1 à 4, avec la mention « the graph lives for one task, then it is forgotten » (le graphe vit le temps d'une tâche, puis il est oublié). À droite, intitulé « Proposed », un graphe local : le même genre de points regroupés en six groupes colorés nommés invoices, currency, mail, documents, identity et calendar, avec de fines arêtes à l'intérieur de chaque groupe et quelques arêtes orange épaisses entre les groupes."></a></p>
+<figcaption><strong>Figure 1.</strong> Schéma, avec des positions tirées au hasard (graine fixe). À gauche : aujourd’hui, les outils sont des points, et l’agent trace un chemin entre eux pour une tâche, puis l’oublie. À droite : les mêmes points avec des lignes qui durent, denses à l’intérieur des groupes, avec quelques ponts solides entre eux.</figcaption>
+</figure>
+</div>
+<p>Aujourd’hui, c’est l’agent qui le trace. Le modèle lit les descriptions d’outils, raisonne sur la tâche et choisit chaque appel. Le chemin existe, mais en un seul endroit et pour un seul moment : la fenêtre de contexte d’une exécution. Quand l’exécution se termine, le chemin disparaît. Le prochain agent face à la même tâche le retrace à partir de rien.</p>
+</section>
+<section id="un-dictionnaire-sans-grammaire" class="level2">
+<h2 class="anchored" data-anchor-id="un-dictionnaire-sans-grammaire">2. Un dictionnaire sans grammaire</h2>
+<p>Le langage est une meilleure image que les points. MCP nous donne un <strong>dictionnaire</strong>. Chaque entrée définit un mot, clairement et sous une forme standard. Ce qu’un dictionnaire ne vous dit pas, c’est comment construire une phrase : quels mots vont ensemble, dans quel ordre, lesquels peuvent se remplacer, quelles combinaisons sont fautives. C’est le rôle d’une <strong>grammaire</strong>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Schéma, avec mes propres outils d’exemple. À gauche : ce que MCP décrit aujourd’hui, chaque outil seul. À droite : les mêmes outils avec des relations typées qui disent comment ils se combinent. Les noms des relations sont une proposition."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig02.png" class="img-fluid figure-img" alt="Deux panneaux. À gauche, intitulé « MCP today, a dictionary: every word defined, alone » (MCP aujourd'hui, un dictionnaire : chaque mot défini, seul). Six fiches listent approve_invoice, pay_supplier_invoice, convert, post_ledger_entry, send_message et schedule_payment, chacune avec une description d'une ligne. À droite, intitulé « What is missing, a grammar: how the words combine » (ce qui manque, une grammaire : comment les mots se combinent). pay_supplier_invoice est au centre. approve_invoice pointe vers lui avec « requires ». convert pointe vers lui avec « used with ». Il pointe vers post_ledger_entry avec « feeds » et vers send_message avec « used with ». schedule_payment pointe vers lui avec une flèche en pointillés « alternative ». Une légende indique : approuver, convertir, payer, puis comptabiliser et prévenir, une phrase que la grammaire autorise."></a></p>
+<figcaption><strong>Figure 2.</strong> Schéma, avec mes propres outils d’exemple. À gauche : ce que MCP décrit aujourd’hui, chaque outil seul. À droite : les mêmes outils avec des relations typées qui disent comment ils se combinent. Les noms des relations sont une proposition.</figcaption>
+</figure>
+</div>
+<p>Ce qui manque à MCP n’est donc pas un algorithme. C’est un <strong>type d’objet</strong>. MCP a des outils, des ressources et des prompts de premier rang. Il n’a pas de <em>relation</em> de premier rang entre eux. Tant que les relations ne font pas partie du vocabulaire, personne ne peut en publier une, en partager une, en versionner une ni en vérifier une. Chaque agent garde sa propre grammaire privée, et personne d’autre ne peut la lire.</p>
+<section id="la-ressemblance-nest-pas-la-complémentarité" class="level3">
+<h3 class="anchored" data-anchor-id="la-ressemblance-nest-pas-la-complémentarité">La ressemblance n’est pas la complémentarité</h3>
+<p>La réponse actuelle aux grands catalogues est la recherche. Les outils restent hors du contexte et sont trouvés en comparant la demande à leurs descriptions <span class="citation" data-cites="anthropic2025advtools gan2025">(Anthropic 2025c; Gan et Sun 2025)</span>, parfois d’abord le serveur, puis l’outil <span class="citation" data-cites="fei2025mcpzero">(Fei et al. 2025)</span>. On trouve ainsi des outils qui <em>ressemblent</em> à la demande. Une tâche a besoin d’outils qui se <em>complètent</em>.</p>
+<p>« Payer cette facture fournisseur en euros » ressemble aux outils de facturation. Cela ne ressemble ni au serveur de comptabilité ni au serveur de messagerie, et pourtant la tâche a besoin des deux. La relation entre payer une facture et passer une écriture comptable n’est dans aucune des deux descriptions. Elle est dans l’usage.</p>
+<p>Les systèmes de recommandation l’ont appris il y a longtemps. Les boutiques distinguent les produits qui se <em>substituent</em> l’un à l’autre (deux appareils photo semblables) de ceux qui se <em>complètent</em> (un appareil photo et une carte mémoire), et les deux types de relation doivent s’apprendre différemment <span class="citation" data-cites="mcauley2015">(McAuley et al. 2015)</span>. La plus ancienne réponse qui fonctionne, « les clients qui ont acheté ceci ont aussi acheté cela », ne regarde pas du tout les descriptions : elle compte ce qui est utilisé ensemble <span class="citation" data-cites="linden2003">(Linden et al. 2003)</span>. La recherche d’outils a redécouvert ce point. COLT a montré en 2024 que comparer une demande aux descriptions d’outils renvoie des outils redondants et manque les outils complémentaires dont une demande en plusieurs parties a besoin, et a proposé une recherche qui vise l’ensemble <em>complet</em> <span class="citation" data-cites="qu2024colt">(Qu et al. 2024)</span>. Tool2Vec représente chaque outil à partir des demandes qui l’ont réellement utilisé plutôt qu’à partir de sa description, et retrouve bien mieux les bons outils <span class="citation" data-cites="moon2024tool2vec">(Moon et al. 2024)</span>. Les deux apprennent de l’usage ; les deux gardent ce qu’ils apprennent à l’intérieur d’un seul système. En production, la recherche d’outils en reste encore surtout au premier type de relation. Une grammaire est la façon d’écrire le second, sous une forme que d’autres peuvent lire.</p>
+</section>
+</section>
+<section id="pourquoi-cest-important-maintenant" class="level2">
+<h2 class="anchored" data-anchor-id="pourquoi-cest-important-maintenant">3. Pourquoi c’est important maintenant</h2>
+<p>Avec quelques dizaines d’outils, l’agent peut lire chaque définition et tracer le chemin lui-même. Rien n’a besoin d’être stocké, rien ne se périme. Le coût apparaît quand les catalogues grandissent, et deux choses grandissent avec eux.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Simple comptage. À gauche : les tokens nécessaires pour lister toutes les définitions d’outils, à raison de 350 tokens par outil, à titre d’illustration. À droite : le nombre de chaînes possibles de quatre étapes, comparé à la taille d’une grammaire clairsemée (trois arêtes par outil) et à un nombre illustratif de workflows réels."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig03.png" class="img-fluid figure-img" alt="Deux graphiques en échelle log-log en fonction du nombre d'outils, de 10 à 10 000. À gauche : les tokens nécessaires pour lister toutes les définitions passent d'environ 3 500 à 3,5 millions, et dépassent une fenêtre de contexte de 200k tokens vers 570 outils et une fenêtre de 1M tokens vers 2 900 outils. À droite : les chaînes possibles de quatre étapes croissent comme N puissance quatre, de dix mille à dix puissance seize ; les arêtes d'un graphe clairsemé croissent comme 3N et les workflows réellement exécutés comme N sur 2, de nombreux ordres de grandeur plus bas."></a></p>
+<figcaption><strong>Figure 3.</strong> Simple comptage. À gauche : les tokens nécessaires pour lister toutes les définitions d’outils, à raison de 350 tokens par outil, à titre d’illustration. À droite : le nombre de chaînes possibles de quatre étapes, comparé à la taille d’une grammaire clairsemée (trois arêtes par outil) et à un nombre illustratif de workflows réels.</figcaption>
+</figure>
+</div>
+<p>La première est le coût de la lecture. MCP-Zero compte environ 4 600 tokens pour les 26 outils du seul serveur GitHub <span class="citation" data-cites="fei2025mcpzero">(Fei et al. 2025)</span>. Un millier d’outils remplit une grande fenêtre de contexte avant même que la tâche commence.</p>
+<p>La seconde est l’espace des compositions. Avec <img src="https://latex.codecogs.com/png.latex?N"> outils, il y a <img src="https://latex.codecogs.com/png.latex?N%5Ek"> chaînes ordonnées de <img src="https://latex.codecogs.com/png.latex?k"> d’entre eux. Les chaînes que quelqu’un utilise réellement sont une fraction infime de cet espace. La structure utile est petite, à peu près linéaire en <img src="https://latex.codecogs.com/png.latex?N">, mais personne ne l’écrit. Si bien que chaque exécution la cherche à nouveau dans un espace qui croît à la puissance quatre.</p>
+<p>Ce n’est plus une projection. LiveMCPBench a donné aux agents 70 serveurs MCP et 527 outils pour 95 tâches de la vie courante. Le meilleur modèle en a accompli 79 %, la plupart des modèles seulement 30 % à 50 %, et les auteurs identifient la recherche du bon outil comme le principal goulot d’étranglement <span class="citation" data-cites="mo2025livemcpbench">(Mo et al. 2025)</span>. MCP-Bench a connecté 20 modèles à 250 outils sur 28 serveurs réels, pour des tâches qui enchaînent des outils à l’intérieur d’un serveur et d’un serveur à l’autre, et a constaté une difficulté persistante à planifier sur le long terme, les modèles les plus faibles se dégradant le plus sur les tâches à plusieurs serveurs <span class="citation" data-cites="wang2025mcpbench">(Wang et al. 2025)</span>. Les deux pointent vers le même manque : savoir quels outils vont ensemble.</p>
+<p>Le domaine l’a remarqué, et les réponses jusqu’ici en disent long :</p>
+<ul>
+<li><strong>Les groupes.</strong> Une proposition pour MCP, SEP-1300, permet aux serveurs de ranger leurs outils en groupes et en étiquettes, pour qu’un client puisse charger un domaine fonctionnel à la fois <span class="citation" data-cites="sep1300">(Model Context Protocol 2025e)</span>. Les groupes sont des ensembles : ils disent quels outils vont ensemble, pas comment ils se combinent. Ils sont le bon premier pas, et les relations sont le pas suivant naturel.</li>
+<li><strong>Les prompts.</strong> Les serveurs MCP peuvent déjà publier des prompts, des workflows modèles écrits en prose <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025c)</span>. Un prompt est une phrase, pas une grammaire : il vit sur un seul serveur, il est choisi par l’utilisateur, et on ne peut ni le vérifier ni le combiner avec les prompts d’autres serveurs.</li>
+<li><strong>Les skills.</strong> Les Agent Skills regroupent des instructions, des scripts et l’usage d’outils pour une tâche <span class="citation" data-cites="anthropic2025skills">(Anthropic 2025b)</span>. Chaque skill contient une petite grammaire, écrite à la main, pour un seul lot.</li>
+<li><strong>Les systèmes de recherche</strong> parcourent des graphes de transitions entre outils appris sur des exécutions passées <span class="citation" data-cites="liu2024toolnet">(Liu et al. 2024)</span>, suivent des arêtes de dépendance après une première recherche <span class="citation" data-cites="lumer2025graphrag">(<span class="nocase">Lumer et al.</span> 2025)</span>, ou apprennent des représentations d’outils à partir de l’usage <span class="citation" data-cites="qu2024colt moon2024tool2vec">(Qu et al. 2024; Moon et al. 2024)</span>, chacun à l’intérieur d’un seul système. Des bancs d’essai comme TaskBench décrivent déjà les tâches comme des <em>graphes d’outils</em>, avec les outils pour nœuds et les dépendances pour arêtes <span class="citation" data-cites="shen2024taskbench">(Shen et al. 2024)</span> : la communauté de recherche modélise la grammaire, mais seulement pour évaluer les agents, pas pour la publier.</li>
+</ul>
+<p>Chacun détient un morceau de la grammaire. Aucun ne peut être lu par quelqu’un d’autre, parce que le protocole n’a nulle part où mettre une relation. Le protocole lui-même a évolué vite : les annotations d’outils sont arrivées en mars 2025 <span class="citation" data-cites="mcpspec20250326">(Model Context Protocol 2025b)</span>, les schémas de sortie en juin <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025c)</span>, et la révision de novembre 2025 a ajouté des icônes, des conseils sur le nommage des outils et les tâches de longue durée <span class="citation" data-cites="mcpspec20251125">(Model Context Protocol 2025d)</span>. Aucune n’ajoute de relations entre outils. La feuille de route 2026 porte sur le transport, la communication entre agents, la gouvernance et la préparation aux entreprises <span class="citation" data-cites="mcproadmap2026">(Model Context Protocol 2026)</span> ; autant que je puisse en juger, les relations typées n’y figurent pas.</p>
+</section>
+<section id="on-la-déjà-tenté" class="level2">
+<h2 class="anchored" data-anchor-id="on-la-déjà-tenté">4. On l’a déjà tenté</h2>
+<p>Décrire comment les opérations s’enchaînent est une vieille idée, et il vaut la peine de se demander pourquoi elle n’a pas pris.</p>
+<p><strong>Les liens OpenAPI.</strong> Depuis la version 3.0, une description OpenAPI peut dire qu’une valeur renvoyée par une opération est l’entrée d’une autre, avec la correspondance exacte des champs : l’<code>id</code> de la réponse de <code>createUser</code> devient le paramètre <code>userId</code> de <code>getUser</code> <span class="citation" data-cites="openapi30links">(OpenAPI Initiative 2017)</span>. C’est exactement la relation <em>feeds</em> (alimente) de cet essai, standardisée en 2017. Elle existe, elle fonctionne, et peu de gens l’utilisent. Les API REST ont reçu des liens entre opérations ; les outils MCP, jamais.</p>
+<p><strong>Arazzo et agents.json.</strong> En 2024, l’OpenAPI Initiative a publié Arazzo, une spécification pour décrire des workflows en plusieurs étapes à travers des API : quelles opérations appeler, dans quel ordre, et comment les sorties deviennent des entrées <span class="citation" data-cites="arazzo2024">(OpenAPI Initiative 2024)</span>. En 2025, agents.json s’est appuyé sur OpenAPI pour donner aux agents d’IA des « flows » et des « links » dans le même but <span class="citation" data-cites="agentsjson2025">(Wildcard AI 2025)</span>. Ce sont les plus proches parents de cet essai, et ils montrent que le besoin est réel. Mais ils écrivent des <em>phrases</em>, des workflows complets choisis à l’avance. Ils ne donnent pas une grammaire à partir de laquelle un agent peut construire une phrase que personne n’a écrite, et ils ne disent rien de ce qui a été observé à l’usage ou interdit par les règles. Une grammaire et un ensemble de phrases se complètent : un workflow connu est une phrase que la grammaire autorise, et un bon format de workflow est une façon naturelle d’en publier une.</p>
+<p><strong>Les services web sémantiques.</strong> Au début des années 2000, OWL-S et WSMO décrivaient les services web par leurs entrées, leurs sorties, leurs préconditions et leurs effets, pour que des agents logiciels puissent les trouver et les composer automatiquement <span class="citation" data-cites="owls2004 wsmo2005">(Martin et al. 2004; <span class="nocase">Bruijn et al.</span> 2005)</span>. « Exige » est une précondition ; « alimente » est une sortie appariée à une entrée. La vision était proche de celle de cet essai. Elle s’est enlisée pour deux raisons : écrire des descriptions formelles dans des ontologies partagées coûtait bien plus que ce que quiconque voulait payer, et les moteurs de raisonnement qui les consommaient cassaient sur tout ce qui était imprécis.</p>
+<p>Ce qui a changé, c’est le lecteur, le même argument que j’ai avancé dans <a href="../../../fr/posts/2026-10-20-the-interface-is-data/index.html">L’interface est une donnée</a> pour les API qui se décrivent elles-mêmes. Un modèle de langage n’a pas besoin d’une ontologie parfaite. Il peut utiliser une relation partielle, approximative ou écrite en mots simples, et la peser face à tout ce qu’il sait par ailleurs. Et l’une des quatre sources ci-dessous, l’usage observé, n’a besoin d’aucun auteur. Une grammaire trop chère à écrire précisément pour un lecteur strict devient assez bon marché pour être écrite à grands traits pour un lecteur tolérant.</p>
+</section>
+<section id="doù-vient-la-grammaire" class="level2">
+<h2 class="anchored" data-anchor-id="doù-vient-la-grammaire">5. D’où vient la grammaire</h2>
+<p>Si les relations doivent devenir des données, les premières questions sont : d’où viennent-elles, et qui les garde ? Je vois quatre sources. Elles diffèrent par leur coût, par la confiance qu’elles méritent et par leur propriétaire.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Schéma. Quatre sources d’arêtes entre outils, ce en quoi chacune est bonne ou mauvaise, le type de confiance qu’elle mérite, et qui la garde."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig04.png" class="img-fluid figure-img" alt="Quatre fiches. « Computed, from types » (calculées, à partir des types) : l'outputSchema de A correspond à l'inputSchema de B ; bon marché et automatique, vérifiable, ne trouve que le flux de données ; confiance : « checked » (vérifiée) ; dérivées par n'importe quel lecteur. « Declared, by authors » (déclarées, par les auteurs) : « pay requires approve », « schedule is an alternative » ; connaissent l'intention, partielles parce que les auteurs ne voient qu'un côté, peuvent être intéressées ; confiance : « claimed » (affirmée) ; publiées par le serveur. « Observed, from use » (observées, à l'usage) : les chemins que les agents ont réellement suivis, avec des poids ; montrent ce qui se passe vraiment, demandent un historique, privées par défaut ; confiance : « measured » (mesurée) ; gardées par le client. « Imposed, by the organisation » (imposées, par l'organisation) : les paires qui ne doivent jamais s'exécuter dans une même tâche ; encodent les règles, petites et délibérées, l'emportent sur le reste ; confiance : « enforced » (appliquée) ; détenues par la passerelle."></a></p>
+<figcaption><strong>Figure 4.</strong> Schéma. Quatre sources d’arêtes entre outils, ce en quoi chacune est bonne ou mauvaise, le type de confiance qu’elle mérite, et qui la garde.</figcaption>
+</figure>
+</div>
+<section id="calculées-à-partir-des-types" class="level3">
+<h3 class="anchored" data-anchor-id="calculées-à-partir-des-types">5.1 Calculées à partir des types</h3>
+<p>Depuis sa révision de juin 2025, MCP permet à un outil de déclarer un <code>outputSchema</code>, la forme de ce qu’il renvoie, à côté de son <code>inputSchema</code> <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025c)</span>. Cela suffit pour dériver certaines arêtes sans que personne ne déclare rien. Si un outil renvoie un <code>payment_id</code> et qu’un autre en exige un, le premier <em>alimente</em> probablement le second.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Schéma, avec mes propres schémas d’exemple. Un identifiant créé par un outil et exigé par un autre est un indice fort d’une arête feeds. Un champ générique partagé comme amount ne l’est pas."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig05.png" class="img-fluid figure-img" alt="Deux fiches de schéma. À gauche, pay_supplier_invoice, outputSchema : payment_id string, amount number, currency string, paid_at date-time. À droite, post_ledger_entry, inputSchema obligatoire : payment_id string, account string, amount number. Une épaisse flèche verte relie les deux champs payment_id, avec la mention « feeds via payment_id ». Une fine flèche grise relie les deux champs amount, avec la mention « same name, too weak alone » (même nom, trop faible seul). Une note indique qu'un identifiant qu'un outil crée et qu'un autre exige est un indice fort ; un champ générique partagé ne l'est pas."></a></p>
+<figcaption><strong>Figure 5.</strong> Schéma, avec mes propres schémas d’exemple. Un identifiant créé par un outil et exigé par un autre est un indice fort d’une arête <em>feeds</em>. Un champ générique partagé comme <code>amount</code> ne l’est pas.</figcaption>
+</figure>
+</div>
+<p>Les arêtes calculées sont bon marché, et n’importe qui peut les dériver : le client, une passerelle, un catalogue. Elles sont aussi vérifiables, puisqu’un test peut confirmer que la sortie d’un outil correspond toujours à l’entrée de l’autre. Leurs limites sont réelles. Elles trouvent le flux de données, pas l’intention ; les noms de champs sont bruités ; et les schémas de sortie sont facultatifs dans MCP. Je n’ai pas mesuré combien de serveurs publics les déclarent aujourd’hui. S’ils sont peu nombreux, cette source est une promesse plutôt qu’une ressource, et le premier pas concret est simplement de publier des schémas de sortie.</p>
+</section>
+<section id="déclarées-par-les-auteurs" class="level3">
+<h3 class="anchored" data-anchor-id="déclarées-par-les-auteurs">5.2 Déclarées par les auteurs</h3>
+<p>Certaines relations, seul l’auteur les connaît. Que payer exige d’abord une approbation. Que <code>schedule_payment</code> est une alternative au paiement immédiat. Qu’un outil est d’ordinaire suivi d’une notification. Ce sont des énoncés courts, et MCP permet déjà à un outil de porter des métadonnées supplémentaires où ils pourraient vivre. Ils appartiennent au serveur et voyagent avec ses outils.</p>
+<p>Les arêtes déclarées portent l’intention, qu’aucune autre source n’a. Elles sont aussi partielles, puisqu’un auteur ne voit que son côté d’un workflow, et elles peuvent être intéressées : chaque serveur a une raison de déclarer des arêtes vers lui-même.</p>
+</section>
+<section id="observées-à-lusage" class="level3">
+<h3 class="anchored" data-anchor-id="observées-à-lusage">5.3 Observées à l’usage</h3>
+<p>Chaque agent trace déjà la grammaire à chaque exécution. Si les clients gardaient les chemins qu’ils ont suivis, ils pourraient compter quels outils sont utilisés ensemble et transformer ces comptes en poids. C’est la source la plus fidèle : elle montre ce qui se passe réellement, y compris des partenaires que personne n’avait pensé à déclarer.</p>
+<p>C’est aussi la plus sensible. Ce que font les agents d’une organisation est privé, si bien que les arêtes observées appartiennent au client et restent dans l’organisation par défaut, partagées au plus sous forme de poids agrégés. Les compter de la même manière partout demande un format de traces commun. Il pourrait faire partie de MCP, ou être une convention dans un standard de traçage existant comme OpenTelemetry ; ce qui compte, c’est qu’il soit partagé.</p>
+</section>
+<section id="imposées-par-lorganisation" class="level3">
+<h3 class="anchored" data-anchor-id="imposées-par-lorganisation">5.4 Imposées par l’organisation</h3>
+<p>Une grammaire ne dit pas seulement ce qui va ensemble. Elle peut aussi dire ce qui ne doit pas aller ensemble. La « trifecta létale » de Simon Willison nomme une combinaison dangereuse : un agent qui lit des données privées, est exposé à du contenu non fiable et peut communiquer vers l’extérieur <span class="citation" data-cites="willison2025">(Willison 2025)</span>. Chaque outil peut être sûr seul ; le danger est dans la combinaison. Une organisation devrait pouvoir l’écrire comme une règle, <em>excludes</em> (exclut), et la faire appliquer.</p>
+<p>Cette règle n’appartient à aucun serveur. Un fournisseur publie ses outils ; il ne décide pas de ce que votre entreprise interdit. Les arêtes de règles appartiennent au client ou à la passerelle placée entre les agents et les serveurs, et elles l’emportent sur toutes les autres sources.</p>
+</section>
+</section>
+<section id="une-grammaire-à-deux-niveaux" class="level2">
+<h2 class="anchored" data-anchor-id="une-grammaire-à-deux-niveaux">6. Une grammaire à deux niveaux</h2>
+<p>Une grammaire, au sens linguistique, ne relie pas des mots précis. Elle travaille sur des <em>catégories</em> de mots : un verbe prend un complément, un adjectif s’accorde avec un nom. Les mots précis qui apparaissent habituellement ensemble, « café serré » plutôt que « café pressé », s’appellent des <em>collocations</em>, et on les apprend par l’usage. Une grammaire d’outils a besoin des deux niveaux.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 1.</strong> Les deux niveaux d’une grammaire d’outils, par analogie avec la langue.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Dans la langue</th>
+<th>Pour les outils</th>
+<th>Exemple</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>les parties du discours</td>
+<td>les rôles : le genre de chose que fait un outil</td>
+<td><em>approuve</em>, <em>paie</em>, <em>convertit</em>, <em>notifie</em>, <em>lit des données privées</em></td>
+</tr>
+<tr class="even">
+<td>les règles de grammaire</td>
+<td>les relations entre rôles</td>
+<td>tout ce qui <em>paie</em> exige quelque chose qui <em>approuve</em></td>
+</tr>
+<tr class="odd">
+<td>les collocations</td>
+<td>les relations entre outils nommés, avec des poids</td>
+<td>cet outil de paiement s’utilise d’ordinaire avec ce convertisseur (0,71)</td>
+</tr>
+<tr class="even">
+<td>une phrase</td>
+<td>le chemin d’une tâche</td>
+<td>approuver, convertir, payer, comptabiliser, prévenir</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Schéma, avec des poids illustratifs. À gauche : des règles sur des rôles, écrites une fois sur des types d’outils ; elles valent pour des outils que personne n’a encore utilisés. À droite : des habitudes d’outils nommés, apprises à l’usage ; elles sont précises pour le travail connu et muettes pour le travail nouveau."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig06.png" class="img-fluid figure-img" alt="Deux panneaux. À gauche, « Level 1, grammar rules, rules over roles » (niveau 1, règles de grammaire, règles sur des rôles) : pays requires approves ; returns payment_id feeds needs payment_id ; pays used with notifies ; reads private data excludes sends externally. Une note : écrites une fois, sur des types d'outils, valent pour des outils que personne n'a encore utilisés. À droite, « Level 2, collocations, habits of named tools » (niveau 2, collocations, habitudes d'outils nommés) : pay_supplier_invoice vers fx-rates convert, 0.71 ; pay_supplier_invoice vers mail send_message, 0.64 ; create_contract vers sign request_signature, 0.88 ; book_meeting vers calendar find_slot, 0.93. Une note : apprises à l'usage, sur des outils précis, précises pour le travail connu, muettes pour le travail nouveau."></a></p>
+<figcaption><strong>Figure 6.</strong> Schéma, avec des poids illustratifs. À gauche : des règles sur des rôles, écrites une fois sur des types d’outils ; elles valent pour des outils que personne n’a encore utilisés. À droite : des habitudes d’outils nommés, apprises à l’usage ; elles sont précises pour le travail connu et muettes pour le travail nouveau.</figcaption>
+</figure>
+</div>
+<p>Les deux niveaux échouent de façons opposées, et c’est pourquoi il faut les deux. Les collocations sont précises pour le travail qu’une organisation fait déjà, et elles ne disent rien d’un outil installé hier ni d’un workflow que personne n’a exécuté. Les règles sur des rôles s’appliquent tout de suite aux nouveaux outils, mais elles sont grossières : elles disent qu’un paiement exige <em>une</em> approbation, pas laquelle. Un nouvel outil qui déclare ses rôles trouve sa place dans la grammaire le jour où il apparaît ; l’usage affine ensuite les règles en collocations.</p>
+<p>MCP a déjà l’ébauche d’un système de rôles. Les annotations d’outils disent si un outil est en lecture seule, destructeur, idempotent, ou s’il atteint le monde extérieur <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025c)</span>. Ce sont des parties du discours, sauf le nom. La règle de la trifecta létale, par exemple, peut déjà s’écrire en partie avec elles : un outil qui atteint le monde extérieur ne devrait pas s’exécuter dans la même tâche qu’un outil qui lit des données privées. Ce qui manque, c’est une courte liste partagée de rôles au-delà de ces annotations, et une façon d’écrire des règles sur eux.</p>
+<section id="un-vocabulaire-de-départ" class="level3">
+<h3 class="anchored" data-anchor-id="un-vocabulaire-de-départ">6.1 Un vocabulaire de départ</h3>
+<p>Cinq relations sont un point de départ raisonnable. Elles ne couvriront pas tout (des conditions comme « si ceci échoue, utiliser l’alternative », ou un ordre au-delà de <em>requires</em>, viendraient ensuite), mais elles couvrent beaucoup.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 2.</strong> Un vocabulaire de départ proposé pour les relations, utilisable entre rôles ou entre outils nommés.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Relation</th>
+<th>Sens</th>
+<th>Source typique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>requires</strong> (exige)</td>
+<td>doit s’être exécuté avant</td>
+<td>déclarée</td>
+</tr>
+<tr class="even">
+<td><strong>feeds</strong> (alimente)</td>
+<td>sa sortie est l’entrée de l’autre</td>
+<td>calculée</td>
+</tr>
+<tr class="odd">
+<td><strong>used with</strong> (utilisé avec)</td>
+<td>souvent dans la même tâche</td>
+<td>observée</td>
+</tr>
+<tr class="even">
+<td><strong>alternative</strong></td>
+<td>peut remplacer l’autre</td>
+<td>déclarée</td>
+</tr>
+<tr class="odd">
+<td><strong>excludes</strong> (exclut)</td>
+<td>ne doit pas s’exécuter dans la même tâche</td>
+<td>règle</td>
+</tr>
+</tbody>
+</table>
+<p>Chaque relation peut pointer vers un rôle ou vers un outil nommé, et chaque arête dit d’où elle vient, pour qu’un lecteur puisse la pondérer.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig07.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Une proposition de ma part, qui ne fait pas partie de MCP. Ce qu’un serveur publierait pour un outil : les annotations que MCP a déjà, une liste de rôles, des règles sur des rôles et des arêtes vers des outils nommés, dans le champ _meta que la spécification permet déjà. Les poids observés et les règles de l’organisation ne sont pas publiés ici : le client et la passerelle les gardent."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig07.png" class="img-fluid figure-img" alt="Un panneau de code sombre montrant une entrée JSON pour un outil nommé pay_supplier_invoice, avec une description, des schémas, les annotations destructiveHint true et openWorldHint true, et un objet _meta avec roles : pays, et une liste grammar : requires role approves ; usedWith role converts ; requires tool approve_invoice ; alternative tool schedule_payment. Quatre fiches expliquent : les parties du discours que MCP a déjà, les annotations comme début d'un système de rôles ; les rôles, une courte liste partagée ; les règles sur des rôles, qui s'appliquent à des outils jamais vus ; les arêtes vers des outils nommés, le savoir local de l'auteur, avec des noms uniques par serveur, qui ont donc besoin d'un registre. Une note en dessous indique que les poids observés sont gardés par le client et les règles par la passerelle."></a></p>
+<figcaption><strong>Figure 7.</strong> Une proposition de ma part, qui ne fait pas partie de MCP. Ce qu’un serveur publierait pour un outil : les annotations que MCP a déjà, une liste de rôles, des règles sur des rôles et des arêtes vers des outils nommés, dans le champ <code>_meta</code> que la spécification permet déjà. Les poids observés et les règles de l’organisation ne sont pas publiés ici : le client et la passerelle les gardent.</figcaption>
+</figure>
+</div>
+</section>
+<section id="ce-dont-le-protocole-a-besoin-et-ce-dont-il-na-pas-besoin" class="level3">
+<h3 class="anchored" data-anchor-id="ce-dont-le-protocole-a-besoin-et-ce-dont-il-na-pas-besoin">6.2 Ce dont le protocole a besoin, et ce dont il n’a pas besoin</h3>
+<p>Ce dont MCP lui-même aurait besoin est peu de chose :</p>
+<ol type="1">
+<li><strong>Une place pour les relations.</strong> Aujourd’hui une convention dans <code>_meta</code>, que MCP permet déjà sur les outils <span class="citation" data-cites="mcpspec2025">(Model Context Protocol 2025c)</span> ; plus tard un champ à part entière, si la convention se révèle utile. Les groupes d’outils, s’ils sont adoptés, sont un foyer naturel pour les règles qui valent à l’intérieur d’un groupe.</li>
+<li><strong>Un vocabulaire partagé.</strong> Une courte liste de rôles, et les cinq relations ci-dessus.</li>
+<li><strong>Des noms stables.</strong> Voir plus bas.</li>
+<li><strong>Une façon commune de compter l’usage.</strong> Dans MCP ou dans une convention de traçage existante.</li>
+</ol>
+<p>La voie pour un tel changement existe : MCP évolue par des propositions d’amélioration publiques, et depuis décembre 2025 le protocole est confié à l’Agentic AI Foundation plutôt qu’à une seule entreprise <span class="citation" data-cites="anthropic2025aaif">(Anthropic 2025a)</span>. Une convention dans <code>_meta</code> peut d’abord être essayée par quelques serveurs et clients, puis proposée une fois qu’elle a montré son utilité.</p>
+<p>Ce qu’il ne devrait <em>pas</em> inclure est tout aussi important : une manière particulière d’utiliser les relations. La façon dont un client classe les outils, parcourt le graphe ou charge un voisinage est l’affaire du client. MCP doit porter la grammaire, pas décider comment la lire.</p>
+</section>
+<section id="les-arêtes-sont-locales-les-noms-ne-le-sont-pas" class="level3">
+<h3 class="anchored" data-anchor-id="les-arêtes-sont-locales-les-noms-ne-le-sont-pas">6.3 Les arêtes sont locales ; les noms ne le sont pas</h3>
+<p>Tout cela pourrait-il vivre plutôt dans un registre central ? Pour la composition, je ne le pense pas. Les premiers annuaires du web rangeaient les pages dans des dossiers, et ont été dépassés par une recherche qui lisait les <em>liens</em> que les pages portaient elles-mêmes <span class="citation" data-cites="brin1998">(Brin et Page 1998)</span>. Les liens ont fonctionné parce que chaque page publiait les siens et que personne n’avait à tenir la carte <span class="citation" data-cites="fielding2000">(Fielding 2000)</span>. MCP est aujourd’hui un web de pages sans liens, et chaque outil devrait porter les siens.</p>
+<p>Mais l’analogie avec le web coupe dans les deux sens. Les liens n’avaient pas besoin de carte centrale, mais ils avaient besoin d’un système central de <em>noms</em> : une URL n’est utile que parce que le DNS dit ce qu’est un domaine. C’est la même chose ici. Une arête vers « l’outil <code>convert</code> du serveur <code>fx-rates</code> » n’a de sens que si <code>fx-rates</code> désigne le même serveur pour tout le monde, et les noms d’outils MCP ne sont uniques qu’à l’intérieur d’un serveur ; la révision de novembre 2025 a ajouté des conseils sur la façon de nommer les outils, pas un moyen de les nommer d’un serveur à l’autre <span class="citation" data-cites="mcpspec20251125">(Model Context Protocol 2025d)</span>. Les règles sur des rôles évitent le problème, ce qui est une raison de plus de les préférer. Les arêtes vers des outils nommés sur d’autres serveurs ont besoin d’un registre qui donne aux serveurs des identités stables, et le MCP Registry est le candidat évident <span class="citation" data-cites="mcpregistry2025">(Model Context Protocol 2025a)</span>. La position honnête est donc : les relations sont locales et décentralisées ; les noms ne le sont pas. C’est une couche modeste, pour l’identité, pas une couche qui détient la grammaire.</p>
+</section>
+</section>
+<section id="emprunter-aux-réseaux-de-neurones" class="level2">
+<h2 class="anchored" data-anchor-id="emprunter-aux-réseaux-de-neurones">7. Emprunter aux réseaux de neurones</h2>
+<p>Ma première idée pour cet essai était de traiter l’écosystème des outils comme un réseau de neurones : les outils comme neurones, les arêtes comme synapses, et un réseau de neurones sur graphe <span class="citation" data-cites="gilmer2017">(Gilmer et al. 2017)</span> qui décide quels outils s’activent pour chaque tâche. J’en ai construit un dans une petite simulation. Il fonctionnait, mais pas mieux qu’un simple parcours le long des arêtes, et il peinait sur des workflows qu’il n’avait jamais vus, exactement là où les règles sur des rôles aident. Ce qui a survécu, ce n’est pas le réseau. Ce sont les principes.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig08.png" class="lightbox" data-gallery="quarto-lightbox-gallery-8" title="Figure 8. Schéma. À gauche : dans un réseau de neurones, peu d’unités s’activent pour une entrée donnée. À droite : la même idée appliquée aux outils. Deux tâches allument deux petits voisinages d’une même grammaire ; la plus grande partie du catalogue reste éteinte."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig08.png" class="img-fluid figure-img" alt="À gauche, un petit réseau de neurones à trois couches avec des connexions grises ; quelques neurones sont remplis en orange et reliés par des connexions orange, avec la mention « weights learned, few units fire per input » (poids appris, peu d'unités s'activent par entrée). À droite, six groupes d'outils en pointillés nommés invoices, currency, mail, documents, identity et calendar, avec des arêtes grises. La tâche A, payer une facture en euros et confirmer par mail, allume un chemin orange à travers invoices, currency et mail. La tâche B, signer un contrat et réserver la réunion, allume un chemin bleu-vert à travers documents, identity et calendar."></a></p>
+<figcaption><strong>Figure 8.</strong> Schéma. À gauche : dans un réseau de neurones, peu d’unités s’activent pour une entrée donnée. À droite : la même idée appliquée aux outils. Deux tâches allument deux petits voisinages d’une même grammaire ; la plus grande partie du catalogue reste éteinte.</figcaption>
+</figure>
+</div>
+<p>Les grands réseaux de neurones fonctionnent parce qu’ils reposent sur une poignée d’idées. Chacune devient une règle de conception pour une grammaire d’outils :</p>
+<table class="caption-top table">
+<caption><strong>Tableau 3.</strong> Cinq principes empruntés aux réseaux de neurones, et ce que chacun signifie pour une grammaire d’outils.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Concept</th>
+<th>Dans un réseau de neurones</th>
+<th>Comme règle de conception pour les outils</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Localité</strong></td>
+<td>une unité ne reçoit de messages que de ses voisines</td>
+<td>un outil ne connaît que ses voisins ; personne ne tient la carte globale</td>
+</tr>
+<tr class="even">
+<td><strong>Activation clairsemée</strong></td>
+<td>peu d’unités s’activent pour une entrée donnée <span class="citation" data-cites="olshausen2004 shazeer2017">(Olshausen et Field 2004; Shazeer et al. 2017)</span></td>
+<td>une tâche charge un voisinage, jamais le catalogue</td>
+</tr>
+<tr class="odd">
+<td><strong>Plasticité</strong></td>
+<td>les connexions qui s’activent ensemble se renforcent <span class="citation" data-cites="hebb1949">(Hebb 1949)</span></td>
+<td>les arêtes observées se renforcent avec l’usage et s’estompent sans lui</td>
+</tr>
+<tr class="even">
+<td><strong>Modularité</strong></td>
+<td>les modules sont assemblés différemment pour chaque question <span class="citation" data-cites="andreas2016">(Andreas et al. 2016)</span></td>
+<td>les groupes d’outils qui travaillent ensemble deviennent des unités, d’un serveur à l’autre</td>
+</tr>
+<tr class="odd">
+<td><strong>Filtrage</strong></td>
+<td>l’entrée décide quels chemins s’ouvrent</td>
+<td>la tâche décide quelles arêtes comptent : une arête <em>notifie</em> compte pour un paiement, pas pour un rapport</td>
+</tr>
+</tbody>
+</table>
+<p>L’activation clairsemée est celle qui rapporte le plus directement. Au lieu de chercher dans un catalogue de milliers d’outils, un agent trouve un bon outil de départ par le sens, puis charge son voisinage : une poignée d’outils dont la grammaire dit qu’ils vont avec lui. La recherche trouve la porte ; la grammaire montre les pièces qui sont derrière.</p>
+<p>La modularité est là où trouve sa place ma première intuition d’<em>intrication</em>. Certains groupes d’outils ne peuvent pas se comprendre un par un : ce qui se passe dans la facturation en dit long sur ce qui va se passer dans la conversion de devises et la messagerie, quoi que dise la description de chaque outil. Les physiciens appellent <em>intriqués</em> les systèmes qu’on ne peut pas décrire partie par partie <span class="citation" data-cites="horodecki2009">(Horodecki et al. 2009)</span>. Rien de quantique ne se passe dans un catalogue d’outils, et les mathématiques utiles ici sont de la statistique ordinaire. Mais l’intuition tient. L’unité de conception n’est plus l’outil isolé. C’est le groupe d’outils qui travaillent ensemble, qu’on peut retrouver à partir des arêtes elles-mêmes <span class="citation" data-cites="newman2006">(Newman 2006)</span>. Les groupes et les skills sont de telles unités, dessinées à la main. Une grammaire les laisse émerger de l’usage et franchir les frontières entre serveurs.</p>
+</section>
+<section id="qui-lit-la-grammaire" class="level2">
+<h2 class="anchored" data-anchor-id="qui-lit-la-grammaire">8. Qui lit la grammaire</h2>
+<p>L’argument le plus fort en faveur des relations comme données est celui que j’ai avancé pour les descriptions d’outils : une fois qu’une chose est une donnée, beaucoup de lecteurs peuvent s’en servir, et la plupart n’ont pas besoin d’IA.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-10-30-a-grammar-for-tools/figures/fig09.png" class="lightbox" data-gallery="quarto-lightbox-gallery-9" title="Figure 9. Schéma. Une grammaire, six lecteurs. Seul le modèle de langage a besoin d’IA ; un petit routeur appris est une optimisation facultative pour plus tard."><img src="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig09.png" class="img-fluid figure-img" alt="Une fiche verte au centre, « Tool grammar, data » (grammaire d'outils, des données) : arêtes typées, sources, poids. Six lecteurs autour. « Language model », a besoin d'IA : charge un voisinage, pas le catalogue. « Workflow engine », sans IA : exécute un chemin connu sans modèle. « Policy gateway », sans IA : bloque les paires que la grammaire exclut. « Contract tests », sans IA : vérifie que chaque arête feeds est toujours cohérente en types. « Catalogue », sans IA : montre comment les outils se combinent, pas seulement ce qu'ils font. « Small router », facultatif : appris plus tard, une fois que les mêmes routes se répètent."></a></p>
+<figcaption><strong>Figure 9.</strong> Schéma. Une grammaire, six lecteurs. Seul le modèle de langage a besoin d’IA ; un petit routeur appris est une optimisation facultative pour plus tard.</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>Le modèle de langage</strong> est le lecteur principal. Il n’a pas besoin d’une fonction de classement plus intelligente ; il a besoin des quelques bons outils dans son contexte. Face à un outil et à son voisinage, un modèle raisonne bien mieux que face à une liste de milliers d’outils. C’est aussi le lecteur qui tolère une grammaire imparfaite, et c’est ce qui distingue cette tentative de la précédente.</li>
+<li><strong>Un moteur de workflow</strong> peut exécuter un chemin que la grammaire connaît déjà, sans aucun modèle.</li>
+<li><strong>Une passerelle de règles</strong> peut bloquer tout appel qui compléterait une paire <em>exclue</em> dans la même tâche.</li>
+<li><strong>Des tests de contrat</strong> peuvent vérifier, à chaque version, que chaque arête <em>feeds</em> est toujours cohérente en types.</li>
+<li><strong>Un catalogue</strong> peut montrer aux gens comment les outils se combinent, pas seulement ce que fait chacun.</li>
+<li><strong>Un petit routeur appris</strong> peut venir plus tard, une fois que les mêmes décisions de routage se répètent assez souvent pour valoir la peine d’être compilées, comme je l’ai soutenu dans <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a> et dans <a href="../../../fr/posts/2026-10-18-the-junior-colleague/index.html">Le collègue junior</a>. C’est une optimisation, pas le paradigme.</li>
+</ul>
+</section>
+<section id="objections" class="level2">
+<h2 class="anchored" data-anchor-id="objections">9. Objections</h2>
+<p><strong>« Gardez MCP petit. La composition appartient aux clients et aux skills. »</strong> C’est l’objection la plus forte. Ma réponse est que les skills et les groupes prouvent le besoin : chaque skill contient une grammaire faite à la main, et chaque groupe est un ensemble d’outils dont quelqu’un a décidé qu’ils vont ensemble. Mais les skills sont écrites par un seul auteur et vivent chez un seul fournisseur, et les groupes ne disent rien de l’ordre ni du flux de données. Une courte liste de rôles et cinq relations coûteraient peu au protocole. Les laisser de côté garantit que chaque client invente sa propre version, et qu’aucun ne peut lire celle des autres.</p>
+<p><strong>« C’est encore le web sémantique. »</strong> Dans l’ambition, oui. Dans l’économie, non. Le web sémantique demandait des descriptions précises, écrites par des personnes pour des machines strictes. Une grammaire d’outils peut partir de ce qui est gratuit (les schémas et l’usage observé), ajouter un peu de ce que savent les auteurs, et être lue par un modèle qui s’accommode des lacunes.</p>
+<p><strong>« Une recherche entraînée sur l’usage règle déjà le problème, sans changer le protocole. »</strong> COLT et Tool2Vec montrent qu’apprendre de l’usage bat la comparaison des descriptions <span class="citation" data-cites="qu2024colt moon2024tool2vec">(Qu et al. 2024; Moon et al. 2024)</span>, et je suis d’accord. Mais ce qu’ils apprennent reste à l’intérieur d’un seul moteur de recherche : on ne peut ni le partager entre clients, ni le vérifier face aux schémas, ni le soumettre aux règles de l’organisation, ni le faire lire par un moteur de workflow. Une grammaire ne remplace pas la recherche apprise. Elle lui donne un endroit où écrire ce qu’elle a trouvé, et quelque chose dont partir le premier jour.</p>
+<p><strong>« Arazzo fait déjà cela. »</strong> Arazzo décrit des workflows fixes sur des opérations OpenAPI. Les outils MCP ne sont pas des opérations OpenAPI, et un workflow fixe n’aide pas un agent à en construire un nouveau. Arazzo est un bon format pour les phrases ; une grammaire est ce qui rend de nouvelles phrases possibles.</p>
+<p><strong>« Le modèle peut déduire la complémentarité tout seul. »</strong> Souvent, oui. Un modèle sait que payer en euros peut demander une conversion de devises. Il ne sait pas que <em>votre</em> entreprise exige <code>approve_invoice</code> avant tout paiement, ni que votre outil de comptabilité doit suivre votre outil de paiement. Les conventions locales sont exactement ce qu’une grammaire consigne. Elle épargne aussi les tokens et le temps nécessaires pour les redécouvrir à chaque exécution.</p>
+<p><strong>« Les arêtes déclarées seront manipulées. »</strong> Certaines, oui. C’est pourquoi chaque arête nomme sa source. Un client peut faire confiance aux arêtes calculées et aux arêtes de règles, réduire le poids des arêtes déclarées par des serveurs qu’il ne connaît pas, et laisser les poids observés corriger les deux. Une arête déclarée que personne ne suit jamais s’estompe.</p>
+<p><strong>« Les arêtes observées révèlent ce que nous faisons. »</strong> Elles devraient rester chez le client par défaut. Le protocole n’a besoin que d’une façon commune de compter ; partager des poids agrégés est un choix, pas une obligation.</p>
+<p><strong>« La structure va enfermer le modèle. »</strong> La force du catalogue plat est qu’un modèle peut tracer un chemin que personne n’avait prévu. Une grammaire devrait décider ce qu’on montre d’abord, pas ce qui est permis, sauf pour les règles <em>excludes</em> qu’une organisation impose délibérément.</p>
+<p><strong>« Les arêtes vont se périmer. »</strong> Les outils changent. Des arêtes versionnées avec leurs outils, des arêtes calculées revérifiées à chaque version, et des poids observés qui décroissent sans usage limitent les dégâts. Le catalogue plat ne se périme jamais, mais il n’apprend jamais non plus.</p>
+</section>
+<section id="ce-qui-me-donnerait-tort" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-me-donnerait-tort">10. Ce qui me donnerait tort</h2>
+<ul>
+<li><strong>Si les fenêtres de contexte et la recherche d’outils progressent plus vite que les catalogues</strong>, si bien qu’un agent peut toujours lire chaque description pertinente, alors la grammaire ajoute de la maintenance et peu d’autre chose.</li>
+<li><strong>Si les vraies descriptions d’outils portent le signal de complémentarité</strong>, si bien que « payer une facture » se trouve en pratique près de « passer une écriture comptable » dans l’espace des représentations, alors la recherche par le sens ferait l’essentiel du travail. Cela peut se mesurer sur de vrais serveurs et de vraies traces.</li>
+<li><strong>Si les arêtes calculées se révèlent rares ou bruitées</strong>, la source la moins chère disparaît. C’est facile à vérifier : compter combien de serveurs MCP publics déclarent des schémas de sortie, en dériver des arêtes <em>feeds</em>, et voir combien une personne en accepterait.</li>
+<li><strong>Si les liens OpenAPI restent inutilisés dans MCP pour les mêmes raisons</strong>, le problème est une question d’incitations, pas l’absence d’un champ, et un champ seul n’y changera rien.</li>
+<li><strong>Si une recherche entraînée sur l’usage, comme Tool2Vec ou COLT, comble l’écart que mesurent des bancs d’essai comme LiveMCPBench</strong>, sans aucune relation partagée, alors la valeur de la grammaire se réduit aux règles et à l’audit.</li>
+<li><strong>Si les groupes, les skills et les workflows explicites (à la manière d’Arazzo) couvrent le travail fréquent</strong>, le gain d’une grammaire partagée se réduirait à la longue traîne. Je soupçonne que c’est dans la traîne que se trouve une grande partie de la valeur, mais c’est une hypothèse.</li>
+</ul>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">11. Conclusion</h2>
+<p>MCP a réussi le plus difficile. Il a fait de chaque outil une définition que tout appelant peut lire. Ce qu’il a laissé de côté, pour de bonnes raisons au départ, c’est la façon dont les définitions se combinent. Aujourd’hui, chaque agent reconstruit ce savoir dans sa fenêtre de contexte et le jette à la fin de l’exécution.</p>
+<p>Ce qui manque n’est ni une nouvelle couche centrale, ni un réseau entraîné. C’est une petite grammaire à deux niveaux : des règles sur des types d’outils, qui valent pour des outils que personne n’a encore utilisés, et des habitudes d’outils précis, apprises à l’usage. Les relations peuvent être calculées à partir des schémas, déclarées par les serveurs, observées par les clients et imposées par l’organisation, et chacune devrait dire d’où elle vient. L’idée est ancienne ; OpenAPI, Arazzo et le web sémantique en ont tenté des parties. Ce qui est nouveau, c’est un lecteur capable d’utiliser une grammaire bon marché, partielle et imparfaite. Les idées qui permettent aux réseaux de neurones de passer à l’échelle nous disent comment cette grammaire doit se comporter, et nous pouvons les emprunter sans construire de réseau.</p>
+<p>Un dictionnaire permet de chercher des mots. Une grammaire permet de dire quelque chose. MCP a le premier. Le second est ce dont les grands écosystèmes d’outils ont maintenant besoin.</p>
+<div class="discuss">
+<p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-andreas2016" class="csl-entry">
+Andreas, Jacob, Marcus Rohrbach, Trevor Darrell, et Dan Klein. 2016. <span>«&nbsp;Neural Module Networks&nbsp;»</span>. <em>IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</em>. <a href="https://arxiv.org/abs/1511.02799">https://arxiv.org/abs/1511.02799</a>.
+</div>
+<div id="ref-anthropic2025aaif" class="csl-entry">
+Anthropic. 2025a. <em>Donating the Model Context Protocol and establishing the Agentic AI Foundation</em>. <a href="https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation">https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation</a>.
+</div>
+<div id="ref-anthropic2025skills" class="csl-entry">
+Anthropic. 2025b. <em>Equipping agents for the real world with Agent Skills</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills">https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills</a>.
+</div>
+<div id="ref-anthropic2025advtools" class="csl-entry">
+Anthropic. 2025c. <em>Introducing advanced tool use on the Claude Developer Platform</em>. Anthropic Engineering. <a href="https://www.anthropic.com/engineering/advanced-tool-use">https://www.anthropic.com/engineering/advanced-tool-use</a>.
+</div>
+<div id="ref-brin1998" class="csl-entry">
+Brin, Sergey, et Lawrence Page. 1998. <span>«&nbsp;The Anatomy of a Large-Scale Hypertextual Web Search Engine&nbsp;»</span>. <em>Computer Networks and ISDN Systems</em> 30 (1–7): 107‑17. <a href="https://doi.org/10.1016/S0169-7552(98)00110-X">https://doi.org/10.1016/S0169-7552(98)00110-X</a>.
+</div>
+<div id="ref-wsmo2005" class="csl-entry">
+<span class="nocase">Bruijn, Jos de et al.</span> 2005. <em>Web Service Modeling Ontology (<span>WSMO</span>)</em>. W3C Member Submission. <a href="https://www.w3.org/submissions/WSMO/">https://www.w3.org/submissions/WSMO/</a>.
+</div>
+<div id="ref-fei2025mcpzero" class="csl-entry">
+Fei, Xiang, Xiawu Zheng, et Hao Feng. 2025. <span>«&nbsp;<span>MCP-Zero</span>: Proactive Toolchain Construction for <span>LLM</span> Agents from Scratch&nbsp;»</span>. <em>arXiv preprint arXiv:2506.01056</em>. <a href="https://arxiv.org/abs/2506.01056">https://arxiv.org/abs/2506.01056</a>.
+</div>
+<div id="ref-fielding2000" class="csl-entry">
+Fielding, Roy Thomas. 2000. <span>«&nbsp;Architectural Styles and the Design of Network-based Software Architectures&nbsp;»</span>. Thèse de doctorat, University of California, Irvine. <a href="https://ics.uci.edu/~fielding/pubs/dissertation/top.htm">https://ics.uci.edu/~fielding/pubs/dissertation/top.htm</a>.
+</div>
+<div id="ref-gan2025" class="csl-entry">
+Gan, Tiantian, et Qiyao Sun. 2025. <span>«&nbsp;<span>RAG-MCP</span>: Mitigating Prompt Bloat in <span>LLM</span> Tool Selection via Retrieval-Augmented Generation&nbsp;»</span>. <em>arXiv preprint arXiv:2505.03275</em>. <a href="https://arxiv.org/abs/2505.03275">https://arxiv.org/abs/2505.03275</a>.
+</div>
+<div id="ref-gilmer2017" class="csl-entry">
+Gilmer, Justin, Samuel S. Schoenholz, Patrick F. Riley, Oriol Vinyals, et George E. Dahl. 2017. <span>«&nbsp;Neural Message Passing for Quantum Chemistry&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/1704.01212">https://arxiv.org/abs/1704.01212</a>.
+</div>
+<div id="ref-hebb1949" class="csl-entry">
+Hebb, Donald O. 1949. <em>The Organization of Behavior: A Neuropsychological Theory</em>. Wiley.
+</div>
+<div id="ref-horodecki2009" class="csl-entry">
+Horodecki, Ryszard, Paweł Horodecki, Michał Horodecki, et Karol Horodecki. 2009. <span>«&nbsp;Quantum entanglement&nbsp;»</span>. <em>Reviews of Modern Physics</em> 81 (2): 865‑942. <a href="https://doi.org/10.1103/RevModPhys.81.865">https://doi.org/10.1103/RevModPhys.81.865</a>.
+</div>
+<div id="ref-linden2003" class="csl-entry">
+Linden, Greg, Brent Smith, et Jeremy York. 2003. <span>«&nbsp;Amazon.com Recommendations: Item-to-Item Collaborative Filtering&nbsp;»</span>. <em>IEEE Internet Computing</em> 7 (1): 76‑80. <a href="https://doi.org/10.1109/MIC.2003.1167344">https://doi.org/10.1109/MIC.2003.1167344</a>.
+</div>
+<div id="ref-liu2024toolnet" class="csl-entry">
+Liu, Xukun, Zhiyuan Peng, Xiaoyuan Yi, et al. 2024. <span>«&nbsp;<span>ToolNet</span>: Connecting Large Language Models with Massive Tools via Tool Graph&nbsp;»</span>. <em>arXiv preprint arXiv:2403.00839</em>. <a href="https://arxiv.org/abs/2403.00839">https://arxiv.org/abs/2403.00839</a>.
+</div>
+<div id="ref-lumer2025graphrag" class="csl-entry">
+<span class="nocase">Lumer, Elias et al.</span> 2025. <span>«&nbsp;Graph <span>RAG</span>-Tool Fusion&nbsp;»</span>. <em>arXiv preprint arXiv:2502.07223</em>. <a href="https://arxiv.org/abs/2502.07223">https://arxiv.org/abs/2502.07223</a>.
+</div>
+<div id="ref-owls2004" class="csl-entry">
+Martin, David, Mark Burstein, Jerry Hobbs, et al. 2004. <em><span>OWL-S</span>: Semantic Markup for Web Services</em>. W3C Member Submission. <a href="https://www.w3.org/submissions/OWL-S/">https://www.w3.org/submissions/OWL-S/</a>.
+</div>
+<div id="ref-mcauley2015" class="csl-entry">
+McAuley, Julian, Rahul Pandey, et Jure Leskovec. 2015. <span>«&nbsp;Inferring Networks of Substitutable and Complementary Products&nbsp;»</span>. <em>Proceedings of the 21st ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, 785‑94. <a href="https://doi.org/10.1145/2783258.2783381">https://doi.org/10.1145/2783258.2783381</a>.
+</div>
+<div id="ref-mo2025livemcpbench" class="csl-entry">
+Mo, Guozhao, Wenliang Zhong, Jiawei Chen, et al. 2025. <span>«&nbsp;<span>LiveMCPBench</span>: Can Agents Navigate an Ocean of <span>MCP</span> Tools?&nbsp;»</span> <em>arXiv preprint arXiv:2508.01780</em>. <a href="https://arxiv.org/abs/2508.01780">https://arxiv.org/abs/2508.01780</a>.
+</div>
+<div id="ref-mcpregistry2025" class="csl-entry">
+Model Context Protocol. 2025a. <em>Introducing the <span>MCP</span> Registry</em>. <a href="https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/">https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/</a>.
+</div>
+<div id="ref-mcpspec20250326" class="csl-entry">
+Model Context Protocol. 2025b. <em>Model Context Protocol Specification, version 2025-03-26: Key Changes</em>. <a href="https://modelcontextprotocol.io/specification/2025-03-26/changelog">https://modelcontextprotocol.io/specification/2025-03-26/changelog</a>.
+</div>
+<div id="ref-mcpspec2025" class="csl-entry">
+Model Context Protocol. 2025c. <em>Model Context Protocol Specification, version 2025-06-18</em>. <a href="https://modelcontextprotocol.io/specification/2025-06-18">https://modelcontextprotocol.io/specification/2025-06-18</a>.
+</div>
+<div id="ref-mcpspec20251125" class="csl-entry">
+Model Context Protocol. 2025d. <em>Model Context Protocol Specification, version 2025-11-25: Key Changes</em>. <a href="https://modelcontextprotocol.io/specification/2025-11-25/changelog">https://modelcontextprotocol.io/specification/2025-11-25/changelog</a>.
+</div>
+<div id="ref-sep1300" class="csl-entry">
+Model Context Protocol. 2025e. <em><span>SEP-1300</span>: Tool Filtering with Groups and Tags</em>. GitHub issue, modelcontextprotocol/modelcontextprotocol. <a href="https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300">https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1300</a>.
+</div>
+<div id="ref-mcproadmap2026" class="csl-entry">
+Model Context Protocol. 2026. <em>The 2026 <span>MCP</span> Roadmap</em>. <a href="https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/">https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/</a>.
+</div>
+<div id="ref-moon2024tool2vec" class="csl-entry">
+Moon, Suhong, Siddharth Jha, Lutfi Eren Erdogan, et al. 2024. <span>«&nbsp;Efficient and Scalable Estimation of Tool Representations in Vector Space&nbsp;»</span>. <em>arXiv preprint arXiv:2409.02141</em>. <a href="https://arxiv.org/abs/2409.02141">https://arxiv.org/abs/2409.02141</a>.
+</div>
+<div id="ref-newman2006" class="csl-entry">
+Newman, Mark E. J. 2006. <span>«&nbsp;Modularity and community structure in networks&nbsp;»</span>. <em>Proceedings of the National Academy of Sciences</em> 103 (23): 8577‑82. <a href="https://doi.org/10.1073/pnas.0601602103">https://doi.org/10.1073/pnas.0601602103</a>.
+</div>
+<div id="ref-olshausen2004" class="csl-entry">
+Olshausen, Bruno A., et David J. Field. 2004. <span>«&nbsp;Sparse coding of sensory inputs&nbsp;»</span>. <em>Current Opinion in Neurobiology</em> 14 (4): 481‑87. <a href="https://doi.org/10.1016/j.conb.2004.07.007">https://doi.org/10.1016/j.conb.2004.07.007</a>.
+</div>
+<div id="ref-openapi30links" class="csl-entry">
+OpenAPI Initiative. 2017. <em>OpenAPI Specification, version 3.0.0: Link Object</em>. <a href="https://spec.openapis.org/oas/v3.0.0#link-object">https://spec.openapis.org/oas/v3.0.0#link-object</a>.
+</div>
+<div id="ref-arazzo2024" class="csl-entry">
+OpenAPI Initiative. 2024. <em>The Arazzo Specification, version 1.0.0</em>. <a href="https://spec.openapis.org/arazzo/v1.0.0.html">https://spec.openapis.org/arazzo/v1.0.0.html</a>.
+</div>
+<div id="ref-qu2024colt" class="csl-entry">
+Qu, Changle, Sunhao Dai, Xiaochi Wei, et al. 2024. <span>«&nbsp;<span>COLT</span>: Towards Completeness-Oriented Tool Retrieval for Large Language Models&nbsp;»</span>. <em>Proceedings of the 33rd ACM International Conference on Information and Knowledge Management (CIKM)</em>. <a href="https://arxiv.org/abs/2405.16089">https://arxiv.org/abs/2405.16089</a>.
+</div>
+<div id="ref-shazeer2017" class="csl-entry">
+Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, et al. 2017. <span>«&nbsp;Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1701.06538">https://arxiv.org/abs/1701.06538</a>.
+</div>
+<div id="ref-shen2024taskbench" class="csl-entry">
+Shen, Yongliang, Kaitao Song, Xu Tan, et al. 2024. <span>«&nbsp;<span>TaskBench</span>: Benchmarking Large Language Models for Task Automation&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track</em>. <a href="https://arxiv.org/abs/2311.18760">https://arxiv.org/abs/2311.18760</a>.
+</div>
+<div id="ref-wang2025mcpbench" class="csl-entry">
+Wang, Zhenting, Qi Chang, Hemani Patel, et al. 2025. <span>«&nbsp;<span>MCP-Bench</span>: Benchmarking Tool-Using <span>LLM</span> Agents with Complex Real-World Tasks via <span>MCP</span> Servers&nbsp;»</span>. <em>arXiv preprint arXiv:2508.20453</em>. <a href="https://arxiv.org/abs/2508.20453">https://arxiv.org/abs/2508.20453</a>.
+</div>
+<div id="ref-agentsjson2025" class="csl-entry">
+Wildcard AI. 2025. <em>agents.json: an open specification for <span>AI</span> agents to use <span>APIs</span></em>. GitHub, wild-card-ai/agents-json. <a href="https://github.com/wild-card-ai/agents-json">https://github.com/wild-card-ai/agents-json</a>.
+</div>
+<div id="ref-willison2025" class="csl-entry">
+Willison, Simon. 2025. <em>The lethal trifecta for <span>AI</span> agents: private data, untrusted content, and external communication</em>. <a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/">https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Une grammaire pour les outils},
+  date = {2026-10-30},
+  url = {https://scuenat.github.io/fr/posts/2026-10-30-a-grammar-for-tools/},
+  langid = {fr}
+}
+</code></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Une grammaire pour les outils.”</span>
+October 30. <a href="https://scuenat.github.io/fr/posts/2026-10-30-a-grammar-for-tools/">https://scuenat.github.io/fr/posts/2026-10-30-a-grammar-for-tools/</a>.
+</div></div></section></div> ]]></description>
+  <category>essai</category>
+  <category>ia</category>
+  <category>agents</category>
+  <category>architecture</category>
+  <category>mcp</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-10-30-a-grammar-for-tools/</guid>
+  <pubDate>Fri, 30 Oct 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-10-30-a-grammar-for-tools/figures/fig02.png" medium="image" type="image/png" height="66" width="144"/>
+</item>
+<item>
   <title>L’outil et la main</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
   <link>https://scuenat.github.io/fr/posts/2026-10-30-the-tool-and-the-hand/</link>
