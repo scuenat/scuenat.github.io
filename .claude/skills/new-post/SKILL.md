@@ -86,7 +86,7 @@ grep -o 'kind-badge kind-[a-z]*' _site/index.html | head -3   # the new post's b
 
 If Quarto is missing, download `https://github.com/quarto-dev/quarto-cli/releases/download/v1.6.42/quarto-1.6.42-linux-amd64.tar.gz` into the scratchpad and run `quarto-1.6.42/bin/quarto`. Also check the post page for unresolved citations (`grep -c '?@' _site/posts/<slug>/index.html` → 0) and that every figure file exists.
 
-Before publishing, follow the **review-draft** skill without being asked: send the full draft here as screenshots of the page exactly as the site will render it, with every figure, and wait for their approval. Repeat after every revision. Skip it only if the user asked to publish without review. Until approval, keep the draft on a `draft/<slug>` branch, never on `main`.
+Before publishing, follow the **review-draft** skill without being asked: send the full draft here as one PDF of the page exactly as the site will render it, with every figure, and wait for their approval. Repeat after every revision. Skip it only if the user asked to publish without review. Until approval, keep the draft on a `draft/<slug>` branch, never on `main`.
 
 ## 7. Publish directly to main
 
