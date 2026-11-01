@@ -1,0 +1,129 @@
+---
+title: "Les mathématiques à venir"
+subtitle: "L'apprentissage automatique repose sur des mathématiques anciennes, et il fonctionne avant qu'on le comprenne. Comme la machine à vapeur, il attend son Carnot"
+description: "Les mathématiques de l'IA sont surtout anciennes et empruntées. Elles construisent les machines sans les expliquer. Quelles mathématiques nouvelles faudra-t-il ?"
+date: 2026-11-01
+citation: true
+bibliography: ../../../posts/2026-11-01-the-mathematics-still-to-come/references.bib
+toc-depth: 2
+categories: [essai, ia, mathématiques, science, essai-de-réflexion]
+kind: essay   # card marker: essay | analysis | note | position
+topics: [mathematics]   # home-page theme tiles (index.qmd)
+image: ../../../posts/2026-11-01-the-mathematics-still-to-come/figures/fig02.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essai, novembre 2026.** Un court essai spéculatif. La première moitié décrit les mathématiques qu'utilise aujourd'hui l'apprentissage automatique, avec leurs sources. La seconde devine les mathématiques dont il pourrait avoir besoin ensuite ; ces suppositions sont les miennes, et je les signale comme des intuitions. Je suis un ingénieur qui utilise ces mathématiques, pas un mathématicien qui les invente. Les deux figures sont des frises schématiques de ma main, tracées avec [figs.py](../../../posts/2026-11-01-the-mathematics-still-to-come/figs.py). Les figures sont en anglais. *Traduit automatiquement de l'anglais ; quelques erreurs sont possibles. [Version originale](../../../posts/2026-11-01-the-mathematics-still-to-come/index.qmd).*
+:::
+
+**En bref.** Si l'on ouvre un modèle d'IA moderne, on y trouve très peu de mathématiques nouvelles. La dérivation des fonctions composées, les matrices, la descente de gradient, les probabilités et la distribution de Boltzmann ont presque toutes été écrites avant 1950, la plupart au XIX^e^ siècle. Cette vieille boîte à outils suffit à *construire* et à *entraîner* ces systèmes. Elle ne suffit pas à les *expliquer* : pourquoi ils généralisent alors que la théorie classique ne donne aucune raison qu'ils le fassent, pourquoi leur erreur décroît selon des lois de puissance régulières, pourquoi des compétences apparaissent soudainement, ce qui se passe à l'intérieur. Nous avons déjà connu cela. Les machines à vapeur ont tourné pendant un siècle avant que la thermodynamique les explique, et quand cette explication est venue, c'étaient des mathématiques et une physique nouvelles, pas un meilleur manuel pour les machines. Mon intuition est que l'apprentissage automatique attend son Carnot. Les mathématiques dont il a besoin sont, je le soupçonne, des mathématiques des systèmes très grands et très typiques : des lois macroscopiques de l'apprentissage, une géométrie du sens, une théorie des modèles singuliers et des transitions brusques, des garanties pour des objets que nous n'avons pas conçus, et la dynamique de machines qui apprennent d'un monde qu'elles ont déjà changé.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## À retenir
+
+- Les mathématiques de l'IA sont surtout anciennes : calcul différentiel, algèbre linéaire, probabilités, optimisation, théorie de l'information. L'apprentissage automatique les a empruntées ; il ne les a pas inventées.
+- Ces mathématiques suffisent à construire les machines. Elles n'expliquent pas pourquoi elles fonctionnent.
+- L'histoire suggère un schéma : la machine vient d'abord, les mathématiques qui l'expliquent viennent ensuite, et elles sont nouvelles.
+- Mon intuition : les mathématiques qui manquent portent sur les grands systèmes typiques. Lois macroscopiques, géométrie des représentations, singularités et transitions de phase, garanties, et boucles de rétroaction.
+- L'IA peut nous aider à démontrer. Choisir les concepts qui rendent un domaine compréhensible reste la part la plus difficile, et la plus humaine.
+:::
+
+## 1. Ouvrir la boîte
+
+Démontez un grand modèle de langage jusqu'aux mathématiques, et ce que vous trouvez est étonnamment ancien.
+
+Le modèle est une longue chaîne de multiplications de matrices, l'algèbre qu'Arthur Cayley a exposée en 1858 [@cayley1858]. Entre elles se trouvent de simples fonctions non linéaires. À la fin, une fonction appelée softmax transforme des scores en probabilités ; c'est la formule même que Ludwig Boltzmann utilisait en 1868 pour la répartition de l'énergie entre les molécules d'un gaz [@boltzmann1868]. Le nombre qui la règle s'appelle toujours la température. L'entraînement mesure à quel point le modèle est surpris par le mot suivant, une quantité qui vient de la théorie de la communication de Claude Shannon, en 1948 [@shannon1948]. Il réduit ensuite cette surprise pas à pas par descente de gradient, qu'Augustin-Louis Cauchy a proposée en 1847 pour des calculs astronomiques [@cauchy1847]. Le gradient lui-même se calcule avec la règle de dérivation des fonctions composées, qui remonte à Leibniz [@leibniz1684]. La rétropropagation, popularisée en 1986 comme méthode pour entraîner des réseaux [@rumelhart1986], est cette même règle organisée habilement pour pouvoir parcourir des milliards de paramètres.
+
+Le seul ingrédient qui semble nouveau est l'attention [@vaswani2017] : chaque mot regarde les autres et décide combien prendre de chacun. Mathématiquement, c'est une moyenne pondérée, dont les poids sont donnés par un softmax de produits scalaires. La conception est nouvelle et brillante. Les mathématiques, non.
+
+Ce n'est pas une critique. Un manuel de référence, *Mathematics for Machine Learning*, couvre ce dont un ingénieur a besoin en quatre parties : algèbre linéaire, géométrie analytique, calcul différentiel et probabilités, avec un peu d'optimisation [@deisenroth2020]. Rien de tout cela n'aurait surpris un bon étudiant de 1950.
+
+![**Figure 1.** Les dates usuelles de première publication des principaux outils mathématiques d'un modèle moderne. Presque tous précèdent les machines qui les utilisent ; les deux points orange sont des manières d'*utiliser* des mathématiques anciennes, pas des mathématiques nouvelles. Schéma, de moi ; dates tirées des références.](../../../posts/2026-11-01-the-mathematics-still-to-come/figures/fig01.png){fig-alt="Une frise horizontale d'environ 1660 à 2040. Des points bleus marquent des outils mathématiques avec leur date : « Differential calculus » de Leibniz en 1684, « Bayes' rule » en 1763, « Least squares » de Legendre en 1805, « Gradient descent » de Cauchy en 1847, « Matrices » de Cayley en 1858, « The Boltzmann distribution (softmax) » en 1868, « Markov chains » en 1906 et « Information theory, entropy » de Shannon en 1948. Une bande ombrée à partir de 1950, intitulée « the era of learning machines », contient deux points orange : « Backpropagation as a training method » en 1986 et « Attention, Transformer » en 2017."}
+
+## 2. Assez pour construire, pas pour expliquer
+
+Les mathématiques anciennes suffisent donc à *construire* ces machines. Les difficultés commencent quand on leur demande de les *expliquer*.
+
+Voici quatre choses que font les systèmes d'IA réels et dont la théorie classique rend mal compte.
+
+**Ils généralisent alors qu'ils ne devraient pas.** La théorie classique de l'apprentissage prévient qu'un modèle ayant bien plus de paramètres que d'exemples d'entraînement peut simplement mémoriser ses données, et ses garanties ne disent alors rien des cas nouveaux. Les réseaux modernes ont bien plus de paramètres que d'exemples, et ils généralisent quand même. Dans une expérience célèbre, Zhang et ses collègues ont montré que des réseaux standard peuvent mémoriser parfaitement des images aux étiquettes *aléatoires*, ce qui prouve qu'ils ont la capacité de surapprendre ; pourtant, avec les vraies étiquettes, ils généralisent bien [@zhang2017]. Quelle que soit l'explication, ce ne sont pas les bornes de capacité du manuel. Belkin et ses collègues ont ensuite montré que l'erreur de test, à mesure que les modèles grandissent, peut se dégrader puis s'améliorer de nouveau, une « double descente » que le tableau classique ne prévoyait pas [@belkin2019].
+
+**Leur erreur suit des lois que nous n'avons pas déduites.** Quand on agrandit les modèles de langage, leur erreur décroît selon des lois de puissance régulières en fonction du nombre de paramètres, de la quantité de données et du calcul, sur plusieurs ordres de grandeur [@kaplan2020]. Ces lois sont mesurées, pas déduites. Et elles peuvent être révisées : deux ans plus tard, une autre équipe a trouvé que le meilleur équilibre entre taille du modèle et données était assez différent de ce que suggéraient les premières lois [@hoffmann2022]. Une loi qu'on ne peut que mesurer, et dont les constantes bougent quand quelqu'un mesure plus soigneusement, est le signe que la théorie sous-jacente manque.
+
+**Leurs compétences apparaissent soudainement.** Dans certains entraînements, un réseau mémorise tôt son jeu d'entraînement, ne montre longtemps aucun signe de compréhension, puis, bien plus tard, généralise brusquement. Les chercheurs qui l'ont décrit l'ont appelé *grokking* [@power2022]. Des changements de comportement soudains quand on fait varier une grandeur continue, c'est ce que les physiciens appellent des transitions de phase. Nous les observons dans l'apprentissage ; nous n'avons pas encore de bonne théorie de quand et pourquoi elles se produisent.
+
+**Nous ne savons pas ce qu'il y a dedans.** Les chercheurs en interprétabilité constatent que les réseaux semblent stocker plus de concepts qu'ils n'ont de dimensions, en les rangeant selon des directions presque perpendiculaires, un phénomène appelé superposition [@elhage2022]. De petites modifications invisibles d'une entrée peuvent renverser la réponse d'un modèle [@szegedy2014]. Nous pouvons mesurer tout cela. Nous ne savons pas encore le prédire à partir de principes premiers.
+
+Rien de cela ne veut dire que personne ne travaille sur la théorie. Il existe des travaux profonds et beaux : le noyau tangent neuronal décrit les réseaux très larges [@jacot2018] ; la physique statistique est appliquée à l'apprentissage depuis des décennies [@bahri2020] ; il existe désormais un livre entier qui construit une théorie effective des réseaux profonds à partir du rapport entre profondeur et largeur [@roberts2022]. Mais je crois juste de dire qu'aujourd'hui la pratique a beaucoup d'avance sur la théorie, et que chaque morceau de théorie explique un réseau simplifié plutôt que les systèmes que nous utilisons vraiment.
+
+## 3. La machine avant la théorie
+
+Nous avons déjà vu cela, et le précédent est encourageant.
+
+La machine à vapeur de Thomas Newcomen pompait l'eau des mines dès 1712. Le condenseur séparé de James Watt, qui l'a rendue efficace, date de 1769. Les machines ont alimenté une révolution industrielle. Et pendant tout ce temps, personne ne savait dire ce qu'était fondamentalement une machine thermique, ni ce qui limitait son rendement. La réponse est venue en 1824, quand Sadi Carnot, un jeune ingénieur français, s'est demandé combien de travail on pouvait, en principe, tirer de la chaleur [@carnot1824]. De sa question est née la thermodynamique. Clausius a nommé l'entropie en 1865 [@clausius1865]. En 1877, Boltzmann l'a expliquée comme un dénombrement : l'entropie mesure combien d'arrangements microscopiques sont compatibles avec ce que l'on voit à l'échelle macroscopique [@boltzmann1877].
+
+![**Figure 2.** Les machines à vapeur ont tourné plus d'un siècle avant que la thermodynamique les explique. Les machines qui apprennent sont construites et utilisées depuis le perceptron ; l'explication reste ouverte. Les deux lignes partagent la même échelle de temps. Schéma, de moi ; dates tirées des références.](../../../posts/2026-11-01-the-mathematics-still-to-come/figures/fig02.png){fig-alt="Deux frises sur la même échelle de temps. La ligne du haut, « Engines », montre des points orange pour « Newcomen's engine » en 1712 et « Watt's condenser » en 1769, puis des points verts pour « Carnot » en 1824, « Clausius: entropy » en 1865 et « Boltzmann: entropy as counting » en 1877. La ligne du bas, « Learning machines », montre des points orange pour « Perceptron » en 1958, « Backpropagation » en 1986 et « Deep nets win » en 2012, suivis d'un cercle en pointillés avec un point d'interrogation intitulé « our Carnot »."}
+
+Trois choses dans cette histoire comptent pour nous.
+
+D'abord, la machine est venue en premier. La pratique a mené, et la théorie a suivi avec plus d'un siècle de retard. Ce n'est pas un scandale ; c'est ainsi qu'une grande partie de la science a fonctionné.
+
+Ensuite, la théorie était *nouvelle*. La thermodynamique n'était pas un meilleur manuel d'ingénierie pour les machines. Elle introduisait des concepts, comme l'entropie et la température au sens moderne, qui n'existaient pas auparavant, et ils se sont révélés importants bien au-delà des machines : en chimie, en biologie, en théorie de l'information.
+
+Enfin, le geste décisif a été de cesser de regarder les parties. Personne n'a expliqué la machine en suivant chaque molécule de vapeur. L'intuition de Boltzmann était que, quand les molécules sont assez nombreuses, quelques grandeurs macroscopiques obéissent à des lois exactes, *parce que* les détails microscopiques se compensent. Le grand nombre n'était pas l'obstacle. C'était la solution.
+
+Ce troisième point est, je crois, le plus important pour l'apprentissage automatique. Nos modèles ont des milliards de paramètres, et nous essayons sans cesse de les comprendre paramètre par paramètre, neurone par neurone. Peut-être que, comme la vapeur, ils seront plutôt compris par les lois qui n'apparaissent qu'à grande échelle.
+
+Le même schéma traverse l'histoire des mathématiques. Fourier a inventé ses séries pour résoudre le problème de la propagation de la chaleur [@fourier1822]. Fisher a inventé une grande partie de la statistique moderne pour analyser des expériences agricoles [@fisher1925]. Shannon a inventé la théorie de l'information pour résoudre un problème d'ingénierie des communications [@shannon1948]. Les physiciens ont utilisé la fonction delta de Dirac pendant environ deux décennies avant que Laurent Schwartz lui donne un cadre rigoureux avec sa théorie des distributions [@schwartz1950]. Un besoin pratique a poussé, et des mathématiques nouvelles sont apparues. Parfois, c'est l'inverse, et les mathématiques attendent : la géométrie de Riemann existait soixante ans avant qu'Einstein en ait besoin pour la gravitation. Eugene Wigner a parlé de la « déraisonnable efficacité » des mathématiques [@wigner1960]. L'apprentissage automatique connaîtra probablement les deux : des mathématiques empruntées à des étagères où elles attendaient, et d'autres inventées parce que rien sur les étagères ne convient.
+
+## 4. Cinq mathématiques dont nous pourrions avoir besoin
+
+Ce qui suit, ce sont des intuitions. Chacune désigne un vrai manque, et chacune s'entoure déjà de premiers travaux, mais personne ne sait encore laquelle, s'il en est une, deviendra un domaine. Je les énumère parce que je crois que la forme des mathématiques qui manquent est déjà visible, même si leur contenu ne l'est pas.
+
+**Une thermodynamique de l'apprentissage.** Les lois d'échelle sont à l'IA ce que la loi de Boyle était aux gaz : une régularité empirique, précise et utile, sans déduction derrière elle. Il nous faut l'équivalent de la théorie cinétique : des mathématiques qui partent de ce que fait l'entraînement à l'échelle microscopique et en déduisent les lois macroscopiques, avec leurs constantes, et qui disent quand elles cesseront de valoir. Cela demandera probablement de nouvelles grandeurs macroscopiques, les équivalents de la température et de l'entropie pour un réseau en cours d'entraînement, qui résument des milliards de paramètres en une poignée de nombres. La physique statistique a commencé ce travail [@bahri2020; @roberts2022]. Ce qui manque, c'est une théorie valable pour les systèmes que nous entraînons réellement, pas seulement pour des systèmes idéalisés.
+
+**Une géométrie du sens.** À l'intérieur d'un réseau, les concepts semblent vivre comme des directions dans un espace de milliers de dimensions, rangés plus densément que les dimensions ne devraient le permettre [@elhage2022]. La géométrie en grande dimension est étrange : dans de tels espaces, presque toutes les directions sont presque perpendiculaires, et c'est exactement ce qui permet à tant de concepts de coexister. Nous avons déjà un « apprentissage profond géométrique » qui utilise la symétrie et la théorie des groupes pour concevoir des réseaux [@bronstein2021]. Ce qui nous manque, ce sont des mathématiques des représentations que les réseaux *apprennent* d'eux-mêmes : comment les concepts se combinent, comment le sens se compose, quelles symétries approchées émergent des données. Je soupçonne qu'il faudra une géométrie des structures souples et approchées, où les objets exacts de la géométrie classique deviennent statistiques.
+
+**Une théorie des singularités et des changements brusques.** La statistique classique suppose que chaque réglage des paramètres d'un modèle donne un comportement différent, et que près du meilleur réglage le paysage ressemble à une cuvette lisse. Les réseaux de neurones violent ces deux hypothèses : beaucoup de réglages différents donnent la même fonction, et le paysage est plein de points singuliers. Sumio Watanabe a montré que, pour de tels modèles singuliers, la bonne mesure de complexité n'est pas le nombre de paramètres mais une quantité issue de la géométrie algébrique, et que la calculer fait appel à la résolution des singularités de Hironaka, un résultat profond de 1964 [@watanabe2009; @hironaka1964]. C'est un cas frappant de mathématiques qui attendaient sur une étagère. Mon intuition est que c'est le début d'une théorie plus vaste, qui expliquerait le *grokking* et d'autres sauts soudains de capacité comme des transitions entre régions singulières, et prédirait quand ils se produisent.
+
+**Des mathématiques des garanties pour ce que nous n'avons pas conçu.** L'ingénierie s'est toujours appuyée sur des preuves à propos de choses que nous avions conçues : ce pont supporte cette charge, ce programme se termine. Un réseau entraîné n'a pas été conçu ligne par ligne. Il a poussé. Nous voulons énoncer des garanties à son sujet : qu'il ne fera pas certaines choses, que ses réponses restent dans une borne, qu'une petite modification de l'entrée ne renversera pas sa décision. Les mathématiques dont nous disposons pour prouver les propriétés des programmes ne sont pas faites pour des objets de cette taille et de cette nature. Vérifier une fonction apprise demandera peut-être un nouveau mélange de logique, de probabilités et de géométrie : des énoncés vrais non pas avec certitude mais avec une confiance quantifiée, sur des fonctions que personne n'a écrites.
+
+**Une dynamique des machines en boucle.** Les modèles sont de plus en plus entraînés sur des textes écrits par des modèles précédents, et ils agissent dans un monde que leurs sorties ont déjà changé. L'entraînement récursif sur des données générées peut faire perdre aux modèles les parties rares de la distribution d'origine, une défaillance appelée effondrement des modèles [@shumailov2024]. Plus largement, de nombreux systèmes apprenants apprennent désormais les uns des autres, et de personnes qui apprennent d'eux. C'est un système dynamique d'apprenants, plus proche de l'écologie ou de l'économie que des jeux de données figés de la théorie classique. Ses mathématiques, le comportement à long terme de populations d'apprenants qui se nourrissent des sorties les uns des autres, existent à peine.
+
+Ces cinq-là ont quelque chose en commun. Aucune ne porte sur un petit réseau isolé. Toutes portent sur le comportement typique à grande échelle : ce qui se passe quand il y a énormément de paramètres, énormément d'exemples, énormément de systèmes en interaction. C'est pourquoi je reviens sans cesse à Boltzmann. Les mathématiques qui nous manquent sont, je le soupçonne, des mathématiques du grand nombre.
+
+## 5. Deux objections
+
+La première objection est que nous n'aurons peut-être besoin de rien de tout cela. La « leçon amère » de Richard Sutton est que, sur soixante-dix ans, les méthodes générales qui exploitent plus de calcul ont battu les méthodes fondées sur l'intuition humaine [@sutton2019]. L'ingénierie est arrivée là sans théorie. Pourquoi en aurait-elle besoin maintenant ?
+
+Je la prends au sérieux, et je crois qu'elle a raison pour ce qui est de *construire*. La leçon amère dit que nos idées astucieuses sur la façon de résoudre une tâche perdent face à l'échelle. Elle ne dit pas que comprendre pourquoi l'échelle fonctionne est inutile. Les machines à vapeur se sont améliorées pendant des décennies par essais et erreurs ; la thermodynamique a ensuite dit aux ingénieurs où étaient les limites, et ce qu'il fallait cesser d'essayer. Il nous faudra la même chose : savoir ce qu'un système ne peut pas faire, jusqu'où une tendance peut aller, et ce qui pourrait se passer à l'intérieur que nous n'aimerions pas. Seule la théorie peut répondre à ces questions. Et, comme je l'ai soutenu dans [Pas parce que c'est utile](../2026-11-01-not-because-it-is-useful/index.qmd), vouloir comprendre n'est pas seulement un moyen d'obtenir de meilleures machines. C'est une raison en soi.
+
+La seconde objection est l'inverse : l'IA inventera ces mathématiques pour nous. Il y a du vrai. En 2024, des systèmes de Google DeepMind ont résolu quatre des six problèmes des Olympiades internationales de mathématiques, au niveau d'une médaille d'argent [@deepmind2024]. Les machines deviennent de vrais partenaires pour la démonstration.
+
+Mais une démonstration n'est pas toutes les mathématiques. L'étape la plus difficile, dans les histoires ci-dessus, n'a jamais été la preuve. C'était le *concept* : l'idée de Carnot d'une machine idéale, celle de Boltzmann que l'entropie est un dénombrement, la décision de Shannon de mesurer l'information sans se soucier du sens. Chacun était un choix de ce qu'il fallait regarder, fait parce qu'il rendait tout un domaine soudain compréhensible. Les machines pourraient bien aider aussi pour cela, et je ne parierais pas contre. Mais un concept n'est utile que si quelqu'un peut penser avec, et le test des nouvelles mathématiques sera de savoir si *nous* comprenons davantage grâce à elles. Cette part restera, je le soupçonne, une collaboration.
+
+## 6. Ce qui en découle pour nous autres
+
+Si vous travaillez avec l'apprentissage automatique sans projet d'inventer des mathématiques, trois choses en découlent, je crois.
+
+Apprenez bien les mathématiques anciennes. L'algèbre linéaire, les probabilités et le calcul différentiel ne sont pas un obstacle à franchir avant la partie intéressante ; ce sont la langue dans laquelle tout le reste, y compris les mathématiques nouvelles, sera écrit.
+
+Soyez attentif aux endroits où les mathématiques anciennes cèdent. Quand un résultat vous surprend, quand un modèle généralise mieux qu'il ne devrait, ou échoue soudain, ou qu'une courbe s'infléchit là où aucune théorie ne l'annonçait, vous êtes au bord de la carte. C'est de là que viendront les mathématiques nouvelles. Ces surprises valent la peine d'être notées.
+
+Et gardez un peu d'humilité face aux explications. Beaucoup des histoires que nous racontons sur les raisons pour lesquelles les modèles fonctionnent sont, aujourd'hui, des histoires. De bonnes histoires, parfois. Mais nous sommes dans la position des ingénieurs de 1800 : excellents pour construire des machines, et assez honnêtes pour admettre que nous ne savons pas encore ce qu'elles sont.
+
+La machine à vapeur a tourné un siècle avant que quelqu'un lui pose la bonne question. Quand Carnot l'a posée, la réponse est allée bien au-delà des machines. Je ne sais pas qui sera le Carnot de l'apprentissage automatique, ni si ce sera une personne, ou une personne travaillant avec une machine. Mais je soupçonne que les mathématiques qui expliqueront ces systèmes compteront bien au-delà d'eux, comme la thermodynamique. Les machines que nous avons construites sont, entre autres choses, une question adressée aux mathématiques. Elles n'ont pas encore répondu.
+
+::: {.read-next}
+**À lire ensuite** · [Pas parce que c'est utile](../2026-11-01-not-because-it-is-useful/index.qmd)
+L'IA sait suivre la méthode scientifique mieux que nous. Ce qui a fait avancer la science n'a jamais été seulement la méthode, ni seulement la réponse.
+:::
+
+::: {.small}
+*Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.*
+:::
+
+## Références
+
+::: {#refs}
+:::
