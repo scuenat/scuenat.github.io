@@ -52,6 +52,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/bootstrap/bootstrap-6dccd288967f51d567783deeef304dd6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/bootstrap/bootstrap-dark-35e88fdfe19c7c91a897956fc75de01f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <link href="site_libs/bootstrap/bootstrap-6dccd288967f51d567783deeef304dd6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -109,11 +112,13 @@ ul.task-list li input[type="checkbox"] {
 
 <meta property="og:title" content="TEDx – AI, Honestly">
 <meta property="og:description" content="Watch Stéphane Cuenat’s TEDx talk on AI, and read the essay written alongside it.">
-<meta property="og:image" content="https://scuenat.github.io/social-card.jpg">
+<meta property="og:image" content="https://scuenat.github.io/images/tedx-delemont-stage.jpg">
 <meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:alt" content="Stéphane Cuenat standing on the red circle of the TEDxDelémont stage, the talk title projected on the screen behind him.">
 <meta name="twitter:title" content="TEDx – AI, Honestly">
 <meta name="twitter:description" content="Watch Stéphane Cuenat’s TEDx talk on AI, and read the essay written alongside it.">
-<meta name="twitter:image" content="https://scuenat.github.io/social-card.jpg">
+<meta name="twitter:image" content="https://scuenat.github.io/images/tedx-delemont-stage.jpg">
+<meta name="twitter:image:alt" content="Stéphane Cuenat standing on the red circle of the TEDxDelémont stage, the talk title projected on the screen behind him.">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -384,13 +389,50 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="quarto-video ratio ratio-16x9"><iframe data-external="1" src="https://www.youtube.com/embed/uxu9kGQ51A4" title="Stéphane Cuenat at TEDx" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></div>
 <p><a href="https://youtu.be/uxu9kGQ51A4">Watch on YouTube</a> if the video doesn’t load here.</p>
-<div class="read-next">
-<p><strong>Read alongside</strong></p>
-<p><a href="https://medium.com/@stephane.cuenat/the-answer-you-cant-check-41f2ff3d9134"><em>The Answer You Can’t Check</em></a>, the essay I wrote at the time of the talk.</p>
+<section id="essay" class="level2">
+<h2 class="anchored" data-anchor-id="essay">The Answer You Can’t Check</h2>
+<p><em>The essay I wrote at the time of the talk.</em></p>
+<p><strong>AI is extraordinary—until it reaches the edge of what we know. And there, the most dangerous thing it can hand you is a convincing answer with nothing left to check it against.</strong></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="images/tedx-delemont-stage.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="On stage at TEDxDelémont"><img src="images/tedx-delemont-stage.jpg" class="img-fluid figure-img" alt="Stéphane Cuenat standing on the red circle of the TEDxDelémont stage, the talk title projected on the screen behind him."></a></p>
+<figcaption>On stage at TEDxDelémont</figcaption>
+</figure>
 </div>
+<p>A few months ago I was working on a problem in machine learning: deriving the upper and lower bounds of a classifier—the mathematical limits of how well it can possibly perform. It’s slow, careful work, the kind where a single wrong assumption quietly invalidates everything built on top of it.</p>
+<p>I used an AI model to help. And it did help—a lot. It also nearly cost me weeks. I want to be honest about that, because I suspect many people are quietly having the same experience and not saying it out loud.</p>
+<p>At one point it handed me a set of conjectures that were clean, well-motivated, and elegantly argued. They looked exactly like the kind of result the literature would produce. I started building on them. It was only later, checking by hand, that I realized they were subtly false—the form of a proof without the substance.</p>
+<p>That experience crystallized something I’ve come to believe is the real risk of these tools. It isn’t the hallucination you catch. A claim that’s obviously wrong is harmless; you discard it and move on. The dangerous failure mode is the plausible conjecture you don’t catch—the answer that’s credible enough to believe and false enough to lead you off a cliff. And at the frontier, where research actually lives, there is often nothing left to check it against. That, far more than unreliability, is the problem I want to talk about.</p>
+<section id="where-the-trouble-starts" class="level3">
+<h3 class="anchored" data-anchor-id="where-the-trouble-starts">Where the trouble starts</h3>
+<p>To understand why this happens, it helps to be precise about what these systems are extraordinarily good at, and where they quietly break.</p>
+<p>Large models are brilliant at recombining what already exists. Inside the space of everything they’ve seen—every paper, every proof, every pattern—they interpolate beautifully. Ask them for something that lives within that space, and they’ll produce it faster and more fluently than any human.</p>
+<p>The trouble starts at the edges. At extrapolation—the genuinely new—they don’t stop. They fill the gap with something that looks like the answer the existing literature would have produced. In most everyday tasks that’s fine, because the answer really does live inside the known space. But research, by definition, lives at the frontier—the business of reaching what doesn’t exist yet. And whether or not a model can occasionally reach that far, it has no way to tell a genuine reach from a confident guess. To the system, both feel identical.</p>
+<p>The model doesn’t know it has crossed from interpolation into invention. It has no internal signal that says <em>here, I am guessing</em>. It produces the plausible artifact with the same confidence it produces a correct one.</p>
+</section>
+<section id="the-missing-oracle" class="level3">
+<h3 class="anchored" data-anchor-id="the-missing-oracle">The missing oracle</h3>
+<p>There’s a deeper reason this is so hard to defend against, and it has nothing to do with the model being unreliable. It’s about verification.</p>
+<p>When you work on a known problem, you have an oracle. You can check the answer against an established result, a textbook, a dataset, a colleague who has done it before. The plausible-but-wrong answer gets caught because there’s ground truth to catch it.</p>
+<p>At the frontier, that oracle is gone. There is no established result, because the whole point is that the result is new. So when a system hands you a clean conjecture about something nobody has settled, what external truth do you check it against? Its internal consistency isn’t enough—a wrong idea can be perfectly self-consistent. That’s precisely what made my false conjectures so seductive: they hung together. They just weren’t true.</p>
+<p>This is the question I keep coming back to whenever someone announces that an AI has “discovered” something new. The interesting test of a discovery isn’t whether the model produced it, or even whether it’s elegant. It’s whether the discovery makes a prediction you can take back to the world and be proven wrong on. A model concise enough to generate a falsifiable experiment has an external oracle—reality itself. That’s the line between genuine discovery and a very clever fit. Without it, you have internal consistency dressed up as insight.</p>
+</section>
+<section id="the-compass-at-the-frontier" class="level3">
+<h3 class="anchored" data-anchor-id="the-compass-at-the-frontier">The compass at the frontier</h3>
+<p>It would be easy to read all of this as an argument that AI can’t do real science. It isn’t—I use these tools every day, and they make me faster and sharper. And I think betting against their reach is a mistake. These systems can sometimes arrive at genuinely novel points, and the line between sophisticated recombination and true extrapolation is blurrier than the skeptics like to admit. That line will keep moving, and I won’t bet against it.</p>
+<p>The harder, more durable gap is somewhere else. There are actually two halves to the frontier problem, and they belong together. The missing oracle is why you can’t check the answer once you have it. But there is a question that comes before that one: how do you know where to look at all? At the frontier there is no gradient to follow—no signal that says this direction is worth pursuing, or this elegant construct is actually true. What fills that gap, for a human, is intuition.</p>
+<p>I mean something specific, not mystical. Mathematicians routinely sense that a result is true long before they can prove it, and that conviction is what tells them where to spend the next six months. Physicists feel that an equation is “too ugly to be right.” That intuition isn’t magic; it’s a different and far richer kind of training—built from embodied experience, from transfer across unrelated domains, from years of being wrong in instructive ways. And crucially, it comes with calibrated doubt: a person at the edge of their knowledge usually knows when they’re guessing. Models can be made to express uncertainty too—but in my experience, it is precisely on the novel, plausible construct that this signal fails. The conjectures that nearly fooled me did not arrive flagged as guesses. They arrived looking like results.</p>
+<p>So the asymmetry I find genuinely hopeful isn’t that machines can’t reach the new. It’s that reaching the new—where nothing can be checked—still depends on a sense of direction the model doesn’t have: the judgment to choose which unknown is worth chasing, and the instinct to feel when a beautiful answer is hollow. The impossible has been human territory not because we compute our way there, but because we carry a compass for it.</p>
+<p>That’s not a limitation waiting to be patched in the next model generation. It’s a description of two different kinds of work. One is recombination—and maybe even genuine reach—at superhuman speed. The other is knowing where to point it, and knowing when you’ve actually arrived.</p>
+<p>So the posture I’ve landed on is simple, maybe even a little old-fashioned. For me, AI is a tool—and only a tool. Not a replacement for judgment, for expertise, or for the slow work of actually understanding a problem. So I challenge every output, because the convincing ones are the dangerous ones, and I try to never take the output as truth. Used with that in mind, it brings a lot. Used blindly, it’s a rendez-vous to fail. The rest—deciding what’s worth reaching for, and recognizing when you’ve actually arrived—is the part no model can do for me. That part I keep for myself.</p>
+<p>Keep the tool. Keep your head too.</p>
+<p>I made a version of this case on a TEDx stage—“The Impossible: A Springboard for Humans, a Frontier for AI.” If the argument here interests you, the talk goes a little further: it’s the video at the top of this page.</p>
+<hr>
 <p>Questions and counter-arguments about the talk are welcome: <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">find me on LinkedIn</a>.</p>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -855,6 +897,38 @@ ul.task-list li input[type="checkbox"] {
   document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
 })();
 </script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 
