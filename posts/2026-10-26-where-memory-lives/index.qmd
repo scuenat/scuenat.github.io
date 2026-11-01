@@ -10,6 +10,9 @@ categories: [essay, experiment, ai, local-ai, memory]
 kind: essay   # card marker: essay | analysis | note | position
 topics: [fast-ai]   # home-page theme tiles (index.qmd)
 image: figures/fig01.png
+updates:
+  - date: 2026-11-01
+    note: "New Section 9: six ideas from a reader (processing in memory, analog chips, on-chip SRAM, context compression, editable context, self-organising memory graphs), checked against the experiments."
 resources:
   - sim.py
   - figs.py
@@ -212,7 +215,44 @@ Agent memory systems are building the top of this stack: MemGPT, now Letta, page
 
 : **Table 1.** Recent work on the four memories. Code links checked on 25 October 2026. Benchmarks of agent memory systems are still young, and the vendors' own scores often disagree with independent ones; I would compare them on your own data.
 
-## 9. What this experiment does not show
+## 9. Six ideas from a reader
+
+After this essay came out, a reader sent me six technologies that, in their view, solve the memory problem. They deserve a careful answer, because each one attacks one of the four memories, and each changes a price measured above. I take them one at a time: what is right, what I would challenge, and what it does to the rule.
+
+**1. Processing in memory.** *Build the arithmetic inside the RAM, so data never has to travel.* This aims at the right target. Experiments 3 and 4 showed that generating a token is mostly a matter of reading bytes, and processing in memory attacks exactly that. It exists: Samsung built small compute units into HBM2 memory and ran unmodified applications on it [@lee2021pim]. AttAcc puts the attention over the KV cache there, because attention reads many bytes for each operation whatever the batch size [@park2024attacc].
+
+What I would challenge is "never". The data still moves, from the memory cells to small units next to the banks. These units are simple, and they suit the matrix-vector work of generating one token better than everything else. And they are not yet in the laptops this essay is about. Still, this is the one idea that could change my conclusion. If reading weights becomes much cheaper, a fact in the weights costs less, and the line between weights and lookup moves toward the weights. It does not change Experiment 2: a fact stored in weights is just as hard to edit, wherever the arithmetic happens.
+
+**2. Analog chips with memristors.** *Freeze the weights into analog circuits and compute at the speed of electricity.* Here a weight is a conductance, a multiplication is Ohm's law and a sum is Kirchhoff's. It works: IBM's analog chip, with 35 million phase-change memory devices, matched software accuracy on keyword spotting and came close on a larger speech model, at up to 12.4 trillion operations per second per watt [@ambrogio2023]. Phase-change memory is a close cousin of the memristor. ("Neuromorphic" usually means something else: chips that compute with spikes.)
+
+I would challenge "the speed of electricity". The gain is energy, because the weights never leave the array. The limits are elsewhere: converters between analog and digital, limited precision, and drift over time. The word "freeze" matters even more. Rewriting an analog weight is slower and less precise than writing a row in a table, and the larger model needed about three devices per weight, 45 million weights on 140 million devices. Analog weights are the extreme case of Experiment 2: ideal for what never changes, such as language and reasoning, and the worst place for a price list. This strengthens the rule rather than replacing it.
+
+**3. On-chip SRAM in NPUs.** *Keep the conversation context on the die.* SRAM is fast and sits next to the arithmetic, so this works for what fits. The question is what fits. Llama 3.2 1B needs 32 KB of cache per token at 16 bits (Section 5). A generous 64 MB of SRAM holds 2,000 tokens, or 16,000 with a 2-bit cache. That is a conversation, not a document. SRAM rewards a short working memory; it does not replace keeping it short.
+
+**4. Context compression.** *A tiny model squeezes the text before the main model reads it.* This attacks the cost in Figure 5 directly, the 29 MB that retrieved passages add to every token. LLMLingua drops the tokens that a small model judges unimportant, up to 20 times, with a small loss on its benchmarks [@jiang2023llmlingua]. Gist tokens and the in-context autoencoder learn compact representations instead [@mu2023gist; @ge2024icae]. Cartridges, in Section 5, do it offline.
+
+I would challenge two things. First, compression loses information, and it loses first what a small model judges unimportant: rare names and exact numbers, which is the long tail the lookup was there for. Second, "keeping massive contexts stable" is a claim to measure on your own data, not an assumption. I would compress after the lookup, not instead of it. Fetch the fact, not the page, and there is little left to compress.
+
+**5. Editable context.** *The model edits, prunes and rewrites its own memory, like a live file.* I agree. This is point 2 of Section 7, and MemGPT, now Letta, and Mem0 already do it [@packer2023; @chhikara2025]. What I would add is a guard. A model rewriting its own notes makes a summary of a summary. Each pass can drop or bend a fact, and nobody sees it happen. Keep the originals in the external memory, with their source, so that any summary can be checked and redone.
+
+**6. Self-organising memory graphs.** *Reinforcement learning turns the external memory into a knowledge graph that reorganises itself around what the AI forgets.* This exists too. A-MEM links notes and updates them as new ones arrive [@xu2025amem]. Zep keeps a knowledge graph that records when each fact was true [@rasmussen2025zep]. Memory-R1 uses reinforcement learning to train a manager that chooses, for each new fact, to add, update, delete or do nothing, and it learned this from 152 question-answer pairs [@yan2025memoryr1].
+
+I would challenge what the learning optimises. The reward is answering benchmark questions, not being true and not honouring a request to delete. A memory that reorganises itself is also harder to inspect, and inspecting, correcting and deleting were the reasons to keep memory outside the weights in the first place (Section 3). A graph walk also costs more than one index probe. I would let a learned policy *propose* changes, and keep the store itself plain, versioned and deletable.
+
+| Idea | Memory it acts on | What it changes | My verdict |
+|---|---|---|---|
+| Processing in memory | Weights, cache | Cheaper reading of every byte | Real; could move the line toward the weights |
+| Analog chips | Weights | Energy; weights stay in place | Strengthens the rule: frozen means hard to edit |
+| On-chip SRAM | Working memory | Fast cache, if it fits | Rewards a short context; does not replace it |
+| Context compression | Working memory | Fewer bytes per token | Useful after a lookup; loses the long tail first |
+| Editable context | Working memory | Bounded context | Agree; keep the originals |
+| Self-organising graphs | External memory | Better organised lookup | Keep the store inspectable and deletable |
+
+: **Table 2.** Six ideas from a reader, placed among the four memories.
+
+The six ideas sort neatly into the four memories: three are hardware that lowers the price of reading, three are software that keeps the working memory short and the lookup organised. Hardware changes the prices in Figures 5 and 6. It does not change the arithmetic of editing in Experiment 2, nor that of the long tail in Section 6. If processing in memory makes reading weights nearly free, the line moves toward the weights. It moves; it does not disappear. A fact you must be able to correct or delete still belongs in a row, not in a parameter.
+
+## 10. What this experiment does not show
 
 - **My facts are random.** Real knowledge has structure a model can compress, so weights may do better than my networks.
 - **My networks are tiny:** two layers, at most 19,000 parameters.
@@ -221,7 +261,7 @@ Agent memory systems are building the top of this stack: MemGPT, now Letta, page
 - **NumPy is not a serving engine**, which is why Figure 6 also gives the byte count.
 - **Zipf is a model.** A specialist's questions may have a shorter tail, which argues for specialists.
 
-## 10. Conclusion
+## 11. Conclusion
 
 We say a model *knows* something as if knowledge lived in one place. It lives in four, at four prices: dense weights read on every token, a working memory that grows with every token, a bulky but cheap and correctable lookup, and habits that cost almost nothing once built. Large models can afford to blur them. Small ones cannot, and that is their advantage. Keep in the weights what is used on every token, keep the working memory short, look up the long tail, compile what repeats.
 
