@@ -578,10 +578,23 @@ main:has(.hero) > header#title-block-header { display: none; }
     line-height: 1.65;
     color: #aeb9ce;
   }
+  // Who writes: name, credentials, what readers can check
+  p.hero-byline {
+    margin: 1rem 0 0;
+    max-width: 32rem;
+    font-family: $font-family-sans-serif;
+    font-size: .92rem;
+    line-height: 1.6;
+    color: #c9d2e3;
+    a { color: #f4f6fa; font-weight: 600; text-decoration-color: rgba($amber, .7); text-underline-offset: .2em; }
+  }
   p.hero-intro a { color: inherit; text-decoration-color: rgba($amber, .6); text-underline-offset: .2em; }
   // Call to action under the intro: the TEDx talk
   p.hero-cta {
     margin: 2rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
     a {
       display: inline-block;
       padding: .7rem 1.4rem;
@@ -596,6 +609,14 @@ main:has(.hero) > header#title-block-header { display: none; }
       text-decoration: none;
       transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
       &:hover, &:focus { background: lighten($amber, 8%); transform: translateY(-1px); box-shadow: 0 10px 24px -8px rgba($amber, .8); }
+    }
+    // Second link: the TEDx talk, quieter than the newsletter button
+    a.hero-cta-secondary {
+      background: transparent;
+      box-shadow: none;
+      border-color: rgba($amber, .55);
+      color: #f4f6fa;
+      &:hover, &:focus { background: rgba($amber, .12); box-shadow: none; }
     }
   }
 }
@@ -677,6 +698,46 @@ $kind-note: $callout-color-tip;
   &.kind-analysis { color: $kind-analysis; background: rgba($kind-analysis, .08); }
   &.kind-note     { color: $kind-note;     background: rgba($kind-note, .08); }
   &.kind-position { color: $kind-position; background: rgba($kind-position, .08); }
+  &.kind-series   { color: $muted;         background: rgba($muted, .08); }
+}
+
+// Home page: "Start here", three picks for a first visit (index.qmd)
+.start-here {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: .75rem 0 3rem;
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+main.content a.start-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+  padding: 1.1rem 1.15rem 1.2rem;
+  border: 1px solid $rule;
+  border-top: 3px solid rgba($amber, .7);
+  border-radius: $border-radius;
+  background: $surface;
+  box-shadow: 0 1px 2px $shadow;
+  color: inherit;
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  &:hover, &:focus { transform: translateY(-2px); box-shadow: 0 1px 2px $shadow, 0 12px 28px -18px $shadow; }
+  .start-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.2rem; line-height: 1.25; }
+  .start-why { font-size: .93rem; line-height: 1.5; color: $muted; }
+}
+
+// Home page: follow box after "Latest writing"
+.follow-box {
+  margin: -1.5rem 0 3.5rem;
+  padding: .9rem 1.15rem;
+  border-left: 3px solid $accent-warm;
+  border-radius: 0 $border-radius $border-radius 0;
+  background: rgba($accent-warm, .06);
+  font-size: .97rem;
+  p { margin: 0; }
+  strong { color: $accent-warm; }
 }
 p.latest-kind, .quarto-post .listing-kind { margin: 0 0 .35rem; line-height: 1; }
 
