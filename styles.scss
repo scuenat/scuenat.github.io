@@ -356,6 +356,39 @@ main.content div.sourceCode, main.content pre:not(.sourceCode) {
   a { font-weight: 600; }
 }
 
+// TEDx page: video card linking to YouTube (talks.qmd, fr/talks.qmd)
+.video-card {
+  display: block;
+  margin: 1.5rem 0 2rem;
+  border-radius: $border-radius;
+  overflow: hidden;
+  border: 1px solid rgba($accent-warm, .25);
+  box-shadow: 0 1px 3px $shadow;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow .15s ease, transform .15s ease;
+  &:hover, &:focus-visible { box-shadow: 0 4px 14px $shadow; transform: translateY(-1px); color: inherit; }
+  .video-card-media { display: block; position: relative; background: #000; }
+  img { display: block; width: 100%; height: auto; margin: 0; }
+  .video-card-play {
+    display: block;
+    position: absolute; top: 50%; left: 50%;
+    width: 4.25rem; height: 3rem; margin: -1.5rem 0 0 -2.125rem;
+    border-radius: .75rem; background: rgba(0, 0, 0, .72);
+    transition: background .15s ease;
+    &::after {
+      content: ""; position: absolute; top: 50%; left: 50%;
+      margin: -.6rem 0 0 -.4rem;
+      border-style: solid; border-width: .6rem 0 .6rem 1.05rem;
+      border-color: transparent transparent transparent #fff;
+    }
+  }
+  &:hover .video-card-play { background: #e62117; }
+  .video-card-body { display: block; padding: .85rem 1.1rem; font-family: $font-family-sans-serif; }
+  .video-card-title { display: block; font-weight: 600; font-size: 1rem; }
+  .video-card-meta { display: block; font-size: .85rem; color: $muted; margin-top: .15rem; }
+}
+
 // "Questions or objections?" note at the end of each post (discuss.lua)
 .discuss {
   margin: 3rem 0 0;
