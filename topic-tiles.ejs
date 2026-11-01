@@ -8,6 +8,8 @@ const known = new Set(topics.map(x => x.id));
 // The listing is sorted newest first (that order also feeds the RSS feed); tiles read oldest first.
 const posts = [...items].reverse();
 const tiles = topics.map(x => [x, posts.filter(i => (i.topics || []).includes(x.id))]);
+// Card marker: each post's `kind` (essay | analysis | note), labelled from template-params.
+const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note" }, t.kinds || {});
 const other = posts.filter(i => !(i.topics || []).some(id => known.has(id)));
 if (other.length && t.other) tiles.push([t.other, other]);
 %>
@@ -18,11 +20,11 @@ if (other.length && t.other) tiles.push([t.other, other]);
 <% if (topic.thesis) { %><p class="topic-thesis"><%= topic.thesis %></p><% } %>
 <ol class="topic-list">
 <% for (const item of list) {
-const kind = (item.categories || [])[0];
+const kind = labels[item.kind] ? item.kind : null;
 // The type label stays on the line of the title's last word, so it never wraps alone.
 const words = String(item.title).split(" "), last = words.pop();
 %>
-<li><a href="<%- item.path %>"><%= words.length ? words.join(" ") + " " : "" %><span class="topic-nowrap"><%= last %><% if (kind) { %><span class="topic-kind"><%= kind %></span><% } %></span></a></li>
+<li><a href="<%- item.path %>"><%= words.length ? words.join(" ") + " " : "" %><span class="topic-nowrap"><%= last %><% if (kind) { %><span class="topic-kind kind-badge kind-<%= kind %>"><%= labels[kind] %></span><% } %></span></a></li>
 <% } %>
 </ol>
 <% if (topic.link) { %><p class="topic-more"><a href="<%- topic.link %>"><%= topic.linkText %>&nbsp;→</a></p><% } %>

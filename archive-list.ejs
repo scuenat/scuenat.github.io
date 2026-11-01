@@ -1,0 +1,31 @@
+<%
+// Archive cards: Quarto's default listing markup (so its styles and the category filter still apply),
+// with the post's `kind` (essay | analysis | note) shown as a badge above the title.
+const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note" },
+  ((typeof templateParams !== "undefined" && templateParams) || {}).kinds || {});
+const b64 = s => btoa(unescape(encodeURIComponent(s)));
+%>
+<div class="list quarto-listing-default">
+<% for (const item of items) { const kind = labels[item.kind] ? item.kind : null; %>
+<div class="quarto-post image-left" <%= metadataAttrs(item) %>>
+<% if (item.image) { %>
+<div class="thumbnail"><a href="<%- item.path %>" class="no-external"><img src="<%- item.image %>" class="thumbnail-image" alt="" loading="lazy"></a></div>
+<% } %>
+<div class="body">
+<% if (kind) { %><div class="listing-kind"><span class="kind-badge kind-<%= kind %>"><%= labels[kind] %></span></div><% } %>
+<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external"><%= item.title %></a></h3>
+<% if (item.subtitle) { %><div class="listing-subtitle"><a href="<%- item.path %>" class="no-external"><%= item.subtitle %></a></div><% } %>
+<% if (item.categories) { %>
+<div class="listing-categories">
+<% for (const category of item.categories) { %><div class="listing-category" onclick="window.quartoListingCategory('<%= b64(category) %>'); return false;"><%= category %></div><% } %>
+</div>
+<% } %>
+<% if (item.description) { %><div class="delink listing-description"><a href="<%- item.path %>" class="no-external"><%= item.description %></a></div><% } %>
+</div>
+<div class="metadata"><a href="<%- item.path %>" class="no-external">
+<% if (item.date) { %><div class="listing-date"><%= item.date %></div><% } %>
+<% if (item['reading-time']) { %><div class="listing-reading-time"><%= item['reading-time'] %></div><% } %>
+</a></div>
+</div>
+<% } %>
+</div>

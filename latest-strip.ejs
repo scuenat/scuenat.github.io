@@ -1,9 +1,13 @@
 <%
-// Home-page "Latest writing": compact rows (title, one line of summary, date and reading time).
+// Home-page "Latest writing": compact rows (kind badge, title, one line of summary, date and reading time).
+// `kind` (essay | analysis | note) comes from each post's front matter; labels from template-params.
+const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note" },
+  ((typeof templateParams !== "undefined" && templateParams) || {}).kinds || {});
 %>
 <ol class="latest-strip">
-<% for (const item of items) { const sum = item.subtitle || item.description; %>
+<% for (const item of items) { const sum = item.subtitle || item.description; const kind = labels[item.kind] ? item.kind : null; %>
 <li <%= metadataAttrs(item) %>>
+<% if (kind) { %><p class="latest-kind"><span class="kind-badge kind-<%= kind %>"><%= labels[kind] %></span></p><% } %>
 <a class="latest-title" href="<%- item.path %>"><%= item.title %></a>
 <% if (sum) { %><p class="latest-summary"><%= sum %></p><% } %>
 <p class="latest-meta"><span class="listing-date"><%= item.date %></span><% if (item['reading-time']) { %> · <span class="listing-reading-time"><%= item['reading-time'] %></span><% } %></p>

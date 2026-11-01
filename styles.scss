@@ -595,6 +595,31 @@ main.content .quarto-listing-default .listing-description p { font-size: 1.02rem
 .quarto-listing-category .category { font-size: .88rem; color: $muted; }
 .quarto-listing-category .category.active { color: $accent-warm; font-weight: 600; }
 
+// ---------- Kind badges: essay | analysis | note (set by `kind:` in each post) ----------
+// Same shape everywhere (theme tiles, latest strip, archive); the color tells the kind apart.
+$kind-essay: $accent-warm;
+$kind-analysis: $accent;
+$kind-note: $callout-color-tip;
+.kind-badge {
+  display: inline-block;
+  padding: .05rem .5rem .05rem .45rem;
+  border: 1px solid currentColor;
+  border-left-width: 3px;
+  border-radius: 3px;
+  font-family: $font-family-sans-serif;
+  font-size: .66rem;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: .08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  white-space: nowrap;
+  &.kind-essay    { color: $kind-essay;    background: rgba($kind-essay, .08); }
+  &.kind-analysis { color: $kind-analysis; background: rgba($kind-analysis, .08); }
+  &.kind-note     { color: $kind-note;     background: rgba($kind-note, .08); }
+}
+p.latest-kind, .quarto-post .listing-kind { margin: 0 0 .35rem; line-height: 1; }
+
 // ---------- Home theme tiles ----------
 .topic-tiles {
   display: grid;
@@ -634,21 +659,7 @@ main.content .quarto-listing-default .listing-description p { font-size: 1.02rem
   h3.topic-title a:hover, h3.topic-title a:focus { text-decoration: underline; text-decoration-color: $amber; }
   h3.topic-title .anchorjs-link { display: none; }
   .topic-nowrap { white-space: nowrap; }
-  .topic-kind {   // inline-block: the link underline skips it
-    display: inline-block;
-    margin-left: .4rem;
-    padding: 0 .4rem;
-    border-radius: 3px;
-    background: $surface-alt;
-    color: $muted;
-    font-family: $font-family-sans-serif;
-    font-size: .66rem;
-    font-weight: 500;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    line-height: 1.6;
-    vertical-align: .12em;
-  }
+  .topic-kind { margin-left: .45rem; vertical-align: .14em; }   // inline-block (kind-badge): the link underline skips it
   p.topic-more {
     margin: 1.1rem 0 0;
     font-family: $font-family-sans-serif;

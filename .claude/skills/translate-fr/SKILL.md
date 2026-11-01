@@ -23,7 +23,7 @@ Before writing, read one existing translation next to its original (for example 
 ## 2. Front matter
 
 - Translate `title`, `subtitle` and `description`. Keep the description under about 155 characters where the English one is.
-- Keep `date`, `citation`, `toc-depth` and `topics` unchanged. Topic ids are not translated.
+- Keep `date`, `citation`, `toc-depth`, `kind` and `topics` unchanged. Topic ids are not translated.
 - Translate `categories` with the existing names. Reuse these, and only invent a new one if no mapping exists:
 
   | English | French | English | French |
@@ -32,7 +32,8 @@ Before writing, read one existing translation next to its original (for example 
   | analysis | analyse | position | position |
   | thought-essay | essai-de-réflexion | experiment | expérience |
   | curiosity | curiosité | personal | personnel |
-  | ai | ia | local-ai | ia-locale |
+  | note | note | ai | ia |
+  | local-ai | ia-locale | | |
   | data | données | dashboards | tableaux de bord |
   | physics | physique | research | recherche |
   | agents | agents | programming | programmation |
