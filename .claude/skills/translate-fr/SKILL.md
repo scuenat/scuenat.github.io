@@ -81,7 +81,7 @@ Before writing, read one existing translation next to its original (for example 
 
 ## 5. Verify, then publish
 
-Before publishing, show the French version with the **review-draft** skill (`preview.sh fr/posts/<slug>`), unless the user approved the English version and said that covers the translation.
+Before publishing, show the French version in its own review doc with the **review-draft** skill, unless the user approved the English version and said that covers the translation.
 
 Render the whole site; it must finish with no warnings:
 
