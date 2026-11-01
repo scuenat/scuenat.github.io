@@ -56,7 +56,8 @@ Before writing, read one existing translation next to its original (for example 
 - **Links to the post's own files** (figures, `figs.py`, `sim.py`, `results.json`, PDFs) become `../../../posts/<slug>/<file>`.
 - **Links to other posts** stay relative (`../<other-slug>/index.qmd`) when that post has a French version. Otherwise use `../../../posts/<other-slug>/index.qmd` followed by ` (en anglais)`. Site pages use `../../agentic-coding.qmd` and the like.
 - **Opening callout.** Translate it, and end it with the sentence about figures if they contain text, then the link to the original:
-  `Les figures sont en anglais. *Traduit de l'anglais : [version originale](../../../posts/<slug>/index.qmd).*`
+  `Les figures sont en anglais. *Traduit automatiquement de l'anglais ; quelques erreurs sont possibles. [Version originale](../../../posts/<slug>/index.qmd).*`
+  Every French post must carry this notice that it is machine-translated and may contain errors.
   Add a callout if the English post has none.
 - **Figures.** Translate captions and `fig-alt`. In alt text, quote the English label words that a reader will see in the image, and describe everything else in French.
 - **Citations.** Keep `[@key]` exactly as written. Leave `## References` / `::: {#refs}` structure as is, but write the heading as `## Références`.
