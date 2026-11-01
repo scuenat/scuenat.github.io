@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Render a post with the site's own theme and screenshot it as it will look online.
+# Render a post with the site's own theme and print it as ONE PDF that looks as it will online.
 # Usage: .claude/skills/review-draft/preview.sh posts/YYYY-MM-DD-slug [quarto-binary] [width]
-# Writes _preview/<slug>/page-NN.png (git-ignored) and prints the paths.
+# Writes _preview/<slug>.pdf (git-ignored) and prints its path.
 set -euo pipefail
 POST="${1:?usage: preview.sh posts/<slug> [quarto] [width]}"
 QUARTO="${2:-$(command -v quarto || true)}"
@@ -21,4 +21,4 @@ if [ ! -f "$KATEX/katex.min.js" ] && ! curl -sfI https://cdn.jsdelivr.net/npm/ka
   ( cd "$ROOT/_preview/.katex" && npm pack -q katex@0.16.11 >/dev/null 2>&1 && tar xzf katex-0.16.11.tgz ) || echo "warning: KaTeX unavailable, equations will show as raw TeX in the screenshots only" >&2
 fi
 [ -f "$KATEX/katex.min.js" ] && export KATEX_DIR="$KATEX"
-node "$(dirname "$0")/shots.js" _site "$POST/" "_preview/$SLUG" "$WIDTH"
+node "$(dirname "$0")/pdf.js" _site "$POST/" "_preview/$SLUG.pdf" "$WIDTH"
