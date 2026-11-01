@@ -1813,6 +1813,9 @@ Cuenat, Stéphane. 2026. <span>“La cohérence se mesure.”</span> October
 </div>
 </div>
 </div>
+<div class="post-updates">
+<p><strong>Mis à jour le 1er novembre 2026.</strong> Nouvelle section 9 : six idées d’un lecteur (calcul en mémoire, puces analogiques, SRAM sur la puce, compression du contexte, contexte modifiable, graphes de mémoire qui s’organisent seuls), confrontées aux expériences.</p>
+</div>
 <p><strong>En bref.</strong> Un modèle de langage garde ce qu’il sait à quatre endroits : ses poids, sa mémoire de travail (le cache KV), ce qu’il peut aller chercher, et les habitudes qu’il a compilées. Chacun se paie à un moment différent, et pour un petit modèle sur un ordinateur portable, c’est cela qui décide de la conception. Quatre expériences m’ont mené à une règle : <strong>garder dans les poids ce qui sert à chaque token ; chercher tout le reste, et garder court ce que l’on va chercher.</strong></p>
 <div class="callout callout-style-simple callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -2082,8 +2085,78 @@ Cuenat, Stéphane. 2026. <span>“La cohérence se mesure.”</span> October
 </tbody>
 </table>
 </section>
+<section id="six-idées-dun-lecteur" class="level2">
+<h2 class="anchored" data-anchor-id="six-idées-dun-lecteur">9. Six idées d’un lecteur</h2>
+<p>Après la parution de cet essai, un lecteur m’a envoyé six technologies qui, à ses yeux, résolvent le problème de la mémoire. Elles méritent une réponse attentive, car chacune s’attaque à l’une des quatre mémoires, et chacune change un prix mesuré plus haut. Je les prends une par une : ce qui est juste, ce que je contesterais, et ce que cela fait à la règle.</p>
+<p><strong>1. Le calcul en mémoire.</strong> <em>Construire l’arithmétique dans la RAM, pour que les données n’aient jamais à voyager.</em> L’idée vise la bonne cible. Les expériences 3 et 4 ont montré que générer un token consiste surtout à lire des octets, et le calcul en mémoire s’attaque exactement à cela. Il existe : Samsung a intégré de petites unités de calcul dans de la mémoire HBM2 et y a fait tourner des applications sans les modifier <span class="citation" data-cites="lee2021pim">(<span class="nocase">Lee et al.</span> 2021)</span>. AttAcc y place l’attention sur le cache KV, parce que l’attention lit beaucoup d’octets pour chaque opération, quelle que soit la taille du lot <span class="citation" data-cites="park2024attacc">(Park et al. 2024)</span>.</p>
+<p>Ce que je contesterais, c’est « jamais ». Les données bougent encore, des cellules mémoire vers de petites unités placées à côté des bancs. Ces unités sont simples, et elles conviennent mieux au calcul matrice-vecteur d’un token qu’à tout le reste. Et, à ma connaissance, elles ne sont pas encore dans les ordinateurs portables dont parle cet essai. C’est pourtant la seule idée qui pourrait changer ma conclusion. Si lire les poids devient beaucoup moins cher, un fait dans les poids coûte moins, et la frontière entre poids et recherche se déplace vers les poids. Cela ne change pas l’expérience 2 : un fait stocké dans des poids reste aussi difficile à modifier, où que se fasse le calcul.</p>
+<p><strong>2. Les puces analogiques à memristors.</strong> <em>Figer les poids dans des circuits analogiques et calculer à la vitesse de l’électricité.</em> Ici, un poids est une conductance, une multiplication est la loi d’Ohm et une somme celle de Kirchhoff. Cela fonctionne : la puce analogique d’IBM, avec 35 millions de dispositifs à changement de phase, a égalé la précision du logiciel sur la détection de mots-clés et s’en est approchée sur un modèle de parole plus grand, avec jusqu’à 12 400 milliards d’opérations par seconde et par watt <span class="citation" data-cites="ambrogio2023">(<span class="nocase">Ambrogio et al.</span> 2023)</span>. La mémoire à changement de phase est une proche cousine du memristor. (« Neuromorphique » désigne en général autre chose : des puces qui calculent avec des impulsions.)</p>
+<p>Je contesterais « la vitesse de l’électricité ». Le gain porte sur l’énergie, parce que les poids ne quittent jamais la matrice. Les limites sont ailleurs : les convertisseurs entre analogique et numérique, une précision limitée, et la dérive dans le temps. Le mot « figer » compte encore plus. Réécrire un poids analogique est plus lent et moins précis qu’écrire une ligne dans une table, et le plus grand modèle a demandé environ trois dispositifs par poids, 45 millions de poids sur 140 millions de dispositifs. Les poids analogiques sont le cas extrême de l’expérience 2 : idéaux pour ce qui ne change jamais, comme la langue et le raisonnement, et le pire endroit pour une liste de prix. Cela renforce la règle au lieu de la remplacer.</p>
+<p><strong>3. La SRAM sur la puce des NPU.</strong> <em>Garder le contexte de la conversation sur la puce.</em> La SRAM est rapide et proche du calcul, donc cela marche pour ce qui y tient. La question est de savoir ce qui y tient. Llama 3.2 1B demande 32 Ko de cache par token en 16 bits (section 5). 64 Mo de SRAM, ce qui est généreux, contiennent 2 000 tokens, ou 16 000 avec un cache en 2 bits. C’est une conversation, pas un document. La SRAM récompense une mémoire de travail courte ; elle ne dispense pas de la garder courte.</p>
+<p><strong>4. La compression du contexte.</strong> <em>Un tout petit modèle comprime le texte avant que le modèle principal ne le lise.</em> Cela s’attaque directement au coût de la figure 5, les 29 Mo que les passages retrouvés ajoutent à chaque token. LLMLingua supprime les tokens qu’un petit modèle juge sans importance, jusqu’à 20 fois, avec une petite perte sur ses bancs d’essai <span class="citation" data-cites="jiang2023llmlingua">(Jiang et al. 2023)</span>. Les gist tokens et l’autoencodeur en contexte apprennent plutôt des représentations compactes <span class="citation" data-cites="mu2023gist ge2024icae">(Mu et al. 2023; Ge et al. 2024)</span>. Les Cartridges, à la section 5, le font hors ligne.</p>
+<p>Je contesterais deux choses. D’abord, la compression perd de l’information, et elle perd en premier ce qu’un petit modèle juge sans importance : les noms rares et les nombres exacts, c’est-à-dire la longue traîne pour laquelle la recherche était là. Ensuite, « garder stables des contextes massifs » est une affirmation à mesurer sur vos propres données, pas une hypothèse. Je comprimerais après la recherche, pas à sa place. Allez chercher le fait, pas la page, et il ne reste presque rien à comprimer.</p>
+<p><strong>5. Le contexte modifiable.</strong> <em>Le modèle modifie, élague et réécrit sa propre mémoire, comme un fichier vivant.</em> Je suis d’accord. C’est le point 2 de la section 7, et MemGPT, devenu Letta, et Mem0 le font déjà <span class="citation" data-cites="packer2023 chhikara2025">(Packer et al. 2023; Chhikara et al. 2025)</span>. J’ajouterais un garde-fou. Un modèle qui réécrit ses propres notes fait un résumé de résumé. Chaque passage peut perdre ou déformer un fait, sans que personne ne le voie. Gardez les originaux dans la mémoire externe, avec leur source, pour que chaque résumé puisse être vérifié et refait.</p>
+<p><strong>6. Les graphes de mémoire qui s’organisent seuls.</strong> <em>L’apprentissage par renforcement transforme la mémoire externe en un graphe de connaissances qui se réorganise autour de ce que l’IA oublie.</em> Cela existe aussi. A-MEM relie des notes et les met à jour à mesure que d’autres arrivent <span class="citation" data-cites="xu2025amem">(Xu et al. 2025)</span>. Zep tient un graphe de connaissances qui enregistre quand chaque fait était vrai <span class="citation" data-cites="rasmussen2025zep">(<span class="nocase">Rasmussen et al.</span> 2025)</span>. Memory-R1 entraîne par renforcement un gestionnaire qui choisit, pour chaque nouveau fait, d’ajouter, de mettre à jour, de supprimer ou de ne rien faire, et il l’a appris à partir de 152 paires de questions et réponses <span class="citation" data-cites="yan2025memoryr1">(<span class="nocase">Yan et al.</span> 2025)</span>.</p>
+<p>Je contesterais ce que l’apprentissage optimise. La récompense est de répondre aux questions d’un banc d’essai, pas d’être vrai, ni de respecter une demande de suppression. Une mémoire qui se réorganise seule est aussi plus difficile à inspecter, alors qu’inspecter, corriger et supprimer étaient justement les raisons de garder la mémoire hors des poids (section 3). Parcourir un graphe coûte aussi plus cher qu’une consultation d’index. Je laisserais une politique apprise <em>proposer</em> des changements, et je garderais la mémoire elle-même simple, versionnée et effaçable.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 2.</strong> Six idées d’un lecteur, placées parmi les quatre mémoires.</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Idée</th>
+<th>Mémoire concernée</th>
+<th>Ce qu’elle change</th>
+<th>Mon avis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Calcul en mémoire</td>
+<td>Poids, cache</td>
+<td>Lecture moins chère de chaque octet</td>
+<td>Réel ; pourrait déplacer la frontière vers les poids</td>
+</tr>
+<tr class="even">
+<td>Puces analogiques</td>
+<td>Poids</td>
+<td>Énergie ; les poids restent en place</td>
+<td>Renforce la règle : figé veut dire difficile à modifier</td>
+</tr>
+<tr class="odd">
+<td>SRAM sur la puce</td>
+<td>Mémoire de travail</td>
+<td>Cache rapide, s’il tient</td>
+<td>Récompense un contexte court ; ne le remplace pas</td>
+</tr>
+<tr class="even">
+<td>Compression du contexte</td>
+<td>Mémoire de travail</td>
+<td>Moins d’octets par token</td>
+<td>Utile après une recherche ; perd d’abord la longue traîne</td>
+</tr>
+<tr class="odd">
+<td>Contexte modifiable</td>
+<td>Mémoire de travail</td>
+<td>Contexte borné</td>
+<td>D’accord ; garder les originaux</td>
+</tr>
+<tr class="even">
+<td>Graphes qui s’organisent seuls</td>
+<td>Mémoire externe</td>
+<td>Recherche mieux organisée</td>
+<td>Garder la mémoire inspectable et effaçable</td>
+</tr>
+</tbody>
+</table>
+<p>Les six idées se rangent bien dans les quatre mémoires : trois sont du matériel qui baisse le prix de la lecture, trois sont du logiciel qui garde la mémoire de travail courte et la recherche organisée. Le matériel change les prix des figures 5 et 6. Il ne change ni l’arithmétique de la modification de l’expérience 2, ni celle de la longue traîne de la section 6. Si le calcul en mémoire rend la lecture des poids presque gratuite, la frontière se déplace vers les poids. Elle se déplace ; elle ne disparaît pas. Un fait que l’on doit pouvoir corriger ou supprimer a toujours sa place dans une ligne, pas dans un paramètre.</p>
+</section>
 <section id="ce-que-cette-expérience-ne-montre-pas" class="level2">
-<h2 class="anchored" data-anchor-id="ce-que-cette-expérience-ne-montre-pas">9. Ce que cette expérience ne montre pas</h2>
+<h2 class="anchored" data-anchor-id="ce-que-cette-expérience-ne-montre-pas">10. Ce que cette expérience ne montre pas</h2>
 <ul>
 <li><strong>Mes faits sont aléatoires.</strong> La vraie connaissance a une structure qu’un modèle peut comprimer, si bien que des poids peuvent faire mieux que mes réseaux.</li>
 <li><strong>Mes réseaux sont minuscules :</strong> deux couches, au plus 19 000 paramètres.</li>
@@ -2094,7 +2167,7 @@ Cuenat, Stéphane. 2026. <span>“La cohérence se mesure.”</span> October
 </ul>
 </section>
 <section id="conclusion" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion">10. Conclusion</h2>
+<h2 class="anchored" data-anchor-id="conclusion">11. Conclusion</h2>
 <p>Nous disons qu’un modèle <em>sait</em> quelque chose, comme si la connaissance vivait à un seul endroit. Elle vit à quatre, à quatre prix : des poids denses lus à chaque token, une mémoire de travail qui grandit à chaque token, une recherche encombrante mais bon marché et corrigeable, et des habitudes qui ne coûtent presque rien une fois construites. Les grands modèles peuvent se permettre de les confondre. Les petits non, et c’est leur avantage. Gardez dans les poids ce qui sert à chaque token, gardez la mémoire de travail courte, allez chercher la longue traîne, compilez ce qui se répète.</p>
 <div class="discuss">
 <p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
@@ -2119,6 +2192,9 @@ Alizadeh, Keivan, Iman Mirzadeh, Dmitry Belenko, et al. 2023. <span>«&nbsp;<spa
 <div id="ref-allenzhu2025" class="csl-entry">
 Allen-Zhu, Zeyuan, et Yuanzhi Li. 2025. <span>«&nbsp;Physics of Language Models: Part 3.3, Knowledge Capacity Scaling Laws&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2404.05405">https://arxiv.org/abs/2404.05405</a>.
 </div>
+<div id="ref-ambrogio2023" class="csl-entry">
+<span class="nocase">Ambrogio, Stefano et al.</span> 2023. <span>«&nbsp;An Analog-<span>AI</span> Chip for Energy-Efficient Speech Recognition and Transcription&nbsp;»</span>. <em>Nature</em> 620. <a href="https://doi.org/10.1038/s41586-023-06337-5">https://doi.org/10.1038/s41586-023-06337-5</a>.
+</div>
 <div id="ref-behrouz2024" class="csl-entry">
 Behrouz, Ali, Peilin Zhong, et Vahab Mirrokni. 2024. <span>«&nbsp;Titans: Learning to Memorize at Test Time&nbsp;»</span>. <em>arXiv preprint arXiv:2501.00663</em>. <a href="https://arxiv.org/abs/2501.00663">https://arxiv.org/abs/2501.00663</a>.
 </div>
@@ -2140,6 +2216,9 @@ Douze, Matthijs, Alexandr Guzhva, Chengqi Deng, et al. 2024. <span>«&nbsp;The <
 <div id="ref-eyuboglu2026" class="csl-entry">
 <span class="nocase">Eyuboglu, Sabri, Ryan Ehrlich, Simran Arora, et al.</span> 2026. <span>«&nbsp;Cartridges: Lightweight and General-Purpose Long Context Representations via Self-Study&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2506.06266">https://arxiv.org/abs/2506.06266</a>.
 </div>
+<div id="ref-ge2024icae" class="csl-entry">
+Ge, Tao, Jing Hu, Lei Wang, Xun Wang, Si-Qing Chen, et Furu Wei. 2024. <span>«&nbsp;In-context Autoencoder for Context Compression in a Large Language Model&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2307.06945">https://arxiv.org/abs/2307.06945</a>.
+</div>
 <div id="ref-gemma3" class="csl-entry">
 Gemma Team. 2025. <span>«&nbsp;Gemma 3 Technical Report&nbsp;»</span>. <em>arXiv preprint arXiv:2503.19786</em>. <a href="https://arxiv.org/abs/2503.19786">https://arxiv.org/abs/2503.19786</a>.
 </div>
@@ -2149,8 +2228,14 @@ Google. 2025. <em>Gemma 3n Model Overview</em>. Ai.google.dev. <a href="https://
 <div id="ref-gupta2024" class="csl-entry">
 Gupta, Akshat, Anurag Rao, et Gopala Anumanchipalli. 2024. <span>«&nbsp;Model Editing at Scale Leads to Gradual and Catastrophic Forgetting&nbsp;»</span>. <em>Findings of the Association for Computational Linguistics (ACL)</em>. <a href="https://arxiv.org/abs/2401.07453">https://arxiv.org/abs/2401.07453</a>.
 </div>
+<div id="ref-jiang2023llmlingua" class="csl-entry">
+Jiang, Huiqiang, Qianhui Wu, Chin-Yew Lin, Yuqing Yang, et Lili Qiu. 2023. <span>«&nbsp;<span>LLMLingua</span>: Compressing Prompts for Accelerated Inference of Large Language Models&nbsp;»</span>. <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/2310.05736">https://arxiv.org/abs/2310.05736</a>.
+</div>
 <div id="ref-kandpal2023" class="csl-entry">
 Kandpal, Nikhil, Haikang Deng, Adam Roberts, Eric Wallace, et Colin Raffel. 2023. <span>«&nbsp;Large Language Models Struggle to Learn Long-Tail Knowledge&nbsp;»</span>. <em>International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.08411">https://arxiv.org/abs/2211.08411</a>.
+</div>
+<div id="ref-lee2021pim" class="csl-entry">
+<span class="nocase">Lee, Sukhan, Shin-haeng Kang, Jaehoon Lee, et al.</span> 2021. <span>«&nbsp;Hardware Architecture and Software Stack for <span>PIM</span> Based on Commercial <span>DRAM</span> Technology: Industrial Product&nbsp;»</span>. <em>ACM/IEEE 48th Annual International Symposium on Computer Architecture (ISCA)</em>, 43‑56. <a href="https://doi.org/10.1109/ISCA52012.2021.00013">https://doi.org/10.1109/ISCA52012.2021.00013</a>.
 </div>
 <div id="ref-lewis2020" class="csl-entry">
 Lewis, Patrick, Ethan Perez, Aleksandra Piktus, et al. 2020. <span>«&nbsp;Retrieval-Augmented Generation for Knowledge-Intensive <span>NLP</span> Tasks&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2005.11401">https://arxiv.org/abs/2005.11401</a>.
@@ -2173,14 +2258,26 @@ Meng, Kevin, Arnab Sen Sharma, Alex Andonian, Yonatan Belinkov, et David Bau. 20
 <div id="ref-llama32" class="csl-entry">
 Meta. 2024. <em>Llama 3.2 Model Card</em>. Github.com/meta-llama/llama-models. <a href="https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md">https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/MODEL_CARD.md</a>.
 </div>
+<div id="ref-mu2023gist" class="csl-entry">
+Mu, Jesse, Xiang Lisa Li, et Noah Goodman. 2023. <span>«&nbsp;Learning to Compress Prompts with Gist Tokens&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2304.08467">https://arxiv.org/abs/2304.08467</a>.
+</div>
 <div id="ref-packer2023" class="csl-entry">
 Packer, Charles, Sarah Wooders, Kevin Lin, et al. 2023. <span>«&nbsp;<span>MemGPT</span>: Towards <span>LLMs</span> as Operating Systems&nbsp;»</span>. <em>arXiv preprint arXiv:2310.08560</em>. <a href="https://arxiv.org/abs/2310.08560">https://arxiv.org/abs/2310.08560</a>.
+</div>
+<div id="ref-park2024attacc" class="csl-entry">
+Park, Jaehyun, Jaewan Choi, Kwanhee Kyung, et al. 2024. <span>«&nbsp;<span>AttAcc!</span> Unleashing the Power of <span>PIM</span> for Batched Transformer-based Generative Model Inference&nbsp;»</span>. <em>Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS)</em>, 103‑19. <a href="https://doi.org/10.1145/3620665.3640422">https://doi.org/10.1145/3620665.3640422</a>.
 </div>
 <div id="ref-pouransari2026" class="csl-entry">
 Pouransari, Hadi, David Grangier, C Thomas, Michael Kirchhof, et Oncel Tuzel. 2026. <span>«&nbsp;Pretraining with Hierarchical Memories: Separating Long-Tail and Common Knowledge&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2510.02375">https://arxiv.org/abs/2510.02375</a>.
 </div>
+<div id="ref-rasmussen2025zep" class="csl-entry">
+<span class="nocase">Rasmussen, Preston et al.</span> 2025. <span>«&nbsp;Zep: A Temporal Knowledge Graph Architecture for Agent Memory&nbsp;»</span>. <em>arXiv preprint arXiv:2501.13956</em>. <a href="https://arxiv.org/abs/2501.13956">https://arxiv.org/abs/2501.13956</a>.
+</div>
 <div id="ref-xu2025amem" class="csl-entry">
 Xu, Wujiang, Zujie Liang, Kai Mei, Hang Gao, Juntao Tan, et Yongfeng Zhang. 2025. <span>«&nbsp;<span>A-MEM</span>: Agentic Memory for <span>LLM</span> Agents&nbsp;»</span>. <em>arXiv preprint arXiv:2502.12110</em>. <a href="https://arxiv.org/abs/2502.12110">https://arxiv.org/abs/2502.12110</a>.
+</div>
+<div id="ref-yan2025memoryr1" class="csl-entry">
+<span class="nocase">Yan, Sikuan et al.</span> 2025. <span>«&nbsp;<span>Memory-R1</span>: Enhancing Large Language Model Agents to Manage and Utilize Memories via Reinforcement Learning&nbsp;»</span>. <em>arXiv preprint arXiv:2508.19828</em>. <a href="https://arxiv.org/abs/2508.19828">https://arxiv.org/abs/2508.19828</a>.
 </div>
 </div>
 
