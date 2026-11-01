@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="La méthode vérifie les idées ; elle ne les trouve pas et ne les désire pas. Poincaré et McGilchrist sur ce qui meut la découverte, et ce que l’IA change.">
+
+<title>Pas parce que c’est utile – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-0ae969d3293726db143f6e9eb89af930.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-6dccd288967f51d567783deeef304dd6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-35e88fdfe19c7c91a897956fc75de01f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-6dccd288967f51d567783deeef304dd6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-11-01-not-because-it-is-useful/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-11-01-not-because-it-is-useful/">
+<meta name="alt-lang-url" content="/posts/2026-11-01-not-because-it-is-useful/">
+<link rel="canonical" href="https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-11-01","description":"La méthode vérifie les idées ; elle ne les trouve pas et ne les désire pas. Poincaré et McGilchrist sur ce qui meut la découverte, et ce que l’IA change.","headline":"Pas parce que c’est utile","image":"https://scuenat.github.io/social-card.jpg","inLanguage":"fr","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["essai","ia","science","philosophie"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"translationOfWork":{"@id":"https://scuenat.github.io/posts/2026-11-01-not-because-it-is-useful/"},"url":"https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/"}</script>
+
+
+<meta property="og:title" content="Pas parce que c’est utile – AI, Honestly">
+<meta property="og:description" content="La méthode vérifie les idées ; elle ne les trouve pas et ne les désire pas. Poincaré et McGilchrist sur ce qui meut la découverte, et ce que l’IA change.">
+<meta property="og:image" content="https://scuenat.github.io/social-card.jpg">
+<meta property="og:site_name" content="AI, Honestly">
+<meta name="twitter:title" content="Pas parce que c’est utile – AI, Honestly">
+<meta name="twitter:description" content="La méthode vérifie les idées ; elle ne les trouve pas et ne les désire pas. Poincaré et McGilchrist sur ce qui meut la découverte, et ce que l’IA change.">
+<meta name="twitter:image" content="https://scuenat.github.io/social-card.jpg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#deux-textes" id="toc-deux-textes" class="nav-link active" data-scroll-target="#deux-textes">1. Deux textes</a></li>
+  <li><a href="#ce-que-fait-la-méthode-et-ce-quelle-ne-fait-pas" id="toc-ce-que-fait-la-méthode-et-ce-quelle-ne-fait-pas" class="nav-link" data-scroll-target="#ce-que-fait-la-méthode-et-ce-quelle-ne-fait-pas">2. Ce que fait la méthode, et ce qu’elle ne fait pas</a></li>
+  <li><a href="#pas-parce-que-cest-utile" id="toc-pas-parce-que-cest-utile" class="nav-link" data-scroll-target="#pas-parce-que-cest-utile">3. Pas parce que c’est utile</a></li>
+  <li><a href="#la-méthode-devenue-machine" id="toc-la-méthode-devenue-machine" class="nav-link" data-scroll-target="#la-méthode-devenue-machine">4. La méthode devenue machine</a></li>
+  <li><a href="#ce-que-lia-change-en-nous" id="toc-ce-que-lia-change-en-nous" class="nav-link" data-scroll-target="#ce-que-lia-change-en-nous">5. Ce que l’IA change en nous</a></li>
+  <li><a href="#le-réquisitoire-contre-la-beauté" id="toc-le-réquisitoire-contre-la-beauté" class="nav-link" data-scroll-target="#le-réquisitoire-contre-la-beauté">6. Le réquisitoire contre la beauté</a></li>
+  <li><a href="#pourquoi-nous-cherchons" id="toc-pourquoi-nous-cherchons" class="nav-link" data-scroll-target="#pourquoi-nous-cherchons">7. Pourquoi nous cherchons</a></li>
+  <li><a href="#références" id="toc-références" class="nav-link" data-scroll-target="#références">Références</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Pas parce que c’est utile</h1>
+<p class="subtitle lead">L’IA sait suivre la méthode scientifique mieux que nous. Ce qui a fait avancer la science n’a jamais été seulement la méthode, ni seulement la réponse</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">science</div>
+    <div class="quarto-category">philosophie</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    La méthode vérifie les idées ; elle ne les trouve pas et ne les désire pas. Poincaré et McGilchrist sur ce qui meut la découverte, et ce que l’IA change.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">1 novembre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, novembre 2026.</strong> Un court essai philosophique. Il part de deux textes : Henri Poincaré sur les raisons pour lesquelles le savant étudie la nature <span class="citation" data-cites="poincare1914">(<a href="#ref-poincare1914" role="doc-biblioref">Poincaré 1914</a>)</span>, et l’argument d’Iain McGilchrist selon lequel les grandes découvertes ne se font pas en suivant la méthode scientifique <span class="citation" data-cites="mcgilchrist2026">(<a href="#ref-mcgilchrist2026" role="doc-biblioref">McGilchrist et Adelson 2026</a>)</span>. Il se demande ce que tous deux signifient maintenant que des machines savent suivre la méthode mieux que nous. Il prolonge <a href="../../../fr/posts/2026-10-27-the-joy-of-the-question/index.html">La joie de la question</a>, cette fois à propos de la science elle-même. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../posts/2026-11-01-not-because-it-is-useful/index.html">Version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Nous avons l’habitude de décrire la science par sa méthode : des hypothèses, des tests, des règles qui nous gardent honnêtes. La méthode est la façon dont nous vérifions une idée. Ce n’est pas la façon dont nous la trouvons, et ce n’est pas la raison pour laquelle nous cherchons. Poincaré disait que le savant étudie la nature non parce que c’est utile, mais parce qu’elle est belle, de la beauté d’un ordre que l’esprit peut saisir. McGilchrist soutient que les grandes percées sont venues de ceux qui ont enfreint les règles et vu le tout, et non de ceux qui ont suivi la procédure pièce par pièce. L’IA est la méthode devenue machine, et elle sait même proposer des idées, pourvu qu’elles soient plausibles. Elle peut nous tendre des solutions. Elle ne peut pas nous donner la raison pour laquelle nous les voulions, ni la joie de saisir pourquoi elles sont vraies, car ni l’une ni l’autre ne se délègue. Si nous laissons l’utilité devenir la seule mesure de la science, l’IA gagnera, et nous aurons oublié à quoi servait la science. Si nous laissons la machine porter la méthode, nous aurons peut-être plus de place que jamais pour ce qui se trouve au-delà.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>La méthode scientifique est la façon dont nous vérifions les idées. Elle ne dit pas pourquoi nous cherchons, et elle dit peu de chose sur la manière dont les grandes idées sont trouvées.</li>
+<li>Poincaré : le savant étudie la nature non parce que c’est utile, mais parce qu’elle est belle. McGilchrist : les percées sont venues de ceux qui ont enfreint les règles et vu le tout.</li>
+<li>L’IA porte la méthode, et propose même des idées plausibles. Ce qui lui manque, c’est le motif : vouloir saisir le pourquoi.</li>
+<li>La réponse peut se déléguer. La compréhension, non. Personne ne peut comprendre quelque chose à votre place.</li>
+<li>Si l’utilité devient la seule mesure de la science, la machine gagne et nous oublions à quoi servait la science. Si la machine porte la méthode, nous aurons peut-être plus de place pour l’émerveillement.</li>
+</ul>
+</div>
+</div>
+<section id="deux-textes" class="level2">
+<h2 class="anchored" data-anchor-id="deux-textes">1. Deux textes</h2>
+<p>Deux textes sont à l’origine de cet essai.</p>
+<p>Le premier a plus d’un siècle. « Le savant n’étudie pas la nature parce que cela est utile ; il l’étudie parce qu’il y prend plaisir et il y prend plaisir parce qu’elle est belle », écrivait Poincaré. Il précisait aussitôt qu’il ne parlait pas de la beauté qui frappe les sens, mais de « cette beauté plus intime qui vient de l’ordre harmonieux des parties, et qu’une intelligence pure peut saisir » <span class="citation" data-cites="poincare1914">(<a href="#ref-poincare1914" role="doc-biblioref">Poincaré 1914, liv. I</a>, chap.&nbsp;1)</span>.</p>
+<p>Le second est récent. Dans un entretien sur la science, le psychiatre et philosophe Iain McGilchrist soutient que les grandes découvertes ne se font pas en suivant la méthode scientifique <span class="citation" data-cites="mcgilchrist2026">(<a href="#ref-mcgilchrist2026" role="doc-biblioref">McGilchrist et Adelson 2026</a>)</span>. Tel que je le lis, les percées qui ont changé notre regard sur le monde sont venues de personnes qui ont enfreint les règles plutôt que de les appliquer, et qui ont vu les choses entières et reliées, au lieu de seulement les démonter.</p>
+<p>Les deux textes ne disent pas la même chose, mais ils se rejoignent au même point. Poincaré parle du motif : ce qui pousse quelqu’un à chercher. McGilchrist parle de la manière : comment se fait la recherche qui compte. Aucun des deux ne parle de la méthode. Et la méthode, c’est précisément ce que nous avons maintenant appris aux machines.</p>
+</section>
+<section id="ce-que-fait-la-méthode-et-ce-quelle-ne-fait-pas" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-fait-la-méthode-et-ce-quelle-ne-fait-pas">2. Ce que fait la méthode, et ce qu’elle ne fait pas</h2>
+<p>Il est utile d’être précis sur ce à quoi sert la méthode scientifique. Le philosophe Hans Reichenbach a tracé une ligne célèbre, très discutée depuis : le <em>contexte de découverte</em>, la façon dont une idée vient à quelqu’un, et le <em>contexte de justification</em>, la façon dont elle est testée et défendue une fois qu’elle est là <span class="citation" data-cites="reichenbach1938">(<a href="#ref-reichenbach1938" role="doc-biblioref">Reichenbach 1938</a>)</span>. La méthode vit presque entièrement du second côté. Elle nous dit comment vérifier une idée, comment écarter l’erreur, comment faire d’un résultat quelque chose en quoi d’autres peuvent avoir confiance. Elle dit très peu de chose sur l’origine des idées. Kuhn et d’autres ont soutenu qu’on ne peut pas séparer proprement les deux côtés, et ils ont raison de dire que la ligne est floue. Mais elle reste une bonne façon de voir pour quoi la méthode a été construite.</p>
+<p>Ce n’est pas une faiblesse. La justification est ce qui rend la science publique. N’importe qui, en principe, peut refaire un test. La découverte est privée, indisciplinée et difficile à enseigner. C’est pourquoi les manuels présentent la science comme une méthode : la méthode est la part qui peut s’écrire.</p>
+<p>Mais la part qui peut s’écrire n’a jamais été le tout. Thomas Kuhn a montré que la science normale résout des énigmes à l’intérieur d’un cadre, et que le cadre lui-même change d’une manière que ses propres règles ne peuvent pas justifier <span class="citation" data-cites="kuhn1962">(<a href="#ref-kuhn1962" role="doc-biblioref">Kuhn 1962</a>)</span>. Paul Feyerabend est allé plus loin : aucune méthode unique ne traverse l’histoire des sciences, et les grandes avancées ont souvent enfreint la règle en vigueur <span class="citation" data-cites="feyerabend1975">(<a href="#ref-feyerabend1975" role="doc-biblioref">Feyerabend 1975</a>)</span>. Michael Polanyi a soutenu que toute connaissance repose sur un engagement personnel, et que des « passions intellectuelles » décident des problèmes qui valent une vie <span class="citation" data-cites="polanyi1958">(<a href="#ref-polanyi1958" role="doc-biblioref">Polanyi 1958</a>)</span>.</p>
+<p>McGilchrist ajoute un point plus aigu. La méthode procède par analyse : elle divise un problème en parties et examine chacune. C’est puissant, et c’est aussi une manière de prêter attention au monde qui peut perdre le tout de vue. Une percée est souvent un tout nouveau : un motif qui fait soudain s’ajuster de nombreuses parties. On ne l’atteint pas en examinant les parties avec plus de soin. On l’atteint en voyant autrement.</p>
+</section>
+<section id="pas-parce-que-cest-utile" class="level2">
+<h2 class="anchored" data-anchor-id="pas-parce-que-cest-utile">3. Pas parce que c’est utile</h2>
+<p>La phrase de Poincaré se lit facilement comme un sentiment agréable. Je crois que c’est une thèse sur ce qu’est la science.</p>
+<p>Si le savant étudiait la nature parce que c’est utile, la science serait un moyen : nous voudrions la réponse pour ce qu’elle nous permet de faire, et n’importe quelle façon d’obtenir la réponse vaudrait n’importe quelle autre. Poincaré dit le contraire. Le savant veut <em>saisir</em> quelque chose : l’ordre entre les parties. Et saisir n’est pas un résultat qu’on peut vous remettre. Cela se passe en vous, ou pas du tout.</p>
+<p>C’est plus ancien que Poincaré. Dans le <em>Théétète</em> de Platon, Socrate dit à un jeune mathématicien perplexe que son étonnement est la marque d’un philosophe, car la philosophie commence dans l’étonnement (<em>Théétète</em> 155d). L’étonnement n’est pas le désir d’une solution. C’est le sentiment que quelque chose dépasse ce que nous comprenons, et que le comprendre vaudrait beaucoup, quelle que soit son utilité.</p>
+<p>Kepler est mon exemple préféré de la façon dont cela fonctionne, et de ses risques. Il était porté par la conviction que les cieux étaient construits sur l’harmonie. Sa première théorie emboîtait les orbites des planètes dans les cinq solides parfaits de la géométrie, et elle était fausse. Mais la même quête d’harmonie l’a tenu des années penché sur les mesures de Tycho Brahe, d’échec en échec, jusqu’à ce qu’il trouve que les orbites étaient des ellipses. Dans un livre intitulé <em>Harmonices Mundi</em>, l’harmonie du monde, il a publié la loi qui relie l’année de chaque planète à sa distance au Soleil <span class="citation" data-cites="kepler1619">(<a href="#ref-kepler1619" role="doc-biblioref">Kepler 1619</a>)</span>. Ce qui le mouvait, c’était la beauté. Ce qui a tranché, ce sont les données. Il avait besoin des deux.</p>
+<p>Ce qui motive la découverte est donc plus que trouver une solution. Une solution met fin à une recherche. La compréhension, la saisie du pourquoi il doit en être ainsi, est ce que le chercheur voulait depuis le début. Et la recherche elle-même, avec ses échecs, ses surprises et son plaisir, n’est pas seulement un coût payé pour la réponse. Pour ceux qui font la science, c’en est en grande partie le sens.</p>
+</section>
+<section id="la-méthode-devenue-machine" class="level2">
+<h2 class="anchored" data-anchor-id="la-méthode-devenue-machine">4. La méthode devenue machine</h2>
+<p>Considérons maintenant ce qu’est l’IA. Un grand modèle apprend de ce qui a été écrit. Il est extraordinairement bon dans la part de la science qui peut s’écrire : rappeler ce qui est connu, vérifier un raisonnement, explorer un espace de possibilités plus vite que n’importe qui. En ce sens, l’IA est la méthode devenue machine, et dans certains domaines elle pratique déjà la méthode mieux que nous.</p>
+<p>Elle touche aussi à la découverte, et il serait malhonnête de prétendre le contraire. Un modèle propose des hypothèses, suggère des expériences, recombine des idées venues de domaines éloignés. Mais il propose selon la plausibilité : ce qui est probable, étant donné ce qui a été écrit. C’est la découverte telle que la méthode la ferait, si la méthode pouvait rêver. Ce qui manque n’est pas la capacité de proposer. C’est la raison de tenir à ce qu’une proposition soit vraie.</p>
+<p>On pourrait aussi objecter que l’IA n’est pas du tout réductrice. Elle relie des idées à travers tous les domaines qu’elle a lus, ce qui semble plus proche du tout de McGilchrist que des parties de l’analyste. Je prends cette objection au sérieux, et je ne crois pas qu’on puisse la trancher aujourd’hui. Un modèle voit le monde à travers nos données et nos descriptions ; nous le voyons à travers nos sens et nos concepts, qui ne sont pas non plus sans filtres. Qu’une machine puisse prêter attention au tout au sens de McGilchrist, ou seulement aux motifs de ce que nous avons enregistré, est une question ouverte, et je ne prétendrai pas y répondre.</p>
+<p>Ce que nous savons est plus simple. Un modèle peut nous tendre une solution. Il ne la désire pas, autant qu’on puisse en juger, et il ne trouve pas belle l’harmonie de la nature. Et même si une machine future le faisait, son émerveillement ne serait pas le nôtre. La réponse peut se déléguer. La compréhension, non. Si je lis une démonstration que je n’ai pas trouvée, je peux finir par la comprendre, mais seulement en la parcourant moi-même. Personne ne peut comprendre quelque chose à ma place.</p>
+</section>
+<section id="ce-que-lia-change-en-nous" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-lia-change-en-nous">5. Ce que l’IA change en nous</h2>
+<p>La question n’est donc pas de savoir si l’IA fera de la science. Elle fera de plus en plus la part que nous appelions la méthode. La question est ce qu’il advient de la part qui n’a jamais été la méthode : l’étonnement, le goût, le désir de comprendre.</p>
+<p>Je vois un vrai risque. Quand les réponses deviennent bon marché, on est tenté de ne valoriser la science que pour ses réponses, c’est-à-dire pour son utilité. L’utilité n’est pas une mauvaise raison de valoriser la science. La plupart d’entre nous lui sont reconnaissants parce qu’elle soigne, nourrit et relie, et c’est une bonne raison de la financer. Mais ce n’est pas pour cela que quelqu’un y consacre sa vie, et ce n’est pas ce qui rend un résultat compris. En faire la seule raison, c’est exactement la vision que Poincaré rejetait. Si la science n’est qu’une manière de produire des résultats utiles, alors une machine qui les produit plus vite est tout simplement meilleure, et ceux qui faisaient la science n’ont plus qu’à consommer. Nous ne perdrions pas la science. Nous perdrions la raison pour laquelle on l’a aimée.</p>
+<p>Il y a aussi un risque plus subtil. L’étonnement et le goût ne sont pas donnés. Ils grandissent dans la recherche : en essayant, en échouant, en voyant lentement pourquoi. Une génération qui reçoit les réponses sans chercher pourrait garder les réponses et perdre la capacité de s’en étonner.</p>
+<p>Et il y a une vraie chance. Pendant la plus grande partie de l’histoire, la méthode coûtait cher. Les scientifiques passaient l’essentiel de leur temps à vérifier, calculer et défendre, et très peu à s’étonner. Si les machines portent une grande part de ce poids, nous pourrions avoir plus de temps que jamais pour ce qui se trouve au-delà de la méthode : demander pourquoi le monde est ordonné comme il l’est, voir les choses entières, éprouver le plaisir que décrivait Poincaré. L’IA pourrait nous ramener à la raison pour laquelle nous avons commencé. Elle ne le fera que si nous le choisissons, car la méthode, livrée à elle-même, choisira toujours la prochaine étape utile.</p>
+</section>
+<section id="le-réquisitoire-contre-la-beauté" class="level2">
+<h2 class="anchored" data-anchor-id="le-réquisitoire-contre-la-beauté">6. Le réquisitoire contre la beauté</h2>
+<p>Je dois accorder à l’objection la plus forte ce qui lui revient. La beauté égare. Les solides parfaits de Kepler étaient beaux et faux. De nos jours, la physicienne Sabine Hossenfelder soutient que la recherche de théories élégantes a égaré une partie de la physique pendant des décennies, vers des idées belles et non testées <span class="citation" data-cites="hossenfelder2018">(<a href="#ref-hossenfelder2018" role="doc-biblioref">Hossenfelder 2018</a>)</span>. Et la plus grande partie de la science, honnêtement, n’est pas de l’étonnement. C’est une vérification soigneuse et patiente, et c’est cette vérification qui transforme une belle idée en connaissance.</p>
+<p>Je suis d’accord avec tout cela, et je ne crois pas que cela affaiblisse l’argument. Poincaré n’a jamais prétendu que la beauté prouve quoi que ce soit. La beauté propose ; la méthode dispose. Une science de la beauté sans méthode est une rêverie. Une science de la méthode sans beauté est une procédure sans raison de tourner. Ce que Poincaré et McGilchrist nous rappellent, c’est que le second danger est celui vers lequel nous dérivons aujourd’hui, parce que la méthode est la part que nous avons appris à automatiser.</p>
+</section>
+<section id="pourquoi-nous-cherchons" class="level2">
+<h2 class="anchored" data-anchor-id="pourquoi-nous-cherchons">7. Pourquoi nous cherchons</h2>
+<p>Quand nous demandons ce que l’IA signifie pour la science, nous demandons d’habitude ce qu’elle peut trouver. Je crois que la meilleure question est ce qu’elle nous laisse à chercher, et pourquoi.</p>
+<p>La machine peut suivre la méthode, peut-être mieux que nous ne l’avons jamais fait. Elle peut nous donner des solutions, dont beaucoup sont utiles. Ce qu’elle ne peut pas nous donner, c’est l’étonnement qui nous a fait poser la question, ni la joie de voir par nous-mêmes pourquoi la réponse doit être celle-là. Ils n’ont jamais fait partie de la méthode. Ils en étaient la raison.</p>
+<p>Le savant, écrivait Poincaré, n’étudie pas la nature parce que cela est utile. À l’âge des machines utiles, c’est peut-être la phrase la plus importante que nous ayons sur la science.</p>
+<div class="discuss">
+<p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
+</div>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-27-the-joy-of-the-question/index.html">La joie de la question</a> L’IA résoudra de plus en plus de nos problèmes. Ce qui reste à nous, c’est de les choisir, et d’y tenir.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-feyerabend1975" class="csl-entry" role="listitem">
+Feyerabend, Paul. 1975. <em>Against Method</em>. New Left Books.
+</div>
+<div id="ref-hossenfelder2018" class="csl-entry" role="listitem">
+Hossenfelder, Sabine. 2018. <em>Lost in Math: How Beauty Leads Physics Astray</em>. Basic Books.
+</div>
+<div id="ref-kepler1619" class="csl-entry" role="listitem">
+Kepler, Johannes. 1619. <em>Harmonices Mundi</em>. Linz.
+</div>
+<div id="ref-kuhn1962" class="csl-entry" role="listitem">
+Kuhn, Thomas S. 1962. <em>The Structure of Scientific Revolutions</em>. University of Chicago Press.
+</div>
+<div id="ref-mcgilchrist2026" class="csl-entry" role="listitem">
+McGilchrist, Iain, et Oliver Adelson. 2026. <em>Iain McGilchrist: <span>«&nbsp;Great discoveries are not made by following the scientific method&nbsp;»</span></em>. IAI News. <a href="https://iai.tv/articles/iain-mcgilchrist-great-discoveries-are-not-made-by-following-the-scientific-method-auid-3628">https://iai.tv/articles/iain-mcgilchrist-great-discoveries-are-not-made-by-following-the-scientific-method-auid-3628</a>.
+</div>
+<div id="ref-poincare1914" class="csl-entry" role="listitem">
+Poincaré, Henri. 1914. <em>Science and Method</em>. Traduit par Francis Maitland. Thomas Nelson; Sons.
+</div>
+<div id="ref-polanyi1958" class="csl-entry" role="listitem">
+Polanyi, Michael. 1958. <em>Personal Knowledge: Towards a Post-Critical Philosophy</em>. University of Chicago Press.
+</div>
+<div id="ref-reichenbach1938" class="csl-entry" role="listitem">
+Reichenbach, Hans. 1938. <em>Experience and Prediction: An Analysis of the Foundations and the Structure of Knowledge</em>. University of Chicago Press.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Pas parce que c’est utile},
+  date = {2026-11-01},
+  url = {https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/},
+  langid = {fr}
+}
+</code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Pas parce que c’est utile.”</span>
+November 1. <a href="https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/">https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
