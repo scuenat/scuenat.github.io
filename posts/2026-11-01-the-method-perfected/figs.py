@@ -76,7 +76,7 @@ def fig02():
     ax.text(0.075, 0.5, "the method ranks\nthese last and\ncannot tell them\napart; taste can", color=WARM, fontsize=9, va="center")
     ax.set_xlim(0, 0.9); ax.set_ylim(-0.03, 0.9)
     ax.set_xlabel("consensus prior: how plausible the field finds the idea")
-    ax.set_ylabel("chance the idea is true")
+    ax.set_ylabel("true rate p: share of such ideas that turn out true")
     ax.legend(loc="upper left", fontsize=8.5, handletextpad=0.3, markerscale=1.6)
     save(fig, "fig02")
 

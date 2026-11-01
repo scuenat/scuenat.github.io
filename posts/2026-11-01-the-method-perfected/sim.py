@@ -23,7 +23,7 @@ Strategies share one budget B, in person-periods:
   mixed      AI method on (1 - s) of the budget, conviction (AI-assisted) on s.
 
 All parameters are invented to show a mechanism, not measured. Writes results.json.
-Run: python sim.py   (about half a minute)
+Run: python sim.py   (about a minute)
 """
 import json
 import numpy as np
@@ -36,14 +36,16 @@ C_AI_ORD, C_AI_FRO = 0.25, 0.5
 SEEDS = 300
 DELTAS = (0.0, 0.5, 1.0)
 SHARES = (0.0, 0.05, 0.1, 0.2, 0.3, 0.5)
+SENS_P_UNDER = (0.10, 0.15, 0.30)
 
 
-def field(rng, delta):
+def field(rng, delta, p_under=None):
+    p_under = P_UNDER if p_under is None else p_under
     pi = np.concatenate([rng.beta(2, 6, N_ORD), rng.uniform(0.01, 0.06, N_FRO)])
     fro = np.r_[np.zeros(N_ORD, bool), np.ones(N_FRO, bool)]
     under = np.zeros_like(fro)
     under[N_ORD:] = rng.random(N_FRO) < UNDERRATED
-    p_true = np.where(under, P_UNDER, pi)
+    p_true = np.where(under, p_under, pi)
     truth = rng.random(pi.size) < p_true
     taste = delta * truth + rng.normal(0, 1, pi.size)
     V = np.where(fro, V_FRO, 1.0)
@@ -119,6 +121,17 @@ def main():
                 o.append(x); b.append(y)
             res.append(dict(share=s, ordinary=summarise(o), breakthroughs=summarise(b)))
         out["sweep"][str(d)] = res
+    # Sensitivity: how much rides on the true chance of the underrated ideas (P_UNDER)?
+    out["sensitivity"] = {}
+    for pu in SENS_P_UNDER:
+        row = {}
+        for name, s in rows:
+            b = []
+            for seed in range(SEEDS):
+                f = field(np.random.default_rng(seed), 0.5, pu)
+                b.append(strategy(f, name, s)[1])
+            row[name] = summarise(b)
+        out["sensitivity"][str(pu)] = row
     with open("results.json", "w") as fh:
         json.dump(out, fh, indent=1)
     for k, v in out["table"].items():
@@ -126,6 +139,8 @@ def main():
               f" [{v['breakthroughs']['p05']:.0f}-{v['breakthroughs']['p95']:.0f}]  P(none) {v['p_none']:.2f}")
     for d, res in out["sweep"].items():
         print("delta", d, [(r["share"], round(r["ordinary"]["mean"]), round(r["breakthroughs"]["mean"], 1)) for r in res])
+    for pu, row in out["sensitivity"].items():
+        print("P_UNDER", pu, {k: round(v["mean"], 1) for k, v in row.items()})
 
 
 if __name__ == "__main__":
