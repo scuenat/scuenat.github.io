@@ -73,6 +73,18 @@ resources:
   `*The views in this <essay|analysis|note|paper> are my own and do not describe any product or plan of my employer.*`
 - Never invent quotations, numbers or sources. Every external claim gets a link or a `[@key]` citation with a `references.bib`.
 
+### Revising a published post
+
+When a change matters to readers (a new section, a corrected result, a changed conclusion), add an entry to the post's front matter, newest first:
+
+```yaml
+updates:
+  - date: YYYY-MM-DD
+    note: "Added section 4 on what the model cannot see."
+```
+
+`updates.lua` shows it as an "Updated on …" note after the opening callout and sets the title block's modified date; the archive's "Recent changes" lists it. Typo fixes and small edits get no entry. When unsure, ask the user whether the change deserves one. Add the same entry, translated, to the French version (see **translate-fr**).
+
 ## 5. French version
 
 If the user agreed, follow the **translate-fr** skill for the new post (it carries `kind:` over unchanged; the French badge labels come from `fr/index.qmd` and `fr/archive.qmd`).

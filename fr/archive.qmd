@@ -2,17 +2,36 @@
 title: "Tous les textes"
 description: "Tous les essais et documents de travail d'AI, Honestly, du plus récent au plus ancien, avec leurs catégories."
 listing:
-  contents: "posts/*/index.qmd"   # relative to fr/
-  sort: "date desc"
-  template: ../archive-list.ejs   # default cards plus a kind badge (essay | analysis | note | position)
-  categories: true
-  sort-ui: false
-  template-params:
-    kinds: { essay: "Essai", analysis: "Analyse", note: "Note", position: "Article de position" }
-  filter-ui: false
-  fields: [image, date, title, subtitle, description, categories, reading-time, kind]
+  - id: recent
+    contents: "posts/*/index.qmd"   # relative to fr/
+    template: ../recent-changes.ejs   # new posts and revisions (front matter `updates:`), newest first
+    date-format: iso
+    fields: [date, title, updates]
+    template-params:
+      heading: "Derniers changements"
+      added: "Nouveau"
+      updated: "Mis à jour"
+      months: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
+  - id: all
+    contents: "posts/*/index.qmd"   # relative to fr/
+    sort: "date desc"
+    template: ../archive-list.ejs   # default cards plus a kind badge (essay | analysis | note | position)
+    categories: true
+    sort-ui: false
+    template-params:
+      kinds: { essay: "Essai", analysis: "Analyse", note: "Note", position: "Article de position" }
+    filter-ui: false
+    fields: [image, date, title, subtitle, description, categories, reading-time, kind]
 page-layout: article
 toc: false
 ---
 
-Tous les textes du site, du plus récent au plus ancien. Chaque carte indique s'il s'agit d'un essai, d'une analyse, d'une note ou d'un article de position : [ce que chacun signifie](about.qmd#kinds). Pour entrer par thème, partez de la [page d'accueil](index.qmd). Ces versions sont traduites automatiquement de l'anglais et peuvent contenir quelques erreurs.
+Tous les textes du site, du plus récent au plus ancien. Chaque carte indique s'il s'agit d'un essai, d'une analyse, d'une note ou d'un article de position : [ce que chacun signifie](about.qmd#kinds). Pour entrer par thème, partez de la [page d'accueil](index.qmd). Ces versions sont traduites automatiquement de l'anglais et peuvent contenir quelques erreurs. Pour être averti des nouveaux textes, abonnez-vous à la [newsletter](https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544) sur LinkedIn (en anglais) ou au [flux RSS](index.xml).
+
+::: {#recent}
+:::
+
+## Tous les textes
+
+::: {#all}
+:::

@@ -48,6 +48,7 @@ Before writing, read one existing translation next to its original (for example 
 - Point at the English post's files rather than copying them:
   - `image: ../../../posts/<slug>/figures/fig01.png`
   - `bibliography: ../../../posts/<slug>/references.bib`
+- Copy `updates:` entries (see **new-post**, "Revising a published post") with the same dates and the `note` translated. A French version that is brought up to date later gets the entry too, so French readers see the change.
 - Drop `resources:` (the files are already published with the English post) and `google-scholar:` (papers are indexed once, in English).
 - `fr/posts/_metadata.yml` already sets `lang: fr`, the author and the license.
 
