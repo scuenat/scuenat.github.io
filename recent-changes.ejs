@@ -1,0 +1,26 @@
+<%
+// "Recent changes" on the archive pages: new posts (their `date`) and meaningful revisions
+// (their front-matter `updates:`, see updates.lua), newest first. The listing must use
+// `date-format: iso` so dates sort and format here. Labels come from template-params.
+const p = Object.assign({ heading: "Recent changes", added: "New", updated: "Updated", max: 8,
+  months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] },
+  (typeof templateParams !== "undefined" && templateParams) || {});
+const iso = v => String(v || "").slice(0, 10);
+const fmt = s => { const [y, m, d] = s.split("-").map(Number); return d + " " + p.months[m - 1] + " " + y; };
+const events = [];
+for (const item of items) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso(item.date))) events.push({ date: iso(item.date), kind: "added", item });
+  for (const u of (Array.isArray(item.updates) ? item.updates : [])) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(iso(u && u.date))) events.push({ date: iso(u.date), kind: "updated", note: u.note || "", item });
+  }
+}
+events.sort((a, b) => b.date.localeCompare(a.date) || (a.kind === "updated" ? -1 : 1));
+%>
+<div class="recent-changes">
+<h2 class="anchored"><%= p.heading %></h2>
+<ul>
+<% for (const e of events.slice(0, p.max)) { %>
+<li><span class="rc-date"><%= fmt(e.date) %></span><span class="rc-tag"><%= e.kind === "added" ? p.added : p.updated %></span><a href="<%- e.item.path %>"><%= e.item.title %></a><% if (e.note) { %> <span class="rc-note">· <%= e.note %></span><% } %></li>
+<% } %>
+</ul>
+</div>
