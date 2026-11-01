@@ -22,8 +22,11 @@ Strategies share one budget B, in person-periods:
   conviction ranks frontier ideas by taste a and carries each one through its dark period.
   mixed      AI method on (1 - s) of the budget, conviction (AI-assisted) on s.
 
+A last experiment divides the AI cost per period by a factor k, for the base field and for a field
+ten times larger, to find where testing becomes cheap enough to try every idea.
+
 All parameters are invented to show a mechanism, not measured. Writes results.json.
-Run: python sim.py   (about a minute)
+Run: python sim.py   (about two minutes)
 """
 import json
 import numpy as np
@@ -37,6 +40,10 @@ SEEDS = 300
 DELTAS = (0.0, 0.5, 1.0)
 SHARES = (0.0, 0.05, 0.1, 0.2, 0.3, 0.5)
 SENS_P_UNDER = (0.10, 0.15, 0.30)
+# Cheap-testing limit: divide the AI cost per period by k, for the base pool and a pool ten times larger.
+COST_FACTORS = (1, 2, 5, 10, 20, 50)
+POOL_MULTS = (1, 10)
+LIMIT_SEEDS = 100
 
 
 def field(rng, delta, p_under=None):
@@ -96,6 +103,7 @@ def summarise(xs):
 
 
 def main():
+    global N_ORD, N_FRO, C_AI_ORD, C_AI_FRO
     out = dict(params=dict(N_ORD=N_ORD, N_FRO=N_FRO, T_ORD=T_ORD, T_FRO=T_FRO, V_FRO=V_FRO,
                            UNDERRATED=UNDERRATED, P_UNDER=P_UNDER, B=B, C_AI_ORD=C_AI_ORD,
                            C_AI_FRO=C_AI_FRO, SEEDS=SEEDS),
@@ -132,6 +140,19 @@ def main():
                 b.append(strategy(f, name, s)[1])
             row[name] = summarise(b)
         out["sensitivity"][str(pu)] = row
+    # Cheap-testing limit: when testing is cheap enough to try every idea, conviction adds nothing.
+    base = (N_ORD, N_FRO, C_AI_ORD, C_AI_FRO)
+    out["limit"] = []
+    for m in POOL_MULTS:
+        for k in COST_FACTORS:
+            N_ORD, N_FRO = base[0] * m, base[1] * m
+            C_AI_ORD, C_AI_FRO = base[2] / k, base[3] / k
+            row = dict(pool=m, factor=k)
+            for name, s in (("method_ai", 0.0), ("mixed", 0.2)):
+                b = [strategy(field(np.random.default_rng(seed), 0.5), name, s)[1] for seed in range(LIMIT_SEEDS)]
+                row[name] = summarise(b)
+            out["limit"].append(row)
+    N_ORD, N_FRO, C_AI_ORD, C_AI_FRO = base
     with open("results.json", "w") as fh:
         json.dump(out, fh, indent=1)
     for k, v in out["table"].items():
@@ -141,6 +162,8 @@ def main():
         print("delta", d, [(r["share"], round(r["ordinary"]["mean"]), round(r["breakthroughs"]["mean"], 1)) for r in res])
     for pu, row in out["sensitivity"].items():
         print("P_UNDER", pu, {k: round(v["mean"], 1) for k, v in row.items()})
+    for r in out["limit"]:
+        print("pool x%d cost/%d" % (r["pool"], r["factor"]), round(r["method_ai"]["mean"], 1), round(r["mixed"]["mean"], 1))
 
 
 if __name__ == "__main__":

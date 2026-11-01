@@ -106,5 +106,28 @@ def fig03():
     save(fig, "fig03")
 
 
+def fig04():
+    """Cheap-testing limit: breakthroughs as AI work gets cheaper, base field and a field ten times larger."""
+    rows = json.load(open("results.json"))["limit"]
+    fig, axs = plt.subplots(1, 2, figsize=(9, 3.9))
+    for ax, pool, title in ((axs[0], 1, "Base field (5,400 ideas)"), (axs[1], 10, "Field ten times larger")):
+        r = [x for x in rows if x["pool"] == pool]
+        k = [x["factor"] for x in r]
+        for name, col, nm in (("mixed", PLUM, "AI + 20% conviction"), ("method_ai", NAVY, "method with AI")):
+            m = [x[name]["mean"] for x in r]
+            ax.fill_between(k, [x[name]["p05"] for x in r], [x[name]["p95"] for x in r], color=col, alpha=0.12, lw=0)
+            ax.plot(k, m, color=col, lw=2, marker="o", ms=4, label=nm)
+        ax.set_xscale("log")
+        ax.set_xticks([1, 2, 5, 10, 20, 50]); ax.set_xticklabels(["1x", "2x", "5x", "10x", "20x", "50x"])
+        ax.minorticks_off()
+        ax.set_title(title, loc="left", fontsize=10.5)
+        ax.set_xlabel("AI work, times cheaper than in Table 1")
+        ax.set_ylim(0, None)
+    axs[0].set_ylabel("breakthroughs found")
+    axs[1].legend(fontsize=8.5, loc="upper left")
+    fig.tight_layout(w_pad=3)
+    save(fig, "fig04")
+
+
 if __name__ == "__main__":
-    fig01(); fig02(); fig03()
+    fig01(); fig02(); fig03(); fig04()

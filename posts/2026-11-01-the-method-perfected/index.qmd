@@ -19,156 +19,172 @@ resources:
 ---
 
 ::: {.callout-warning appearance="simple"}
-**A provocative paper, on purpose.** This is a position paper written like a short scientific paper. It has a thesis, a conjecture it rests on, a minimal model, a toy simulation and predictions that could prove it wrong. It starts from two old ideas: Poincaré's view that scientists pursue nature for the harmony they sense in it [@poincare1914], and Iain McGilchrist's recent claim that great discoveries are not made by following the scientific method [@mcgilchrist2026]. I agree with both, and I ask what they mean now that we have built machines that follow the method better than we do. Figures are my own. The simulation is in [sim.py](sim.py) and its parameters are invented to show a mechanism, not measured.
+**A provocative paper, on purpose.** A thesis, the conjecture it rests on, a minimal model, a toy simulation and predictions that could prove it wrong. It starts from Poincaré's view that scientists pursue the harmony they sense in nature [@poincare1914] and Iain McGilchrist's claim that great discoveries are not made by following the scientific method [@mcgilchrist2026], and asks what they mean now that machines follow the method better than we do. Figures are my own; the simulation is in [sim.py](sim.py), with invented parameters.
 :::
 
-**Abstract.** The scientific method, as practised, ranks ideas by how plausible they look given what is already known, and then tests the best-ranked ones first. AI trained on the literature does the same thing with far more reach. I call this *the method, perfected*. I model a research idea by its consensus prior $\pi$ (how plausible the field finds it), its value $V$ if it is true, and its *dark period* $T$ (the work it takes before any decisive evidence appears). The method pursues an idea when $\pi V / T$ is high. My central conjecture is that some ideas belong to groups where the consensus is systematically too pessimistic: such ideas turn out true more often than the field believes. These are the discoveries that change a field. They have a low $\pi$ and a long $T$, so the method ranks them last. AI lowers the cost of each step, so the method reaches further, but it still moves along the consensus and not across it. Reaching those ideas takes *conviction*: credence held above the evidence, guided by a private sense of coherence (Poincaré's harmony), and kept long enough to cross the dark period. In a toy field, a calibrated method finds no breakthroughs at all. The same method with AI finds about three. Giving a fifth of the budget to conviction finds about ten, and costs less than a tenth of the ordinary discoveries. I state five predictions that would prove this wrong.
+**Abstract.** The scientific method ranks ideas by how plausible they look given what is known, and tests the best first. AI trained on the literature does the same, with far more reach: the method, perfected. I model an idea by its consensus prior $\pi$, its value $V$ and its *dark period* $T$, the work needed before decisive evidence appears. The method pursues ideas with a high $\pi V / cT$, where $c$ is the cost of work. I conjecture that some groups of far ideas turn out true more often than the field believes, and that nothing in the literature tells which. The method ranks them last; AI makes it reach further, but along the consensus, not across it. Reaching them takes *conviction*: belief held above the evidence, guided by taste, kept through the dark period. In a toy field, the method finds no breakthroughs, the method with AI about three, and AI plus a fifth of the budget for conviction about ten. If testing became cheap enough to try every idea, conviction would stop mattering. Open science is far from that point. Six predictions could prove all this wrong.
 
 ::: {.callout-tip appearance="simple" icon="false"}
 ## Claims
 
-1. **AI is the method, perfected.** A model trained on what has been written ranks ideas by the field's own sense of what is plausible, faster and more evenly than any person.
-2. **Great discoveries rank last (a conjecture).** For some groups of ideas, the consensus prior is systematically below the share that turns out true. Those ideas also have long dark periods, so the method ranks them last.
-3. **AI moves the method along the consensus, not across it.** Cheaper steps let it reach further down the list, but in the same order.
-4. **Conviction is the scarce input.** Conviction means believing in an idea more than the evidence warrants, and working on it long enough to reach the decisive test.
-5. **Faith without taste is waste.** Conviction pays only when it is guided by a signal that the consensus does not already contain.
-6. **The test.** Models limited to the literature before a discovery should rate it as implausible. Fields that adopt AI heavily should narrow. Teams that protect a budget for conviction should produce more of the rare outcomes. If these fail, the thesis is wrong.
+1. **AI is the method, perfected.** It ranks ideas by the field's own sense of what is plausible.
+2. **Great discoveries rank last (a conjecture).** For some groups of far ideas, the consensus prior is systematically below the share that turns out true.
+3. **AI moves the method along the consensus, not across it.** Cheaper steps reach further down the same list.
+4. **Conviction is the scarce input.** Believing in an idea beyond the evidence, long enough to reach the decisive test.
+5. **Faith without taste is waste.** Conviction pays only when guided by a signal the literature does not contain.
+6. **The limit.** If testing gets cheap enough to try every idea, conviction stops mattering. In open science the space of ideas grows and the world sets the pace of tests, so that point stays out of reach.
 :::
 
 ## 1. Introduction
 
-We are building the best rule-follower ever made. Ask a capable model what to try next in a research programme, and it will give a sensible, well-argued, well-referenced answer. That answer is close to what the field already believes. This is not a flaw. The model was trained on what the field has written and rewarded for answers that experts rate as good. It does exactly what we asked it to do.
+Ask a capable model what to try next in a research programme, and it will give a sensible, well-referenced answer, close to what the field already believes. That is not a flaw. It was trained on what the field has written and rewarded for answers experts rate as good.
 
-The usual story says the scientific method drives progress: careful rules, reductive analysis, plausible hypotheses tested in order. If that were the whole story, AI would soon be the best scientist in the world, and some systems already aim to run the whole loop from idea to paper [@lu2024].
+If the method were the whole of science, AI would soon be its best practitioner, and some systems already aim to run the loop from idea to paper [@lu2024]. History suggests otherwise. Helicobacter pylori as a cause of ulcers [@marshall1984] and quasicrystals [@shechtman1984] were dismissed by experts for years. Their discoverers kept going when the method said stop.
 
-The history of science tells another story. Many of the discoveries that changed a field were made by people who believed something the evidence did not yet support. They kept believing it for years against the judgement of their peers. Helicobacter pylori as a cause of ulcers [@marshall1984] and quasicrystals [@shechtman1984] were both dismissed by experts before they were accepted. In both cases the discoverer kept going during the years when the method said stop.
-
-My thesis is that **AI does not change this. It makes it sharper.** The more perfectly we automate the method, the more clearly the part that is not the method stands out. That part is the choice to believe in an improbable idea, and to stay with it.
+My thesis: **AI does not change this. It makes it sharper.** The better we automate the method, the more clearly the part that is not the method stands out: choosing to believe in an improbable idea, and staying with it.
 
 ## 2. Background
 
-**Beauty as a guide.** Poincaré wrote that the scientist "does not study nature because it is useful to do so. He studies it because he takes pleasure in it, and he takes pleasure in it because it is beautiful" [@poincare1914, Book I, ch. 1]. He did not mean the beauty of appearances. He meant the order among the parts, which the mind grasps. In the chapter on mathematical discovery he went further. He argued that among the countless combinations an inventor could try, a sense of elegance and harmony acts as a sieve. It lets through to awareness the few combinations worth checking [@poincare1914, Book I, ch. 3]. On this view, taste is not decoration on top of discovery. It is how discovery chooses where to look.
+**Beauty as a guide.** Poincaré wrote that the scientist studies nature "because he takes pleasure in it, and he takes pleasure in it because it is beautiful", meaning the harmony of its parts [@poincare1914, Book I, ch. 1]. On mathematical discovery, he argued that a sense of elegance acts as a sieve, letting through to awareness the few combinations worth checking [@poincare1914, Book I, ch. 3]. Taste is how discovery chooses where to look.
 
-**Discovery outside the method.** @kuhn1962 described normal science as puzzle-solving inside a shared frame, and revolutions as changes of frame that the old frame's rules could not justify. @polanyi1958 argued that all knowing involves personal commitment, and that "intellectual passions" choose which problems are worth a life. @feyerabend1975 went furthest: no single method covers the history of science. Recently, @mcgilchrist2026 argued that the great advances came from breaking the rules, not following them, and that discovery needs a whole, connected view of the world rather than reduction alone. I take his conclusion without depending on his account of the brain's hemispheres, which is debated.
+**Discovery outside the method.** @kuhn1962 separated puzzle-solving inside a frame from revolutions that change it. @polanyi1958 argued that knowing involves personal commitment and "intellectual passions". @feyerabend1975 denied that any single method covers the history of science. @mcgilchrist2026 argues that great advances came from breaking the rules; I take that conclusion without his account of the brain's hemispheres, which is debated.
 
-**Evidence that consensus resists the new.** When a star scientist dies, outsiders enter the field and publish more-cited work. This suggests established views hold back new ones [@azoulay2019]. Highly novel papers are more likely to end up among the most cited, but they are recognised late and appear in lower-impact journals. So short-term metrics penalise them [@wang2017]. Across six decades, papers and patents have become less disruptive [@park2023].
+**Consensus resists the new.** When a star scientist dies, outsiders enter the field and publish more-cited work [@azoulay2019]. Highly novel papers are more often among the most cited in the long run, but are recognised late [@wang2017]. Papers and patents have become less disruptive over six decades [@park2023].
 
-**Evidence about AI and the frontier.** In a study of 41 million papers, scientists who use AI publish more, are cited more and lead projects sooner. At the same time, the range of topics in AI-heavy research shrinks and scientists engage less with each other [@hao2024]. When writers use AI, each story gets better and the stories become more alike [@doshi2024]. In a blind study, experts rated LLM-generated research ideas *more* novel than ideas from human experts, while the authors noted the low diversity of what the models generate [@si2025]. Both findings matter, and I return to the second one in section 7.
+**AI and the frontier.** Scientists who use AI publish and are cited more, while AI-heavy research covers a narrower range of topics [@hao2024]. Writers helped by AI write better stories that resemble each other more [@doshi2024]. Experts rated LLM research ideas *more* novel than their own, while the authors noted how little those ideas vary [@si2025].
 
 ## 3. A minimal model
 
-Take one research idea $h$. I describe it with four quantities.
+Take a research idea $h$:
 
 - $\pi$, the **consensus prior**: how plausible the field, and any model trained on its literature, finds $h$.
-- $p$, the **true rate**: the share of ideas like $h$ that turn out true. A single idea is simply true or false, so $p$ belongs to a group of similar ideas, not to $h$ alone. No one can observe $p$ when deciding, not the field, not a person and not a model. It shows up only after ideas have been tested. Usually $p \approx \pi$, because the consensus is mostly well calibrated.
-- $V$, the **value** of $h$ if it turns out true.
-- $T$, the **dark period**: the work needed before any decisive evidence appears. During it, the signals are weak, noisy and often discouraging (Figure 1).
+- $p$, the **true rate**: the share of ideas like $h$ that turn out true. A single idea is true or false, so $p$ belongs to a group of similar ideas. No one can observe it when deciding; it shows up only after testing. Usually $p \approx \pi$.
+- $V$, the **value** of $h$ if true.
+- $T$, the **dark period**: the work before any decisive evidence. Signals during it are weak and often discouraging (Figure 1).
 
-Work costs $c$ per period. A calibrated agent, which I call *the method*, ranks ideas by expected value per unit of work under the consensus and pursues them in that order:
+With work costing $c$ per period, the method ranks ideas by expected value per unit of work under the consensus:
 
 $$
 \text{score}_{\text{method}}(h) = \frac{\pi \, V}{c \, T}.
 $$ {#eq-method}
 
-A far idea, one that would change the field, has a small $\pi$ and a long $T$. Its large $V$ rarely makes up for both, so it lands at the bottom of the list. That is fine when $p \approx \pi$, because most far ideas are rightly doubted. It fails exactly for **underrated far ideas**, where $p V / cT$ is large and $\pi V / cT$ is small. That set is where breakthroughs live:
+A far idea has a small $\pi$ and a long $T$, so it ranks last. That is right when $p \approx \pi$. It is wrong for **underrated far ideas**, where breakthroughs live:
 
 $$
 \mathcal{B} = \{\, h : \pi V < c\,T \le p\, V \,\}.
 $$ {#eq-breakthrough}
 
-Because $p$ is only seen after testing, $\mathcal{B}$ can only be named after the fact. On its own, "the method misses the ideas it underrates" would be true by definition. The claim becomes a real one only if the gap between $p$ and $\pi$ exists, is large, and can be measured. I state it as a conjecture, because that is what it is: the whole paper rests on it, and I cannot prove it here.
+Since $p$ is seen only after testing, $\mathcal{B}$ can be named only after the fact, and "the method misses what it underrates" is true by definition. The claim has content only if the gap between $p$ and $\pi$ is real and measurable. That is a conjecture, and the paper rests on it.
 
 ::: {.callout-note appearance="simple" icon="false"}
 ::: {#cnj-frontier}
 ## The underrated frontier
 
-There exist groups of ideas, far from the consensus and with long dark periods, whose share of true ideas $p$ is systematically larger than the consensus prior $\pi$ that the field gives them before they are tested. Within such a group, nothing in the literature written before the tests separates the true ideas from the false ones.
+There exist groups of ideas, far from the consensus and with long dark periods, whose true rate $p$ is systematically larger than the consensus prior $\pi$ the field gives them before they are tested. Within such a group, nothing in the literature written before the tests separates the true ideas from the false ones.
 :::
 :::
 
-The conjecture has two parts, and each could fail. If no such group exists, the consensus is well calibrated even at its edges, and the method, perfected by AI, is all that discovery needs. If the groups exist but the literature already contains the signal that separates them, a good enough model will find it, and conviction adds nothing. The evidence that novel work is cited more in the long run but less in the short run [@wang2017] is consistent with the first part, but it does not prove it. @cnj-frontier is tested directly by prediction P1 in section 6.
+It can fail in two ways. If no such group exists, the consensus is calibrated even at its edges, and the method is all discovery needs. If the literature already holds the separating signal, a good enough model will find it, and conviction adds nothing. The late recognition of novel work [@wang2017] fits the first part without proving it. Prediction P1 tests both.
 
-![**Figure 1.** Schematic. An idea the consensus expects gathers evidence quickly. An idea it does not expect goes through a dark period. Evidence wanders and often falls below the point where a calibrated agent would move on. Only someone who keeps going reaches the decisive test.](figures/fig01.svg){fig-alt="A chart of evidence for an idea against time spent on it. A blue curve, an idea the consensus expects, rises quickly and levels off. A purple curve, an idea the consensus does not expect, wanders near zero through a shaded dark period labelled no decisive evidence yet. It dips below a red dashed line labelled below this line, the method moves on. Then it rises steeply above the blue curve after the dark period ends. A label says conviction carries it to the decisive test."}
+![**Figure 1.** Schematic. An expected idea gathers evidence quickly. An unexpected one goes through a dark period where evidence wanders below the point where the method moves on. Only someone who keeps going reaches the decisive test.](figures/fig01.svg){fig-alt="A chart of evidence for an idea against time spent on it. A blue curve, an idea the consensus expects, rises quickly and levels off. A purple curve, an idea the consensus does not expect, wanders near zero through a shaded dark period labelled no decisive evidence yet. It dips below a red dashed line labelled below this line, the method moves on. Then it rises steeply above the blue curve after the dark period ends. A label says conviction carries it to the decisive test."}
 
-**What AI changes.** AI lowers $c$ for most work, and sometimes shortens $T$ with faster experiments and better instruments [@jumper2021]. In @eq-breakthrough, a lower $c$ moves the left boundary: the method reaches further down its list, and some far ideas start to qualify. But AI does not change $\pi$. A model trained on the literature *is* an estimate of $\pi$, and a better model is a better estimate of it. So cheaper search still works through the far ideas in order of consensus plausibility. It finds the underrated ones only at the rate they happen to appear among the most plausible far ideas. **AI moves the method along the consensus, not across it.**
+**What AI changes.** AI lowers $c$, and sometimes $T$ [@jumper2021]. In @eq-breakthrough this moves the boundary: the method reaches further down its list. But AI does not change $\pi$. A model trained on the literature *is* an estimate of $\pi$. Cheaper search still works through far ideas in consensus order, and finds underrated ones only by chance. **AI moves the method along the consensus, not across it.**
 
-**Conviction.** Let an agent hold a private credence $q(h)$ that departs from $\pi$. $q$ is the agent's own estimate of $p$, made before any test. It is informed by a taste signal $a$: a sense of coherence, elegance or rightness that the consensus does not contain. Taste is what can make $q$ a better estimate of $p$ than $\pi$ is. In the simulation, $a = \delta \cdot \mathbb{1}[h \text{ true}] + \varepsilon$, where $\varepsilon$ is standard noise and $\delta$ measures how good the taste is. With $\delta = 0$, the agent has faith and no taste. *Conviction* is acting on $q$ instead of $\pi$, and staying with the idea through its dark period even when the evidence there drifts down. Conviction is worth something exactly when
+**Conviction.** An agent holds a private credence $q(h)$, its own estimate of $p$ before any test, informed by a taste signal $a$: a sense of coherence or rightness absent from the literature. In the simulation $a = \delta \cdot \mathbb{1}[h \text{ true}] + \varepsilon$, with standard noise $\varepsilon$; $\delta$ is the quality of taste, and $\delta = 0$ is faith without taste. Conviction means acting on $q$ instead of $\pi$, through the dark period. It pays exactly when
 
 $$
 P(h \text{ true} \mid a \text{ high}) > \pi ,
 $$ {#eq-taste}
 
-that is, when taste carries information that is not already in the literature. This is exactly the second part of @cnj-frontier, seen from the agent's side. This is my formal reading of Poincaré's sieve. It is also why the paper's fifth claim matters: conviction without such a signal is just stubbornness.
+that is, when taste carries information the literature lacks: the second part of @cnj-frontier, seen from the agent's side, and my formal reading of Poincaré's sieve.
 
-![**Figure 2.** One field from the toy model. Each dot is an idea, placed at its consensus prior and at the true rate of its group. Most ideas sit on the diagonal, where the consensus is right. Far ideas cluster at low consensus prior. Most of them are rightly doubted (grey), but some are underrated (purple). The method ranks all of them last and has no way to tell the two kinds apart. Taste can.](figures/fig02.svg){fig-alt="Scatter plot of the true rate against the consensus prior, from 0 to 0.9. Blue dots for ordinary ideas lie along the diagonal labelled consensus is right. At consensus prior below 0.07, in a shaded band, grey dots for far ideas the consensus rightly doubts lie near zero. Purple dots for far ideas the consensus underrates sit at a true chance of 0.3. A label in the band says the method ranks these last and cannot tell them apart; taste can."}
+![**Figure 2.** One toy field. Each dot is an idea, at its consensus prior and the true rate of its group. Ordinary ideas sit on the diagonal. Far ideas sit at a low prior: most rightly doubted (grey), some underrated (purple). The method cannot tell them apart. Taste can.](figures/fig02.svg){fig-alt="Scatter plot of the true rate against the consensus prior, from 0 to 0.9. Blue dots for ordinary ideas lie along the diagonal labelled consensus is right. At consensus prior below 0.07, in a shaded band, grey dots for far ideas the consensus rightly doubts lie near zero. Purple dots for far ideas the consensus underrates sit at a true rate of 0.3. A label in the band says the method ranks these last and cannot tell them apart; taste can."}
 
-## 4. What AI represents
+## 4. A toy simulation
 
-If the model is roughly right, AI stands for three things at once.
+A field holds 5,000 ordinary ideas (prior from Beta(2, 6), calibrated, value 1, dark period 2) and 400 far ideas (prior 1–6%, value 20, dark period 8). It assumes @cnj-frontier: a quarter of the far ideas are underrated, with a true rate of 0.3; the rest are true only as often as the consensus says. Taste is weak ($\delta = 0.5$). Four strategies share a budget of 1,000 person-periods:
 
-**A mirror of the method.** Most of what we used to call doing science is search, recombination and verification inside a frame. A machine can now do that well. Seeing it done well is useful: it shows how much of our work was this part. It also shows what is left.
+- **Method**: ranks by @eq-method, cost 1 per period.
+- **Method with AI**: same ranking, cost 0.25 per period on ordinary ideas and 0.5 on far ones.
+- **Conviction**: far ideas only, ranked by taste, each carried through its dark period.
+- **Mixed**: method with AI on 80% of the budget, AI-assisted conviction on 20%.
 
-**A risk of convergence.** A field where everyone consults the same models, trained on the same literature, ranks ideas in the same order. Each researcher gets better, while the field as a whole narrows. This is what @hao2024 and @doshi2024 observe, in science and in writing. Planck's complaint that science advances one funeral at a time [@azoulay2019] could get a new version: a consensus that no longer needs funerals, because it has no single person behind it and never dies.
-
-**An opportunity.** If machines carry the method, people can spend more of their time where the method does not reach. The cost of an ordinary experiment drops, so a team can afford more long, unlikely bets with the same budget. That is only true if someone decides to spend the savings that way. The default is to spend them on more of the same, because the same is what the method ranks first.
-
-## 5. A toy simulation
-
-To make the mechanism concrete, I simulated a field with 5,000 ordinary ideas and 400 far ideas. Ordinary ideas have priors drawn from Beta(2, 6), a calibrated consensus, value 1 and a dark period of 2. Far ideas have priors between 1% and 6%, value 20 and a dark period of 8. The simulation assumes that @cnj-frontier holds. A quarter of the far ideas are underrated: their true rate is 0.3, while the consensus puts them at a few percent. The rest are cranks, true only as often as the consensus says. Every idea carries a taste signal with $\delta = 0.5$, which is weak. A budget of 1,000 person-periods is shared by one of four strategies:
-
-- **Method**: ranks by @eq-method at a cost of 1 per period.
-- **Method with AI**: the same ranking at a cost of 0.25 per period on ordinary work and 0.5 on far work.
-- **Conviction**: works only far ideas, ranked by taste, and carries each one through its dark period.
-- **Mixed**: the method with AI on 80% of the budget, and AI-assisted conviction on 20%.
-
-Each strategy runs 300 times on fresh random fields. A *breakthrough* is a far idea that turns out true.
+A *breakthrough* is a far idea that turns out true. Each strategy runs 300 times.
 
 | Strategy | Ordinary discoveries | Breakthroughs (90% range) | Runs with none |
 |---|---:|---:|---:|
 | Method | 270 | 0 (0–0) | 100% |
 | Method with AI | 737 | 2.7 (0–6) | 5% |
 | Conviction only | 0 | 19.3 (13–26) | 0% |
-| Mixed: AI method + 20% conviction | 674 | 9.6 (5–15) | 0% |
+| Mixed | 674 | 9.6 (5–15) | 0% |
 
-: **Table 1.** Results of the toy model, means over 300 runs. Parameters are in [sim.py](sim.py); all values are invented.
+: **Table 1.** Means over 300 runs. All parameters are invented; see [sim.py](sim.py).
 
-The pattern is what @eq-breakthrough predicts. Without AI, the method never reaches a far idea. With AI it reaches the most plausible far ideas, mostly cranks, and finds a few breakthroughs by luck. Conviction alone finds many breakthroughs, but it makes no ordinary progress, and more than four out of five of its long bets fail. The mixed strategy keeps 91% of the ordinary discoveries and finds three to four times as many breakthroughs as the method with AI.
+Without AI the method never reaches a far idea. With AI it reaches the most plausible far ideas, mostly wrong ones, and finds a few breakthroughs by luck. Conviction alone finds many but makes no ordinary progress, and four in five of its bets fail. The mixed strategy keeps 91% of the ordinary discoveries and finds three to four times the breakthroughs of the method with AI.
 
-![**Figure 3.** Left: breakthroughs found as the share of the budget given to conviction grows, for three strengths of taste. Bands show the 90% range across runs. Right: the ordinary discoveries given up, with weak taste. A small share given to conviction buys most of its benefit. Without taste, conviction buys little.](figures/fig03.svg){fig-alt="Two line charts against the share of the budget given to conviction, from 0 to 50 percent. Left, breakthroughs found. All three lines start near 3 at zero. Good taste rises fastest, to about 27 at 50 percent. Weak taste rises to about 20. Faith without taste rises slowly, to about 13. Right, ordinary discoveries found, which fall gently from about 740 at zero to about 675 at 20 percent and 475 at 50 percent."}
+![**Figure 3.** Left: breakthroughs as the share of budget given to conviction grows, for three strengths of taste (bands: 90% range). Right: ordinary discoveries given up, with weak taste. A small share buys most of the benefit. Without taste, little.](figures/fig03.svg){fig-alt="Two line charts against the share of the budget given to conviction, from 0 to 50 percent. Left, breakthroughs found. All three lines start near 3 at zero. Good taste rises fastest, to about 27 at 50 percent. Weak taste rises to about 20. Faith without taste rises slowly, to about 13. Right, ordinary discoveries found, which fall gently from about 740 at zero to about 675 at 20 percent and 475 at 50 percent."}
 
-Figure 3 shows the role of taste. With $\delta = 0$, conviction is a lottery ticket on far ideas, and it pays only through the few underrated ones it hits by chance. With good taste, 10% of the budget buys almost four times the breakthroughs of the method with AI. The numbers are not evidence about the real world. They show that the thesis holds together: if the conjecture is true, the scarce input is not compute. It is a well-placed belief, held long enough.
+With good taste, 10% of the budget buys almost four times the breakthroughs of the method with AI. Without taste, conviction is a lottery ticket. The numbers show that the argument holds together, not that the world works this way.
 
-## 6. Predictions and a test protocol
+## 5. The cheap-testing limit
 
-Each claim should leave a trace that someone could measure. Here is what I expect, and what would show I am wrong.
+Lowering $c\,T$ has a limit, and it is the strongest objection to this paper. The method needs $\pi \ge c\,T / V$ to test an idea. As $c\,T$ falls toward zero, so does that threshold, and the underrated ideas get tested without anyone believing in them. With a budget $B$, the method tests about $B / c\,T$ ideas. If the field can formulate $N$ ideas, then once
 
-**P1. Time-sliced models rate past breakthroughs as implausible.** This is the direct test of @cnj-frontier. Train or restrict models to the literature available before a set of known breakthroughs, for example ulcers and bacteria before 1982, quasicrystals before 1984, or plate tectonics before the 1950s. Ask them to rate the plausibility of each hypothesis next to matched ordinary ones, and next to far hypotheses from the same period that turned out false. The model's ratings give $\pi$. The share of each group that turned out true gives $p$. I expect a group of far hypotheses whose $p$ is well above $\pi$, and within it, ratings that do not separate the true from the false. *Refuted if* time-sliced models rank the breakthroughs as highly as the ordinary hypotheses that turned out true, or if their ratings already separate true far hypotheses from false ones.
+$$
+\frac{B}{c\,T} \;\ge\; N ,
+$$ {#eq-limit}
 
-**P2. AI-heavy fields narrow while they grow.** Output and citations should rise with AI adoption, while topic diversity and the disruption index fall [@park2023; @hao2024]. *Refuted if* the fields that adopt AI most also widen their topics or become more disruptive, once their size is controlled for.
+ranking no longer matters: everything gets tested, and conviction is worth nothing. Call it a discovery singularity.
 
-**P3. Model-generated ideas cluster.** Across many runs and prompts, AI-generated research ideas should cover less of the space than the same number of ideas from independent experts, even when single ideas are rated more novel [@si2025]. *Refuted if* the spread of model ideas matches or exceeds the experts' at equal count.
+The toy model reaches it (Figure 4). When AI work is five times cheaper than in Table 1, the method tests every idea, and the mixed strategy adds nothing. In a field ten times larger, the same point needs work fifty times cheaper. The singularity is a race between the cost of testing and the size of the space of ideas.
 
-**P4. AI goes beyond consensus only where the goal is fixed and evaluation is cheap.** Systems trained against a clear, fast reward should keep producing results that experts first found implausible [@silver2017; @fawzi2022]. Open-ended "AI scientist" systems should not. *Refuted if* an open-ended AI system proposes, and carries through, a result that experts first rated as implausible and later accepted as a major advance.
+![**Figure 4.** Breakthroughs found as AI work gets cheaper, for the method with AI and the mixed strategy, in the base field and one ten times larger. Conviction helps until testing is cheap enough to try every idea; the larger the field, the later that comes.](figures/fig04.svg){fig-alt="Line chart of breakthroughs found against how many times cheaper AI work is, from 1 to 50 on a log scale, with four lines. In the base field, the mixed strategy starts well above the method with AI, and both meet at the same plateau from 5 times cheaper. In the field ten times larger, the gap persists until about 50 times cheaper, where both lines meet."}
 
-**P5. Conviction budgets pay in the tail.** Among comparable labs or funders, those that protect part of their budget for long, low-consensus bets chosen by people should produce more top-1% outcomes over a ten-year window than those that let AI-assisted triage allocate everything. They should also have more failures. Funders with lottery or "high-risk" schemes provide natural comparison groups. *Refuted if* the tail outcomes do not differ, or favour the triaged labs.
+Open science is unlikely to win that race, for three reasons:
 
-## 7. Objections and limitations
+1. **The space of ideas grows with knowledge.** Every discovery adds combinations to try, Poincaré's "countless combinations". $N$ is a moving target.
+2. **$T$ has a physical floor.** AI shortens computation, not a ten-year trial, an ecological time series, a new instrument, or a field's acceptance of a new frame.
+3. **Only proposed ideas get tested.** If models generate ideas near the consensus (P3), far ideas never enter the pool, however cheap testing becomes.
 
-**"AI already goes beyond consensus."** AlphaGo's descendants played moves no strong human would have played, and learned Go without human games [@silver2017]. AlphaTensor found matrix multiplication algorithms that people had missed [@fawzi2022]. I accept this, and it sharpens the thesis rather than refuting it. In those cases the goal was fixed, and every attempt could be checked quickly. The machine needed no faith, because the dark period was short and the reward was clear. Open science has neither: no one knows what to optimise, and the decisive test may be years away. P4 is there to tell these cases apart.
+Where these brakes are weak, the limit may already be near: games, code, mathematics with proof checkers, protein structure. Goals are fixed, checking is fast, and each result lowers the cost of the next. That is where AI already goes beyond the consensus [@silver2017; @fawzi2022]. Expect singularities domain by domain, not one for all of science.
 
-**"Models are already rated more novel than experts."** @si2025 found exactly that. Novelty at the moment of proposal is not conviction, though. An idea becomes a discovery only when someone carries it through its dark period, and generating many novel ideas is not the same as choosing one to stake years on. The same study noted how little the models' ideas vary. Still, if that line of work shows AI-proposed ideas surviving their dark periods more often than human ones, my second and fourth claims weaken.
+## 6. What AI represents
 
-**"We can build conviction into machines."** We could make an agent persist, reward it for novelty, or give it a prior that departs from the literature. Persistence is easy to program. The hard part is @eq-taste: a taste signal that carries information the consensus lacks. If a machine acquired one, for instance a measure of coherence across views [as I suggested in Coherence Is Measurable](../2026-10-26-coherence-is-measurable/index.qmd), this paper would describe a phase, not a limit. I would welcome that. For now, I see no evidence of it in open-ended science.
+**A mirror.** Much of what we called science is search, recombination and verification inside a frame. A machine now does that well, which shows what is left.
 
-**"Faith is survivorship bias."** For every Marshall there are many people who believed against the evidence and were simply wrong. The model agrees. Conviction alone fails more than four times in five, and conviction without taste is a poor bet (Figure 3). The thesis is not that believers are right. It is that, without them, the underrated ideas are never tested at all.
+**A risk of convergence.** When everyone consults the same models trained on the same literature, each researcher improves while the field narrows [@hao2024; @doshi2024]. Science used to advance one funeral at a time [@azoulay2019]; a consensus held by a model has no one to bury.
 
-**"Faith" is the wrong word.** I mean it narrowly: credence above the evidence, plus the commitment to act on it for a long time. It is closer to Polanyi's personal commitment [@polanyi1958] than to religious faith.
+**An opportunity.** Cheaper ordinary work leaves budget for long, unlikely bets. That happens only if someone chooses it. The default is more of the same, because the same is what the method ranks first.
 
-**Limits of the model.** The model is static. Ideas do not interact, and finding one does not change the priors of others, although real breakthroughs reshape the whole consensus. The value of 20 for a breakthrough, the 25% share of underrated ideas and their true rate of 0.3 are invented, and the results scale with them. The true rate matters most, because it is the size of the gap in @cnj-frontier. If it is 0.15 instead of 0.3, the mixed strategy finds 6.1 breakthroughs instead of 9.6, and the method with AI finds 1.9 instead of 2.7. At 0.10 the figures are 5.0 and 1.7. The mixed strategy keeps finding about three times as many breakthroughs as the method with AI. The ratio holds, but the absolute gain shrinks with the gap. I assume taste is independent of the consensus prior. In reality taste is trained inside a field and partly shares its biases. That would weaken conviction, as the $\delta = 0$ curve in Figure 3 shows. Finally, I treat "the consensus" as one prior, while real fields contain dissenting schools. AI could just as well help those minorities find each other.
+## 7. Predictions
 
-## 8. Conclusion
+**P1. The gap is real and invisible in advance.** The direct test of @cnj-frontier. Restrict models to the literature before known breakthroughs (ulcers and bacteria before 1982, quasicrystals before 1984, plate tectonics before the 1950s). Have them rate those hypotheses, matched ordinary ones, and far ones from the same period that failed. Ratings give $\pi$; outcomes give $p$. I expect far groups with $p$ well above $\pi$, and ratings that do not separate true from false within them. *Refuted if* the breakthroughs rank as high as successful ordinary hypotheses, or the ratings already separate true far ideas from false ones.
 
-AI is the scientific method, perfected. It ranks the world by what we already find plausible, and it will make us much faster at that. If the conjecture at the centre of this paper is right, the discoveries that change a field rank last, however good the ranking is. Reaching them takes something the ranking does not hold: a sense that an unlikely idea is beautiful enough to be true, and the will to stay with it in the dark.
+**P2. AI-heavy fields narrow as they grow.** Output rises with AI adoption while topic diversity and disruption fall [@park2023; @hao2024]. *Refuted if* the heaviest adopters widen or become more disruptive, controlling for size.
+
+**P3. Model ideas cluster.** AI-generated research ideas cover less of the space than as many ideas from independent experts, even when rated more novel [@si2025]. *Refuted if* their spread matches the experts'.
+
+**P4. AI exceeds the consensus only where goals are fixed and checking is cheap.** *Refuted if* an open-ended AI system proposes and carries through a result experts first rated implausible and later accepted as major.
+
+**P5. Conviction budgets pay in the tail.** Labs or funders that protect a budget for long, low-consensus bets chosen by people produce more top-1% outcomes over ten years, and more failures, than those that let AI triage everything. *Refuted if* the tails do not differ or favour triage.
+
+**P6. Where testing outruns the space of ideas, conviction stops paying.** In domains where $c\,T$ falls faster than $N$ grows, such as mathematics with proof assistants, low-consensus human bets should lose their edge over machine search. *Refuted if* conviction keeps its edge there, or loses it in open domains where @eq-limit is far from holding.
+
+## 8. Objections and limitations
+
+**"Models already propose more novel ideas than experts."** They do [@si2025]. But an idea becomes a discovery only when someone carries it through its dark period, and generating many novel ideas is not choosing one to stake years on. If AI-proposed ideas start surviving their dark periods more often than human ones, claims 2 and 4 weaken.
+
+**"Conviction can be built into machines."** Persistence is easy to program. A taste signal that meets @eq-taste is not. If a machine acquires one, for instance coherence across views [as I suggested in Coherence Is Measurable](../2026-10-26-coherence-is-measurable/index.qmd), this paper describes a phase, not a limit.
+
+**"Faith is survivorship bias."** For every Marshall, many believed and were wrong. The model agrees: four in five conviction bets fail, and without taste it is a poor bet. The claim is not that believers are right, but that without them the underrated ideas are never tested.
+
+**"Faith" is the wrong word.** I mean belief above the evidence plus commitment to act on it, closer to Polanyi's personal commitment [@polanyi1958] than to religious faith.
+
+**Limits of the model.** It is static: ideas do not interact, and no discovery shifts the consensus. Values, shares and the true rate of 0.3 are invented. The true rate matters most, as the size of the gap: at 0.15 the mixed strategy finds 6.1 breakthroughs and the method with AI 1.9; at 0.10, 5.0 and 1.7. The ratio holds; the absolute gain shrinks. Taste is assumed independent of the consensus, though it is trained inside a field. And a field has dissenting schools, not one prior; AI could help them find each other.
+
+## 9. Conclusion
+
+AI is the scientific method, perfected. It ranks the world by what we already find plausible, and makes us much faster at it. If the conjecture holds, the discoveries that change a field rank last however good the ranking. In domains where testing becomes cheap enough to try everything, the method may become sufficient. In open science, where the world sets the pace of tests and every answer opens new questions, reaching those discoveries still takes a sense that an unlikely idea is beautiful enough to be true, and the will to stay with it in the dark.
 
 Machines can tell us what is likely. Deciding what is worth believing long enough to prove it is still up to us.
 
