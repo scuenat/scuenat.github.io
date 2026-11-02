@@ -3,8 +3,10 @@
 Same style as "The Context Is the Wire": Inter type, white cards with a faint shadow
 and a coloured accent, colours taken from the site's palette.
 
-Both figures are schematic timelines. The dates are the usual dates of first
-publication; they are given in the essay's text with their sources.
+Figures 1 and 2 are schematic timelines; the dates are the usual dates of first
+publication, given in the essay's text with their sources. Figure 3 draws illustrative
+curves (not data) in the shape described by Belkin et al. (2019). Figure 4 is a map of
+the essay's five hunches.
 """
 import json
 import re
@@ -143,8 +145,8 @@ def year_x(y, y0=1660, y1=2040, x0=0.8, x1=21.2):
 
 
 def fig_toolbox():
-    fig, ax = canvas(11, 5.2, 22, 10.4)
-    heading(ax, 0.4, 10.15, "A borrowed toolbox",
+    fig, ax = canvas(11, 5.6, 22, 11.2)
+    heading(ax, 0.4, 10.95, "A borrowed toolbox",
             "Most of the mathematics inside a modern model was written down before 1950")
     ya = 4.6
     ax.plot([year_x(1660), year_x(2040)], [ya, ya], color=RULE, lw=3, solid_capstyle="round", zorder=1)
@@ -159,7 +161,7 @@ def fig_toolbox():
         col = NAVY if (year, label, row) in TOOLS else WARM
         ax.plot([x, x], [ya, y + (-0.1 if row > 0 else 0.55)], color=col, lw=0.9, alpha=0.6, zorder=1.1)
         ax.add_patch(Circle((x, ya), 0.17, fc=col, ec="white", lw=1.2, zorder=3))
-        ax.text(x, y, label + f"\n{year}", ha="center", va="bottom" if row > 0 else "top", fontsize=7.6,
+        ax.text(x, y, label + f"\n{year}", ha="center", va="bottom" if row > 0 else "top", fontsize=8.4,
                 color=INK, linespacing=1.25, zorder=4,
                 bbox=dict(boxstyle="round,pad=0.35,rounding_size=0.4", fc="white", ec=RULE, lw=0.7))
     fig.savefig(OUT + "fig01.png", dpi=400); fig.savefig(OUT + "fig01.svg"); plt.close(fig)
@@ -181,7 +183,7 @@ def lane(ax, y, title, events, accent, last_open=False):
             ax.text(x, y, "?", ha="center", va="center", fontsize=9, color=MUTED, weight="semibold", zorder=4)
         ax.text(x, y + 0.45 if up else y - 0.45, (str(year) + "\n" if year else "") + label, ha="center",
                 va="bottom" if up else "top",
-                fontsize=7.3, color=INK if year else MUTED, linespacing=1.25)
+                fontsize=8.6, color=INK if year else MUTED, linespacing=1.25)
 
 
 def fig_engine():
@@ -201,6 +203,65 @@ def fig_engine():
     fig.savefig(OUT + "fig02.png", dpi=400); fig.savefig(OUT + "fig02.svg"); plt.close(fig)
 
 
+# ---------- Figure 3: the curve the textbook predicted, and the one we see ----------
+def fig_descent():
+    fig, axes = plt.subplots(1, 2, figsize=(8.6, 4.4), sharey=True)
+    x = np.linspace(0.05, 1.0, 400)
+    thr = 0.42  # where the model can just fit the training data
+    train_l = np.clip(1.15 * (1 - x / thr), 0, None) ** 1.6 * 0.9 + 0.02
+    classical = 0.35 + 1.6 * (x - 0.27) ** 2
+    bump = 0.95 * np.exp(-((x - thr) / 0.055) ** 2)
+    modern = 0.17 + 0.45 * np.exp(-x / 0.3) + bump * 0.75
+    for ax, test, title, sub in (
+        (axes[0], classical, "What the textbook predicted", "too big a model overfits"),
+        (axes[1], modern, "What we see", "past the peak, bigger keeps getting better"),
+    ):
+        ax.plot(x, train_l, color=MUTED, lw=1.6, ls=(0, (4, 3)), label="training error")
+        ax.plot(x, test, color=NAVY if ax is axes[0] else WARM, lw=2.6, label="test error")
+        ax.axvline(thr, color=RULE, lw=1.2, zorder=0)
+        ax.set_xlim(0.05, 1.0); ax.set_ylim(0, 1.15)
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_xlabel("model size  →", fontsize=10, color=MUTED, loc="right")
+        ax.set_title(title, fontsize=12, weight="semibold", loc="left", color=INK, pad=18)
+        ax.text(0, 1.015, sub, transform=ax.transAxes, fontsize=9.5, color=MUTED, va="bottom")
+    axes[0].set_ylabel("error  →", fontsize=10, color=MUTED, loc="top")
+    axes[1].text(thr + 0.07, 0.98, "just big enough\nto memorize", fontsize=8.6, color=MUTED, va="top")
+    axes[0].legend(loc="upper left", bbox_to_anchor=(0.2, 1.0), fontsize=9, handlelength=2.2)
+    fig.text(0.0, 1.07, "A PUZZLE FOR THE OLD MATHEMATICS", fontsize=8.5, weight="semibold", color=NAVY)
+    fig.text(0.0, 1.0, "Illustrative curves, not data", fontsize=9, color=MUTED)
+    fig.tight_layout(w_pad=2.0)
+    fig.savefig(OUT + "fig03.png", dpi=400); fig.savefig(OUT + "fig03.svg"); plt.close(fig)
+
+
+# ---------- Figure 4: five gaps, one theme ----------
+GAPS = [
+    ("Error falls along\nsmooth power laws", "A thermodynamics\nof learning", "effective theory 2022,\nscaling-law theory 2024", NAVY),
+    ("More concepts than\ndimensions", "A geometry\nof meaning", "superposition 2022,\nlinear representations 2024", NAVY),
+    ("Skills that appear\nsuddenly", "Singularities and\nsudden change", "Watanabe 2009,\nlearning coefficient 2025", NAVY),
+    ("Behaviour no one\nwrote line by line", "Guarantees for what\nwe did not design", "largely open", RED),
+    ("Models trained on\nmodels' outputs", "Dynamics of\nlearners in a loop", "model collapse 2024,\nits remedies 2024", NAVY),
+]
+
+
+def fig_gaps():
+    fig, ax = canvas(8.6, 8.0, 17.2, 16.0)
+    heading(ax, 0.3, 15.75, "Five gaps, one theme", "Each puzzle points to a mathematics of the many")
+    cols = [(0.3, 5.0, "WHAT WE SEE"), (6.0, 5.4, "MATHEMATICS IT MAY NEED"), (12.3, 4.9, "EARLY WORK")]
+    for x, w, lab in cols:
+        ax.text(x + 0.2, 14.0, lab, fontsize=7.4, weight="semibold", color=MUTED, va="bottom")
+    for i, (seen, need, early, acc) in enumerate(GAPS):
+        y = 11.7 - i * 2.75
+        card(ax, 0.3, y, 5.0, 2.05, None, sub=seen, accent=MUTED, subfs=9.6)
+        card(ax, 6.0, y, 5.4, 2.05, need, accent=acc, fs=10.4)
+        ax.text(12.5, y + 1.02, early, fontsize=8.8, color=MUTED if acc != RED else RED, va="center",
+                linespacing=1.3, style="italic" if acc == RED else "normal")
+        arrow(ax, (5.4, y + 1.02), (5.9, y + 1.02), color=MUTED, lw=1.2, head=8)
+        ax.plot([11.55, 12.25], [y + 1.02] * 2, color=RULE, lw=1.2, ls=(0, (2, 2)))
+    fig.savefig(OUT + "fig04.png", dpi=400); fig.savefig(OUT + "fig04.svg"); plt.close(fig)
+
+
 if __name__ == "__main__":
     fig_toolbox()
     fig_engine()
+    fig_descent()
+    fig_gaps()
