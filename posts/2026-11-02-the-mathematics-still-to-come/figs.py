@@ -238,7 +238,7 @@ GAPS = [
     ("Error falls along\nsmooth power laws", "A thermodynamics\nof learning", "effective theory 2022,\nlearning mechanics 2026", NAVY),
     ("More concepts than\ndimensions", "A geometry\nof meaning", "superposition 2022,\nlinear representations 2024", NAVY),
     ("Skills that appear\nsuddenly", "Singularities and\nsudden change", "Watanabe 2009,\nlearning coefficient 2025", NAVY),
-    ("Behaviour no one\nwrote line by line", "Guarantees for what\nwe did not design", "largely open", RED),
+    ("Behaviour no one\nwrote line by line", "Guarantees for what\nwe did not design", "early tools,\nlargely open", RED),
     ("Models trained on\nmodels' outputs", "Dynamics of\nlearners in a loop", "model collapse 2024,\nits remedies 2024", NAVY),
 ]
 
