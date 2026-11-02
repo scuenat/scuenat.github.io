@@ -3,10 +3,10 @@
 Same style as "The Context Is the Wire": Inter type, white cards with a faint shadow
 and a coloured accent, colours taken from the site's palette.
 
-Figures 1 and 2 are schematic timelines; the dates are the usual dates of first
-publication, given in the essay's text with their sources. Figure 3 draws illustrative
-curves (not data) in the shape described by Belkin et al. (2019). Figure 4 is a map of
-the essay's five hunches.
+Figure 1 draws illustrative curves (not data) in the shape described by Belkin et al.
+(2019). Figure 2 is a schematic timeline; the dates are the usual dates of first
+publication, given in the text with their sources. Figure 3 is a map of the five hunches.
+fig_toolbox() is kept for reference but no longer used: Table 1 in the text replaces it.
 """
 import json
 import re
@@ -205,7 +205,7 @@ def fig_engine():
 
 # ---------- Figure 3: the curve the textbook predicted, and the one we see ----------
 def fig_descent():
-    fig, axes = plt.subplots(1, 2, figsize=(8.6, 4.4), sharey=True)
+    fig, axes = plt.subplots(2, 1, figsize=(5.6, 8.4), sharex=True)
     x = np.linspace(0.05, 1.0, 400)
     thr = 0.42  # where the model can just fit the training data
     train_l = np.clip(1.15 * (1 - x / thr), 0, None) ** 1.6 * 0.9 + 0.02
@@ -221,16 +221,16 @@ def fig_descent():
         ax.axvline(thr, color=RULE, lw=1.2, zorder=0)
         ax.set_xlim(0.05, 1.0); ax.set_ylim(0, 1.15)
         ax.set_xticks([]); ax.set_yticks([])
-        ax.set_xlabel("model size  →", fontsize=10, color=MUTED, loc="right")
+        ax.set_ylabel("error  →", fontsize=10, color=MUTED, loc="top")
         ax.set_title(title, fontsize=12, weight="semibold", loc="left", color=INK, pad=18)
         ax.text(0, 1.015, sub, transform=ax.transAxes, fontsize=9.5, color=MUTED, va="bottom")
-    axes[0].set_ylabel("error  →", fontsize=10, color=MUTED, loc="top")
+    axes[1].set_xlabel("model size  →", fontsize=10, color=MUTED, loc="right")
     axes[1].text(thr + 0.07, 0.98, "just big enough\nto memorize", fontsize=8.6, color=MUTED, va="top")
     axes[0].legend(loc="upper left", bbox_to_anchor=(0.2, 1.0), fontsize=9, handlelength=2.2)
-    fig.text(0.0, 1.07, "A PUZZLE FOR THE OLD MATHEMATICS", fontsize=8.5, weight="semibold", color=NAVY)
-    fig.text(0.0, 1.0, "Illustrative curves, not data", fontsize=9, color=MUTED)
-    fig.tight_layout(w_pad=2.0)
-    fig.savefig(OUT + "fig03.png", dpi=400); fig.savefig(OUT + "fig03.svg"); plt.close(fig)
+    fig.text(0.0, 1.035, "A PUZZLE FOR THE OLD MATHEMATICS", fontsize=8.5, weight="semibold", color=NAVY)
+    fig.text(0.0, 1.012, "Illustrative curves, not data", fontsize=9, color=MUTED)
+    fig.tight_layout(h_pad=3.0)
+    fig.savefig(OUT + "fig01.png", dpi=400); fig.savefig(OUT + "fig01.svg"); plt.close(fig)
 
 
 # ---------- Figure 4: five gaps, one theme ----------
@@ -257,11 +257,10 @@ def fig_gaps():
                 linespacing=1.3, style="italic" if acc == RED else "normal")
         arrow(ax, (5.4, y + 1.02), (5.9, y + 1.02), color=MUTED, lw=1.2, head=8)
         ax.plot([11.55, 12.25], [y + 1.02] * 2, color=RULE, lw=1.2, ls=(0, (2, 2)))
-    fig.savefig(OUT + "fig04.png", dpi=400); fig.savefig(OUT + "fig04.svg"); plt.close(fig)
+    fig.savefig(OUT + "fig03.png", dpi=400); fig.savefig(OUT + "fig03.svg"); plt.close(fig)
 
 
 if __name__ == "__main__":
-    fig_toolbox()
     fig_engine()
     fig_descent()
     fig_gaps()
