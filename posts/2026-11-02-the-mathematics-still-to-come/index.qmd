@@ -1,8 +1,8 @@
 ---
 title: "The Mathematics Still to Come"
-subtitle: "An analysis of the mathematics machine learning runs on, what it cannot yet explain, and what may have to be invented"
+subtitle: "What machine learning's mathematics can build, what it cannot explain, and what may have to be invented"
 description: "The mathematics inside AI is old and borrowed: it builds the machines but does not explain them. An analysis of what is missing, as of late 2026."
-date: 2026-11-01
+date: 2026-11-02
 citation: true
 bibliography: references.bib
 toc-depth: 2
@@ -29,7 +29,7 @@ resources:
 - History suggests a pattern: the machine comes first, the mathematics that explains it comes later, and it is new.
 - My hunch: the missing mathematics is about large, typical systems. Macroscopic laws, the geometry of representations, singularities and phase transitions, guarantees, and feedback loops.
 - Understanding why scale works is not a bet on scale. A good theory should tell us when bigger is wasteful, and how small a model can be.
-- AI now proves research results, so far mostly by finding new connections between existing concepts. Choosing the concepts that make a field understandable is still the harder part, for now.
+- AI now proves research results, so far mostly by finding new connections between existing concepts. Choosing the concepts that make a field understandable is still the harder part, for now. When proofs become cheap, checking and understanding them become the scarce work.
 :::
 
 ## The borrowed toolbox
@@ -52,6 +52,16 @@ The model is a long chain of matrix multiplications with simple non-linear funct
 : **Table 1.** The main mathematical tools inside a modern model, with the usual date of first publication. The last two rows are new *designs* built from old mathematics: attention is a weighted average whose weights are a softmax of dot products.
 
 This is not a criticism. A standard textbook, *Mathematics for Machine Learning*, covers what an engineer needs in four parts: linear algebra, analytic geometry, calculus and probability, plus some optimization [@deisenroth2020]. None of it would surprise a good student from 1950.
+
+## The claim
+
+Stated precisely, the claim of this analysis has three parts.
+
+1. **Enough to build.** The mathematics used to design and train modern models (Table 1) is almost entirely older than the models.
+2. **Not enough to explain.** For four phenomena (generalization in models with more parameters than examples, scaling laws, sudden changes in ability, and internal representations), no existing theory predicts from first principles how production-scale models behave: their exponents, constants, thresholds or features.
+3. **New concepts will be needed.** The theory that does will need new macroscopic concepts, quantities that summarize billions of parameters the way temperature and entropy summarize a gas, and not only new results within existing frameworks.
+
+The first part is a matter of record. The second is my reading of the literature as of November 2026. The third is a hunch, and the last sections say what would prove it wrong.
 
 ## What the old mathematics cannot explain
 
@@ -112,9 +122,9 @@ The five have something in common. None is about a single small network. All are
 
 **We may not need theory at all.** Richard Sutton's "bitter lesson" is that, over seventy years, general methods that use more computation have beaten methods built on human insight [@sutton2019]. Engineering got here without theory; why should it need theory now? I think the lesson has been right about the past and is a weaker guide to the future. Scale costs energy and money, and the supply of human-written text is finite: one study estimates that, if current trends continue, the largest training runs will use up the stock of public human text sometime between 2026 and 2032 [@villalobos2024]. The bitter lesson also says nothing against *understanding* why scale works. Steam engines improved for decades by trial and error; thermodynamics then told engineers where the limits were and what to stop trying. We will need the same: to know what a system cannot do, how far a trend can go, and what might happen inside it that we would not like. And, as I argued in [Not Because It Is Useful](../2026-11-01-not-because-it-is-useful/index.qmd), wanting to understand is not only a means to better machines. It is a reason in itself.
 
-**AI will invent this mathematics for us.** In 2026, this stopped being a thought experiment. After competition milestones (olympiad silver in 2024 and gold in 2025 [@deepmind2024; @hubert2025; @deepmind2025]) and early help with research [@romeraparedes2024; @davies2021], machines reached research problems themselves. In May 2026, a general-purpose reasoning model from OpenAI disproved a conjecture Erdős made in 1946 about how many pairs of points in the plane can lie at the same distance; external mathematicians checked the proof [@openai2026unit]. In October, the company released a proof of the "quasi-Riemann hypothesis", a weaker cousin of the Riemann hypothesis, which experts have studied and take seriously [@quanta2026]. A claimed solution to the Navier–Stokes Millennium Prize problem, announced in September, is disputed and has not been accepted by the Clay Mathematics Institute [@techreview2026]. Even setting that one aside, machines are now partners in mathematical research.
+**AI will invent this mathematics for us.** In 2026, this stopped being a thought experiment. After competition milestones (olympiad silver in 2024 and gold in 2025 [@deepmind2024; @hubert2025; @deepmind2025]) and early help with research [@romeraparedes2024; @davies2021], machines reached research problems themselves. In May 2026, a general-purpose reasoning model from OpenAI disproved a conjecture Erdős made in 1946 about how many pairs of points in the plane can lie at the same distance; external mathematicians checked the proof [@openai2026unit]. In October, the company released more than 700 research papers produced with its models [@calegari2026], among them a proof of the "quasi-Riemann hypothesis", a weaker cousin of the Riemann hypothesis, which experts have studied and take seriously [@quanta2026]. A claimed solution to the Navier–Stokes Millennium Prize problem, announced in September, is disputed and has not been accepted by the Clay Mathematics Institute [@techreview2026]. Even setting that one aside, machines are now partners in mathematical research. On 1 November, in a guest post on Terence Tao's blog, the mathematician Frank Calegari called the October release a watershed in the history of mathematics, criticized the rush to post AI-assisted papers in order to be first, and proposed evaluating all work as if it were AI-assisted [@calegari2026].
 
-But the hardest step in the stories above was never the proof. It was the *concept*: Carnot's ideal engine, Boltzmann's entropy as counting, Shannon's decision to measure information without caring about meaning. Each was a choice of what to look at, made because it made a whole field understandable. Here the quasi-Riemann proof is revealing. According to the experts Quanta spoke to, it introduced no new concepts: it found unexpected connections between existing ones [@quanta2026]. That is an extraordinary achievement, and the line between connecting old concepts and inventing new ones is thinner than my argument would like. Boltzmann's entropy was, in a sense, a new connection between mechanics and probability. So I hold this part loosely: machines may cross that line soon. The test of the new mathematics will still be whether *we* understand more because of it.
+But the hardest step in the stories above was never the proof. It was the *concept*: Carnot's ideal engine, Boltzmann's entropy as counting, Shannon's decision to measure information without caring about meaning. Each was a choice of what to look at, made because it made a whole field understandable. Here the quasi-Riemann proof is revealing. According to the experts Quanta spoke to, it introduced no new concepts: it found unexpected connections between existing ones [@quanta2026]. That is an extraordinary achievement, and the line between connecting old concepts and inventing new ones is thinner than my argument would like. Boltzmann's entropy was, in a sense, a new connection between mechanics and probability. So I hold this part loosely: machines may cross that line soon. And if proofs become abundant, the scarce work becomes checking them and understanding them. The test of the new mathematics will still be whether *we* understand more because of it.
 
 ## What I am not claiming
 
@@ -126,19 +136,20 @@ But the hardest step in the stories above was never the proof. It was the *conce
 
 ## What would prove me wrong
 
-- **Old mathematics turns out to be enough.** If, by 2030, a theory derives the exponents *and* constants of scaling laws for real transformer training using only existing tools, with no new concepts, the claim that new mathematics is needed is wrong.
+- **Old mathematics turns out to be enough** (part 3 of the claim). If, by 2030, a theory derives the exponents *and* constants of scaling laws for real transformer training using only existing tools, with no new concepts, the claim that new mathematics is needed is wrong.
 - **The parts are enough.** If interpretability explains large models neuron by neuron, with no need for macroscopic quantities, the "mathematics of the many" is wrong.
 - **There are no real transitions.** If every sudden jump in ability turns out to be an artefact of measurement, the hunch about singularities and sudden change loses its main motivation.
-- **Practice keeps winning without theory.** If, by 2030, the field keeps improving with no theory telling it where the limits are, the bitter lesson wins this round.
+- **Theory never reaches the design table.** If, by 2030, the leading labs still choose model size, data and training budget only from fitted curves and trial runs, with no derived theory telling them where the limits are, the bitter lesson wins this round, and my case for theory as a practical need is wrong.
 - **A machine introduces a concept mathematicians adopt.** If an AI system proposes a new definition or structure that becomes a field of its own, the line I draw between proofs and concepts falls.
 
 ## What follows for practitioners
 
-If you work with machine learning and have no plans to invent mathematics, four things follow, I think.
+If you work with machine learning and have no plans to invent mathematics, five things follow, I think.
 
 - **Learn the old mathematics well.** Linear algebra, probability and calculus are the language in which everything else, including the new mathematics, will be written.
 - **Watch where it breaks.** When a model generalizes better than it should, fails suddenly, or a curve bends where no theory said it would, you are at the edge of the map. Write those surprises down.
 - **Do not assume bigger is better.** Giving a model more time to reason when it answers can, on some problems, let a small model outperform one fourteen times larger [@snell2025]. The useful question is when a large model is needed and when a small, fast one will do, a theme I took up in [Fast AI](../2026-10-11-fast-ai/index.qmd).
+- **Check before you trust, and understand before you build on it.** As Calegari argues for mathematics, when results become cheap to produce, the scarce work is verifying and understanding them [@calegari2026]. The same holds for a model's outputs, and for claims about models.
 - **Keep some humility about explanations.** Many of the stories we tell about why models work are, today, stories. We are in the position of engineers in 1800: excellent at building engines, and honest enough to admit that we do not yet know what they are.
 
 The steam engine ran for a century before someone asked the right question about it, and the answer reached far beyond engines. The machines we have built are, among other things, a question addressed to mathematics. The strange twist of 2026 is that the machines have started to help answer it. Whether we understand the answer will still be up to us.
