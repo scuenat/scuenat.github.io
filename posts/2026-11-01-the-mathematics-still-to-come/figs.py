@@ -235,7 +235,7 @@ def fig_descent():
 
 # ---------- Figure 4: five gaps, one theme ----------
 GAPS = [
-    ("Error falls along\nsmooth power laws", "A thermodynamics\nof learning", "effective theory 2022,\nscaling-law theory 2024", NAVY),
+    ("Error falls along\nsmooth power laws", "A thermodynamics\nof learning", "effective theory 2022,\nlearning mechanics 2026", NAVY),
     ("More concepts than\ndimensions", "A geometry\nof meaning", "superposition 2022,\nlinear representations 2024", NAVY),
     ("Skills that appear\nsuddenly", "Singularities and\nsudden change", "Watanabe 2009,\nlearning coefficient 2025", NAVY),
     ("Behaviour no one\nwrote line by line", "Guarantees for what\nwe did not design", "largely open", RED),
