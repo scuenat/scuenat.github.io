@@ -12,7 +12,7 @@ topics: [fast-ai]   # home-page theme tiles (index.qmd)
 image: figures/fig01.png
 updates:
   - date: 2026-11-01
-    note: "New Section 9: six ideas from a reader (processing in memory, analog chips, on-chip SRAM, context compression, editable context, self-organising memory graphs), checked against the experiments."
+    note: "New Section 9: six ideas from Shubham Mahale (processing in memory, analog chips, on-chip SRAM, context compression, editable context, self-organising memory graphs), checked against the experiments."
 resources:
   - sim.py
   - figs.py
@@ -215,9 +215,9 @@ Agent memory systems are building the top of this stack: MemGPT, now Letta, page
 
 : **Table 1.** Recent work on the four memories. Code links checked on 25 October 2026. Benchmarks of agent memory systems are still young, and the vendors' own scores often disagree with independent ones; I would compare them on your own data.
 
-## 9. Six ideas from a reader
+## 9. Six ideas from Shubham Mahale
 
-After this essay came out, a reader sent me six technologies that, in their view, solve the memory problem. They deserve a careful answer, because each one attacks one of the four memories, and each changes a price measured above. I take them one at a time: what is right, what I would challenge, and what it does to the rule.
+After this essay came out, [Shubham Mahale](https://www.linkedin.com/in/shubham-mahale-6a56321a0) sent me six technologies that, in his view, solve the memory problem. They deserve a careful answer, because each one attacks one of the four memories, and each changes a price measured above. I take them one at a time: what is right, what I would challenge, and what it does to the rule.
 
 **1. Processing in memory.** *Build the arithmetic inside the RAM, so data never has to travel.* This aims at the right target. Experiments 3 and 4 showed that generating a token is mostly a matter of reading bytes, and processing in memory attacks exactly that. It exists: Samsung built small compute units into HBM2 memory and ran unmodified applications on it [@lee2021pim]. AttAcc puts the attention over the KV cache there, because attention reads many bytes for each operation whatever the batch size [@park2024attacc].
 
@@ -248,7 +248,7 @@ I would challenge what the learning optimises. The reward is answering benchmark
 | Editable context | Working memory | Bounded context | Agree; keep the originals |
 | Self-organising graphs | External memory | Better organised lookup | Keep the store inspectable and deletable |
 
-: **Table 2.** Six ideas from a reader, placed among the four memories.
+: **Table 2.** Six ideas from Shubham Mahale, placed among the four memories.
 
 The six ideas sort neatly into the four memories: three are hardware that lowers the price of reading, three are software that keeps the working memory short and the lookup organised. Hardware changes the prices in Figures 5 and 6. It does not change the arithmetic of editing in Experiment 2, nor that of the long tail in Section 6. If processing in memory makes reading weights nearly free, the line moves toward the weights. It moves; it does not disappear. A fact you must be able to correct or delete still belongs in a row, not in a parameter.
 
