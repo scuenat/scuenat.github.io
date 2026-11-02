@@ -214,7 +214,7 @@ def fig_descent():
     modern = 0.17 + 0.45 * np.exp(-x / 0.3) + bump * 0.75
     for ax, test, title, sub in (
         (axes[0], classical, "What the textbook predicted", "too big a model overfits"),
-        (axes[1], modern, "What we see", "past the peak, bigger keeps getting better"),
+        (axes[1], modern, "What we see", "past the peak, error falls again"),
     ):
         ax.plot(x, train_l, color=MUTED, lw=1.6, ls=(0, (4, 3)), label="training error")
         ax.plot(x, test, color=NAVY if ax is axes[0] else WARM, lw=2.6, label="test error")
