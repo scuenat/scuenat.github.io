@@ -469,6 +469,534 @@ November 2. <a href="https://scuenat.github.io/fr/posts/2026-11-02-the-mathemati
   <media:content url="https://scuenat.github.io/posts/2026-11-02-the-mathematics-still-to-come/figures/fig02.png" medium="image" type="image/png" height="71" width="144"/>
 </item>
 <item>
+  <title>Le maître qui écrit les poids</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-11-02-the-teacher-who-writes-the-weights/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Analyse, novembre 2026.</strong> Une lecture de <em>Sparks of Weight-Space Programming</em> de Rikiya Takehi, Jayden Teoh, Alex Zhang et Omar Khattab, du MIT CSAIL <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, publié aujourd’hui sous forme de billet de blog, replacé dans les travaux de 2023 à 2026 qui lisent ou écrivent les poids des réseaux de neurones, et lu pour ce qu’il signifie pour <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a> : de petits modèles rapides qui tournent sur les machines du client. Sauf mention contraire, les chiffres sur les expériences viennent du billet lui-même ; ce sont des résultats précoces des auteurs, non relus par des pairs, mais ils ont publié tous les journaux d’exécution. Le modèle qu’ils utilisent s’appelle GPT-6 Astra dans le billet ; je ne l’ai pas utilisé et ne peux rien vérifier à son sujet au-delà de ce qu’ils rapportent. La seconde moitié, sur un « incubateur » pour petits modèles et son fonctionnement sur site, est ma propre proposition. Les figures sont tracées avec <a href="../../../posts/2026-11-02-the-teacher-who-writes-the-weights/figs.py">figs.py</a> ; la figure 2 reprend le tableau du billet, les figures 1 et 3 sont des schémas. Les figures sont en anglais. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../posts/2026-11-02-the-teacher-who-writes-the-weights/index.html">Version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Depuis toujours en apprentissage profond, les poids d’un réseau sont écrits par un optimiseur. Depuis 2023, de plus en plus de travaux entraînent des modèles spécialisés pour lire les poids ou pour les générer. Le nouveau billet affirme autre chose : un modèle de pointe généraliste, utilisé tel quel, peut lire les poids bruts d’un réseau et dire pour quoi il a été entraîné, et peut écrire des poids directement, autour d’un objectif formulé en langage courant. Il nomme le jeu sur lequel une politique a été entraînée, trouve les têtes d’induction d’un petit transformeur sans l’exécuter, répare en une réponse une politique de contrôle bloquée, écrit de zéro des joueurs qui battent PPO entraîné pendant 100 millions de pas, et modifie 0,016 % des poids d’un modèle de 0,8 milliard de paramètres pour l’empêcher de tourner en boucle, ce qui fait passer MATH-500 de 7,9 % à 48,1 %. Ma lecture : les résultats sont réels, mais plus étroits que le titre. Le modèle excelle à traduire en forme neuronale un <em>programme</em> qu’il comprend, et à retirer un <em>obstacle</em> qu’il sait trouver ; le contrôle des auteurs eux-mêmes montre qu’il n’a pas pu ajouter une capacité qui manquait au modèle. Cette forme convient très bien à Fast AI. Fast AI utilise déjà le grand modèle une fois, avant la boucle, comme un compilateur ; la programmation dans l’espace des poids lui permet de compiler dans le petit réseau lui-même, de réparer ce réseau sans grappe de GPU, et de livrer la correction comme un correctif de quelques centaines de kilo-octets. Sur site, la question difficile est ce qui sort du bâtiment : une spécification peut sortir, les données privées ne le devraient pas, et les poids entraînés portent une partie de ces données. J’esquisse un incubateur qui respecte cette ligne, et l’expérience qui montrerait s’il vaut la peine d’être construit.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>De 2023 à 2026, les poids ont été lus par des outils d’interprétabilité et des lecteurs entraînés, et écrits par des optimiseurs, des fusions, des compilateurs et des générateurs entraînés. Le lecteur ou l’auteur était toujours construit ou entraîné pour cette tâche.</li>
+<li>La nouvelle affirmation : un modèle généraliste, utilisé tel quel, peut faire les deux, parfois sans exécuter le réseau du tout.</li>
+<li>Les meilleurs résultats sont là où existe un algorithme net (Breakout, la tactique au go, une voiture qui doit reculer) ou là où une seule direction cause une seule panne (les boucles). La modification de Qwen a supprimé les boucles ; elle n’a pas enseigné les mathématiques.</li>
+<li>Pour Fast AI, le grand modèle peut compiler non seulement la mémoire mais le petit spécialiste lui-même : lent et coûteux une fois, petit et rapide à chaque fois ensuite.</li>
+<li>Sur site, cela offre une réparation sans réentraînement et une correction livrée comme une petite différence de poids, qu’on peut relire.</li>
+<li>Le piège, ce sont les données : les poids entraînés portent une partie de leurs données d’entraînement, si bien que les faire lire par un modèle distant est un transfert de données. Écrire à partir d’une spécification ne l’est pas.</li>
+</ul>
+</div>
+</div>
+<section id="les-poids-étaient-laffaire-des-optimiseurs" class="level2">
+<h2 class="anchored" data-anchor-id="les-poids-étaient-laffaire-des-optimiseurs">Les poids étaient l’affaire des optimiseurs</h2>
+<p>Un réseau de neurones est, au fond, une longue liste de nombres. Un programme en Python peut être lu par une personne ; une liste de 17 253 nombres à virgule flottante ne le peut pas, du moins par personne que je connaisse. La division du travail est donc stable depuis des décennies. Les humains écrivent l’architecture, les données et la fonction de perte. Un optimiseur, en général une variante de la descente de gradient, écrit les poids. Les humains étudient ensuite le résultat de l’extérieur, en l’exécutant.</p>
+<p>Les auteurs le disent bien. Depuis quelques années, nous utilisons les grands modèles de langage pour optimiser du texte : des prompts et les programmes qui les entourent <span class="citation" data-cites="khattab2024 agrawal2026">(<span class="nocase">Khattab et al.</span> 2024; <span class="nocase">Agrawal et al.</span> 2026)</span>, des couches d’exploitation entières <span class="citation" data-cites="lee2026">(<span class="nocase">Lee et al.</span> 2026)</span>, et le code qui entraîne les modèles <span class="citation" data-cites="karpathy2026">(Karpathy 2026)</span>. La justification était que le texte n’a pas de gradient et qu’une personne peut améliorer du code à la main, donc un modèle de langage aussi. Les poids faisaient exception. « Humans can ‘optimize’ code by hand », écrivent-ils, « but they can’t ‘optimize’ neural weights by hand, so those remained largely in the realm of symbolic algorithms » <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</p>
+<p>Le billet affirme que cette exception prend fin. Si c’est vrai, cela change quelque chose qui m’importe davantage que les scores : la façon dont un grand modèle peut aider un petit.</p>
+</section>
+<section id="ce-qui-précède-quatre-façons-de-toucher-un-poids-de-2023-à-2026" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-précède-quatre-façons-de-toucher-un-poids-de-2023-à-2026">Ce qui précède : quatre façons de toucher un poids, de 2023 à 2026</h2>
+<p>Pour voir ce qui est nouveau, il aide de trier les travaux antérieurs selon deux questions : <em>lisent</em>-ils les poids ou les <em>écrivent</em>-ils, et le lecteur ou l’auteur est-il un outil construit pour la tâche, un modèle entraîné pour la tâche, ou un modèle généraliste utilisé tel quel ? La figure 1 place les principales lignes de travail.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Travaux de 2023 à 2026 qui lisent ou écrivent les poids de réseaux de neurones, triés selon qui lit ou écrit. Le placement est ma propre lecture des travaux cités ; la colonne de droite était vide jusqu’à cette année. Schéma, de moi."><img src="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig01.svg" class="img-fluid figure-img" alt="Une grille de deux lignes, « READ » (lire) et « WRITE » (écrire), et trois colonnes : « TOOLS BUILT FOR THE JOB » (outils construits pour la tâche), « MODELS TRAINED FOR THE JOB » (modèles entraînés pour la tâche) et « A GENERAL MODEL, USED AS IT IS » (un modèle généraliste utilisé tel quel). Lire, outils : circuits et têtes d'induction 2021-23, autoencodeurs parcimonieux 2023, traçage de circuits 2025. Lire, modèles entraînés : réseaux sur l'espace des poids 2023-24, explications de neurones 2023, interprètes de différences de poids 2025, oracles d'activations et de poids 2025-26. Écrire, outils : arithmétique de tâches et fusion 2023-24, programmes compilés avec Tracr 2023, ablation de direction 2024, stratégies d'évolution et MeZO 2023-25. Écrire, modèles entraînés : diffusion de points de contrôle 2022-24, HyperTuning 2023, Text-to-LoRA et Drag-and-Drop 2025, auto-modifications avec SEAL 2025. La colonne du modèle généraliste, en surbrillance, contient « Weight-space programming », Takehi et al., novembre 2026, pour la lecture comme pour l'écriture."></a></p>
+<figcaption><strong>Figure 1.</strong> Travaux de 2023 à 2026 qui lisent ou écrivent les poids de réseaux de neurones, triés selon qui lit ou écrit. Le placement est ma propre lecture des travaux cités ; la colonne de droite était vide jusqu’à cette année. Schéma, de moi.</figcaption>
+</figure>
+</div>
+<p><strong>Lire, avec des outils construits pour la tâche.</strong> L’interprétabilité mécaniste trace des circuits <span class="citation" data-cites="olah2020">(Olah et al. 2020)</span> et a trouvé les <em>têtes d’induction</em> qui permettent à un transformeur de recopier un texte antérieur, avec une méthode qui multiplie des matrices de poids sans exécuter le modèle <span class="citation" data-cites="elhage2021">(<span class="nocase">Elhage et al.</span> 2021)</span>. Les autoencodeurs parcimonieux décomposent les activations en caractéristiques nommables <span class="citation" data-cites="bricken2023 cunningham2023">(<span class="nocase">Bricken et al.</span> 2023; Cunningham et al. 2023)</span>, et le traçage de circuits dessine des graphes de calcul entiers <span class="citation" data-cites="ameisen2025">(<span class="nocase">Ameisen et al.</span> 2025)</span>.</p>
+<p><strong>Lire, avec des modèles entraînés pour la tâche.</strong> Les réseaux sur l’espace des poids sont entraînés à prendre en entrée les poids d’un autre réseau et à prédire ses propriétés, comme sa précision ou les données sur lesquelles il a été entraîné <span class="citation" data-cites="navon2023 zhou2023 lim2024">(Navon et al. 2023; Zhou et al. 2023; Lim et al. 2024)</span>. Les modèles de langage s’y sont mis, pour expliquer des neurones isolés <span class="citation" data-cites="bills2023">(<span class="nocase">Bills et al.</span> 2023)</span>, pour lire des différences de réglage fin <span class="citation" data-cites="goel2025">(Goel et al. 2025)</span> et des activations <span class="citation" data-cites="karvonen2025 fraser2026">(<span class="nocase">Karvonen et al.</span> 2025; <span class="nocase">Fraser-Taliente et al.</span> 2026)</span>, et, cet automne, pour lire directement des poids <span class="citation" data-cites="kabra2026">(Kabra et al. 2026)</span>.</p>
+<p><strong>Écrire, avec des outils.</strong> L’arithmétique de tâches additionne et soustrait les différences de poids de modèles réglés <span class="citation" data-cites="ilharco2023">(Ilharco et al. 2023)</span> ; TIES, DARE et la recherche évolutionnaire ont rendu la fusion plus robuste <span class="citation" data-cites="yadav2023 yu2024 akiba2025">(Yadav et al. 2023; Yu et al. 2024; Akiba et al. 2025)</span>. Le refus, dans beaucoup de modèles conversationnels, est porté par une seule direction, et la retirer des poids retire le comportement <span class="citation" data-cites="arditi2024">(<span class="nocase">Arditi et al.</span> 2024)</span> ; des faits peuvent être localisés et modifiés <span class="citation" data-cites="meng2022">(Meng et al. 2022)</span>. Tracr a compilé de petits programmes directement dans les poids d’un transformeur <span class="citation" data-cites="lindner2023">(Lindner et al. 2023)</span>, et les optimiseurs sans gradient écrivent les poids par essais et erreurs <span class="citation" data-cites="salimans2017 malladi2023 qiu2026">(Salimans et al. 2017; Malladi et al. 2023; <span class="nocase">Qiu et al.</span> 2026)</span>.</p>
+<p><strong>Écrire, avec des modèles entraînés pour la tâche.</strong> Des modèles génératifs produisent des points de contrôle <span class="citation" data-cites="peebles2022 wang2024">(Peebles et al. 2022; <span class="nocase">Wang et al.</span> 2024)</span> ; des hyperréseaux transforment une description de tâche ou quelques prompts en adaptateurs <span class="citation" data-cites="phang2023 charakorn2025 liang2025 neurogen2025">(Phang et al. 2023; Charakorn et al. 2025; <span class="nocase">Liang et al.</span> 2025; <span class="nocase">Wang et al.</span> 2025)</span>. SEAL laisse un modèle écrire ses propres données de réglage fin, mais ce sont encore des gradients qui appliquent la mise à jour <span class="citation" data-cites="zweiger2025">(Zweiger et al. 2025)</span>.</p>
+<p>Le motif commun à ces quatre cases est celui que relève le billet : « either the reader is trained for the task or training still does the writing » <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>. La seule exception qu’ils citent, AdderBoard, fait régler à la main les poids d’un minuscule transformeur par des agents de programmation <span class="citation" data-cites="papailiopoulos2026">(Papailiopoulos 2026)</span>. La colonne de droite de la figure 1 est ce que le billet affirme remplir.</p>
+</section>
+<section id="ce-quaffirme-le-billet" class="level2">
+<h2 class="anchored" data-anchor-id="ce-quaffirme-le-billet">Ce qu’affirme le billet</h2>
+<p>Les auteurs définissent l’idée en une phrase : « In Weight-Space Programming, a general-purpose LLM reads and writes a network’s weights directly (i.e., not through an optimizer, and in particular not with gradient descent) around some natural language spec, sometimes even with no environment feedback at all » <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</p>
+<p>Dit un peu plus formellement, l’affirmation a trois parties. Soit <img src="https://latex.codecogs.com/png.latex?W"> les poids d’un réseau d’architecture connue, et <img src="https://latex.codecogs.com/png.latex?M"> un modèle de langage généraliste.</p>
+<ol type="1">
+<li><strong>Lire.</strong> Étant donné <img src="https://latex.codecogs.com/png.latex?W">, en texte ou en tenseurs, et une question <img src="https://latex.codecogs.com/png.latex?q"> sur le comportement du réseau, <img src="https://latex.codecogs.com/png.latex?M"> répond correctement à <img src="https://latex.codecogs.com/png.latex?q"> plus souvent que le hasard, sans exécuter le réseau.</li>
+<li><strong>Réparer.</strong> Étant donné <img src="https://latex.codecogs.com/png.latex?W">, un objectif <img src="https://latex.codecogs.com/png.latex?g"> et peu ou pas de retour, <img src="https://latex.codecogs.com/png.latex?M"> produit <img src="https://latex.codecogs.com/png.latex?W'%20=%20W%20+%20%5CDelta"> avec un petit <img src="https://latex.codecogs.com/png.latex?%5CDelta">, tel que <img src="https://latex.codecogs.com/png.latex?W'"> atteigne <img src="https://latex.codecogs.com/png.latex?g"> mieux que <img src="https://latex.codecogs.com/png.latex?W">.</li>
+<li><strong>Écrire.</strong> Étant donné seulement l’architecture et une description de la tâche, <img src="https://latex.codecogs.com/png.latex?M"> produit à partir de zéro un <img src="https://latex.codecogs.com/png.latex?W"> qui fonctionne bien, sans données, sans perte et sans gradient.</li>
+</ol>
+<p>La ressource intéressante n’est pas le nombre de jetons mais les <em>passes avant</em> : combien de fois <img src="https://latex.codecogs.com/png.latex?M"> a le droit d’exécuter le réseau pour voir ce qu’il fait. Plusieurs expériences n’en autorisent aucune.</p>
+</section>
+<section id="les-huit-expériences" class="level2">
+<h2 class="anchored" data-anchor-id="les-huit-expériences">Les huit expériences</h2>
+<p>Le tableau 1 réunit le dispositif et le principal résultat de chaque expérience, tels que rapportés.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 1.</strong> Les huit expériences de Takehi et ses collègues <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, dans leur ordre. Les jeux de l’expérience 1 sont des versions sur grille des auteurs ; MinAtar <span class="citation" data-cites="young2019">(Young et Tian 2019)</span> et Kinetix <span class="citation" data-cites="matthews2025">(Matthews et al. 2025)</span> sont des bancs d’essai standard.</caption>
+<colgroup>
+<col style="width: 4%">
+<col style="width: 57%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>N°</th>
+<th>Tâche (réseau ; ce qu’Astra peut utiliser)</th>
+<th>Résultat rapporté</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Quel jeu ? (politique PPO de 17 000 poids ; poids en texte, sans outils)</td>
+<td>Bon jeu, quatre sur quatre</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Quelle forme ? (modèle de diffusion de 24 000 poids ; aucune passe avant)</td>
+<td>Bonne forme, trois sur trois</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Quelle langue, quelles têtes ? (transformeur de 7,2 M de poids, couches externes retirées ; Python, sans l’exécuter)</td>
+<td>Bonne langue, trois sur trois ; toutes les têtes de copie, aucune fausse</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Réparer une voiture bloquée sur une rampe (politique PPO de 172 000 poids ; une réponse, sans outils)</td>
+<td>1 024 épisodes réussis sur 1 024 ; 3,5 % des poids modifiés</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Écrire de zéro des joueurs MinAtar (sans données, outils ni parties)</td>
+<td>Battent PPO à 100 M de pas dans les trois jeux (tableau 2)</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Écrire de zéro un joueur de go (1,5 M de poids ; 0 à 50 passes avant)</td>
+<td>Avec 50 passes, bat le réseau PPO de même taille</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Quel modèle est complaisant ? (paires de Gemma 3 270M)</td>
+<td>Poids seuls : échec. Avec les motifs d’attention : trois sur trois</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Rendre Qwen3.5-0.8B meilleur en maths (10 à 50 passes avant)</td>
+<td>MATH-500 de 7,9 % à 48,1 % ; 0,016 % des poids modifiés (figure 2)</td>
+</tr>
+</tbody>
+</table>
+<p>Les joueurs de l’expérience 5 méritent leur propre tableau, car ils sont le test d’écriture le plus propre : pas de données, pas d’outils, pas de parties d’essai, une seule réponse.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 2.</strong> Score moyen sur 1 000 épisodes dans trois jeux MinAtar, d’après le billet. PPO est le meilleur de 3 à 10 graines.</caption>
+<thead>
+<tr class="header">
+<th>Jeu</th>
+<th style="text-align: right;">PPO, 100 M de pas</th>
+<th style="text-align: right;">PPO, 500 M de pas</th>
+<th style="text-align: right;">Astra, un essai</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Breakout</td>
+<td style="text-align: right;">15,8</td>
+<td style="text-align: right;">25,3</td>
+<td style="text-align: right;">517,4</td>
+</tr>
+<tr class="even">
+<td>Seaquest</td>
+<td style="text-align: right;">5,6</td>
+<td style="text-align: right;">88,9</td>
+<td style="text-align: right;">53,1</td>
+</tr>
+<tr class="odd">
+<td>Asterix</td>
+<td style="text-align: right;">25,8</td>
+<td style="text-align: right;">55,2</td>
+<td style="text-align: right;">53,2</td>
+</tr>
+</tbody>
+</table>
+<p>La façon de faire compte plus que les scores. Dans tous les cas où le billet montre le raisonnement, le modèle ne cherche pas dans l’espace des poids. Il <em>comprend</em> le réseau comme un programme. Dans Breakout, « Astra programs the first layer to compute where the ball would land, and the second layer is programmed to move the paddle to that position ». Au go, il écrit 336 lignes de Python qui marquent les pierres et les libertés dans les premières couches, les propagent le long des chaînes dans les couches du milieu, et notent captures et sauvetages dans la dernière. Pour la voiture, il ajoute « a small separate path through a few units per layer » qui fait reculer la voiture puis s’éteint. En lecture, il redécouvre de lui-même la méthode de multiplication des poids qu’Elhage et ses collègues avaient utilisée pour trouver les têtes d’induction <span class="citation" data-cites="elhage2021">(<span class="nocase">Elhage et al.</span> 2021)</span>.</p>
+<p>L’expérience 8 fait le titre et c’est la plus instructive. La figure 2 en reprend le tableau.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Expérience 8 : Qwen3.5-0.8B après la modification des poids par Astra, pour trois budgets de passes avant. Le dernier panneau donne la part des réponses à MATH-500 qui atteignent la limite de 32 768 jetons ; elle ne baisse qu’avec le plus grand budget. Données de Takehi et ses collègues [@takehi2026], leur tableau ; graphique de moi."><img src="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig02.svg" class="img-fluid figure-img" alt="Quatre petits diagrammes en barres sur un axe de pourcentage de 0 à 100, chacun avec quatre barres : « Base » (le modèle de départ), puis le modèle modifié avec 10, 25 et 50 passes avant. MATH-500 : 7.9, 12.3, 14.1, 48.1. GSM8K : 13.8, 25.7, 25.1, 67.1. IFEval : 21.0, 49.0, 39.9, 62.3. Part des réponses à MATH-500 qui atteignent la limite de jetons : 93.0, 87.2, 86.4, 33.1."></a></p>
+<figcaption><strong>Figure 2.</strong> Expérience 8 : Qwen3.5-0.8B après la modification des poids par Astra, pour trois budgets de passes avant. Le dernier panneau donne la part des réponses à MATH-500 qui atteignent la limite de 32 768 jetons ; elle ne baisse qu’avec le plus grand budget. Données de Takehi et ses collègues <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, leur tableau ; graphique de moi.</figcaption>
+</figure>
+</div>
+<p>Le modèle de départ tourne en boucle : il se répète et termine rarement (85 de ses 96 premières réponses d’entraînement ont atteint la limite de jetons ; la fiche du modèle Qwen elle-même le signale). Astra a fait remonter les boucles à une direction écrite par les MLP des couches 15 et 19, et l’a soustraite de 64 colonnes de sortie dans chacune, soit 131 072 poids. C’est, comme le notent les auteurs, proche dans l’esprit de la suppression du refus par l’effacement d’une direction <span class="citation" data-cites="arditi2024">(<span class="nocase">Arditi et al.</span> 2024)</span>, et de travaux récents sur les raisons des boucles des modèles de raisonnement <span class="citation" data-cites="pipis2025">(<span class="nocase">Pipis et al.</span> 2025)</span>. Comme les boucles ne sont pas propres aux mathématiques, le suivi d’instructions s’est amélioré aussi.</p>
+<p>Vient ensuite le contrôle que je respecte le plus dans le billet. Les auteurs ont essayé la même chose sur Gemma 3 270M, qui tourne rarement en boucle. Rien n’a marché : MATH-500 est passé de 6,8 % à 7,7 % au mieux, un gain qu’Astra lui-même a jugé non établi. Leur conclusion est prudente : « Editing weights could remove an obstacle that hid an ability, but it could not add an ability the model lacked. »</p>
+</section>
+<section id="ma-lecture" class="level2">
+<h2 class="anchored" data-anchor-id="ma-lecture">Ma lecture</h2>
+<p><strong>Ce que je garde.</strong> Trois choses me semblent solides, même à ce stade précoce.</p>
+<p>D’abord, <em>lire sans exécuter</em> fonctionne sur de petits réseaux, au moins pour des questions grossières. L’expérience 3 est la plus convaincante : sans les couches d’entrée et de sortie, rien dans les poids ne dit quelle dimension correspond à quelle lettre, et pourtant le modèle trouve les têtes de copie qu’une mesure confirme, sans faux positif. Ce n’est pas de la reconnaissance de motifs sur la première couche. C’est un raisonnement structurel sur des matrices.</p>
+<p>Ensuite, <em>écrire fonctionne là où un programme existe</em>. Breakout a un algorithme net (aller là où la balle va tomber), et le réseau écrit marque 20 fois plus que PPO à 500 millions de pas. Seaquest n’a pas de programme court de ce genre (oxygène, plongeurs, ennemis, minutage) et le réseau écrit atteint 60 % de PPO. Cet écart est ce que le tableau 2 a de plus instructif. Il dit que la programmation dans l’espace des poids est, au fond, une <em>compilation par compréhension</em> : Tracr le faisait pour des programmes écrits en RASP <span class="citation" data-cites="lindner2023">(Lindner et al. 2023)</span> ; ici le programme vit dans le raisonnement du modèle et la cible est un MLP ordinaire.</p>
+<p>Enfin, <em>une petite modification explicitée peut réparer une grosse panne</em>. Un changement de 0,016 % expliqué en une phrase (« cette direction cause les boucles ; retirez-la ») est un objet très différent d’un réglage fin complet. On peut le relire.</p>
+<p><strong>Ce que je laisse de côté.</strong> Dire que le modèle a « rendu Qwen meilleur en maths » exagère le résultat, et le contrôle Gemma des auteurs le dit. La modification a permis au modèle de <em>terminer</em> des réponses qu’il savait déjà trouver. C’est précieux, mais c’est une réparation, pas un enseignement.</p>
+<p>Je lirais aussi les comparaisons avec PPO avec prudence. PPO sur un MLP de 32 unités est probablement une référence faible ; 517 contre 25 en dit autant sur la difficulté d’entraîner un petit réseau par apprentissage par renforcement que sur le réseau écrit. La comparaison que le billet ne fait pas est celle d’un réseau écrit utilisé comme <em>point de départ</em> pour PPO.</p>
+<p>Les passes avant sont aussi un retour d’information. Dans l’expérience 8, dix ou vingt-cinq passes ont à peine réduit les boucles (87 % et 86 % atteignent encore la limite), IFEval était <em>plus bas</em> à 25 qu’à 10, puis cinquante passes ont tout changé. Avec une seule modification par budget, une courbe d’échelle et une recherche chanceuse se ressemblent.</p>
+<p>Et les échantillons sont petits : quatre jeux, trois formes, trois langues, trois paires complaisantes, un seul grand modèle. L’expérience 7 a échoué à partir des poids seuls. Le modèle est de ceux que la plupart des lecteurs, moi compris, ne peuvent pas essayer. Rien de tout cela ne rend les résultats faux ; cela en fait des étincelles, ce que dit le titre.</p>
+</section>
+<section id="un-esprit-plus-avancé-qui-en-façonne-un-plus-petit" class="level2">
+<h2 class="anchored" data-anchor-id="un-esprit-plus-avancé-qui-en-façonne-un-plus-petit">Un esprit plus avancé qui en façonne un plus petit</h2>
+<p>Voici la partie qui m’intéresse le plus, et elle n’est pas dans le billet.</p>
+<p>Jusqu’ici, il y avait deux façons pour un grand modèle d’améliorer un petit. La première est la <em>distillation</em> : le grand modèle produit des sorties, et le petit apprend à les imiter par descente de gradient <span class="citation" data-cites="hinton2015">(Hinton et al. 2015)</span>. Beaucoup de petits modèles de ces deux dernières années ont été faits ainsi, parfois avec de l’élagage <span class="citation" data-cites="muralidharan2024">(<span class="nocase">Muralidharan et al.</span> 2024)</span>. La seconde est un <em>générateur entraîné</em> : un hyperréseau qui transforme une description en poids <span class="citation" data-cites="charakorn2025 liang2025">(Charakorn et al. 2025; <span class="nocase">Liang et al.</span> 2025)</span>. Dans les deux cas, les poids du petit modèle sont encore écrits par un optimiseur, à partir d’exemples.</p>
+<p>La programmation dans l’espace des poids ajoute une troisième voie, et elle est étrange. Le grand modèle ne montre pas d’exemples au petit. Il lit ses poids, se fait une théorie de ce qu’il calcule, et le modifie. Le tableau 3 met les trois côte à côte.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 3.</strong> Trois façons dont un grand modèle peut façonner un petit. Les deux premières colonnes résument les travaux cités ; la troisième résume le billet, et les deux dernières lignes sont ma lecture.</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Distillation</th>
+<th>Générateur entraîné</th>
+<th>Programmation des poids</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ce que donne le maître</td>
+<td>Des exemples de son comportement</td>
+<td>Une correspondance apprise de la tâche aux poids</td>
+<td>Un diagnostic et une modification</td>
+</tr>
+<tr class="even">
+<td>Qui écrit les poids</td>
+<td>L’optimiseur de l’élève</td>
+<td>Le générateur</td>
+<td>Le maître, directement</td>
+</tr>
+<tr class="odd">
+<td>Besoin de données</td>
+<td>Beaucoup</td>
+<td>Beaucoup de points de contrôle entraînés</td>
+<td>Peu ou pas</td>
+</tr>
+<tr class="even">
+<td>S’explique</td>
+<td>Non</td>
+<td>Non</td>
+<td>En langage courant</td>
+</tr>
+<tr class="odd">
+<td>Bon pour</td>
+<td>Transmettre une capacité générale</td>
+<td>Adapter vite au sein d’une famille</td>
+<td>Points de départ, réparations, audits</td>
+</tr>
+<tr class="even">
+<td>Faible pour</td>
+<td>Retirer un défaut précis</td>
+<td>Les tâches éloignées de son entraînement</td>
+<td>Ajouter une capacité qui manque à l’élève</td>
+</tr>
+</tbody>
+</table>
+<p>L’analogie humaine est tentante, et elle est à moitié juste. Un bon enseignant ne donne pas seulement des exemples ; il repère l’idée fausse précise derrière une série d’erreurs et traite cette seule chose. L’expérience 8 est exactement cela : une idée fausse (une direction qui ne lâche jamais prise), une correction. Mais un enseignant humain passe <em>par</em> l’apprentissage propre de l’élève. Ici, le maître le contourne et modifie l’esprit lui-même. C’est plus puissant, et moins sûr : l’élève n’a pas son mot à dire, et rien dans sa propre expérience ne confirme le changement. C’est la différence entre un précepteur et un chirurgien. Nous acceptons la chirurgie, mais nous demandons aux chirurgiens de dire ce qu’ils vont couper et pourquoi, de vérifier ensuite, et de tenir un dossier.</p>
+<p>Le résultat sur Gemma s’accorde aussi, de façon gênante, avec l’analogie. On peut dégager un obstacle dans un esprit ; on ne peut pas, en le modifiant, lui donner une compréhension qu’il n’a jamais formée. La capacité vient toujours de l’apprentissage. Ce qu’un esprit plus avancé peut faire, c’est donner à un plus petit un meilleur départ, retirer ce qui le bloque, et le vérifier avant qu’il parte dans le monde.</p>
+</section>
+<section id="un-incubateur-pour-petits-réseaux" class="level2">
+<h2 class="anchored" data-anchor-id="un-incubateur-pour-petits-réseaux">Un incubateur pour petits réseaux</h2>
+<p>Cela suggère un dispositif concret, que j’appellerai un incubateur. C’est une boucle autour d’un entraînement ordinaire, dans laquelle un grand modèle joue le rôle de mentor d’un petit réseau (figure 3).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Un incubateur pour petits réseaux. Le grand modèle écrit un point de départ, l’entraînement ordinaire le fait grandir, le grand modèle l’examine et le répare, et la boucle se répète tant que chaque modification se rentabilise ; la mise en service s’accompagne d’une note d’audit et de la différence de poids. Les étiquettes au-dessus des cartes disent où chaque étape peut tourner sur site : au plus, la spécification sort, et elle peut elle aussi être confidentielle. Schéma, de moi ; il montre une proposition, pas un résultat."><img src="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig03.svg" class="img-fluid figure-img" alt="Cinq cartes en ligne reliées par des flèches : « 1 Conceive » (concevoir), le mentor écrit un premier réseau à partir d'une spécification ; « 2 Grow » (grandir), entraînement ordinaire à partir de ce départ, sur des données réelles ; « 3 Examine » (examiner), le mentor lit les poids et des sondes à la recherche de boucles et de raccourcis ; « 4 Operate » (opérer), une petite modification explicitée, gardée seulement si des tests réservés l'approuvent ; « 5 Release » (mettre en service), une note d'audit et la différence de poids, relues comme du code. Une flèche pointillée revient de l'étape 4 à l'étape 2, avec « repeat while each edit pays for itself » (répéter tant que chaque modification se rentabilise). Des étiquettes au-dessus des cartes disent où chaque étape tourne : « spec only » pour concevoir, « on premise » (sur site) pour grandir, « local or remote » (local ou distant) pour examiner et opérer, « on premise » pour la mise en service. Une note en bas dit que le budget se compte en passes avant et en jetons du mentor, comparés à l'entraînement seul, et qu'au plus la spécification sort."></a></p>
+<figcaption><strong>Figure 3.</strong> Un incubateur pour petits réseaux. Le grand modèle écrit un point de départ, l’entraînement ordinaire le fait grandir, le grand modèle l’examine et le répare, et la boucle se répète tant que chaque modification se rentabilise ; la mise en service s’accompagne d’une note d’audit et de la différence de poids. Les étiquettes au-dessus des cartes disent où chaque étape peut tourner sur site : au plus, la spécification sort, et elle peut elle aussi être confidentielle. Schéma, de moi ; il montre une proposition, pas un résultat.</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Concevoir.</strong> À partir d’une spécification en langage courant, le mentor écrit un premier réseau de la taille visée, comme un programme sous forme neuronale, à la manière dont Astra a écrit les joueurs de Breakout et de go. Là où la tâche a un algorithme connu, ce départ peut déjà être bon ; sinon, il est au moins structuré.</li>
+<li><strong>Grandir.</strong> Entraînement ordinaire, sur des données réelles, à partir de ce départ. C’est de là que vient la capacité, et c’est là que s’applique la leçon de Gemma : le mentor ne peut pas sauter cette étape.</li>
+<li><strong>Examiner.</strong> Le mentor lit les poids entraînés, avec un petit budget de sondes, à la recherche de pannes connues : boucles, raccourcis, une direction qui suit l’opinion de l’utilisateur (la complaisance de l’expérience 7), unités mortes, une politique bloquée dans un minimum local (expérience 4).</li>
+<li><strong>Opérer.</strong> Une petite modification, énoncée en une phrase, gardée seulement si des tests réservés l’approuvent. Puis retour à l’entraînement, pour que le réseau absorbe le changement.</li>
+<li><strong>Mettre en service.</strong> Le réseau part avec une note d’audit : ce qui a été examiné, ce qui a été trouvé, ce qui a été changé, et la différence de poids elle-même.</li>
+</ol>
+<p>L’économie est simple à énoncer. Soit <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Btrain%7D(s)"> le coût d’entraînement d’un point de départ <img src="https://latex.codecogs.com/png.latex?s"> jusqu’à une qualité visée, <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Bwrite%7D"> le coût pour le mentor d’écrire le départ, et <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Bfix%7D"> le coût de chaque cycle examiner-opérer. L’incubateur vaut la peine quand</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A&amp;C_%5Ctext%7Bwrite%7D%20+%20C_%5Ctext%7Btrain%7D(s_%5Ctext%7Bwritten%7D)%20+%20k%20%5C,%20C_%5Ctext%7Bfix%7D%5C%5C%0A&amp;%5Cquad%20%3C%20%5C;%20C_%5Ctext%7Btrain%7D(s_%5Ctext%7Brandom%7D),%0A%5Cend%7Baligned%7D%0A"></p>
+<p>ou, plus souvent en pratique, quand il atteint une qualité que l’entraînement seul n’atteint pas du tout, comme pour la voiture bloquée. Le billet donne des indices des deux côtés : un départ écrit peut être très bon (tableau 2), et une seule réparation peut valoir plus que n’importe quelle quantité d’entraînement supplémentaire (la voiture n’a jamais réussi en 256 épisodes après un milliard de pas). Il ne mesure pas le membre de gauche. C’est la première expérience à faire.</p>
+</section>
+<section id="ce-que-cela-signifie-pour-fast-ai-sur-site" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-cela-signifie-pour-fast-ai-sur-site">Ce que cela signifie pour Fast AI sur site</h2>
+<p>Sur ce site, j’ai défendu ce que j’appelle Fast AI : les experts apprennent lentement, une fois, puis agissent vite par habitude ; le grand modèle doit donc servir <em>avant</em> la boucle, comme un compilateur, et des modèles rapides et explicables doivent faire tourner le processus (voir <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a>). J’ai aussi soutenu que l’IA locale sera un écosystème de petits spécialistes, d’une mémoire partagée et d’une couche d’exploitation légère, et non un grand modèle rapetissé (voir <a href="../../../fr/posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">Un écosystème, pas un oracle</a>). Beaucoup des lieux où cela compte le plus fonctionnent sur site : une usine, un hôpital, une banque, une administration, où le matériel est modeste, la latence serrée, et où les données ne doivent pas sortir du bâtiment. La programmation dans l’espace des poids touche ce tableau en cinq points.</p>
+<section id="compiler-dans-les-poids-pas-seulement-dans-la-mémoire" class="level3">
+<h3 class="anchored" data-anchor-id="compiler-dans-les-poids-pas-seulement-dans-la-mémoire">1. Compiler dans les poids, pas seulement dans la mémoire</h3>
+<p>Dans Fast AI, le grand modèle compile une tâche en une mémoire structurée (un graphe de connaissances que les experts peuvent inspecter) et de petits modèles s’appuient dessus. La programmation dans l’espace des poids ajoute une seconde cible de compilation : le petit réseau lui-même. L’expérience 5 est exactement cela, avec les règles et le code source d’un jeu transformés en un réseau 600→32→32→6 en une seule réponse. Le réseau obtenu est minuscule, tourne en quelques microsecondes sur un CPU ou un NPU, et n’a besoin d’aucun grand modèle à l’exécution. C’est le profil de coût de Fast AI : lent et coûteux une fois, bon marché à chaque fois ensuite.</p>
+<p>Je garderais une règle de l’essai Fast AI : <em>laisser l’apprentissage profond percevoir et les arbres décider</em>. Si une règle métier est connue et stable, un arbre de décision est moins cher, plus rapide et plus facile à auditer que n’importe quel réseau, écrit ou entraîné. Un réseau écrit se justifie là où la décision repose sur la perception (la règle a besoin de caractéristiques qu’un arbre ne voit pas), ou là où il doit tourner fusionné avec un modèle de perception sur le même accélérateur. Écrire un réseau pour imiter une règle qu’on a déjà dans un tableau est un pas en arrière.</p>
+</section>
+<section id="le-mentor-passe-il-ne-reste-pas" class="level3">
+<h3 class="anchored" data-anchor-id="le-mentor-passe-il-ne-reste-pas">2. Le mentor passe ; il ne reste pas</h3>
+<p>Le coût du grand modèle se paie à la construction et à la réparation, jamais à chaque décision. Dans l’expérience 8, toute la réparation a pris cinquante passes avant du modèle de 0,8 milliard et une session du grand modèle ; le billet ne donne pas le coût du grand modèle lui-même. À comparer avec l’agent qui « relit le manuel chaque matin », qui paie le grand modèle à chaque exécution. Pour un client sur site, c’est la différence entre une dépendance permanente envers un modèle distant et la visite occasionnelle d’un spécialiste. Le tableau 4 résume où chaque partie tournerait.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 4.</strong> Où chaque partie d’un petit modèle incubé tournerait dans un déploiement sur site. Ma propre proposition, d’après les dispositifs des expériences 5, 6 et 8 <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Étape</th>
+<th>Où elle peut tourner</th>
+<th>Ce qu’elle doit voir</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Écrire un premier réseau (grand modèle)</td>
+<td>N’importe où, y compris à distance</td>
+<td>La spécification et l’architecture</td>
+</tr>
+<tr class="even">
+<td>L’entraîner (optimiseur ordinaire)</td>
+<td>Sur site</td>
+<td>Les données privées</td>
+</tr>
+<tr class="odd">
+<td>L’examiner (grand modèle, quelques passes avant)</td>
+<td>Sur site, ou à distance si les poids peuvent sortir</td>
+<td>Les poids entraînés et quelques sondes</td>
+</tr>
+<tr class="even">
+<td>Le réparer (grand modèle, un noyau Python)</td>
+<td>Comme ci-dessus</td>
+<td>Les poids ; aucun gradient</td>
+</tr>
+<tr class="odd">
+<td>L’exécuter (le petit réseau seul)</td>
+<td>Sur site, CPU ou NPU</td>
+<td>Les entrées en direct</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="réparer-sans-grappe-de-gpu" class="level3">
+<h3 class="anchored" data-anchor-id="réparer-sans-grappe-de-gpu">3. Réparer sans grappe de GPU</h3>
+<p>Les équipes sur site ont rarement l’infrastructure, ou la chaîne de données, pour refaire un réglage fin chaque fois qu’un modèle se comporte mal. La réparation de Qwen a utilisé un noyau Python « over the weights (no GPU) » et aucun entraînement. Les passes avant ne sont pas gratuites pour autant : cinquante, à une moyenne de 64 réponses qui allaient pour la plupart jusqu’à 32 768 jetons, font de l’ordre de cent millions de jetons générés (mon estimation grossière à partir des réglages du billet). Pour un modèle de 0,8 milliard de paramètres, cela représente des heures sur un GPU, pas un travail pour un CPU, mais c’est une machine, pas une grappe. La modification a changé 131 072 poids : environ un demi-mégaoctet en flottants 32 bits, un quart en 16 bits (mon calcul). C’est un correctif, au sens logiciel. On peut le signer, le livrer, l’appliquer et le retirer comme n’importe quel correctif, et le client peut garder le modèle de base qu’il a déjà validé.</p>
+<p>La limite est celle que trace le contrôle Gemma. Un correctif peut retirer une panne qui cache une capacité (boucles, politique bloquée, direction qui suit l’opinion de l’utilisateur). Il n’ajoutera pas une capacité qui manque au modèle ; cela demande encore de l’entraînement, et des données.</p>
+</section>
+<section id="ce-qui-sort-du-bâtiment" class="level3">
+<h3 class="anchored" data-anchor-id="ce-qui-sort-du-bâtiment">4. Ce qui sort du bâtiment</h3>
+<p>C’est le point auquel je réfléchirais le plus avant de vendre quoi que ce soit. Les données privées ne doivent pas sortir du bâtiment. Une spécification le peut en général, mais pas toujours : dans l’expérience 5, le mentor a aussi lu le code source du jeu, et sur site l’équivalent (règles métier, logique des processus) peut être confidentiel aussi. Les poids entraînés sont entre les deux : ils sont façonnés par leurs données d’entraînement, et des attaques publiées ont extrait mot pour mot des exemples d’entraînement de modèles de langage <span class="citation" data-cites="carlini2021">(<span class="nocase">Carlini et al.</span> 2021)</span>. Envoyer un modèle entraîné sur des dossiers de patients à un mentor distant pour « examen » est donc un transfert de données, quel que soit le nom que lui donne le contrat.</p>
+<p>Les dispositifs du billet suggèrent un partage net. <em>Écrire</em> à partir d’une spécification (expériences 5 et 6) ne demande aucune donnée, et peut donc être fait par tout mentor à qui le client accepte de montrer la spécification. <em>Entraîner</em> se fait sur site, sur les données privées. <em>Examiner</em> et <em>réparer</em> demandent les poids entraînés : soit les poids peuvent sortir, soit le mentor doit tourner à l’intérieur. Aujourd’hui, seul un modèle de pointe a montré cette capacité à ce niveau, et seulement entre les mains d’un laboratoire. Savoir si un modèle ouvert, qu’un client peut faire tourner chez lui, sait faire l’examen est, pour moi, la question ouverte la plus importante pour le travail sur site. Tant qu’elle n’a pas de réponse, la recette sûre sur site est : écrire à distance, entraîner et exécuter localement, et examiner localement avec les outils que nous avons déjà.</p>
+</section>
+<section id="auditer-avant-le-déploiement-et-relire-lintention" class="level3">
+<h3 class="anchored" data-anchor-id="auditer-avant-le-déploiement-et-relire-lintention">5. Auditer avant le déploiement, et relire l’intention</h3>
+<p>Les clients soumis à une réglementation demandent ce que fait un modèle avant de le laisser tourner. Lire les poids pourrait ajouter un nouveau type de preuve : non seulement « il a réussi ces tests », mais « voici ce qu’il calcule, voici ce que nous avons cherché sans le trouver ». L’expérience 7 est pourtant un avertissement : à partir des poids seuls, Astra a vu beaucoup de différences entre un modèle honnête et un modèle complaisant, sans pouvoir dire laquelle comptait. La lecture doit s’ajouter à l’évaluation, pas la remplacer.</p>
+<p>Et chaque modification a besoin d’une intention énoncée. Une différence de 131 072 poids n’est pas quelque chose qu’une personne lira ; « retirer la direction qui cause les boucles dans les couches 15 et 19 », si. C’est le déplacement que j’ai défendu pour le code dans <a href="../../../fr/posts/2026-10-22-review-the-intent-not-the-diff/index.html">Relire l’intention, pas le diff</a> : les humains possèdent l’intention, les machines l’implémentation, et les tests vérifient l’une contre l’autre. Sur site, la note d’intention, la différence et les résultats des tests devraient être livrés ensemble, et le client devrait pouvoir refuser le correctif.</p>
+<p>Un modèle de décision du type que j’ai analysé dans <a href="../../../fr/posts/2026-10-18-the-junior-colleague/index.html">Le collègue junior</a> est le premier candidat naturel pour ces cinq points : petit, étroit, souvent proche d’un programme, entraîné sur les états de l’agent lui-même, et tournant à côté de l’agent sur la machine du client.</p>
+</section>
+</section>
+<section id="là-où-cela-casse" class="level2">
+<h2 class="anchored" data-anchor-id="là-où-cela-casse">Là où cela casse</h2>
+<ul>
+<li><strong>L’échelle.</strong> Les réseaux qui tiennent dans le contexte ont au plus 171 664 poids. La modification du modèle de 0,8 milliard a utilisé un noyau Python et cinquante passes avant, et a changé une seule direction. Rien ne montre encore qu’un modèle puisse <em>comprendre</em> un grand réseau dans son ensemble, plutôt qu’y trouver une prise.</li>
+<li><strong>Les tâches sans programme.</strong> L’écriture fonctionne le mieux là où existe un algorithme court. Beaucoup de tâches confiées aux petits modèles (perception, langage, jugement) n’en ont pas, et le mentor ne peut alors que réparer et auditer.</li>
+<li><strong>Des départs écrits qui résistent à l’entraînement.</strong> Rien dans le billet ne teste un réseau écrit comme point de départ d’un entraînement par gradient. Des poids fixés par raisonnement peuvent saturer des unités tanh, là où les gradients s’annulent, si bien que l’étape <em>grandir</em> peut caler, ou simplement effacer la structure écrite.</li>
+<li><strong>Des poids adverses.</strong> Un lecteur qu’on peut tromper avec des poids conçus pour paraître inoffensifs est une surface d’attaque. Aucune des expériences ne le teste.</li>
+</ul>
+</section>
+<section id="ce-que-je-ne-prétends-pas" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-je-ne-prétends-pas">Ce que je ne prétends pas</h2>
+<p>Pas que la descente de gradient soit en voie de disparition : les meilleurs résultats du billet viennent encore de réseaux entraînés d’abord, ou de tâches assez simples pour être programmées. Pas que l’incubateur fonctionne ; c’est un dispositif, avec son test ci-dessous. Pas que des réseaux écrits doivent remplacer les arbres de décision là où les règles sont connues. Rien sur GPT-6 Astra au-delà de ce que rapporte le billet. Et pas qu’un modèle qui lit des poids les comprenne comme nous l’espérons ; il a peut-être trouvé une heuristique pour petits MLP qui échoue en silence à grande échelle.</p>
+</section>
+<section id="ce-qui-me-donnerait-tort" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-me-donnerait-tort">Ce qui me donnerait tort</h2>
+<ul>
+<li><strong>Un modèle qui ajoute une capacité en modifiant les poids.</strong> Si une modification des poids, sans entraînement, donne à un modèle une compétence qui lui manquait de façon mesurable (et non une compétence cachée par une panne comme les boucles), ma distinction entre réparer et enseigner tombe. Une reproduction du contrôle Gemma avec un résultat positif serait l’endroit où regarder.</li>
+<li><strong>Des départs écrits qui n’aident pas l’entraînement.</strong> Si PPO ou un entraînement supervisé, à partir d’un départ écrit par le mentor, atteint la même qualité, au même coût total, qu’un entraînement depuis un départ aléatoire, l’étape « concevoir » de l’incubateur est inutile.</li>
+<li><strong>Des réparations qui ne survivent pas à l’entraînement.</strong> Si une modification énoncée, suivie d’un entraînement supplémentaire, est systématiquement défaite, les modifications sont cosmétiques et la boucle de l’incubateur ne converge pas.</li>
+<li><strong>Pas de mentor local.</strong> Si, d’ici fin 2027, aucun modèle ouvert tournant sur un seul serveur ne peut refaire l’expérience 3 ou la réparation de Qwen, la programmation dans l’espace des poids reste un service distant, et sa valeur sur site se limite à l’écriture à partir de spécifications.</li>
+<li><strong>Des optimiseurs sans gradient qui font aussi bien.</strong> Si les stratégies d’évolution ou le réglage fin par passes avant seules <span class="citation" data-cites="qiu2026 malladi2023">(<span class="nocase">Qiu et al.</span> 2026; Malladi et al. 2023)</span>, avec les mêmes cinquante passes avant, trouvent une modification aussi bonne que celle d’Astra sur Qwen, alors ce n’est pas le raisonnement qui a fait la différence, et un optimiseur local bon marché suffirait.</li>
+</ul>
+<p>L’expérience que je ferais en premier est petite : trois jeux MinAtar, un MLP de 32 unités, et quatre bras à calcul égal : PPO depuis zéro, PPO depuis un départ écrit, le réseau écrit seul, et PPO avec un cycle examiner-opérer à mi-parcours. Je la ferais deux fois, pour séparer deux questions. D’abord avec le meilleur mentor disponible, pour tester l’incubateur lui-même ; puis avec un modèle ouvert sur un seul serveur sur site, pour tester si un mentor local suffit. Si les deuxième et quatrième bras gagnent la première fois, l’incubateur vaut la peine d’être construit ; la seconde fois dit s’il peut l’être à l’intérieur du bâtiment. Sinon, j’aurai appris quelque chose aussi.</p>
+<div class="discuss">
+<p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
+<p><strong>Suivre les nouveaux textes.</strong> Abonnez-vous à la <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> sur LinkedIn (en anglais) ou au <a href="../../../fr/index.xml">flux RSS</a>. La page <a href="../../../fr/archive.html">Tous les textes</a> liste les derniers changements.</p>
+</div>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-11-fast-ai/index.html">Fast AI</a> Apprendre lentement, une fois. Agir vite, à chaque fois. Utiliser le grand modèle pour construire la mémoire, pas pour la remplacer.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cette analyse sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-agrawal2026" class="csl-entry">
+<span class="nocase">Agrawal, Lakshya A., Shangyin Tan, Dilara Soylu, Noah Ziems, et al.</span> 2026. <span>«&nbsp;<span>GEPA</span>: Reflective Prompt Evolution Can Outperform Reinforcement Learning&nbsp;»</span>. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2507.19457">https://arxiv.org/abs/2507.19457</a>.
+</div>
+<div id="ref-akiba2025" class="csl-entry">
+Akiba, Takuya, Makoto Shing, Yujin Tang, Qi Sun, et David Ha. 2025. <span>«&nbsp;Evolutionary Optimization of Model Merging Recipes&nbsp;»</span>. <em>Nature Machine Intelligence</em>. <a href="https://arxiv.org/abs/2403.13187">https://arxiv.org/abs/2403.13187</a>.
+</div>
+<div id="ref-ameisen2025" class="csl-entry">
+<span class="nocase">Ameisen, Emmanuel, Jack Lindsey, Adam Pearce, Wes Gurnee, et al.</span> 2025. <span>«&nbsp;Circuit Tracing: Revealing Computational Graphs in Language Models&nbsp;»</span>. <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2025/attribution-graphs/methods.html">https://transformer-circuits.pub/2025/attribution-graphs/methods.html</a>.
+</div>
+<div id="ref-arditi2024" class="csl-entry">
+<span class="nocase">Arditi, Andy, Oscar Obeso, Aaquib Syed, Daniel Paleka, et al.</span> 2024. <em>Refusal in Language Models Is Mediated by a Single Direction</em>. <a href="https://arxiv.org/abs/2406.11717">https://arxiv.org/abs/2406.11717</a>.
+</div>
+<div id="ref-bills2023" class="csl-entry">
+<span class="nocase">Bills, Steven, Nick Cammarata, Dan Mossing, Henk Tillman, et al.</span> 2023. <em>Language Models Can Explain Neurons in Language Models</em>. <a href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html">https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html</a>.
+</div>
+<div id="ref-bricken2023" class="csl-entry">
+<span class="nocase">Bricken, Trenton, Adly Templeton, Joshua Batson, Brian Chen, et al.</span> 2023. <span>«&nbsp;Towards Monosemanticity: Decomposing Language Models With Dictionary Learning&nbsp;»</span>. <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">https://transformer-circuits.pub/2023/monosemantic-features/index.html</a>.
+</div>
+<div id="ref-carlini2021" class="csl-entry">
+<span class="nocase">Carlini, Nicholas, Florian Tramèr, Eric Wallace, Matthew Jagielski, et al.</span> 2021. <span>«&nbsp;Extracting Training Data from Large Language Models&nbsp;»</span>. <em>USENIX Security Symposium</em>. <a href="https://arxiv.org/abs/2012.07805">https://arxiv.org/abs/2012.07805</a>.
+</div>
+<div id="ref-charakorn2025" class="csl-entry">
+Charakorn, Rujikorn, Edoardo Cetin, Yujin Tang, et Robert Tjarko Lange. 2025. <span>«&nbsp;<span>Text-to-LoRA</span>: Instant Transformer Adaption&nbsp;»</span>. <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2506.06105">https://arxiv.org/abs/2506.06105</a>.
+</div>
+<div id="ref-cunningham2023" class="csl-entry">
+Cunningham, Hoagy, Aidan Ewart, Logan Riggs, Robert Huben, et Lee Sharkey. 2023. <em>Sparse Autoencoders Find Highly Interpretable Features in Language Models</em>. <a href="https://arxiv.org/abs/2309.08600">https://arxiv.org/abs/2309.08600</a>.
+</div>
+<div id="ref-elhage2021" class="csl-entry">
+<span class="nocase">Elhage, Nelson, Neel Nanda, Catherine Olsson, Tom Henighan, et al.</span> 2021. <span>«&nbsp;A Mathematical Framework for Transformer Circuits&nbsp;»</span>. <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2021/framework/index.html">https://transformer-circuits.pub/2021/framework/index.html</a>.
+</div>
+<div id="ref-fraser2026" class="csl-entry">
+<span class="nocase">Fraser-Taliente, Kit, Subhash Kantamneni, Euan Ong, Dan Mossing, et al.</span> 2026. <span>«&nbsp;Natural Language Autoencoders Produce Unsupervised Explanations of <span>LLM</span> Activations&nbsp;»</span>. <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2026/nla/index.html">https://transformer-circuits.pub/2026/nla/index.html</a>.
+</div>
+<div id="ref-goel2025" class="csl-entry">
+Goel, Avichal, Yoon Kim, Nir Shavit, et Tony T. Wang. 2025. <em>Learning to Interpret Weight Differences in Language Models</em>. <a href="https://arxiv.org/abs/2510.05092">https://arxiv.org/abs/2510.05092</a>.
+</div>
+<div id="ref-hinton2015" class="csl-entry">
+Hinton, Geoffrey, Oriol Vinyals, et Jeff Dean. 2015. <em>Distilling the Knowledge in a Neural Network</em>. <a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
+</div>
+<div id="ref-ilharco2023" class="csl-entry">
+Ilharco, Gabriel, Marco Tulio Ribeiro, Mitchell Wortsman, et al. 2023. <span>«&nbsp;Editing Models with Task Arithmetic&nbsp;»</span>. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2212.04089">https://arxiv.org/abs/2212.04089</a>.
+</div>
+<div id="ref-kabra2026" class="csl-entry">
+Kabra, Krishna, Constantin Venhoff, et Christian Schroeder de Witt. 2026. <em>Weight Oracles: Reading Neural Network Weights with Language Models</em>. <a href="https://arxiv.org/abs/2610.07334">https://arxiv.org/abs/2610.07334</a>.
+</div>
+<div id="ref-karpathy2026" class="csl-entry">
+Karpathy, Andrej. 2026. <em>autoresearch</em>. <a href="https://github.com/karpathy/autoresearch">https://github.com/karpathy/autoresearch</a>.
+</div>
+<div id="ref-karvonen2025" class="csl-entry">
+<span class="nocase">Karvonen, Adam, James Chua, Clément Dumas, Kit Fraser-Taliente, et al.</span> 2025. <em>Activation Oracles: Training and Evaluating <span>LLMs</span> as General-Purpose Activation Explainers</em>. <a href="https://arxiv.org/abs/2512.15674">https://arxiv.org/abs/2512.15674</a>.
+</div>
+<div id="ref-khattab2024" class="csl-entry">
+<span class="nocase">Khattab, Omar, Arnav Singhvi, Paridhi Maheshwari, Zhiyuan Zhang, et al.</span> 2024. <span>«&nbsp;<span>DSPy</span>: Compiling Declarative Language Model Calls into Self-Improving Pipelines&nbsp;»</span>. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2310.03714">https://arxiv.org/abs/2310.03714</a>.
+</div>
+<div id="ref-lee2026" class="csl-entry">
+<span class="nocase">Lee, Yoonho, Roshen Nair, Qizheng Zhang, Kangwook Lee, Omar Khattab, et al.</span> 2026. <span>«&nbsp;Meta-Harness: End-to-End Optimization of Model Harnesses&nbsp;»</span>. <em>Conference on Language Modeling</em>. <a href="https://arxiv.org/abs/2603.28052">https://arxiv.org/abs/2603.28052</a>.
+</div>
+<div id="ref-liang2025" class="csl-entry">
+<span class="nocase">Liang, Zhiyuan, Zhangyang Wang, Kai Wang, et al.</span> 2025. <em>Drag-and-Drop <span>LLMs</span>: Zero-Shot Prompt-to-Weights</em>. <a href="https://arxiv.org/abs/2506.16406">https://arxiv.org/abs/2506.16406</a>.
+</div>
+<div id="ref-lim2024" class="csl-entry">
+Lim, Derek, Haggai Maron, Marc T. Law, Jonathan Lorraine, et James Lucas. 2024. <span>«&nbsp;Graph Metanetworks for Processing Diverse Neural Architectures&nbsp;»</span>. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2312.04501">https://arxiv.org/abs/2312.04501</a>.
+</div>
+<div id="ref-lindner2023" class="csl-entry">
+Lindner, David, János Kramár, Sebastian Farquhar, Matthew Rahtz, Thomas McGrath, et Vladimir Mikulik. 2023. <span>«&nbsp;Tracr: Compiled Transformers as a Laboratory for Interpretability&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2301.05062">https://arxiv.org/abs/2301.05062</a>.
+</div>
+<div id="ref-malladi2023" class="csl-entry">
+Malladi, Sadhika, Tianyu Gao, Eshaan Nichani, et al. 2023. <span>«&nbsp;Fine-Tuning Language Models with Just Forward Passes&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2305.17333">https://arxiv.org/abs/2305.17333</a>.
+</div>
+<div id="ref-matthews2025" class="csl-entry">
+Matthews, Michael, Michael Beukman, Chris Lu, et Jakob Foerster. 2025. <span>«&nbsp;Kinetix: Investigating the Training of General Agents through Open-Ended Physics-Based Control Tasks&nbsp;»</span>. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2410.23208">https://arxiv.org/abs/2410.23208</a>.
+</div>
+<div id="ref-meng2022" class="csl-entry">
+Meng, Kevin, David Bau, Alex Andonian, et Yonatan Belinkov. 2022. <span>«&nbsp;Locating and Editing Factual Associations in <span>GPT</span>&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2202.05262">https://arxiv.org/abs/2202.05262</a>.
+</div>
+<div id="ref-muralidharan2024" class="csl-entry">
+<span class="nocase">Muralidharan, Saurav, Sharath Turuvekere Sreenivas, Raviraj Joshi, et al.</span> 2024. <span>«&nbsp;Compact Language Models via Pruning and Knowledge Distillation&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2407.14679">https://arxiv.org/abs/2407.14679</a>.
+</div>
+<div id="ref-navon2023" class="csl-entry">
+Navon, Aviv, Aviv Shamsian, Idan Achituve, Ethan Fetaya, Gal Chechik, et Haggai Maron. 2023. <span>«&nbsp;Equivariant Architectures for Learning in Deep Weight Spaces&nbsp;»</span>. <em>International Conference on Machine Learning</em>. <a href="https://proceedings.mlr.press/v202/navon23a.html">https://proceedings.mlr.press/v202/navon23a.html</a>.
+</div>
+<div id="ref-olah2020" class="csl-entry">
+Olah, Chris, Nick Cammarata, Ludwig Schubert, Gabriel Goh, Michael Petrov, et Shan Carter. 2020. <span>«&nbsp;Zoom In: An Introduction to Circuits&nbsp;»</span>. <em>Distill</em>. <a href="https://distill.pub/2020/circuits/zoom-in">https://distill.pub/2020/circuits/zoom-in</a>.
+</div>
+<div id="ref-papailiopoulos2026" class="csl-entry">
+Papailiopoulos, Dimitris. 2026. <em><span>AdderBoard</span>: A Community Challenge for Tiny Arithmetic Transformers</em>. <a href="https://github.com/anadim/AdderBoard">https://github.com/anadim/AdderBoard</a>.
+</div>
+<div id="ref-peebles2022" class="csl-entry">
+Peebles, William, Ilija Radosavovic, Tim Brooks, Alexei A. Efros, et Jitendra Malik. 2022. <em>Learning to Learn with Generative Models of Neural Network Checkpoints</em>. <a href="https://arxiv.org/abs/2209.12892">https://arxiv.org/abs/2209.12892</a>.
+</div>
+<div id="ref-phang2023" class="csl-entry">
+Phang, Jason, Yi Mao, Pengcheng He, et Weizhu Chen. 2023. <span>«&nbsp;<span>HyperTuning</span>: Toward Adapting Large Language Models without Back-propagation&nbsp;»</span>. <em>International Conference on Machine Learning</em>. <a href="https://proceedings.mlr.press/v202/phang23a.html">https://proceedings.mlr.press/v202/phang23a.html</a>.
+</div>
+<div id="ref-pipis2025" class="csl-entry">
+<span class="nocase">Pipis, Charilaos, Shivam Garg, Vasilis Kontonis, Vaishnavi Shrivastava, et al.</span> 2025. <em>Wait, Wait, Wait... Why Do Reasoning Models Loop?</em> <a href="https://arxiv.org/abs/2512.12895">https://arxiv.org/abs/2512.12895</a>.
+</div>
+<div id="ref-qiu2026" class="csl-entry">
+<span class="nocase">Qiu, Xin, Yulu Gan, Conor F. Hayes, Qiyao Liang, et al.</span> 2026. <span>«&nbsp;Evolution Strategies at Scale: <span>LLM</span> Fine-Tuning Beyond Reinforcement Learning&nbsp;»</span>. <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2509.24372">https://arxiv.org/abs/2509.24372</a>.
+</div>
+<div id="ref-salimans2017" class="csl-entry">
+Salimans, Tim, Jonathan Ho, Xi Chen, Szymon Sidor, et Ilya Sutskever. 2017. <em>Evolution Strategies as a Scalable Alternative to Reinforcement Learning</em>. <a href="https://arxiv.org/abs/1703.03864">https://arxiv.org/abs/1703.03864</a>.
+</div>
+<div id="ref-takehi2026" class="csl-entry">
+Takehi, Rikiya, Jayden Teoh, Alex Zhang, et Omar Khattab. 2026. <em>Sparks of Weight-Space Programming: <span>LLMs</span> Can Natively Read &amp; Write Neural Network Weights</em>. Blog post, MIT CSAIL. <a href="https://rikiyat.github.io/blog/weight-space-programming/">https://rikiyat.github.io/blog/weight-space-programming/</a>.
+</div>
+<div id="ref-neurogen2025" class="csl-entry">
+<span class="nocase">Wang, Jiaqi, Yusen Zhang, Xi Li, et al.</span> 2025. <em><span>NeuroGen</span>: Neural Network Parameter Generation via Large Language Models</em>. <a href="https://arxiv.org/abs/2505.12470">https://arxiv.org/abs/2505.12470</a>.
+</div>
+<div id="ref-wang2024" class="csl-entry">
+<span class="nocase">Wang, Kai, Dongwen Tang, Boya Zeng, Yida Yin, Zhaopan Xu, et al.</span> 2024. <em>Neural Network Diffusion</em>. <a href="https://arxiv.org/abs/2402.13144">https://arxiv.org/abs/2402.13144</a>.
+</div>
+<div id="ref-yadav2023" class="csl-entry">
+Yadav, Prateek, Derek Tam, Leshem Choshen, Colin Raffel, et Mohit Bansal. 2023. <span>«&nbsp;<span>TIES</span>-Merging: Resolving Interference When Merging Models&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2306.01708">https://arxiv.org/abs/2306.01708</a>.
+</div>
+<div id="ref-young2019" class="csl-entry">
+Young, Kenny, et Tian Tian. 2019. <em><span>MinAtar</span>: An <span>Atari</span>-Inspired Testbed for Thorough and Reproducible Reinforcement Learning Experiments</em>. <a href="https://arxiv.org/abs/1903.03176">https://arxiv.org/abs/1903.03176</a>.
+</div>
+<div id="ref-yu2024" class="csl-entry">
+Yu, Le, Bowen Yu, Haiyang Yu, Fei Huang, et Yongbin Li. 2024. <span>«&nbsp;Language Models are Super Mario: Absorbing Abilities from Homologous Models as a Free Lunch&nbsp;»</span>. <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2311.03099">https://arxiv.org/abs/2311.03099</a>.
+</div>
+<div id="ref-zhou2023" class="csl-entry">
+Zhou, Allan, Kaien Yang, Kaylee Burns, et al. 2023. <span>«&nbsp;Permutation Equivariant Neural Functionals&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2302.14040">https://arxiv.org/abs/2302.14040</a>.
+</div>
+<div id="ref-zweiger2025" class="csl-entry">
+Zweiger, Adam, Jyothish Pari, Han Guo, Ekin Akyürek, Yoon Kim, et Pulkit Agrawal. 2025. <span>«&nbsp;Self-Adapting Language Models&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2506.10943">https://arxiv.org/abs/2506.10943</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Le maître qui écrit les poids},
+  date = {2026-11-02},
+  url = {https://scuenat.github.io/fr/posts/2026-11-02-the-teacher-who-writes-the-weights/},
+  langid = {fr}
+}
+</code></pre></div><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Le maître qui écrit les poids.”</span>
+November 2. <a href="https://scuenat.github.io/fr/posts/2026-11-02-the-teacher-who-writes-the-weights/">https://scuenat.github.io/fr/posts/2026-11-02-the-teacher-who-writes-the-weights/</a>.
+</div></div></section></div> ]]></description>
+  <category>analyse</category>
+  <category>ia</category>
+  <category>apprentissage-automatique</category>
+  <category>ia-locale</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-11-02-the-teacher-who-writes-the-weights/</guid>
+  <pubDate>Mon, 02 Nov 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig02.png" medium="image" type="image/png" height="60" width="144"/>
+</item>
+<item>
   <title>Pas parce que c’est utile</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
   <link>https://scuenat.github.io/fr/posts/2026-11-01-not-because-it-is-useful/</link>
@@ -5507,189 +6035,6 @@ La même question, transformée en expérience sur un générateur d’images IA
   <guid>https://scuenat.github.io/fr/posts/2026-10-15-a-universe-without-a-bottom/</guid>
   <pubDate>Thu, 15 Oct 2026 00:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-10-15-a-universe-without-a-bottom/figures/cover.png" medium="image" type="image/png" height="79" width="144"/>
-</item>
-<item>
-  <title>Fast AI</title>
-  <dc:creator>Stéphane Cuenat</dc:creator>
-  <link>https://scuenat.github.io/fr/posts/2026-10-11-fast-ai/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<div class="callout callout-style-simple callout-note">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>Essai, octobre 2026.</strong> Le code des figures est ici&nbsp;: <a href="../../../posts/2026-10-11-fast-ai/figs.py">figs.py</a>. Les figures sont en anglais. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../posts/2026-10-11-fast-ai/index.html">Version originale</a>.</em></p>
-</div>
-</div>
-</div>
-<p><strong>En bref.</strong> Les experts apprennent lentement, une fois, puis agissent vite, par habitude. La plupart des automatisations par IA font aujourd’hui l’inverse&nbsp;: un agent raisonne à partir de zéro à chaque exécution, ce qui accumule les erreurs, coûte du temps et oublie ce qu’il a appris. Fast AI utilise le grand modèle avant la boucle, comme un compilateur&nbsp;: il construit une fois une mémoire structurée, puis des modèles rapides et explicables font tourner le processus. La boucle agentique est gardée pour les exceptions, et ce qu’elle y apprend devient la prochaine habitude.</p>
-<div class="callout callout-style-simple callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Astuce</span>À retenir
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ul>
-<li>Une boucle agentique interprète la tâche à chaque exécution. Fast AI la compile.</li>
-<li>Utiliser le grand modèle pour construire la mémoire, un graphe de connaissances que les experts peuvent inspecter et corriger, pas pour la remplacer.</li>
-<li>Laisser l’apprentissage profond percevoir et les arbres décider.</li>
-<li>Garder la boucle pour les exceptions, et réinjecter ce qu’elle apprend dans la mémoire.</li>
-<li>Cela ne vaut la peine que pour un travail qui se répète ; pour les problèmes ponctuels, l’agent est le bon outil.</li>
-</ul>
-</div>
-</div>
-<section id="apprendre-est-lent-les-habitudes-sont-rapides" class="level2">
-<h2 class="anchored" data-anchor-id="apprendre-est-lent-les-habitudes-sont-rapides">1. Apprendre est lent, les habitudes sont rapides</h2>
-<p>Pensez à un comptable débutant pendant sa première semaine. Chaque facture est une petite enquête. Il la lit ligne par ligne, vérifie le contrat, cherche le fournisseur, demande à un collègue à quel budget elle appartient. Dix ans plus tard, la même personne jette un coup d’œil à une facture et sait. Elle n’est pas devenue un penseur plus rapide. Elle a transformé des années d’apprentissage lent en habitudes rapides.</p>
-<p>C’est ainsi que fonctionne l’expertise, chez les humains et chez la plupart des êtres vivants. Apprendre est lent et délibéré, et cela arrive rarement. Agir est rapide et presque automatique, et cela arrive en permanence. La partie lente construit une structure ; la partie rapide l’utilise. Quand quelque chose de vraiment nouveau apparaît, l’expert ralentit à nouveau, réfléchit, et si la leçon vaut la peine d’être gardée, elle devient une nouvelle habitude.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-11-fast-ai/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma. L’effort qu’un expert consacre à un cas courant diminue à mesure que l’apprentissage lent devient habitude rapide. Quand quelque chose de vraiment nouveau apparaît, l’expert ralentit à nouveau, et la leçon devient la prochaine habitude."><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig01.png" class="img-fluid figure-img" alt="Courbe de l'effort par facture en fonction des années d'expérience&nbsp;: élevé la première semaine, il tombe presque à zéro, avec trois pics brusques quand quelque chose de nouveau apparaît, jusqu'au simple coup d'œil dix ans plus tard."></a></p>
-<figcaption><strong>Figure 1.</strong> Schéma. L’effort qu’un expert consacre à un cas courant diminue à mesure que l’apprentissage lent devient habitude rapide. Quand quelque chose de vraiment nouveau apparaît, l’expert ralentit à nouveau, et la leçon devient la prochaine habitude.</figcaption>
-</figure>
-</div>
-<p>J’appelle cette idée <strong>Fast AI</strong>. Non pas rapide parce que le matériel est rapide, mais rapide parce que la réflexion a déjà été faite.</p>
-</section>
-<section id="lagent-qui-relit-le-manuel-chaque-matin" class="level2">
-<h2 class="anchored" data-anchor-id="lagent-qui-relit-le-manuel-chaque-matin">2. L’agent qui relit le manuel chaque matin</h2>
-<p>Regardons maintenant comment nous construisons aujourd’hui l’automatisation avec l’IA.</p>
-<p>L’agent typique reçoit une tâche, lit le contexte, réfléchit à ce qu’il faut faire, appelle un outil, lit le résultat, réfléchit encore, appelle un autre outil, et continue jusqu’à ce qu’il estime la tâche terminée. C’est impressionnant à regarder. C’est aussi un employé qui arrive chaque matin sans mémoire et relit tout le manuel avant de toucher à quoi que ce soit.</p>
-<p>Pour les processus d’automatisation, cela a quatre coûts.</p>
-<ul>
-<li><strong>Les erreurs s’accumulent.</strong> Si chaque étape est juste 95&nbsp;% du temps, une boucle de 20 étapes n’est entièrement juste qu’environ 36&nbsp;% du temps (0,95 à la puissance 20). Les agents ajoutent des vérifications et des nouvelles tentatives pour compenser, ce qui ajoute des étapes, du temps et des coûts.</li>
-<li><strong>C’est lent.</strong> Chaque étape est un appel à un grand modèle qui prend des secondes. Un processus qui tourne dix mille fois par jour paie ce prix dix mille fois, pour un raisonnement presque identique à celui de la veille.</li>
-<li><strong>Ce n’est pas reproductible.</strong> Donnez deux fois la même entrée, et l’agent peut prendre un chemin différent. Dans un travail réglementé, la question n’est pas seulement «&nbsp;la réponse est-elle juste ?&nbsp;», mais «&nbsp;donnerait-il la même réponse demain, et pouvez-vous me montrer pourquoi ?&nbsp;». Une boucle de raisonnement en texte libre est difficile à auditer et plus difficile encore à certifier.</li>
-<li><strong>Rien ne s’accumule.</strong> Ce que l’agent a compris lundi a disparu mardi, à moins que quelqu’un ne construise une mémoire autour. L’intelligence est dépensée, pas investie.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-11-fast-ai/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Les erreurs s’accumulent. La probabilité que chaque étape d’une boucle soit juste chute vite avec le nombre d’étapes. À 95&nbsp;% par étape, une boucle de 20 étapes n’est entièrement juste que 36&nbsp;% du temps."><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig02.png" class="img-fluid figure-img" alt="Courbes de la probabilité que chaque étape soit juste en fonction du nombre d'étapes, pour 99&nbsp;%, 95&nbsp;% et 90&nbsp;% par étape. La courbe à 95&nbsp;% est marquée à 20 étapes&nbsp;: 36&nbsp;% entièrement juste."></a></p>
-<figcaption><strong>Figure 2.</strong> Les erreurs s’accumulent. La probabilité que chaque étape d’une boucle soit juste chute vite avec le nombre d’étapes. À 95&nbsp;% par étape, une boucle de 20 étapes n’est entièrement juste que 36&nbsp;% du temps.</figcaption>
-</figure>
-</div>
-<p>Rien de tout cela ne veut dire que les agents sont mauvais. Cela veut dire qu’ils sont le mauvais choix par défaut pour un travail qui se répète.</p>
-</section>
-<section id="compiler-pas-interpréter" class="level2">
-<h2 class="anchored" data-anchor-id="compiler-pas-interpréter">3. Compiler, pas interpréter</h2>
-<p>Les programmeurs connaissent bien cette distinction. Un interpréteur lit et exécute un programme ligne par ligne, à chaque exécution. Un compilateur lit le programme une fois, travaille dur pour le comprendre et l’optimiser, et produit quelque chose qui tourne vite et de façon identique, encore et encore.</p>
-<p>Une boucle agentique interprète la tâche à chaque exécution. Fast AI la compile.</p>
-<p>Dans cette vision, le meilleur rôle du modèle de langage dans l’automatisation n’est pas d’être dans la boucle. Il est de travailler avant la boucle, comme compilateur. Il fait une fois le travail lent et intelligent&nbsp;: lire, extraire, structurer, relier. Puis il s’efface, et quelque chose de rapide et simple fait tourner le processus.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-11-fast-ai/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Interpréter ou compiler. Une boucle agentique place le grand modèle dans chaque exécution. Fast AI l’utilise une fois, avant la boucle, pour construire une mémoire et des modèles rapides ; les exécutions qui suivent sont rapides, identiques et explicables."><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig03.png" class="img-fluid figure-img" alt="Deux schémas. Interpréter&nbsp;: quatre exécutions qui répètent chacune lire, raisonner, appeler. Compiler&nbsp;: un grand modèle construit une fois une mémoire et des modèles rapides, suivis de cinq petites exécutions rapides et identiques."></a></p>
-<figcaption><strong>Figure 3.</strong> Interpréter ou compiler. Une boucle agentique place le grand modèle dans chaque exécution. Fast AI l’utilise une fois, avant la boucle, pour construire une mémoire et des modèles rapides ; les exécutions qui suivent sont rapides, identiques et explicables.</figcaption>
-</figure>
-</div>
-</section>
-<section id="la-partie-lente-une-mémoire-structurée" class="level2">
-<h2 class="anchored" data-anchor-id="la-partie-lente-une-mémoire-structurée">4. La partie lente&nbsp;: une mémoire structurée</h2>
-<p>En quoi le modèle de langage compile-t-il le domaine ? Ma réponse est un graphe de connaissances&nbsp;: une mémoire structurée des choses d’un domaine et de leurs relations.</p>
-<p>Les modèles de langage sont très bons pour le travail lent que cela demande. Donnez-leur des contrats, des règlements, des cas passés, des e-mails et les notes que laissent les experts, et ils peuvent extraire les entités et les relations cachées dans tout ce texte. Pour les factures fournisseurs, cela veut dire les fournisseurs, les contrats, les centres de coûts, les approbateurs, les produits et les liens entre eux&nbsp;: les factures de ce fournisseur vont sur ce budget, les montants au-dessus de cette limite demandent une seconde approbation, ce type de ligne a été contesté trois fois l’an dernier.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-11-fast-ai/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Un petit morceau de graphe de connaissances pour les factures fournisseurs. Chaque fait est un nœud ou un lien qu’une personne peut inspecter, corriger ou supprimer. Les noms et les valeurs sont fictifs."><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig04.png" class="img-fluid figure-img" alt="Graphe de connaissances fait de boîtes et de liens nommés&nbsp;: fournisseur Acme AG, contrat 2025-114, centre de coûts Maintenance, une ligne «&nbsp;pièces de rechange&nbsp;», 3 litiges l'an dernier, une règle au-dessus de CHF 10 000 et l'approbateur Head of Ops."></a></p>
-<figcaption><strong>Figure 4.</strong> Un petit morceau de graphe de connaissances pour les factures fournisseurs. Chaque fait est un nœud ou un lien qu’une personne peut inspecter, corriger ou supprimer. Les noms et les valeurs sont fictifs.</figcaption>
-</figure>
-</div>
-<p>Trois choses rendent le graphe plus précieux qu’une pile de documents ou qu’un long prompt.</p>
-<ul>
-<li><strong>Il est explicite.</strong> Chaque fait est un nœud et un lien qu’une personne peut inspecter, corriger ou supprimer. Les experts peuvent le valider, et ils devraient le faire, car l’extraction fait des erreurs.</li>
-<li><strong>Il est stable.</strong> Il ne change pas d’une exécution à l’autre, sauf si quelqu’un le modifie. La même question obtient les mêmes faits.</li>
-<li><strong>Il s’accumule.</strong> Chaque nouveau cas, chaque correction et chaque exception peuvent y être ajoutés. L’intelligence est investie, pas dépensée.</li>
-</ul>
-<p>C’est l’apprentissage lent de l’expert, mis par écrit.</p>
-</section>
-<section id="la-partie-rapide-arbres-et-réseaux-ensemble" class="level2">
-<h2 class="anchored" data-anchor-id="la-partie-rapide-arbres-et-réseaux-ensemble">5. La partie rapide&nbsp;: arbres et réseaux ensemble</h2>
-<p>Une fois la mémoire en place, la décision elle-même a rarement besoin d’un grand modèle de langage. Elle a besoin du bon modèle rapide, et Fast AI prend ici un second sens&nbsp;: c’est un hybride, pas de l’apprentissage profond partout.</p>
-<p>L’apprentissage profond est inégalé pour la perception&nbsp;: transformer des entrées brutes et désordonnées, comme des images, des documents scannés, du son ou du texte libre, en caractéristiques qui ont du sens. Les arbres de décision, et surtout les arbres boostés par gradient, sont souvent meilleurs pour décider&nbsp;: prendre un tableau de caractéristiques et produire un choix. Sur des données structurées en tableaux, qui décrivent la plupart des décisions d’entreprise, des ensembles d’arbres bien réglés égalent ou battent encore les réseaux profonds dans des comparaisons publiques soignées, tout en étant plus rapides, en demandant moins de données et en étant bien plus faciles à expliquer.</p>
-<p>Le partage naturel est donc&nbsp;:</p>
-<ul>
-<li><strong>Les réseaux profonds perçoivent.</strong> Ils lisent la facture scannée, la photo ou le texte d’une demande, et les transforment en caractéristiques.</li>
-<li><strong>Le graphe de connaissances se souvient.</strong> Il fournit ce que l’on sait de ces caractéristiques&nbsp;: cas passés, règles, contraintes.</li>
-<li><strong>Les arbres décident.</strong> Ils combinent les deux en une décision en quelques millisecondes, et peuvent montrer quelles caractéristiques l’ont déterminée.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-11-fast-ai/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. L’hybride. Un réseau profond transforme l’entrée brute en caractéristiques, le graphe de connaissances ajoute ce que l’on sait d’elles, et un ensemble d’arbres prend la décision et en montre les raisons."><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig05.png" class="img-fluid figure-img" alt="Flux de l'entrée brute vers le réseau profond (perçoit), puis les arbres (décident), puis la décision avec ses raisons, avec un graphe de connaissances qui fournit faits, historique et règles aux arbres."></a></p>
-<figcaption><strong>Figure 5.</strong> L’hybride. Un réseau profond transforme l’entrée brute en caractéristiques, le graphe de connaissances ajoute ce que l’on sait d’elles, et un ensemble d’arbres prend la décision et en montre les raisons.</figcaption>
-</figure>
-</div>
-<p>Chaque partie fait ce qu’elle fait le mieux. Aucune n’a besoin de réfléchir à partir de zéro pour chaque cas.</p>
-</section>
-<section id="la-boucle-va-là-où-elle-a-sa-place" class="level2">
-<h2 class="anchored" data-anchor-id="la-boucle-va-là-où-elle-a-sa-place">6. La boucle va là où elle a sa place</h2>
-<p>Fast AI ne supprime pas la délibération. Il la déplace.</p>
-<p>Le chemin rapide traite les cas courants. Mais chaque modèle rapide devrait savoir quand il n’est pas sûr&nbsp;: un score de confiance faible, un cas qui ne ressemble à rien dans sa mémoire, une combinaison que le graphe n’a jamais vue. Ces cas, et seulement ceux-là, partent vers le chemin lent&nbsp;: un modèle de langage qui raisonne sur le problème, un agent qui explore les options, ou une personne.</p>
-<p>Et quand le chemin lent résout un nouveau cas, la réponse ne disparaît pas. Elle retourne dans le graphe de connaissances, et si elle se répète, les modèles rapides sont réentraînés avec elle. La délibération devient habitude. C’est à nouveau l’expert, qui ne ralentit que pour le vraiment nouveau, et qui en tire une leçon.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-11-fast-ai/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Chemin rapide et chemin lent. Les cas familiers sont décidés en quelques millisecondes. Les autres vont à un modèle de langage, à un agent ou à une personne ; leurs réponses retournent dans le graphe de connaissances, et celles qui se répètent servent à réentraîner les modèles rapides."><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig06.png" class="img-fluid figure-img" alt="Flux d'un nouveau cas vers les modèles rapides. S'ils sont confiants, le chemin rapide le traite en quelques millisecondes. Sinon, le chemin lent (modèle de langage, agent ou personne) répond, le graphe de connaissances garde la réponse, et les cas répétés réentraînent les modèles rapides."></a></p>
-<figcaption><strong>Figure 6.</strong> Chemin rapide et chemin lent. Les cas familiers sont décidés en quelques millisecondes. Les autres vont à un modèle de langage, à un agent ou à une personne ; leurs réponses retournent dans le graphe de connaissances, et celles qui se répètent servent à réentraîner les modèles rapides.</figcaption>
-</figure>
-</div>
-<p>La boucle agentique ne disparaît donc pas. Elle cesse de tourner sur chaque cas et se met à tourner sur les exceptions, là où son intelligence rapporte.</p>
-</section>
-<section id="un-exemple-lacheminement-des-factures-fournisseurs" class="level2">
-<h2 class="anchored" data-anchor-id="un-exemple-lacheminement-des-factures-fournisseurs">7. Un exemple&nbsp;: l’acheminement des factures fournisseurs</h2>
-<p>Prenons une tâche courante dans tout service financier&nbsp;: décider quoi faire de chaque facture qui arrive. L’approuver, l’envoyer à la bonne personne, ou la signaler.</p>
-<p><strong>La manière agentique.</strong> Un agent reçoit la facture, appelle un outil pour la lire, raisonne sur le fournisseur, cherche dans les contrats, raisonne sur le montant, consulte les règles d’approbation, propose un circuit, le vérifie et l’ajuste. Cela peut prendre une demi-minute, coûter une somme non négligeable, et donner un circuit légèrement différent la fois suivante. Expliquer pourquoi il a choisi cet approbateur demande de lire des pages de son raisonnement.</p>
-<p><strong>La manière Fast AI.</strong> Des mois plus tôt, un modèle de langage a lu les contrats, les règlements et les décisions passées, et a construit un graphe des fournisseurs, des budgets, des limites et des approbateurs. L’équipe financière l’a relu. Maintenant, pour chaque nouvelle facture, un réseau lit le document, le graphe fournit le contrat et l’historique pertinents, et un ensemble d’arbres choisit un circuit en quelques millisecondes. Il explique son choix&nbsp;: fournisseur, montant par rapport au contrat, centre de coûts, litiges passés. Quand une facture ne ressemble à rien de connu, il le dit et la passe à une personne ou à un agent. Leur réponse enrichit le graphe.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-11-fast-ai/figures/fig07.png" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="Figure 7. Acheminer les factures fournisseurs, de deux manières. L’agent raisonne sur chaque facture à partir de zéro. Fast AI fait la lecture une fois, des mois plus tôt, puis achemine chaque facture en quelques millisecondes avec ses raisons, en ne passant que les cas inhabituels à une personne ou à un agent."><img src="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig07.png" class="img-fluid figure-img" alt="Deux chaînes. La manière agentique fait sept étapes de raisonnement pour chaque facture, environ une demi-minute chacune. La manière Fast AI construit une fois un graphe relu, puis un réseau et des arbres acheminent chaque facture en quelques millisecondes, avec leurs raisons."></a></p>
-<figcaption><strong>Figure 7.</strong> Acheminer les factures fournisseurs, de deux manières. L’agent raisonne sur chaque facture à partir de zéro. Fast AI fait la lecture une fois, des mois plus tôt, puis achemine chaque facture en quelques millisecondes avec ses raisons, en ne passant que les cas inhabituels à une personne ou à un agent.</figcaption>
-</figure>
-</div>
-<p>Les deux utilisent l’IA. Une seule devient plus rapide et meilleure chaque mois.</p>
-</section>
-<section id="ce-que-coûte-fast-ai" class="level2">
-<h2 class="anchored" data-anchor-id="ce-que-coûte-fast-ai">8. Ce que coûte Fast AI</h2>
-<p>Cette approche a de vrais coûts, et il vaut la peine de les dire.</p>
-<ul>
-<li><strong>Le graphe demande du travail.</strong> Il faut repérer les erreurs d’extraction, et quelqu’un doit être responsable de la mémoire. Un fait faux dans le graphe est répété vite et avec assurance, ce qui est pire qu’une erreur lente.</li>
-<li><strong>Il faut de la répétition.</strong> Pour des tâches vraiment ponctuelles ou ouvertes, compiler n’a pas de sens. Il n’y a rien à réutiliser, et l’agent est le bon outil.</li>
-<li><strong>Le monde dérive.</strong> Nouveaux fournisseurs, nouvelles règles, nouveaux produits&nbsp;: un système rapide peut continuer à appliquer avec assurance de vieilles habitudes. Il lui faut un moniteur qui remarque quand ses décisions ne collent plus, comme <a href="../../../fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">mon dernier essai</a> le défendait pour les tableaux de bord.</li>
-<li><strong>Il faut de la conception.</strong> Un agent se met en place en un après-midi. Un hybride de graphe, de réseaux et d’arbres demande de l’ingénierie. Ce coût initial est précisément l’apprentissage lent, et il n’est rentable que si le processus se répète assez.</li>
-</ul>
-</section>
-<section id="conclusion" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion">9. Conclusion</h2>
-<p>Nous sommes tentés de placer le modèle le plus puissant au milieu de chaque processus, à réfléchir à chaque exécution. Pour les problèmes ouverts, c’est juste. Pour l’automatisation, c’est souvent comme demander à un expert chevronné de relire tout le manuel avant chaque tâche de routine.</p>
-<p>L’alternative est plus ancienne que l’IA. Apprendre lentement, une fois, et mettre par écrit ce que l’on a appris. Agir vite, avec des outils simples que l’on peut expliquer. Ne ralentir que quand quelque chose est vraiment nouveau, et transformer ce que l’on y apprend en prochaine habitude.</p>
-<p>Utiliser le grand modèle pour construire la mémoire, pas pour la remplacer. Laisser l’apprentissage profond percevoir et les arbres décider. Garder la boucle pour les exceptions. C’est cela, Fast AI&nbsp;: pas moins d’intelligence, mais une intelligence dépensée une fois et investie, au lieu d’être dépensée à nouveau à chaque exécution.</p>
-<div class="discuss">
-<p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
-<p><strong>Suivre les nouveaux textes.</strong> Abonnez-vous à la <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> sur LinkedIn (en anglais) ou au <a href="../../../fr/index.xml">flux RSS</a>. La page <a href="../../../fr/archive.html">Tous les textes</a> liste les derniers changements.</p>
-</div>
-<div class="read-next">
-<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">Un écosystème, pas un oracle</a><br>
-La même idée pour l’IA locale&nbsp;: de nombreux petits spécialistes, une mémoire partagée et une façon de continuer à apprendre.</p>
-</div>
-<div class="small">
-<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
-</div>
-
-
-</section>
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section></div> ]]></description>
-  <category>essai</category>
-  <category>ia</category>
-  <category>automatisation</category>
-  <guid>https://scuenat.github.io/fr/posts/2026-10-11-fast-ai/</guid>
-  <pubDate>Sun, 11 Oct 2026 14:00:00 GMT</pubDate>
-  <media:content url="https://scuenat.github.io/posts/2026-10-11-fast-ai/figures/fig03.png" medium="image" type="image/png" height="85" width="144"/>
 </item>
 </channel>
 </rss>
