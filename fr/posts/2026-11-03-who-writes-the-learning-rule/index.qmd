@@ -1,0 +1,161 @@
+---
+title: "Qui écrit la règle d'apprentissage ?"
+subtitle: "Plasticité locale, règles d'apprentissage apprises et circuits qui s'auto-assemblent, de 2020 à 2026 : ce qu'un réseau peut construire lui-même"
+description: "Panorama de l'apprentissage par règles locales, 2020-2026 : approcher la rétropropagation, s'en passer, apprendre la règle, laisser le circuit s'assembler."
+date: 2026-11-03
+citation: true
+bibliography: ../../../posts/2026-11-03-who-writes-the-learning-rule/references.bib
+toc-depth: 2
+categories: [panorama, ia, apprentissage-automatique, neurosciences]
+kind: overview   # card marker: essay | analysis | note | position | overview
+topics: [mathematics]   # home-page theme tiles (index.qmd)
+image: ../../../posts/2026-11-03-who-writes-the-learning-rule/figures/fig01.png
+---
+
+::: {.callout-note appearance="simple"}
+**Panorama, novembre 2026.** Une carte des recherches de 2020 à 2026 sur une question : un réseau de neurones peut-il bien apprendre avec des règles uniquement locales, et peut-il construire lui-même la machinerie qui fait l'apprentissage, au lieu qu'on la conçoive pour lui ? Le point de départ est un article paru dans *PNAS* en octobre 2026 [@liao2026], que je place parmi une vingtaine de travaux librement accessibles de la même période. J'ai retenu des travaux souvent cités, en accès libre ou avec une prépublication gratuite, et représentatifs d'une ligne de recherche distincte ; la liste n'est pas exhaustive. Je les ai lus à travers leurs résumés, leurs prépublications et les présentations des éditeurs ou des instituts, pas toujours en entier : je m'en tiens donc à ce qu'ils affirment et ne donne de chiffres que lorsqu'une source en donne. La figure 1 est un schéma de moi, dessiné avec [figs.py](../../../posts/2026-11-03-who-writes-the-learning-rule/figs.py). Les figures sont en anglais. *Traduit automatiquement de l'anglais ; quelques erreurs sont possibles. [Version originale](../../../posts/2026-11-03-who-writes-the-learning-rule/index.qmd).*
+:::
+
+**En bref.** Dans un réseau de neurones classique, des personnes conçoivent tout ce qui rend l'apprentissage possible : le câblage, la règle qui modifie chaque connexion, et la passe arrière qui dit à chaque connexion comment changer. Le cerveau n'a pas de concepteur de ce genre, et c'est pourquoi les neuroscientifiques doutent depuis longtemps qu'il pratique la rétropropagation. Depuis 2020, les travaux ont relâché cette conception étape par étape. Une première ligne garde des règles locales mais laisse des connexions de retour apprendre ou se stabiliser jusqu'à porter des signaux d'erreur utiles, et s'approche de la rétropropagation sur de vrais bancs d'essai. Une deuxième supprime complètement la passe arrière. Une troisième utilise une boucle externe pour *apprendre* la règle de plasticité elle-même. Une quatrième, la plus récente, laisse la structure émerger : des réseaux qui font pousser leur propre câblage et, dans l'article de *PNAS*, des circuits qui s'assemblent à partir de connexions aléatoires sous des règles locales simples, puis se comportent comme une descente de gradient. Ma lecture : le résultat est réel et intéressant, mais il déplace la conception plutôt qu'il ne la supprime. Quelqu'un choisit encore les règles locales ; ce qui émerge, c'est le circuit qui les transforme en apprentissage. C'est déjà beaucoup. Cela suggère que l'apprentissage est peut-être moins un algorithme à installer qu'une propriété vers laquelle tombent des dynamiques locales bien choisies.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## À retenir
+
+- La rétropropagation exige que chaque connexion sache quelque chose qu'elle ne peut pas voir localement : comment l'erreur en sortie dépend d'elle. C'est le problème de l'*attribution du mérite* (*credit assignment*).
+- Les approximations locales (retour appris, codage prédictif, propagation à l'équilibre, plasticité dépendante des bouffées, e-prop) s'approchent de la rétropropagation sur des bancs d'essai comme ImageNet ou CIFAR-10, avec des signaux uniquement locaux.
+- Certaines méthodes suppriment entièrement la passe arrière (Forward-Forward, SoftHebb). Elles sont plus simples et plus locales, et restent en retrait sur les tâches difficiles.
+- Le méta-apprentissage peut *découvrir* des règles de plasticité, et retrouve parfois des règles connues comme celle d'Oja.
+- L'étape la plus récente laisse le circuit d'apprentissage s'assembler lui-même à partir d'une connectivité aléatoire [@liao2026]. Les règles locales restent conçues ; la machinerie qui les transforme en apprentissage de type gradient ne l'est pas.
+- Rien de cela ne montre que le cerveau procède ainsi. Cela montre quelles dynamiques locales *suffisent*.
+:::
+
+## 1. La question
+
+Un réseau profond apprend en modifiant des millions de forces de connexion, un peu à la fois. Pour savoir dans quel sens modifier une connexion, il doit savoir comment elle a influencé l'erreur en sortie, plusieurs couches plus loin. La rétropropagation le calcule exactement : elle renvoie l'erreur vers l'arrière à travers le réseau, en utilisant les *mêmes* poids que la passe avant, transposés. C'est le problème de l'*attribution du mérite*, et la rétropropagation en est la réponse de référence.
+
+Pour un cerveau, cette réponse semble fausse d'au moins trois façons. Une synapse devrait connaître la force d'une autre synapse, sur le chemin de retour, et la maintenir exactement égale à la sienne : c'est le problème du *transport des poids*. La passe arrière exigerait une phase séparée, minutée avec précision. Et les dérivées qu'elle transporte ne sont pas, à l'évidence, quelque chose que calcule un neurone. Pendant des décennies, on y a vu le signe que le cerveau fait autre chose.
+
+En 2020, Lillicrap, Santoro, Marris, Akerman et Hinton ont rouvert la question dans une revue qui a cadré cette période de recherche [@lillicrap2020]. Leur argument : le cerveau pourrait utiliser des connexions de retour pour induire une activité neuronale dont les *différences locales* codent des signaux d'erreur proches de ceux de la rétropropagation. Le cerveau n'exécuterait pas la rétropropagation ; il en approcherait l'effet avec des signaux que chaque synapse peut voir.
+
+La question que suit ce panorama va un pas plus loin. Même si des signaux locaux peuvent approcher le gradient, quelqu'un doit encore concevoir le circuit qui les produit. Qui le fait dans un cerveau ? Il n'y a pas d'ingénieur. La question de fond est donc de savoir si la machinerie d'apprentissage elle-même peut naître d'interactions locales : pousser, s'assembler, ou être trouvée par un processus plus lent comme l'évolution.
+
+## 2. Une carte
+
+La figure 1 classe les travaux selon une question : qu'est-ce que le concepteur fixe encore ? Je distingue trois choses qu'un concepteur peut fixer : le *câblage* (quels neurones sont reliés), la *règle de plasticité* (comment une connexion change, étant donné ce qu'elle voit), et le *circuit d'apprentissage* (ce qui produit les signaux d'erreur indiquant aux connexions comment changer ; dans la rétropropagation, la passe arrière exacte).
+
+![**Figure 1.** Cinq lignes de travaux sur l'apprentissage par règles locales, de 2020 à 2026, classées selon ce que le concepteur fixe encore : le câblage, la règle de plasticité, et le circuit d'apprentissage qui porte les signaux d'erreur. Vers le bas, une part croissante est apprise ou émerge. Dans la dernière ligne, le câblage émerge dans les réseaux qui poussent, et le circuit d'apprentissage émerge dans l'apprentissage auto-assemblé ; les règles locales restent conçues. Le placement est ma propre lecture des travaux cités. Schéma, de moi.](../../../posts/2026-11-03-who-writes-the-learning-rule/figures/fig01.svg){fig-alt="Cinq lignes, de haut en bas, chacune avec une carte, trois points et une liste de travaux. « Backpropagation », le point de référence : « Wiring », « Plasticity rule » et « Learning circuit » sont tous conçus à la main. « Local approximations », règles locales et retour qui apprend ou se stabilise : câblage et règle conçus, circuit d'apprentissage appris ; travaux cités : Kolen-Pollack et miroirs de poids 2019, e-prop 2020, codage prédictif 2020, plasticité par bouffées 2021, propagation à l'équilibre 2021, configuration prospective 2024. « No backward pass », chaque couche apprend seule : câblage et règle conçus, pas de circuit d'apprentissage nécessaire ; Forward-Forward 2022, SoftHebb 2023. « Learned rules », une boucle externe trouve la règle de plasticité : câblage conçu, règle et circuit appris ; Confavreux et collègues 2020, Najarro et Risi 2020, Lindsey et Litwin-Kumar 2020, Jordan et collègues 2021, Kirsch et Schmidhuber 2021, Shervani-Tabar et Rosenbaum 2023. « Self-assembly », le câblage ou le circuit d'apprentissage émerge : câblage émergent, règle conçue, circuit d'apprentissage émergent ; automates cellulaires neuronaux 2020, programmes de développement 2023, circuits hétérosynaptiques 2025, apprentissage auto-assemblé 2026."}
+
+Le tableau 1 reprend les mêmes travaux, avec ce que chacun affirme, dans les termes des auteurs.
+
+**Tableau 1.** Travaux représentatifs, 2019 à 2026. Les résultats sont ceux rapportés par les auteurs ; ils portent sur des tâches et des réglages différents et ne doivent pas être comparés d'une ligne à l'autre.
+
+| Ligne de travaux | Ce qui est local | Résultat rapporté |
+|---|---|---|
+| **Retour appris** : Kolen-Pollack, miroirs de poids [@akrout2019] | Les poids de retour apprennent à suivre les poids avant | Dépassent l'alignement par retour sur ImageNet et égalent presque la rétropropagation |
+| **Codage prédictif** : Millidge et coll. [@millidge2020] | Erreurs de prédiction, mises à jour surtout hebbiennes | Converge vers les gradients exacts de la rétropropagation sur des graphes de calcul quelconques |
+| **Propagation à l'équilibre** : Laborieux et coll. [@laborieux2021] | Contraste entre deux états stabilisés | 11,7 % d'erreur de test sur CIFAR-10, proche de la BPTT |
+| **Plasticité par bouffées** : Payeur et coll. [@payeur2021] | Bouffées contre potentiels isolés | Les couches hautes coordonnent l'apprentissage des couches basses |
+| **Apprentissage impulsionnel en ligne** : e-prop [@bellec2020] | Traces d'éligibilité et signal d'apprentissage | Approche la BPTT pour les réseaux impulsionnels récurrents |
+| **L'activité d'abord, les poids ensuite** : Configuration prospective [@song2024] | Activité inférée, puis mises à jour locales | Plus efficace que la rétropropagation dans plusieurs situations biologiquement pertinentes |
+| **Pas de passe arrière** : Forward-Forward [@hinton2022] | Un objectif de « goodness » par couche | Fonctionne sur de petits problèmes ; présenté comme préliminaire |
+| **Aucun retour** : SoftHebb [@journe2023] | Hebbien, winner-take-all souple | 99,4 % sur MNIST, 80,3 % sur CIFAR-10, 27,3 % sur ImageNet |
+| **Règles apprises** : Confavreux et coll. [@confavreux2020] ; Jordan et coll. [@jordan2021] | Règles trouvées par une boucle externe | Retrouvent la règle d'Oja ; trouvent des règles lisibles pour réseaux impulsionnels |
+| **Apprentissage appris** : VS-ML [@kirsch2021] | De petits LSTM partagés à la place des poids | Des algorithmes méta-appris qui peuvent améliorer la rétropropagation dans leurs tests |
+| **Croissance** : Programmes de développement [@najarro2023] | Les neurones ne communiquent que localement | Les réseaux poussent au lieu d'être conçus |
+| **Auto-assemblage** : Apprentissage auto-assemblé [@liao2026] | Plasticité hétérosynaptique | Les circuits approchent la SGD ; performances comparables à la rétropropagation |
+
+## 3. Approcher la rétropropagation avec des signaux locaux
+
+Le plus gros des travaux garde l'objectif de la rétropropagation, un gradient, et se demande comment l'obtenir avec des signaux qu'une synapse peut voir.
+
+**Apprendre le retour.** L'astuce la plus simple, l'*alignement par retour* (*feedback alignment*), renvoie les erreurs par des poids aléatoires fixes ; les poids avant finissent par s'aligner sur eux. Cela fonctionne pour des réseaux peu profonds et peine sur les tâches difficiles. Juste avant cette période, Akrout et ses collègues ont montré deux façons pour le chemin de retour d'*apprendre* de bons poids sans les copier : un circuit « miroir de poids », et une variante d'un ancien algorithme de Kolen et Pollack. Sur ImageNet, les deux dépassaient l'alignement par retour et égalaient presque la rétropropagation [@akrout2019]. C'est le premier indice du thème de ce panorama : une partie de la machinerie d'apprentissage n'a pas besoin d'être conçue si elle peut s'apprendre elle-même.
+
+**Laisser le réseau se stabiliser.** Le codage prédictif traite chaque couche comme prédisant celle du dessous et fait circuler les erreurs de prédiction. Millidge, Tschantz et Buckley ont montré qu'avec des mises à jour uniquement locales et surtout hebbiennes, il converge vers les gradients exacts de la rétropropagation, non seulement dans les réseaux en couches mais sur des graphes de calcul quelconques, CNN, RNN et LSTM compris, et qu'il fait jeu égal avec la rétropropagation sur leurs bancs d'essai [@millidge2020]. La propagation à l'équilibre suit une idée voisine : laisser le réseau se stabiliser, pousser légèrement la sortie vers la cible, le laisser se stabiliser de nouveau, et mettre à jour chaque connexion à partir de la différence entre les deux états. Elle peinait à passer à l'échelle ; Laborieux et ses collègues ont attribué le problème à un biais dans l'estimation du gradient, l'ont en grande partie supprimé avec des poussées dans les deux sens, et ont atteint 11,7 % d'erreur de test sur CIFAR-10 avec un réseau convolutif profond, près de la rétropropagation dans le temps [@laborieux2021].
+
+**Utiliser ce que font vraiment les neurones.** Payeur et ses collègues sont partis de la biologie. Si la plasticité dépend de *bouffées* de potentiels d'action à haute fréquence, de sorte qu'une bouffée renforce une synapse et qu'un potentiel isolé l'affaiblit, alors les neurones plus haut dans une hiérarchie peuvent coordonner l'apprentissage des neurones plus bas ; cela fonctionne, rapportent-ils, avec une dynamique synaptique à court terme, des dendrites apicales actives et de la plasticité dans les voies de retour [@payeur2021]. Pour les réseaux impulsionnels récurrents, Bellec et ses collègues ont proposé e-prop : chaque synapse garde une *trace d'éligibilité* locale et la combine avec un signal d'apprentissage venu d'en haut, ce qui évite de stocker et de rejouer l'histoire du réseau. La méthode approche les performances de la rétropropagation dans le temps et convient aux puces neuromorphiques à faible consommation [@bellec2020].
+
+**Changer l'ordre.** Song, Bogacz et leurs collègues sont allés au-delà de l'approximation. Dans la *configuration prospective*, le réseau infère d'abord l'activité qu'il *devrait* avoir après l'apprentissage, et ne modifie qu'ensuite les poids pour la consolider ; la rétropropagation fait l'inverse. Ils rapportent que cette méthode apprend plus efficacement que la rétropropagation dans des situations que rencontrent les animaux, comme les structures profondes et l'apprentissage en ligne, et qu'elle explique des données comportementales et neuronales que la rétropropagation n'explique pas [@song2024]. C'est le premier signe que la manière du cerveau pourrait être *meilleure* pour sa tâche, et non une copie affaiblie.
+
+Ce que montre cette ligne : le gradient n'a pas besoin d'une passe arrière conçue, pourvu que des connexions de retour existent et que leur dynamique soit la bonne. Ce qu'elle suppose encore : que quelqu'un a conçu cette dynamique.
+
+## 4. Apprendre sans passe arrière
+
+Une ligne plus restreinte se demande si le gradient est seulement nécessaire.
+
+L'algorithme Forward-Forward de Hinton remplace les passes avant et arrière par deux passes avant, l'une sur des données réelles et l'autre sur des données « négatives », et donne à chaque couche son propre objectif : une « goodness » élevée pour les données réelles, faible pour les négatives [@hinton2022]. Hinton l'a présenté comme préliminaire, démontré sur quelques petits problèmes ; une promesse pratique est que les passes négatives pourraient se faire hors ligne, de sorte qu'apprendre sur les données réelles ne demande pas de stocker les activités.
+
+SoftHebb va plus loin : aucun retour, aucune cible, aucun signal d'erreur d'aucune sorte, seulement un apprentissage hebbien dans des couches *winner-take-all* souples, avec un classifieur linéaire au-dessus. Avec jusqu'à cinq couches cachées, Journé et ses collègues rapportent 99,4 % sur MNIST, 80,3 % sur CIFAR-10, 76,2 % sur STL-10 et 27,3 % sur ImageNet [@journe2023]. Ces chiffres sont loin de l'état de l'art sur les tâches difficiles, mais ce sont les meilleurs que j'ai trouvés pour un apprentissage purement local en ce sens fort.
+
+Ce que montre cette ligne : on peut apprendre beaucoup sans aucune attribution du mérite entre couches. Ce qu'elle ne montre pas encore : que cela suffit pour des problèmes difficiles.
+
+## 5. Apprendre la règle d'apprentissage
+
+La troisième ligne cesse de concevoir la règle de plasticité et laisse une boucle externe la trouver, souvent par évolution ou par descente de gradient sur les quelques paramètres de la règle. Le réseau apprend toujours avec des règles locales pendant sa « vie » ; la règle elle-même est le produit d'un processus plus lent, comme elle le serait en biologie.
+
+Confavreux, Zenke, Agnes, Lillicrap et Vogels l'ont formulé clairement : juger une règle de plasticité non par sa capacité à reproduire des enregistrements, mais par la fonction qu'elle grave dans un réseau aléatoire. Leur recherche a retrouvé la règle d'Oja, une règle classique qui extrait la principale direction de variation de l'entrée, et, à l'échelle du réseau, la règle d'Oja associée à une règle anti-hebbienne qui extrait plusieurs composantes ; ils ont aussi trouvé des règles pour des réseaux impulsionnels à inhibition plastique [@confavreux2020]. Jordan, Schmidt, Senn et Petrovici ont fait évoluer des règles sous forme d'expressions symboliques compactes, lisibles par des humains, et rapportent de nouveaux mécanismes pour apprendre à partir de récompenses, des règles de type descente de gradient pour apprendre à partir de cibles, et des règles de type STDP avec homéostasie [@jordan2021].
+
+Najarro et Risi sont allés à l'extrême : partir de poids entièrement aléatoires et ne faire évoluer que des règles hebbiennes propres à chaque synapse. Les règles seules permettent à un robot simulé d'apprendre à marcher, et de s'adapter à des dommages jamais vus à l'entraînement, sans signal de récompense pendant sa vie [@najarro2020]. Les relecteurs ont noté que des poids fixes entraînés faisaient encore mieux dans certains cas.
+
+Deux études ont réintroduit le retour. Lindsey et Litwin-Kumar ont méta-appris des réseaux qui utilisent des connexions de retour et de la plasticité locale, avec un retour non lié aux poids avant ; ils égalent ou dépassent une méthode de méta-apprentissage en ligne fondée sur le gradient, et brillent particulièrement en apprentissage continu [@lindsey2020]. Shervani-Tabar et Rosenbaum ont méta-appris une règle unique, partagée et lisible, au-dessus d'un retour aléatoire, et rapportent un meilleur apprentissage en ligne de réseaux profonds avec peu de données, un cadre où l'alignement par retour apprend lentement [@shervani2023].
+
+Kirsch et Schmidhuber ont posé la version la plus large : si chaque poids est remplacé par un minuscule réseau récurrent partagé, l'ensemble peut-il apprendre à apprendre ? Ils montrent que le partage de poids et la parcimonie suffisent à exprimer des algorithmes d'apprentissage puissants ; qu'un tel système peut implémenter la rétropropagation dans sa seule dynamique avant ; et qu'il peut méta-apprendre de nouveaux algorithmes qui, dans leurs tests, améliorent la rétropropagation et se généralisent à de nouveaux jeux de données [@kirsch2021].
+
+Ce que montre cette ligne : les règles de plasticité ne sont pas sacrées ; on peut les trouver, et des règles trouvées battent parfois des règles conçues. Ce qu'elle suppose encore : une boucle externe conçue, et en général un circuit conçu dans lequel la règle agit.
+
+## 6. Faire pousser la machinerie
+
+La ligne la plus récente laisse la structure elle-même émerger.
+
+**Faire pousser le câblage.** En 2020, Mordvintsev, Randazzo, Niklasson et Levin ont entraîné des *automates cellulaires neuronaux* : une grille de cellules, chacune exécutant le même petit réseau et ne parlant qu'à ses voisines, qui fait pousser une image cible à partir d'une seule cellule et la reconstitue après un dommage [@mordvintsev2020]. Il s'agissait de formes, pas d'apprentissage, mais cela montrait qu'une structure globale robuste peut naître de règles purement locales. Najarro, Sudhakaran et Risi ont appliqué l'idée aux réseaux eux-mêmes : un *programme de développement neuronal*, n'utilisant que des communications locales entre neurones, fait pousser un réseau au lieu qu'on le conçoive, et ils ont testé les réseaux obtenus en apprentissage par renforcement et en apprentissage supervisé [@najarro2023].
+
+**Assembler le circuit d'apprentissage.** L'article de *PNAS* de Liao, Ziyin, Gan et leurs collègues du MIT franchit la dernière marche de ma carte [@liao2026]. Ils appellent le cadre *Self-Assembling Learning* (apprentissage auto-assemblé), et son principal exemple un *Self-Assembling Motif* (motif auto-assemblé). Tel que le décrivent le résumé et la présentation de l'institut, le motif peut émerger d'une connectivité aléatoire sous l'effet d'une plasticité *hétérosynaptique*, des règles dans lesquelles une synapse change selon l'activité de ses voisines sur le même neurone, et pas seulement selon la sienne. Répétés sur plusieurs couches, les motifs s'auto-organisent en réseaux dont la dynamique approche une forme généralisée de descente de gradient stochastique, sans transport des poids ni dérivées explicites. L'institut fait état d'une classification d'images comparable à celle de réseaux entraînés par rétropropagation [@mcgovern2026]. Les auteurs restent prudents sur la biologie : savoir si le cerveau utilise ces motifs reste ouvert, et la prépublication présente son ordonnancement des événements comme un moyen d'isoler et d'analyser le mécanisme, non comme un modèle biophysique complet en temps réel.
+
+Une prépublication de 2025 de Ziyin, Chuang et Poggio, *Heterosynaptic Circuits Are Universal Gradient Machines*, généralise l'idée et, selon les termes des auteurs, propose « un principe de conception pour les circuits d'apprentissage du cerveau biologique » [@ziyin2025].
+
+Ce qui est nouveau ici, par rapport aux lignes précédentes, c'est l'endroit où s'arrête la conception. Dans la section 3, quelqu'un concevait le circuit de retour. Dans la section 5, une boucle externe trouvait la règle, mais à l'intérieur d'un circuit conçu. Ici, les règles sont fixes et simples, et le *circuit qui les fait aboutir à un apprentissage par gradient* n'est pas conçu du tout : il découle de la dynamique.
+
+## 7. Ce qui est établi, ce qui reste ouvert
+
+**Établi, au sens où plusieurs groupes le rapportent :**
+
+- Des signaux locaux peuvent approcher de près les gradients de la rétropropagation, en théorie et sur des bancs d'essai jusqu'à ImageNet, pourvu que des connexions de retour existent [@akrout2019; @millidge2020; @laborieux2021].
+- Le transport des poids n'est pas nécessaire : le retour peut apprendre ses propres poids, ou être aléatoire, si les poids avant ou la règle s'adaptent [@akrout2019; @shervani2023].
+- Des règles de plasticité peuvent être découvertes par une boucle externe, et les règles trouvées peuvent retrouver des règles classiques ou faire mieux que des règles conçues à la main dans des tests ciblés [@confavreux2020; @jordan2021; @kirsch2021].
+- Au moins un circuit qui implémente un apprentissage de type gradient peut s'assembler de lui-même à partir d'une connectivité aléatoire sous des règles locales [@liao2026].
+
+**Ouvert :**
+
+- **L'échelle.** La plupart des résultats portent sur MNIST, CIFAR-10, de petites tâches de contrôle ou, au mieux, ImageNet. Aucune de ces méthodes n'a entraîné quoi que ce soit qui ressemble à un modèle de langage moderne.
+- **Le coût.** Les dynamiques de stabilisation, l'apprentissage en deux phases et les boucles externes prennent du temps. Que l'apprentissage local coûte moins cher en pratique dépend du matériel ; sur GPU, la rétropropagation est très difficile à battre. Sur des puces neuromorphiques, la réponse pourrait être différente [@bellec2020].
+- **La biologie.** Montrer qu'un mécanisme suffit ne montre pas que le cerveau l'utilise. Les propositions par bouffées, hétérosynaptiques et de codage prédictif font chacune des prédictions testables ; les expériences sont difficiles et, pour la plupart, pas faites.
+- **Ce qui reste conçu.** Chaque système de la carte a un concepteur quelque part : les règles locales, la boucle externe, ou le programme de croissance. Faire remonter la conception d'un niveau est un progrès ; ce n'est pas l'absence de conception.
+
+## 8. Ma lecture
+
+Je trouve le résultat d'auto-assemblage le plus intéressant de la carte, pour une raison facile à exagérer ; je veux donc être précis.
+
+Il ne montre pas qu'un réseau peut inventer l'apprentissage à partir de rien. Quelqu'un a choisi les règles hétérosynaptiques, et quelqu'un a choisi d'empiler les motifs en couches. Ce qu'il montre, c'est que, étant donné ces règles locales simples, un *circuit d'apprentissage qui fonctionne* est quelque chose vers quoi la dynamique tombe, plutôt que quelque chose qu'il faut câbler à la main. Cela change la façon dont je pense la rétropropagation. Elle cesse de ressembler à un algorithme qu'un cerveau devrait implémenter contre toute attente, et commence à ressembler à une sorte d'attracteur : un comportement dont s'approchent de nombreux systèmes dynamiques locaux, comme de nombreux systèmes physiques se stabilisent dans les mêmes quelques motifs.
+
+Si c'est juste, deux conséquences suivent. La première concerne les neurosciences : il faudrait chercher les règles locales et les conditions sous lesquelles un apprentissage de type gradient émerge, et non une passe arrière cachée. Plusieurs lignes présentées ici, des bouffées à la configuration prospective, vont déjà dans ce sens. La seconde concerne l'apprentissage automatique, et elle est plus spéculative. Aujourd'hui, on fixe l'architecture et l'algorithme d'apprentissage, puis on optimise les poids. Les lignes des sections 5 et 6 suggèrent un autre partage : fixer un petit ensemble de règles locales, et laisser la structure et une partie de la machinerie d'apprentissage s'organiser d'elles-mêmes, comme le cerveau a dû le faire. Que cela puisse un jour rivaliser avec la rétropropagation sur un GPU, j'en doute ; que cela compte pour des systèmes qui doivent continuer d'apprendre seuls, avec peu d'énergie et sans centre de données, je pense que c'est possible. Pour l'instant, c'est une direction, avec des preuves à petite échelle, pas un remplacement.
+
+## 9. Par où commencer
+
+- **Lillicrap et ses collègues, [« Backpropagation and the Brain »]{lang="en"}** [@lillicrap2020]. Le cadre de tout ce qui a suivi depuis 2020 ; court, clair et très cité.
+- **Millidge, Tschantz et Buckley sur le codage prédictif** [@millidge2020]. Le résultat le plus net montrant que des règles locales peuvent donner des gradients exacts.
+- **Confavreux et ses collègues sur la plasticité méta-apprise** [@confavreux2020]. L'idée qu'on doit juger les règles par ce qu'elles construisent.
+- **Mordvintsev et ses collègues, [« Growing Neural Cellular Automata »]{lang="en"}** [@mordvintsev2020]. Interactif, ouvert, et la meilleure intuition d'une structure née de règles locales.
+- **Liao, Ziyin, Gan et leurs collègues dans *PNAS*** [@liao2026], avec sa prépublication gratuite. Là où la carte s'arrête aujourd'hui.
+
+::: {.read-next}
+**À lire ensuite** · [Les mathématiques à venir](../2026-11-02-the-mathematics-still-to-come/index.qmd)
+L'IA tourne sur des mathématiques anciennes et fonctionne avant qu'on la comprenne. Ce qu'il faudra peut-être inventer.
+:::
+
+::: {.small}
+*Les opinions exprimées dans ce panorama sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.*
+:::
+
+## Références
+
+::: {#refs}
+:::

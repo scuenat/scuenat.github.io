@@ -33,7 +33,7 @@ Before writing, read one existing translation next to its original (for example 
   | thought-essay | essai-de-réflexion | experiment | expérience |
   | curiosity | curiosité | personal | personnel |
   | note | note | ai | ia |
-  | local-ai | ia-locale | | |
+  | local-ai | ia-locale | overview | panorama |
   | data | données | dashboards | tableaux de bord |
   | physics | physique | research | recherche |
   | agents | agents | programming | programmation |
@@ -68,7 +68,7 @@ Before writing, read one existing translation next to its original (for example 
   - Continued in … → `Suite dans …`; A follow-up to … → `La suite de …`
   - Table N → `**Tableau N.**`; Figure N → `**Figure N.**`; Schematic, my own → `Schéma, de moi`
   - What I am not claiming → `Ce que je ne prétends pas`
-  - Disclaimer: `*Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.*` Use `cet article` for papers and `cette analyse` for analyses.
+  - Disclaimer: `*Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.*` Use `cet article` for papers, `cette analyse` for analyses and `ce panorama` for overviews.
 - **French typography.** Use a space before `; : ? !`, `« guillemets »` with spaces inside, a decimal comma (`0,92`, `97,2 %`), a space as the thousands separator (`5 000`), and a space before `%`. Inside math, write `1{,}24` and `32\,768`. Leave code, URLs, identifiers and numbers in figure descriptions consistent with the image.
 - **Sources.** Keep paper titles in their original language, with French guillemets: `[« Title »](url)`. Translate `and` → `et` and `ed.` → `dir.`. Use the French title of a book when a standard translation exists (for example *Le Point de vue de nulle part*, *Monadologie*).
 - **Quotations.** Use the standard French wording of well-known quotations (Camus, Montaigne, Pascal, Aristotle, Einstein and Infeld). Never invent a quotation that is presented as exact.

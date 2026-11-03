@@ -1,0 +1,165 @@
+---
+title: "Who Writes the Learning Rule?"
+subtitle: "Local plasticity, learned learning rules and self-assembling circuits, 2020 to 2026: what a network can build for itself"
+description: "An overview of learning from local rules, 2020 to 2026: approximating backprop, dropping it, learning the rule, and letting the circuit assemble itself."
+date: 2026-11-03
+citation: true
+bibliography: references.bib
+google-scholar: true
+toc-depth: 2
+categories: [overview, ai, machine-learning, neuroscience]
+kind: overview   # card marker: essay | analysis | note | position | overview
+topics: [mathematics]   # home-page theme tiles (index.qmd)
+image: figures/fig01.png
+resources:
+  - figs.py
+  - figures/*.png
+---
+
+::: {.callout-note appearance="simple"}
+**Overview, November 2026.** A map of the research from 2020 to 2026 on one question: can a neural network learn well with only local rules, and can it build the machinery that does the learning, instead of having it designed? It starts from a paper published in *PNAS* in October 2026 [@liao2026] and places it among about twenty openly accessible papers from the same period. I chose works that are cited often, are open access or have a free preprint, and stand for a distinct line of work; the list is not complete. I read them through their abstracts, their preprints and the publishers' or institutes' summaries, not always in full, so I keep to what those state and give numbers only where a source gives them. Figure 1 is a schematic of my own, drawn with [figs.py](figs.py).
+:::
+
+**In short.** In a standard neural network, people design everything that makes learning happen: the wiring, the rule that changes each connection, and the backward pass that tells each connection how to change. The brain has no such designer, which is why neuroscientists have long doubted that it runs backpropagation. Work since 2020 has relaxed the design step by step. A first line keeps the rules local but lets feedback connections learn or settle until they carry useful error signals, and gets close to backpropagation on real benchmarks. A second line drops the backward pass altogether. A third uses an outer loop to *learn* the plasticity rule itself. A fourth, the newest, lets structure emerge: networks that grow their own wiring, and, in the *PNAS* paper, circuits that assemble out of random connections under simple local rules and then behave like gradient descent. My reading: the result is real and interesting, but it moves the design rather than removing it. Someone still chooses the local rules; what emerges is the circuit that turns them into learning. That is already a lot. It suggests that learning may be less an algorithm we must install than a property that well-chosen local dynamics fall into.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Key takeaways
+
+- Backpropagation needs each connection to know something it cannot see locally: how the error at the output depends on it. That is the *credit assignment* problem.
+- Local approximations (learned feedback, predictive coding, equilibrium propagation, burst-dependent plasticity, e-prop) get close to backpropagation on benchmarks such as ImageNet or CIFAR-10, using only local signals.
+- Some methods drop the backward pass entirely (Forward-Forward, SoftHebb). They are simpler and more local, and still behind on hard tasks.
+- Meta-learning can *discover* plasticity rules, and sometimes rediscovers known ones such as Oja's rule.
+- The newest step lets the learning circuit assemble itself from random connectivity [@liao2026]. The local rules are still designed; the machinery that turns them into gradient-like learning is not.
+- None of this shows that the brain does it this way. It shows which local dynamics are *sufficient*.
+:::
+
+## 1. The question
+
+A deep network learns by changing millions of connection strengths a little at a time. To know which way to change one connection, it needs to know how that connection affected the error at the output, many layers away. Backpropagation computes this exactly: it sends the error backwards through the network, using the *same* weights as the forward pass, transposed. This is the *credit assignment* problem, and backpropagation is the reference answer.
+
+For a brain, the answer looks wrong in at least three ways. A synapse would need to know the strength of a different synapse, on the backward path, and keep it exactly equal to its own: the *weight transport* problem. The backward pass would need a separate, precisely timed phase. And the derivatives it carries are not obviously something a neuron computes. For decades this was taken as a sign that the brain does something else.
+
+In 2020, Lillicrap, Santoro, Marris, Akerman and Hinton reopened the question in a review that framed this period of research [@lillicrap2020]. Their argument was that the brain could use feedback connections to induce neural activity whose *local differences* encode error signals close to those of backpropagation. The brain would not run backpropagation; it would approximate its effect with signals each synapse can see.
+
+The question this overview follows goes one step further. Even if local signals can approximate the gradient, someone still has to design the circuit that produces them. Who does that in a brain? There is no engineer. So the deeper question is whether the learning machinery itself can come from local interactions: grow, assemble, or be found by a slower process such as evolution.
+
+## 2. A map
+
+Figure 1 sorts the work by one question: what does the designer still fix? I separate three things a designer can fix: the *wiring* (which neurons connect), the *plasticity rule* (how a connection changes, given what it can see), and the *learning circuit* (whatever produces the error signals that tell connections how to change: in backpropagation, the exact backward pass).
+
+![**Figure 1.** Five lines of work on learning with local rules, 2020 to 2026, sorted by what the designer still fixes: the wiring, the plasticity rule, and the learning circuit that carries error signals. Moving down, more is learned or emerges. In the last row, the wiring emerges in growing networks and the learning circuit emerges in self-assembling learning; the local rules remain designed. Placement is my own reading of the cited work. Schematic, my own.](figures/fig01.svg){fig-alt="Five rows, top to bottom, each with a card, three dots and a list of works. Backpropagation, the reference point: wiring, plasticity rule and learning circuit all designed by hand. Local approximations, with local rules and feedback that learns or settles: wiring and rule designed, learning circuit learned; works listed are Kolen-Pollack and weight mirrors 2019, e-prop 2020, predictive coding 2020, burst plasticity 2021, equilibrium propagation 2021, prospective configuration 2024. No backward pass, each layer learns on its own: wiring and rule designed, no learning circuit needed; Forward-Forward 2022, SoftHebb 2023. Learned rules, an outer loop finds the plasticity rule: wiring designed, rule and circuit learned; Confavreux and colleagues 2020, Najarro and Risi 2020, Lindsey and Litwin-Kumar 2020, Jordan and colleagues 2021, Kirsch and Schmidhuber 2021, Shervani-Tabar and Rosenbaum 2023. Self-assembly, wiring or learning circuit emerges: wiring emergent, rule designed, learning circuit emergent; neural cellular automata 2020, developmental programs 2023, heterosynaptic circuits 2025, self-assembling learning 2026."}
+
+Table 1 gives the same works with what each one claims, in the authors' terms.
+
+**Table 1.** Representative work, 2019 to 2026. Results are as reported by the authors; they come from different tasks and settings and should not be compared across rows.
+
+| Line of work | What is local | Reported result |
+|---|---|---|
+| **Learned feedback**: Kolen-Pollack, weight mirrors [@akrout2019] | Feedback weights learn to track forward weights | Outperform feedback alignment on ImageNet and nearly match backprop |
+| **Predictive coding**: Millidge et al. [@millidge2020] | Prediction errors, mostly Hebbian updates | Converges to exact backprop gradients on arbitrary computation graphs |
+| **Equilibrium propagation**: Laborieux et al. [@laborieux2021] | Contrast between two settled states | 11.7% test error on CIFAR-10, close to BPTT |
+| **Burst-dependent plasticity**: Payeur et al. [@payeur2021] | Bursts versus single spikes | Higher layers coordinate learning in lower ones |
+| **Online spiking learning**: e-prop [@bellec2020] | Eligibility traces plus a learning signal | Approaches BPTT for recurrent spiking networks |
+| **Activity first, then weights**: Prospective configuration [@song2024] | Inferred activity, then local updates | More efficient than backprop in several biologically relevant settings |
+| **No backward pass**: Forward-Forward [@hinton2022] | A "goodness" objective per layer | Works on small problems; offered as preliminary |
+| **No feedback at all**: SoftHebb [@journe2023] | Hebbian, soft winner-take-all | 99.4% MNIST, 80.3% CIFAR-10, 27.3% ImageNet |
+| **Learned rules**: Confavreux et al. [@confavreux2020]; Jordan et al. [@jordan2021] | Rules found by an outer loop | Rediscover Oja's rule; find interpretable rules for spiking networks |
+| **Learned learning**: VS-ML [@kirsch2021] | Shared tiny LSTMs in place of weights | Meta-learned algorithms that can improve on backprop in their tests |
+| **Growth**: Developmental programs [@najarro2023] | Neurons communicate only locally | Networks grow instead of being designed |
+| **Self-assembly**: Self-assembling learning [@liao2026] | Heterosynaptic plasticity | Circuits approximate SGD; performance comparable to backprop |
+
+## 3. Approximating backpropagation with local signals
+
+The largest body of work keeps the goal of backpropagation, a gradient, and asks how to get it with signals a synapse can see.
+
+**Learning the feedback.** The simplest trick, *feedback alignment*, sends errors back through fixed random weights; the forward weights then come to align with them. It works for shallow networks and struggles on hard tasks. Just before this period, Akrout and colleagues showed two ways for the feedback path to *learn* good weights without copying them: a "weight mirror" circuit, and a variant of an old algorithm by Kolen and Pollack. On ImageNet both outperformed feedback alignment and nearly matched backpropagation [@akrout2019]. This is the first hint of the theme of this overview: part of the learning machinery need not be designed if it can learn itself.
+
+**Letting the network settle.** Predictive coding treats each layer as predicting the one below and passes prediction errors around. Millidge, Tschantz and Buckley showed that, with only local and mostly Hebbian updates, it converges to the exact backpropagation gradients, not only in layered networks but on arbitrary computation graphs, including CNNs, RNNs and LSTMs, and performs on par with backpropagation on their benchmarks [@millidge2020]. Equilibrium propagation follows a related idea: let the network settle, nudge the output toward the target, let it settle again, and update each connection from the difference between the two states. It had struggled to scale; Laborieux and colleagues traced the problem to a bias in the gradient estimate, removed most of it with nudges in both directions, and reached 11.7% test error on CIFAR-10 with a deep convolutional network, close to backpropagation through time [@laborieux2021].
+
+**Using what neurons actually do.** Payeur and colleagues started from the biology. If plasticity depends on high-frequency *bursts* of spikes, so that a burst strengthens a synapse and a single spike weakens it, then neurons higher in a hierarchy can coordinate the learning of lower ones; it works, they report, together with short-term synaptic dynamics, active apical dendrites and plasticity in the feedback pathways [@payeur2021]. For recurrent spiking networks, Bellec and colleagues proposed e-prop: each synapse keeps a local *eligibility trace* and combines it with a learning signal sent from above, which avoids storing and replaying the network's history. It approaches the performance of backpropagation through time and suits low-power neuromorphic chips [@bellec2020].
+
+**Changing the order.** Song, Bogacz and colleagues went beyond approximation. In *prospective configuration*, the network first infers the activity it *should* have after learning, and only then changes the weights to consolidate it; backpropagation does the reverse. They report that this learns more efficiently than backpropagation in situations animals face, such as deep structures and online learning, and explains behavioural and neural data that backpropagation does not [@song2024]. This is the first sign that the brain's way might be *better* for its job, not a weaker copy.
+
+What this line shows: the gradient does not need a designed backward pass, as long as feedback connections are present and their dynamics are right. What it still assumes: someone designed those dynamics.
+
+## 4. Learning without a backward pass
+
+A smaller line asks whether the gradient is needed at all.
+
+Hinton's Forward-Forward algorithm replaces the forward and backward passes with two forward passes, one on real data and one on "negative" data, and gives each layer its own objective: high "goodness" for real data, low for negative [@hinton2022]. Hinton presented it as preliminary, shown to work on a few small problems; one practical promise is that the negative passes could be done offline, so that learning on the real data needs no stored activities.
+
+SoftHebb goes further: no feedback, no target, no error signal of any kind, only Hebbian learning in soft winner-take-all layers, with a linear classifier on top. With up to five hidden layers, Journé and colleagues report 99.4% on MNIST, 80.3% on CIFAR-10, 76.2% on STL-10 and 27.3% on ImageNet [@journe2023]. Those numbers are far from the state of the art on hard tasks, but they are the best I found for learning that is purely local in this strong sense.
+
+What this line shows: a lot can be learned with no credit assignment across layers. What it does not show yet: that this is enough for hard problems.
+
+## 5. Learning the learning rule
+
+The third line stops designing the plasticity rule and lets an outer loop find it, often by evolution or gradient descent over the rule's few parameters. The network still learns with local rules during its "lifetime"; the rule itself is the product of a slower process, as it would be in biology.
+
+Confavreux, Zenke, Agnes, Lillicrap and Vogels framed it clearly: judge a plasticity rule not by how well it fits recordings, but by what function it carves into a random network. Their search rediscovered Oja's rule, a classic rule that extracts the main direction of variation in the input, and, at network level, Oja's rule paired with an anti-Hebbian rule that extracts several components; they also found rules for spiking networks with plastic inhibition [@confavreux2020]. Jordan, Schmidt, Senn and Petrovici evolved rules as compact symbolic expressions, so that people can read them, and report new mechanisms for learning from reward, gradient-descent-like rules for learning from targets, and STDP-like rules with homeostasis [@jordan2021].
+
+Najarro and Risi went to the extreme: start from completely random weights and evolve only the synapse-specific Hebbian rules. The rules alone let a simulated robot learn to walk, and adapt to damage it had not seen in training, with no reward signal during its lifetime [@najarro2020]. Reviewers noted that fixed trained weights still did better in some settings.
+
+Two studies brought feedback back in. Lindsey and Litwin-Kumar meta-learned networks that use feedback connections and local plasticity, with feedback not tied to the forward weights; they matched or exceeded a gradient-based online meta-learning method and did particularly well at continual learning [@lindsey2020]. Shervani-Tabar and Rosenbaum meta-learned one shared, interpretable rule on top of random feedback, and report improved online learning in deep networks with little data, a setting where feedback alignment learns slowly [@shervani2023].
+
+Kirsch and Schmidhuber asked the broadest version: if every weight is replaced by a tiny shared recurrent network, can the whole system learn how to learn? They show that weight sharing and sparsity are enough to express powerful learning algorithms; that such a system can implement backpropagation in its forward dynamics alone; and that it can meta-learn new algorithms that, in their tests, improve on backpropagation and generalise to new datasets [@kirsch2021].
+
+What this line shows: plasticity rules are not sacred; they can be found, and sometimes found rules beat designed ones. What it still assumes: a designed outer loop, and usually a designed circuit in which the rule acts.
+
+## 6. Growing the machinery
+
+The newest line lets structure itself emerge.
+
+**Growing wiring.** In 2020, Mordvintsev, Randazzo, Niklasson and Levin trained *neural cellular automata*: a grid of cells, each running the same small network and talking only to its neighbours, that grows a target image from a single cell and regrows it after damage [@mordvintsev2020]. It was about shapes, not learning, but it showed that robust global structure can come from purely local rules. Najarro, Sudhakaran and Risi applied the idea to networks themselves: a *neural developmental program*, using only local communication between neurons, grows a network instead of having it designed, and they tested the grown networks on reinforcement and supervised learning [@najarro2023].
+
+**Assembling the learning circuit.** The *PNAS* paper by Liao, Ziyin, Gan and colleagues at MIT takes the last step on my map [@liao2026]. They call the framework *Self-Assembling Learning*, and its main example a *Self-Assembling Motif*. As the abstract and the institute's summary describe it, the motif can emerge from random connectivity under *heterosynaptic* plasticity, rules in which a synapse changes according to the activity of its neighbours on the same neuron, not only its own. Repeated across layers, the motifs self-organise into networks whose dynamics approximate a generalised form of stochastic gradient descent, without weight transport or explicit derivatives. The institute reports image classification comparable to networks trained with backpropagation [@mcgovern2026]. The authors are careful about the biology: whether the brain uses these motifs remains open, and the preprint presents its ordering of events as a way to isolate and analyse the mechanism, not as a complete real-time biophysical model.
+
+A 2025 preprint by Ziyin, Chuang and Poggio, *Heterosynaptic Circuits Are Universal Gradient Machines*, generalises the idea and, in the authors' words, proposes "a design principle for the learning circuits of the biological brain" [@ziyin2025].
+
+What is new here, compared with the earlier lines, is where the design stops. In Section 3, someone designed the feedback circuit. In Section 5, an outer loop found the rule, but within a designed circuit. Here, the rules are fixed and simple, and the *circuit that makes them add up to gradient learning* is not designed at all: it falls out of the dynamics.
+
+## 7. What is established, what is open
+
+**Established, in the sense that several groups report it:**
+
+- Local signals can approximate backpropagation's gradients closely, in theory and on benchmarks up to ImageNet, provided feedback connections exist [@akrout2019; @millidge2020; @laborieux2021].
+- Weight transport is not required: feedback can learn its own weights, or be random, if the forward weights or the rule adapt [@akrout2019; @shervani2023].
+- Plasticity rules can be discovered by an outer loop, and found rules can rediscover classic ones or do better than hand-designed ones in narrow tests [@confavreux2020; @jordan2021; @kirsch2021].
+- At least one circuit that implements gradient-like learning can assemble itself from random connectivity under local rules [@liao2026].
+
+**Open:**
+
+- **Scale.** Most results are on MNIST, CIFAR-10, small control tasks or, at best, ImageNet. None of these methods has trained anything like a modern language model.
+- **Cost.** Settling dynamics, two-phase learning and outer loops cost time. Whether local learning is cheaper in practice depends on hardware; on GPUs, backpropagation is very hard to beat. On neuromorphic chips the answer may differ [@bellec2020].
+- **Biology.** Showing that a mechanism is sufficient does not show that the brain uses it. The burst, heterosynaptic and predictive-coding proposals each make testable predictions; the experiments are hard and mostly not done.
+- **What is still designed.** Every system on the map has a designer somewhere: the local rules, the outer loop, or the growth program. Moving the design one level up is progress; it is not the absence of design.
+
+## 8. My reading
+
+I find the self-assembly result the most interesting on the map, for a reason that is easy to overstate, so let me be precise about it.
+
+It does not show that a network can invent learning from nothing. Someone chose the heterosynaptic rules, and someone chose to stack the motifs in layers. What it shows is that, given those simple local rules, a *working learning circuit* is something the dynamics fall into, rather than something that must be wired by hand. That changes how I think about backpropagation. It stops looking like an algorithm that a brain would have to implement against all odds, and starts looking like a kind of attractor: a behaviour that many local dynamical systems approach, the way many physical systems settle into the same few patterns.
+
+If that is right, two consequences follow. The first is for neuroscience: the search should be for local rules and conditions under which gradient-like learning emerges, not for a hidden backward pass. Several lines here, from bursts to prospective configuration, already point that way. The second is for machine learning, and it is more speculative. Today we fix the architecture and the learning algorithm, then optimise the weights. The lines in Sections 5 and 6 suggest a different split: fix a small set of local rules, and let the structure and part of the learning machinery organise themselves, as the brain must have done. Whether that can ever compete with backpropagation on a GPU, I doubt; whether it matters for systems that must keep learning on their own, with little power and no data centre, I think it might. For now it is a direction, with small-scale evidence, not a replacement.
+
+## 9. Where to start
+
+- **Lillicrap and colleagues, "Backpropagation and the brain"** [@lillicrap2020]. The framing for everything since 2020; short, clear and widely cited.
+- **Millidge, Tschantz and Buckley on predictive coding** [@millidge2020]. The cleanest result that local rules can give exact gradients.
+- **Confavreux and colleagues on meta-learned plasticity** [@confavreux2020]. The idea that rules should be judged by what they build.
+- **Mordvintsev and colleagues, "Growing Neural Cellular Automata"** [@mordvintsev2020]. Interactive, open, and the best intuition for structure from local rules.
+- **Liao, Ziyin, Gan and colleagues in *PNAS*** [@liao2026], with its free preprint. Where the map currently ends.
+
+::: {.read-next}
+**Read next** · [The Mathematics Still to Come](../2026-11-02-the-mathematics-still-to-come/index.qmd)
+AI runs on old mathematics and works before we understand it. What may have to be invented.
+:::
+
+::: {.small}
+*The views in this overview are my own and do not describe any product or plan of my employer.*
+:::
+
+## References
+
+::: {#refs}
+:::
