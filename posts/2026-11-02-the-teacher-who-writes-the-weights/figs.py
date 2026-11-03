@@ -129,11 +129,11 @@ def heading(ax, x, y, eyebrow, title, color=NAVY):
 # 2 a general model used as it is.  rows: 1 read, 0 write.
 WORKS = [
     (0, 1, "Circuits, induction heads", "2021-23"), (0, 1, "Sparse autoencoders", "2023"),
-    (0, 1, "Circuit tracing", "2025"), (0, 1, "Weight-space networks", "2023-24"),
-    (1, 1, "Neuron explanations", "2023"), (1, 1, "Weight-diff interpreters", "2025"),
-    (1, 1, "Activation oracles", "2025"), (1, 1, "Weight oracles", "2026"),
+    (0, 1, "Circuit tracing", "2025"),
+    (1, 1, "Weight-space networks", "2023-24"), (1, 1, "Neuron explanations", "2023"),
+    (1, 1, "Weight-diff interpreters", "2025"), (1, 1, "Activation, weight oracles", "2025-26"),
     (0, 0, "Task arithmetic, merging", "2023-24"), (0, 0, "Compiled programs (Tracr)", "2023"),
-    (0, 0, "Direction ablation", "2024"), (0, 0, "Evolution strategies, MeZO", "2023-25"),
+    (0, 0, "Direction ablation", "2024"), (0, 0, "Gradient-free (ES, MeZO)", "2023-25"),
     (1, 0, "Checkpoint diffusion", "2022-24"), (1, 0, "HyperTuning", "2023"),
     (1, 0, "Text-to-LoRA, DnD", "2025"), (1, 0, "Self-edits (SEAL)", "2025"),
 ]
@@ -244,7 +244,7 @@ def fig_incubator():
           lw=1.3, ls=(0, (3, 2)), head=8)
     ax.text((xs[1] + xs[3]) / 2 + w / 2, 1.05, "repeat while each edit pays for itself",
             ha="center", fontsize=8.0, color=NAVY, style="italic")
-    pill(ax, 10.1, 0.35, "budget: forward passes and mentor tokens, counted against plain training; only the spec must leave",
+    pill(ax, 10.1, 0.35, "budget: forward passes and mentor tokens, counted against plain training; at most the spec leaves",
          fs=7.6)
     fig.savefig(OUT + "fig03.png", dpi=400); fig.savefig(OUT + "fig03.svg"); plt.close(fig)
 
