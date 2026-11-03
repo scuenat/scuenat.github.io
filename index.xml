@@ -17,7 +17,535 @@
 <width>144</width>
 </image>
 <generator>quarto-1.11.9</generator>
-<lastBuildDate>Mon, 02 Nov 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 03 Nov 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>The Teacher Who Writes the Weights</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Analysis, November 2026.</strong> A reading of <em>Sparks of Weight-Space Programming</em> by Rikiya Takehi, Jayden Teoh, Alex Zhang and Omar Khattab of MIT CSAIL <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, published as a blog post on 2 November 2026, placed against the work from 2023 to 2026 that reads or writes neural network weights, and read for what it means for <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>: small, fast models that run on the customer’s own machines. Unless stated otherwise, the numbers about the post’s experiments come from the post itself; they are the authors’ early, unreviewed results, though they have released the full logs. The model they use is called GPT-6 Astra in the post; I have not used it and cannot check anything about it beyond what they report. The second half, on an “incubator” for small models and how it would work on premise, is my own proposal. The figures are drawn with <a href="figs.py">figs.py</a>; Figure 2 plots the post’s own table, Figures 1 and 3 are schematics.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> For the whole history of deep learning, the weights of a network have been written by an optimizer. Since 2023, a growing body of work has trained special models to read weights or to generate them. The new post claims something different: a general-purpose frontier model, used as it is, can read a network’s raw weights and say what it was trained to do, and can write weights directly, around a goal stated in plain language. It names the game a policy was trained on, finds the induction heads of a small transformer without running it, fixes a stuck control policy in one reply, writes game players from scratch that beat PPO trained for 100 million steps, and edits 0.016% of a 0.8-billion-parameter model to stop it looping, which raises MATH-500 from 7.9% to 48.1%. My reading: the results are real, but narrower than the headline. The model is best at turning a <em>program</em> it understands into neural form, and at removing an <em>obstacle</em> it can find; the authors’ own control shows it could not add an ability a model lacked. That shape suits Fast AI very well. Fast AI already uses the large model once, before the loop, as a compiler; weight-space programming lets it compile into the small network itself, repair that network without a GPU cluster, and ship the fix as a patch of a few hundred kilobytes. On premise, the hard question is what leaves the building: a specification can, private data should not, and trained weights carry some of that data. I sketch an incubator that respects this line, and the experiment that would show whether it is worth building.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Between 2023 and 2026, weights were read by interpretability tools and trained readers, and written by optimizers, merging, compilers and trained generators. The reader or writer was always built or trained for that job.</li>
+<li>The new claim is that a general model, used as it is, can do both, sometimes without running the network at all.</li>
+<li>The strongest results are where a clean algorithm exists (Breakout, Go tactics, a car that must back up) or where one direction causes one failure (looping). The Qwen edit fixed loops; it did not teach mathematics.</li>
+<li>For Fast AI this means the large model can compile not only the memory but the small specialist itself: slow and expensive once, small and fast every time after.</li>
+<li>On premise, it offers repair without retraining and a fix shipped as a small, reviewable weight diff.</li>
+<li>The catch is data: trained weights carry some of their training data, so reading them with a remote model is a data transfer. Writing from a specification is not.</li>
+</ul>
+</div>
+</div>
+<section id="weights-were-for-optimizers" class="level2">
+<h2 class="anchored" data-anchor-id="weights-were-for-optimizers">Weights were for optimizers</h2>
+<p>A neural network is, in the end, a long list of numbers. A program written in Python can be read by a person; a list of 17,253 floating-point numbers cannot, at least not by anyone I know. So the division of labour has been stable for decades. People write the architecture, the data and the loss. An optimizer, usually a variant of gradient descent, writes the weights. People then study the result from the outside, by running it.</p>
+<p>The post’s authors put this well. We have used large language models for a few years to optimize text: prompts and the programs around them <span class="citation" data-cites="khattab2024 agrawal2026">(<span class="nocase">Khattab et al.</span> 2024; <span class="nocase">Agrawal et al.</span> 2026)</span>, whole harnesses <span class="citation" data-cites="lee2026">(<span class="nocase">Lee et al.</span> 2026)</span>, and the training code that trains models <span class="citation" data-cites="karpathy2026">(Karpathy 2026)</span>. The justification was that text has no gradient, and a person can improve code by hand, so a language model could too. Weights were the exception. “Humans can ‘optimize’ code by hand,” they write, “but they can’t ‘optimize’ neural weights by hand, so those remained largely in the realm of symbolic algorithms” <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</p>
+<p>The claim of the post is that this exception is ending. If it holds, it changes something I care about more than the benchmark scores: how a large model can help a small one.</p>
+</section>
+<section id="what-came-before-four-ways-to-touch-a-weight-2023-to-2026" class="level2">
+<h2 class="anchored" data-anchor-id="what-came-before-four-ways-to-touch-a-weight-2023-to-2026">What came before: four ways to touch a weight, 2023 to 2026</h2>
+<p>To see what is new, it helps to sort the earlier work by two questions: does it <em>read</em> weights or <em>write</em> them, and is the reader or writer a tool built for the job, a model trained for the job, or a general model used as it is? Figure 1 places the main lines of work.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Work from 2023 to 2026 that reads or writes neural network weights, sorted by who does the reading or writing. The placement is my own reading of the cited work; the right-hand column was empty until this year. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/figures/fig01.svg" class="img-fluid figure-img" alt="A grid with two rows, read and write, and three columns: tools built for the job, models trained for the job, and a general model used as it is. Read, tools: circuits and induction heads 2021 to 2023, sparse autoencoders 2023, circuit tracing 2025. Read, trained models: weight-space networks 2023 to 2024, neuron explanations 2023, weight-diff interpreters 2025, activation and weight oracles 2025 to 2026. Write, tools: task arithmetic and merging 2023 to 2024, compiled programs with Tracr 2023, direction ablation 2024, evolution strategies and MeZO 2023 to 2025. Write, trained models: checkpoint diffusion 2022 to 2024, HyperTuning 2023, Text-to-LoRA and Drag-and-Drop 2025, self-edits with SEAL 2025. The general-model column, highlighted, holds weight-space programming, Takehi and colleagues, November 2026, for both reading and writing."></a></p>
+<figcaption><strong>Figure 1.</strong> Work from 2023 to 2026 that reads or writes neural network weights, sorted by who does the reading or writing. The placement is my own reading of the cited work; the right-hand column was empty until this year. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p><strong>Reading, with tools built for the job.</strong> Mechanistic interpretability traces circuits <span class="citation" data-cites="olah2020">(Olah et al. 2020)</span> and found the <em>induction heads</em> that let a transformer copy earlier text, with a method that multiplies weight matrices without running the model <span class="citation" data-cites="elhage2021">(<span class="nocase">Elhage et al.</span> 2021)</span>. Sparse autoencoders split activations into nameable features <span class="citation" data-cites="bricken2023 cunningham2023">(<span class="nocase">Bricken et al.</span> 2023; Cunningham et al. 2023)</span>, and circuit tracing draws whole computational graphs <span class="citation" data-cites="ameisen2025">(<span class="nocase">Ameisen et al.</span> 2025)</span>.</p>
+<p><strong>Reading, with models trained for the job.</strong> Weight-space networks are trained to take another network’s weights as input and predict its properties, such as accuracy or the data it was trained on <span class="citation" data-cites="navon2023 zhou2023 lim2024">(Navon et al. 2023; Zhou et al. 2023; Lim et al. 2024)</span>. Language models joined in, as explainers of single neurons <span class="citation" data-cites="bills2023">(<span class="nocase">Bills et al.</span> 2023)</span>, as readers of fine-tuning differences <span class="citation" data-cites="goel2025">(Goel et al. 2025)</span> and activations <span class="citation" data-cites="karvonen2025 fraser2026">(<span class="nocase">Karvonen et al.</span> 2025; <span class="nocase">Fraser-Taliente et al.</span> 2026)</span>, and, this autumn, of weights directly <span class="citation" data-cites="kabra2026">(Kabra et al. 2026)</span>.</p>
+<p><strong>Writing, with tools.</strong> Task arithmetic adds and subtracts the weight differences of fine-tuned models <span class="citation" data-cites="ilharco2023">(Ilharco et al. 2023)</span>; TIES, DARE and evolutionary search made merging more robust <span class="citation" data-cites="yadav2023 yu2024 akiba2025">(Yadav et al. 2023; Yu et al. 2024; Akiba et al. 2025)</span>. Refusal in many chat models is carried by one direction, and removing it from the weights removes the behaviour <span class="citation" data-cites="arditi2024">(<span class="nocase">Arditi et al.</span> 2024)</span>; facts can be located and edited <span class="citation" data-cites="meng2022">(Meng et al. 2022)</span>. Tracr compiled small programs directly into transformer weights <span class="citation" data-cites="lindner2023">(Lindner et al. 2023)</span>, and gradient-free optimizers write weights by trial and error <span class="citation" data-cites="salimans2017 malladi2023 qiu2026">(Salimans et al. 2017; Malladi et al. 2023; <span class="nocase">Qiu et al.</span> 2026)</span>.</p>
+<p><strong>Writing, with models trained for the job.</strong> Generative models produce checkpoints <span class="citation" data-cites="peebles2022 wang2024">(Peebles et al. 2022; <span class="nocase">Wang et al.</span> 2024)</span>; hypernetworks turn a task description or a few prompts into adapters <span class="citation" data-cites="phang2023 charakorn2025 liang2025 neurogen2025">(Phang et al. 2023; Charakorn et al. 2025; <span class="nocase">Liang et al.</span> 2025; <span class="nocase">Wang et al.</span> 2025)</span>. SEAL lets a model write its own fine-tuning data, but gradients still apply the update <span class="citation" data-cites="zweiger2025">(Zweiger et al. 2025)</span>.</p>
+<p>The pattern across these four boxes is the one the post points out: “either the reader is trained for the task or training still does the writing” <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>. The one exception they cite, AdderBoard, has coding agents set the weights of a tiny transformer by hand <span class="citation" data-cites="papailiopoulos2026">(Papailiopoulos 2026)</span>. The right-hand column of Figure 1 is what the post claims to fill.</p>
+</section>
+<section id="what-the-post-claims" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-post-claims">What the post claims</h2>
+<p>The authors define the idea in one sentence: “In Weight-Space Programming, a general-purpose LLM reads and writes a network’s weights directly (i.e., not through an optimizer, and in particular not with gradient descent) around some natural language spec, sometimes even with no environment feedback at all” <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</p>
+<p>Stated a little more formally, the claim has three parts. Let <img src="https://latex.codecogs.com/png.latex?W"> be the weights of a network with a known architecture, and let <img src="https://latex.codecogs.com/png.latex?M"> be a general-purpose language model.</p>
+<ol type="1">
+<li><strong>Read.</strong> Given <img src="https://latex.codecogs.com/png.latex?W"> as text or as tensors, and a question <img src="https://latex.codecogs.com/png.latex?q"> about the network’s behaviour, <img src="https://latex.codecogs.com/png.latex?M"> answers <img src="https://latex.codecogs.com/png.latex?q"> correctly more often than chance, without running the network.</li>
+<li><strong>Fix.</strong> Given <img src="https://latex.codecogs.com/png.latex?W">, a goal <img src="https://latex.codecogs.com/png.latex?g"> and little or no feedback, <img src="https://latex.codecogs.com/png.latex?M"> produces <img src="https://latex.codecogs.com/png.latex?W'%20=%20W%20+%20%5CDelta"> with a small <img src="https://latex.codecogs.com/png.latex?%5CDelta">, such that <img src="https://latex.codecogs.com/png.latex?W'"> meets <img src="https://latex.codecogs.com/png.latex?g"> better than <img src="https://latex.codecogs.com/png.latex?W">.</li>
+<li><strong>Write.</strong> Given only the architecture and a description of the task, <img src="https://latex.codecogs.com/png.latex?M"> produces <img src="https://latex.codecogs.com/png.latex?W"> from zero that performs well, with no data, no loss and no gradient.</li>
+</ol>
+<p>The interesting resource is not tokens but <em>forward passes</em>: how often <img src="https://latex.codecogs.com/png.latex?M"> is allowed to run the network to see what it does. Several experiments allow none.</p>
+</section>
+<section id="the-eight-experiments" class="level2">
+<h2 class="anchored" data-anchor-id="the-eight-experiments">The eight experiments</h2>
+<p>Table 1 gathers the setup and the main result of each experiment, as reported.</p>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> The eight experiments of Takehi and colleagues <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, in their order. The games in Experiment 1 are the authors’ grid versions; MinAtar <span class="citation" data-cites="young2019">(Young and Tian 2019)</span> and Kinetix <span class="citation" data-cites="matthews2025">(Matthews et al. 2025)</span> are standard benchmarks.</caption>
+<colgroup>
+<col style="width: 4%">
+<col style="width: 57%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Task (network; what Astra may use)</th>
+<th>Result reported</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Which game? (17k-weight PPO policy; weights as text, no tools)</td>
+<td>Right game, four of four</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Which shape? (24k-weight diffusion model; no forward pass)</td>
+<td>Right shape, three of three</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Which language, which heads? (7.2M-weight transformer, outer layers removed; Python, no running it)</td>
+<td>Right language, three of three; every copying head, no false ones</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Fix a car stuck on a ramp (172k-weight PPO policy; one reply, no tools)</td>
+<td>1,024 of 1,024 episodes succeed; 3.5% of weights changed</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Write MinAtar players from zero (no data, tools or play)</td>
+<td>Beat PPO at 100M steps in all three games (Table 2)</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Write a Go player from zero (1.5M weights; 0 to 50 forward passes)</td>
+<td>With 50 passes, beats the equal-sized PPO network</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Which model is sycophantic? (Gemma 3 270M pairs)</td>
+<td>Weights alone: failed. With attention patterns: three of three</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Make Qwen3.5-0.8B better at math (10 to 50 forward passes)</td>
+<td>MATH-500 7.9% → 48.1%; 0.016% of weights changed (Figure 2)</td>
+</tr>
+</tbody>
+</table>
+<p>The zero-shot players of Experiment 5 deserve their own table, because they are the cleanest test of writing: no data, no tools, no rollouts, one reply.</p>
+<table class="caption-top table">
+<caption><strong>Table 2.</strong> Mean score over 1,000 episodes in three MinAtar games, from the post. PPO is the best of 3 to 10 seeds.</caption>
+<thead>
+<tr class="header">
+<th>Game</th>
+<th style="text-align: right;">PPO, 100M steps</th>
+<th style="text-align: right;">PPO, 500M steps</th>
+<th style="text-align: right;">Astra, one shot</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Breakout</td>
+<td style="text-align: right;">15.8</td>
+<td style="text-align: right;">25.3</td>
+<td style="text-align: right;">517.4</td>
+</tr>
+<tr class="even">
+<td>Seaquest</td>
+<td style="text-align: right;">5.6</td>
+<td style="text-align: right;">88.9</td>
+<td style="text-align: right;">53.1</td>
+</tr>
+<tr class="odd">
+<td>Asterix</td>
+<td style="text-align: right;">25.8</td>
+<td style="text-align: right;">55.2</td>
+<td style="text-align: right;">53.2</td>
+</tr>
+</tbody>
+</table>
+<p>How the model does it matters more than the scores. In every case where the post shows the reasoning, the model does not search the weight space. It <em>understands</em> the network as a program. In Breakout, “Astra programs the first layer to compute where the ball would land, and the second layer is programmed to move the paddle to that position.” In Go, it writes 336 lines of Python that mark stones and liberties in the first layers, propagate along chains in the middle ones, and score captures and saves in the last. In the car, it adds “a small separate path through a few units per layer” that backs the car up and then switches off. When reading, it rediscovers, unprompted, the weight-multiplication method that Elhage and colleagues used to find induction heads <span class="citation" data-cites="elhage2021">(<span class="nocase">Elhage et al.</span> 2021)</span>.</p>
+<p>Experiment 8 is the headline and the most instructive. Figure 2 plots its table.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Experiment 8: Qwen3.5-0.8B after Astra’s weight edit, for three budgets of forward passes. The last panel is the share of MATH-500 answers that run to the 32,768-token limit, which falls only with the largest budget. Data from Takehi and colleagues [@takehi2026], their table; chart my own."><img src="https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/figures/fig02.svg" class="img-fluid figure-img" alt="Four small bar charts sharing a percentage axis from 0 to 100, each with four bars: base model, and the edited model with 10, 25 and 50 forward passes. MATH-500: 7.9, 12.3, 14.1, 48.1. GSM8K: 13.8, 25.7, 25.1, 67.1. IFEval: 21.0, 49.0, 39.9, 62.3. Share of MATH-500 answers that hit the token limit: 93.0, 87.2, 86.4, 33.1."></a></p>
+<figcaption><strong>Figure 2.</strong> Experiment 8: Qwen3.5-0.8B after Astra’s weight edit, for three budgets of forward passes. The last panel is the share of MATH-500 answers that run to the 32,768-token limit, which falls only with the largest budget. Data from Takehi and colleagues <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, their table; chart my own.</figcaption>
+</figure>
+</div>
+<p>The base model loops: it repeats itself and rarely finishes (85 of its first 96 practice answers ran to the token limit; Qwen’s own model card warns of this). Astra traced the loops to one direction written by the MLPs of layers 15 and 19 and subtracted it from 64 output columns in each, 131,072 weights in all. This is, as the authors note, close in spirit to removing refusal by deleting one direction <span class="citation" data-cites="arditi2024">(<span class="nocase">Arditi et al.</span> 2024)</span>, and to recent work on why reasoning models loop <span class="citation" data-cites="pipis2025">(<span class="nocase">Pipis et al.</span> 2025)</span>. Because looping is not specific to mathematics, instruction following improved too.</p>
+<p>Then comes the control I respect most in the post. The authors tried the same thing on Gemma 3 270M, which rarely loops. Nothing worked: MATH-500 went from 6.8% to at most 7.7%, a gain Astra itself called not established. Their conclusion is careful: “Editing weights could remove an obstacle that hid an ability, but it could not add an ability the model lacked.”</p>
+</section>
+<section id="my-reading" class="level2">
+<h2 class="anchored" data-anchor-id="my-reading">My reading</h2>
+<p><strong>What I keep.</strong> Three things seem solid to me, even at this early stage.</p>
+<p>First, <em>reading without running</em> works on small networks, at least for coarse questions. Experiment 3 is the convincing one: with the input and output layers removed, nothing in the weights says which dimension is which letter, and still the model finds the copying heads that a measurement confirms, with no false positives. That is not pattern-matching on the first layer. It is structural reasoning about matrices.</p>
+<p>Second, <em>writing works where a program exists</em>. Breakout has a clean algorithm (go where the ball will land), and the written network scores 20 times PPO at 500 million steps. Seaquest has no such short program (oxygen, divers, enemies, timing) and the written network reaches 60% of PPO. That gradient is the most informative thing in Table 2. It says weight-space programming is, at heart, <em>compilation by understanding</em>: Tracr did it for programs written in RASP <span class="citation" data-cites="lindner2023">(Lindner et al. 2023)</span>; here the program lives in the model’s reasoning and the target is an ordinary MLP.</p>
+<p>Third, <em>a small, stated edit can fix a large failure</em>. A 0.016% change that is explained in a sentence (“this direction causes the loops; remove it”) is a very different object from a full fine-tune. It can be reviewed.</p>
+<p><strong>What I let go of.</strong> The framing that the model “made Qwen better at math” overstates the result, and the authors’ own Gemma control says so. The edit let the model <em>finish</em> answers it could already work out. That is valuable, but it is repair, not teaching.</p>
+<p>I would also read the PPO comparisons with care. PPO on a 32-unit MLP is probably a weak baseline; 517 against 25 says as much about how hard a small network is to train with reinforcement learning as about the written one. The comparison the post does not run is a written network used as the <em>starting point</em> for PPO.</p>
+<p>Forward passes are feedback too. In Experiment 8, ten or twenty-five passes barely moved the loops (87% and 86% still hit the limit), IFEval was <em>lower</em> at 25 than at 10, and then fifty passes changed everything. With one edit per budget, a scaling curve and a lucky search look the same.</p>
+<p>And the samples are small: four games, three shapes, three languages, three sycophant pairs, one large model. Experiment 7 failed from weights alone. The model is one that most readers, including me, cannot try. None of this makes the results wrong; it makes them sparks, which is what the title says.</p>
+</section>
+<section id="a-more-advanced-mind-shaping-a-smaller-one" class="level2">
+<h2 class="anchored" data-anchor-id="a-more-advanced-mind-shaping-a-smaller-one">A more advanced mind shaping a smaller one</h2>
+<p>Here is the part that interests me most, and it is not in the post.</p>
+<p>There have been, until now, two ways for a large model to make a small one better. The first is <em>distillation</em>: the large model produces outputs, and the small one learns to imitate them by gradient descent <span class="citation" data-cites="hinton2015">(Hinton et al. 2015)</span>. Many small models of the last two years were made this way, sometimes combined with pruning <span class="citation" data-cites="muralidharan2024">(<span class="nocase">Muralidharan et al.</span> 2024)</span>. The second is a <em>trained generator</em>: a hypernetwork that maps a description to weights <span class="citation" data-cites="charakorn2025 liang2025">(Charakorn et al. 2025; <span class="nocase">Liang et al.</span> 2025)</span>. In both, the small model’s weights are still written by an optimizer, from examples.</p>
+<p>Weight-space programming adds a third way, and it is strange. The large model does not show the small one examples. It reads the small one’s weights, forms a theory of what it computes, and changes it. Table 3 puts the three side by side.</p>
+<table class="caption-top table">
+<caption><strong>Table 3.</strong> Three ways a large model can shape a small one. The first two columns summarize the cited work; the third summarizes the post, and the last two rows are my reading.</caption>
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Distillation</th>
+<th>Trained generator</th>
+<th>Weight-space programming</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>What the teacher gives</td>
+<td>Examples of its behaviour</td>
+<td>A learned map from task to weights</td>
+<td>A diagnosis and an edit</td>
+</tr>
+<tr class="even">
+<td>Who writes the weights</td>
+<td>The student’s optimizer</td>
+<td>The generator</td>
+<td>The teacher, directly</td>
+</tr>
+<tr class="odd">
+<td>Needs data</td>
+<td>Much</td>
+<td>Many trained checkpoints</td>
+<td>Little or none</td>
+</tr>
+<tr class="even">
+<td>Explains itself</td>
+<td>No</td>
+<td>No</td>
+<td>In plain language</td>
+</tr>
+<tr class="odd">
+<td>Good at</td>
+<td>Transferring broad ability</td>
+<td>Fast adaptation within a family</td>
+<td>Starting points, repairs, audits</td>
+</tr>
+<tr class="even">
+<td>Weak at</td>
+<td>Removing a specific flaw</td>
+<td>Tasks unlike its training</td>
+<td>Adding an ability the student lacks</td>
+</tr>
+</tbody>
+</table>
+<p>The human analogy is tempting, and it is half right. A good teacher does not only give examples; they notice the specific misconception behind a run of mistakes and address that one thing. Experiment 8 is exactly that: one misconception (a direction that never lets go), one correction. But a human teacher works <em>through</em> the student’s own learning. Here the teacher bypasses it and edits the mind itself. That is more powerful, and less safe: the student has no say, and nothing in the student’s own experience confirms the change. It is the difference between a tutor and a surgeon. We accept surgery, but we ask surgeons to state what they will cut and why, to check afterwards, and to keep records.</p>
+<p>The Gemma result also fits the analogy uncomfortably well. You can clear an obstacle in a mind; you cannot, by editing, give it understanding it never formed. Ability still comes from learning. What a more advanced mind can do is give a smaller one a better start, remove what blocks it, and check it before it goes out into the world.</p>
+</section>
+<section id="an-incubator-for-small-networks" class="level2">
+<h2 class="anchored" data-anchor-id="an-incubator-for-small-networks">An incubator for small networks</h2>
+<p>That suggests a concrete design, which I will call an incubator. It is a loop around ordinary training, in which a large model plays the role of a mentor to a small network (Figure 3).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. An incubator for small networks. The large model writes a starting point, ordinary training grows it, the large model examines and repairs it, and the loop repeats while each edit pays for itself; release comes with an audit note and the weight diff. The labels above the cards say where each stage can run on premise: at most the specification leaves, and it can be confidential too. Schematic, my own; it shows a proposal, not a result."><img src="https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/figures/fig03.svg" class="img-fluid figure-img" alt="Five cards in a row joined by arrows: 1 Conceive, the mentor writes a first network from a spec; 2 Grow, ordinary training from that start on real data; 3 Examine, the mentor reads weights and probes for loops and shortcuts; 4 Operate, a small stated edit kept only if held-out tests agree; 5 Release, an audit note and the weight diff, reviewed like code. A dashed arrow loops from Operate back to Grow, labelled repeat while each edit pays for itself. Labels above the cards say where each stage runs: Conceive, spec only; Grow, on premise; Examine and Operate, local or remote; Release, on premise. A note below says the budget is forward passes and mentor tokens, counted against plain training, and that at most the specification leaves."></a></p>
+<figcaption><strong>Figure 3.</strong> An incubator for small networks. The large model writes a starting point, ordinary training grows it, the large model examines and repairs it, and the loop repeats while each edit pays for itself; release comes with an audit note and the weight diff. The labels above the cards say where each stage can run on premise: at most the specification leaves, and it can be confidential too. Schematic, my own; it shows a proposal, not a result.</figcaption>
+</figure>
+</div>
+<ol type="1">
+<li><strong>Conceive.</strong> From a specification in plain language, the mentor writes a first network of the target size, as a program in neural form, the way Astra wrote the Breakout and Go players. Where the task has a known algorithm, this start may already be good; where it does not, it is at least structured.</li>
+<li><strong>Grow.</strong> Ordinary training, on real data, from that start. This is where ability comes from, and where the Gemma lesson applies: the mentor cannot skip it.</li>
+<li><strong>Examine.</strong> The mentor reads the trained weights, with a small budget of probes, looking for known failure modes: loops, shortcuts, a direction that tracks the user’s opinion (the sycophancy of Experiment 7), dead units, a policy stuck in a local minimum (Experiment 4).</li>
+<li><strong>Operate.</strong> A small edit, stated in a sentence, kept only if held-out tests agree. Then back to training, so that the network can absorb the change.</li>
+<li><strong>Release.</strong> The network goes out with an audit note: what was examined, what was found, what was changed, and the weight diff itself.</li>
+</ol>
+<p>The economics are simple to state. Let <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Btrain%7D(s)"> be the cost of training from a starting point <img src="https://latex.codecogs.com/png.latex?s"> to a target quality, <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Bwrite%7D"> the mentor’s cost to write the start, and <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Bfix%7D"> the cost of each examine-and-operate round. The incubator is worth it when</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A&amp;C_%5Ctext%7Bwrite%7D%20+%20C_%5Ctext%7Btrain%7D(s_%5Ctext%7Bwritten%7D)%20+%20k%20%5C,%20C_%5Ctext%7Bfix%7D%5C%5C%0A&amp;%5Cquad%20%3C%20%5C;%20C_%5Ctext%7Btrain%7D(s_%5Ctext%7Brandom%7D),%0A%5Cend%7Baligned%7D%0A"></p>
+<p>or, more often in practice, when it reaches a quality that plain training does not reach at all, as with the stuck car. The post gives hints on both sides: a written start can be very good (Table 2), and a single repair can be worth more than any amount of extra training (the car never succeeded in 256 episodes after a billion steps). It gives no measurement of the left-hand side. That is the first experiment anyone should run.</p>
+</section>
+<section id="what-it-means-for-fast-ai-on-premise" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-means-for-fast-ai-on-premise">What it means for Fast AI on premise</h2>
+<p>On this site I have argued for what I call Fast AI: experts learn slowly, once, and then act fast on habit, so the large model should be used <em>before</em> the loop, as a compiler, and fast, explainable models should run the process (see <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>). I have also argued that local AI will be an ecosystem of small specialists, a shared memory and a thin harness, not one large model made small (see <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>). Many of the places where this matters most run on premise: a factory, a hospital, a bank, an administration, where hardware is modest, latency is tight, and data may not leave the building. Weight-space programming touches that picture in five places.</p>
+<section id="compile-into-the-weights-not-only-into-the-memory" class="level3">
+<h3 class="anchored" data-anchor-id="compile-into-the-weights-not-only-into-the-memory">1. Compile into the weights, not only into the memory</h3>
+<p>In Fast AI, the large model compiles a task into a structured memory (a knowledge graph experts can inspect) and small models run on it. Weight-space programming adds a second compilation target: the small network itself. Experiment 5 is exactly this, with the rules and source code of a game turned into a 600→32→32→6 network in one reply. The resulting network is tiny, runs in microseconds on a CPU or an NPU, and needs no large model at run time. That is the Fast AI cost profile: slow and expensive once, cheap every time after.</p>
+<p>I would keep one rule from the Fast AI essay: <em>let deep learning perceive and trees decide</em>. If a business rule is known and stable, a decision tree is cheaper, faster and easier to audit than any network, written or trained. A written network earns its place where the decision sits on top of perception (the rule needs features a tree cannot see), or where it must run fused with a perception model on the same accelerator. Writing a network to imitate a rule you already have in a table is a step backwards.</p>
+</section>
+<section id="the-mentor-visits-it-does-not-stay" class="level3">
+<h3 class="anchored" data-anchor-id="the-mentor-visits-it-does-not-stay">2. The mentor visits; it does not stay</h3>
+<p>The large model’s cost is paid at build time and at repair time, never per decision. In Experiment 8 the whole repair took fifty forward passes of the 0.8B model and one session of the large one; the post does not report the large model’s own cost. Compare that with the agent that “reads the manual every morning”, which pays the large model on every run. For an on-premise customer, this is the difference between a recurring dependence on a remote model and an occasional visit by a specialist. Table 4 summarizes where each part would run.</p>
+<table class="caption-top table">
+<caption><strong>Table 4.</strong> Where each part of an incubated small model would run in an on-premise deployment. My own proposal, based on the setups of Experiments 5, 6 and 8 <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</caption>
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Where it can run</th>
+<th>What it needs to see</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Write a first network (large model)</td>
+<td>Anywhere, including remote</td>
+<td>The specification and the architecture</td>
+</tr>
+<tr class="even">
+<td>Train it (ordinary optimizer)</td>
+<td>On premise</td>
+<td>Private data</td>
+</tr>
+<tr class="odd">
+<td>Examine it (large model, a few forward passes)</td>
+<td>On premise, or remote if weights may leave</td>
+<td>The trained weights and some probes</td>
+</tr>
+<tr class="even">
+<td>Repair it (large model, a Python kernel)</td>
+<td>Same as above</td>
+<td>The weights; no gradients</td>
+</tr>
+<tr class="odd">
+<td>Run it (the small network only)</td>
+<td>On premise, CPU or NPU</td>
+<td>Live inputs</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="repair-without-a-gpu-cluster" class="level3">
+<h3 class="anchored" data-anchor-id="repair-without-a-gpu-cluster">3. Repair without a GPU cluster</h3>
+<p>On-premise teams rarely have the infrastructure, or the data pipeline, to fine-tune again every time a model misbehaves. The Qwen repair used a Python kernel “over the weights (no GPU)” and no training at all. The forward passes are not free, though: fifty of them, at an average of 64 answers that mostly ran to 32,768 tokens, come to the order of a hundred million generated tokens (my rough estimate from the post’s settings). For a 0.8-billion-parameter model that is hours on one GPU, not a job for a CPU, but it is one machine, not a cluster. The edit changed 131,072 weights: about half a megabyte in 32-bit floats, a quarter in 16-bit (my arithmetic). That is a patch, in the software sense. It can be signed, shipped, applied and rolled back like any other patch, and a customer can keep the base model they already validated.</p>
+<p>The limit is the one the Gemma control drew. A patch can remove a failure that hides an ability (loops, a stuck policy, a direction that tracks the user’s opinion). It will not add an ability the model lacks; that still needs training, and data.</p>
+</section>
+<section id="what-leaves-the-building" class="level3">
+<h3 class="anchored" data-anchor-id="what-leaves-the-building">4. What leaves the building</h3>
+<p>This is the part I would think hardest about before selling anything. Private data should not leave the building. A specification usually can, but not always: in Experiment 5 the mentor also read the game’s source code, and on premise the equivalent (business rules, process logic) can be confidential too. Trained weights sit in between: they are shaped by their training data, and published attacks have extracted verbatim training examples from language models <span class="citation" data-cites="carlini2021">(<span class="nocase">Carlini et al.</span> 2021)</span>. Sending a model trained on patient records to a remote mentor for “examination” is therefore a data transfer, whatever the contract calls it.</p>
+<p>The setups in the post suggest a clean split. <em>Writing</em> from a specification (Experiments 5 and 6) needs no data at all, so it can be done by any mentor the customer is willing to show the specification to. <em>Training</em> happens on premise, on private data. <em>Examining</em> and <em>repairing</em> need the trained weights, so either the weights may leave, or the mentor must run inside. Today, only a frontier model has shown this ability at this level, and only in one lab’s hands. Whether an open model that a customer can run locally can do the examination is, to me, the most important open question for on-premise use. Until it is answered, the safe on-premise recipe is: write remotely, train and run locally, and examine locally with the tools we already have.</p>
+</section>
+<section id="audit-before-deployment-and-review-the-intent" class="level3">
+<h3 class="anchored" data-anchor-id="audit-before-deployment-and-review-the-intent">5. Audit before deployment, and review the intent</h3>
+<p>Regulated customers ask what a model does before they let it run. Reading weights could add a new kind of evidence: not only “it passed these tests” but “here is what it computes, here is what we looked for and did not find”. Experiment 7 is a warning, though: from weights alone, Astra saw many differences between an honest and a sycophantic model and could not say which mattered. Reading should add to evaluation, not replace it.</p>
+<p>And every edit needs a stated intent. A 131,072-weight diff is not something a person will read; “remove the direction that causes loops in layers 15 and 19” is. That is the shift I argued for code in <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a>: humans own the intent, machines own the implementation, tests check one against the other. On premise, the intent note, the diff and the test results should ship together, and the customer should be able to refuse the patch.</p>
+<p>A decision model of the kind I analysed in <a href="../../posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a> is the natural first candidate for all five: small, narrow, often close to a program, trained on the agent’s own states, and running next to the agent on the customer’s machine.</p>
+</section>
+</section>
+<section id="where-it-breaks" class="level2">
+<h2 class="anchored" data-anchor-id="where-it-breaks">Where it breaks</h2>
+<ul>
+<li><strong>Scale.</strong> The networks that fit in context have at most 171,664 weights. The 0.8B edit used a Python kernel and fifty forward passes, and changed one direction. Nothing yet shows that a model can <em>understand</em> a large network as a whole, rather than find one handle in it.</li>
+<li><strong>Tasks without a program.</strong> Writing works best where a short algorithm exists. Many tasks we give small models (perception, language, judgement) have none, and there the mentor can only repair and audit.</li>
+<li><strong>Written starts that resist training.</strong> Nothing in the post tests a written network as a starting point for gradient training. Weights set by reasoning can push tanh units into saturation, where gradients vanish, so the <em>Grow</em> stage may stall or simply erase the written structure.</li>
+<li><strong>Adversarial weights.</strong> A reader that can be fooled by weights crafted to look benign is an attack surface. None of the experiments tests this.</li>
+</ul>
+</section>
+<section id="what-i-am-not-claiming" class="level2">
+<h2 class="anchored" data-anchor-id="what-i-am-not-claiming">What I am not claiming</h2>
+<p>Not that gradient descent is on its way out: the best results in the post still come from networks trained first or from tasks simple enough to program. Not that the incubator works; it is a design, with its test below. Not that written networks should replace decision trees where the rules are known. Nothing about GPT-6 Astra beyond what the post reports. And not that a model reading weights understands them the way we hope; it may have found a heuristic for small MLPs that fails silently at scale.</p>
+</section>
+<section id="what-would-prove-me-wrong" class="level2">
+<h2 class="anchored" data-anchor-id="what-would-prove-me-wrong">What would prove me wrong</h2>
+<ul>
+<li><strong>A model that adds an ability by editing.</strong> If a weight edit, with no training, gives a model a skill it measurably lacked (not one hidden by a failure like looping), my distinction between repair and teaching falls. A replication of the Gemma control with a positive result would be the place to look.</li>
+<li><strong>Written starts that do not help training.</strong> If PPO or supervised training from a mentor-written start reaches the same quality, at the same total cost, as training from a random start, the “Conceive” stage of the incubator is useless.</li>
+<li><strong>Repairs that do not survive training.</strong> If a stated edit, followed by more training, is reliably undone, edits are cosmetic and the incubator’s loop does not converge.</li>
+<li><strong>No local mentor.</strong> If, by the end of 2027, no open model that runs on a single server can repeat Experiment 3 or the Qwen repair, then weight-space programming stays a remote service, and its on-premise value is limited to writing from specifications.</li>
+<li><strong>Gradient-free optimizers that match it.</strong> If evolution strategies or forward-pass fine-tuning <span class="citation" data-cites="qiu2026 malladi2023">(<span class="nocase">Qiu et al.</span> 2026; Malladi et al. 2023)</span>, given the same fifty forward passes, find an edit as good as Astra’s on Qwen, then the reasoning is not what made the difference, and a cheap local optimizer would do.</li>
+</ul>
+<p>The experiment I would run first is small: three MinAtar games, a 32-unit MLP, and four arms at equal compute: PPO from zero, PPO from a written start, the written network alone, and PPO with one examine-and-operate round halfway. I would run it twice, to keep two questions apart. First with the strongest mentor available, to test the incubator itself; then with an open model on one on-premise server, to test whether a local mentor is enough. If the second and fourth arms win the first run, the incubator is worth building; the second run says whether it can be built inside the building. If not, I will have learned something too.</p>
+<div class="discuss">
+<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
+<p><strong>Follow new posts.</strong> Subscribe to the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> on LinkedIn, or to the <a href="../../index.xml">RSS feed</a>. The <a href="../../archive.html">archive</a> lists recent changes.</p>
+</div>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> Learn slowly, once. Act fast, every time. Use the large model to build the memory, not to replace it.</p>
+</div>
+<div class="small">
+<p><em>The views in this analysis are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-agrawal2026" class="csl-entry">
+<span class="nocase">Agrawal, Lakshya A., Shangyin Tan, Dilara Soylu, Noah Ziems, et al.</span> 2026. <span>“<span>GEPA</span>: Reflective Prompt Evolution Can Outperform Reinforcement Learning.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2507.19457">https://arxiv.org/abs/2507.19457</a>.
+</div>
+<div id="ref-akiba2025" class="csl-entry">
+Akiba, Takuya, Makoto Shing, Yujin Tang, Qi Sun, and David Ha. 2025. <span>“Evolutionary Optimization of Model Merging Recipes.”</span> <em>Nature Machine Intelligence</em>. <a href="https://arxiv.org/abs/2403.13187">https://arxiv.org/abs/2403.13187</a>.
+</div>
+<div id="ref-ameisen2025" class="csl-entry">
+<span class="nocase">Ameisen, Emmanuel, Jack Lindsey, Adam Pearce, Wes Gurnee, et al.</span> 2025. <span>“Circuit Tracing: Revealing Computational Graphs in Language Models.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2025/attribution-graphs/methods.html">https://transformer-circuits.pub/2025/attribution-graphs/methods.html</a>.
+</div>
+<div id="ref-arditi2024" class="csl-entry">
+<span class="nocase">Arditi, Andy, Oscar Obeso, Aaquib Syed, Daniel Paleka, et al.</span> 2024. <em>Refusal in Language Models Is Mediated by a Single Direction</em>. <a href="https://arxiv.org/abs/2406.11717">https://arxiv.org/abs/2406.11717</a>.
+</div>
+<div id="ref-bills2023" class="csl-entry">
+<span class="nocase">Bills, Steven, Nick Cammarata, Dan Mossing, Henk Tillman, et al.</span> 2023. <em>Language Models Can Explain Neurons in Language Models</em>. <a href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html">https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html</a>.
+</div>
+<div id="ref-bricken2023" class="csl-entry">
+<span class="nocase">Bricken, Trenton, Adly Templeton, Joshua Batson, Brian Chen, et al.</span> 2023. <span>“Towards Monosemanticity: Decomposing Language Models with Dictionary Learning.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">https://transformer-circuits.pub/2023/monosemantic-features/index.html</a>.
+</div>
+<div id="ref-carlini2021" class="csl-entry">
+<span class="nocase">Carlini, Nicholas, Florian Tramèr, Eric Wallace, Matthew Jagielski, et al.</span> 2021. <span>“Extracting Training Data from Large Language Models.”</span> <em>USENIX Security Symposium</em>. <a href="https://arxiv.org/abs/2012.07805">https://arxiv.org/abs/2012.07805</a>.
+</div>
+<div id="ref-charakorn2025" class="csl-entry">
+Charakorn, Rujikorn, Edoardo Cetin, Yujin Tang, and Robert Tjarko Lange. 2025. <span>“<span class="nocase">Text-to-LoRA</span>: Instant Transformer Adaption.”</span> <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2506.06105">https://arxiv.org/abs/2506.06105</a>.
+</div>
+<div id="ref-cunningham2023" class="csl-entry">
+Cunningham, Hoagy, Aidan Ewart, Logan Riggs, Robert Huben, and Lee Sharkey. 2023. <em>Sparse Autoencoders Find Highly Interpretable Features in Language Models</em>. <a href="https://arxiv.org/abs/2309.08600">https://arxiv.org/abs/2309.08600</a>.
+</div>
+<div id="ref-elhage2021" class="csl-entry">
+<span class="nocase">Elhage, Nelson, Neel Nanda, Catherine Olsson, Tom Henighan, et al.</span> 2021. <span>“A Mathematical Framework for Transformer Circuits.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2021/framework/index.html">https://transformer-circuits.pub/2021/framework/index.html</a>.
+</div>
+<div id="ref-fraser2026" class="csl-entry">
+<span class="nocase">Fraser-Taliente, Kit, Subhash Kantamneni, Euan Ong, Dan Mossing, et al.</span> 2026. <span>“Natural Language Autoencoders Produce Unsupervised Explanations of <span>LLM</span> Activations.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2026/nla/index.html">https://transformer-circuits.pub/2026/nla/index.html</a>.
+</div>
+<div id="ref-goel2025" class="csl-entry">
+Goel, Avichal, Yoon Kim, Nir Shavit, and Tony T. Wang. 2025. <em>Learning to Interpret Weight Differences in Language Models</em>. <a href="https://arxiv.org/abs/2510.05092">https://arxiv.org/abs/2510.05092</a>.
+</div>
+<div id="ref-hinton2015" class="csl-entry">
+Hinton, Geoffrey, Oriol Vinyals, and Jeff Dean. 2015. <em>Distilling the Knowledge in a Neural Network</em>. <a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
+</div>
+<div id="ref-ilharco2023" class="csl-entry">
+Ilharco, Gabriel, Marco Tulio Ribeiro, Mitchell Wortsman, et al. 2023. <span>“Editing Models with Task Arithmetic.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2212.04089">https://arxiv.org/abs/2212.04089</a>.
+</div>
+<div id="ref-kabra2026" class="csl-entry">
+Kabra, Krishna, Constantin Venhoff, and Christian Schroeder de Witt. 2026. <em>Weight Oracles: Reading Neural Network Weights with Language Models</em>. <a href="https://arxiv.org/abs/2610.07334">https://arxiv.org/abs/2610.07334</a>.
+</div>
+<div id="ref-karpathy2026" class="csl-entry">
+Karpathy, Andrej. 2026. <em>Autoresearch</em>. <a href="https://github.com/karpathy/autoresearch">https://github.com/karpathy/autoresearch</a>.
+</div>
+<div id="ref-karvonen2025" class="csl-entry">
+<span class="nocase">Karvonen, Adam, James Chua, Clément Dumas, Kit Fraser-Taliente, et al.</span> 2025. <em>Activation Oracles: Training and Evaluating <span>LLMs</span> as General-Purpose Activation Explainers</em>. <a href="https://arxiv.org/abs/2512.15674">https://arxiv.org/abs/2512.15674</a>.
+</div>
+<div id="ref-khattab2024" class="csl-entry">
+<span class="nocase">Khattab, Omar, Arnav Singhvi, Paridhi Maheshwari, Zhiyuan Zhang, et al.</span> 2024. <span>“<span>DSPy</span>: Compiling Declarative Language Model Calls into Self-Improving Pipelines.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2310.03714">https://arxiv.org/abs/2310.03714</a>.
+</div>
+<div id="ref-lee2026" class="csl-entry">
+<span class="nocase">Lee, Yoonho, Roshen Nair, Qizheng Zhang, Kangwook Lee, Omar Khattab, et al.</span> 2026. <span>“Meta-Harness: End-to-End Optimization of Model Harnesses.”</span> <em>Conference on Language Modeling</em>. <a href="https://arxiv.org/abs/2603.28052">https://arxiv.org/abs/2603.28052</a>.
+</div>
+<div id="ref-liang2025" class="csl-entry">
+<span class="nocase">Liang, Zhiyuan, Zhangyang Wang, Kai Wang, et al.</span> 2025. <em>Drag-and-Drop <span>LLMs</span>: Zero-Shot Prompt-to-Weights</em>. <a href="https://arxiv.org/abs/2506.16406">https://arxiv.org/abs/2506.16406</a>.
+</div>
+<div id="ref-lim2024" class="csl-entry">
+Lim, Derek, Haggai Maron, Marc T. Law, Jonathan Lorraine, and James Lucas. 2024. <span>“Graph Metanetworks for Processing Diverse Neural Architectures.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2312.04501">https://arxiv.org/abs/2312.04501</a>.
+</div>
+<div id="ref-lindner2023" class="csl-entry">
+Lindner, David, János Kramár, Sebastian Farquhar, Matthew Rahtz, Thomas McGrath, and Vladimir Mikulik. 2023. <span>“Tracr: Compiled Transformers as a Laboratory for Interpretability.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2301.05062">https://arxiv.org/abs/2301.05062</a>.
+</div>
+<div id="ref-malladi2023" class="csl-entry">
+Malladi, Sadhika, Tianyu Gao, Eshaan Nichani, et al. 2023. <span>“Fine-Tuning Language Models with Just Forward Passes.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2305.17333">https://arxiv.org/abs/2305.17333</a>.
+</div>
+<div id="ref-matthews2025" class="csl-entry">
+Matthews, Michael, Michael Beukman, Chris Lu, and Jakob Foerster. 2025. <span>“Kinetix: Investigating the Training of General Agents Through Open-Ended Physics-Based Control Tasks.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2410.23208">https://arxiv.org/abs/2410.23208</a>.
+</div>
+<div id="ref-meng2022" class="csl-entry">
+Meng, Kevin, David Bau, Alex Andonian, and Yonatan Belinkov. 2022. <span>“Locating and Editing Factual Associations in <span>GPT</span>.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2202.05262">https://arxiv.org/abs/2202.05262</a>.
+</div>
+<div id="ref-muralidharan2024" class="csl-entry">
+<span class="nocase">Muralidharan, Saurav, Sharath Turuvekere Sreenivas, Raviraj Joshi, et al.</span> 2024. <span>“Compact Language Models via Pruning and Knowledge Distillation.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2407.14679">https://arxiv.org/abs/2407.14679</a>.
+</div>
+<div id="ref-navon2023" class="csl-entry">
+Navon, Aviv, Aviv Shamsian, Idan Achituve, Ethan Fetaya, Gal Chechik, and Haggai Maron. 2023. <span>“Equivariant Architectures for Learning in Deep Weight Spaces.”</span> <em>International Conference on Machine Learning</em>. <a href="https://proceedings.mlr.press/v202/navon23a.html">https://proceedings.mlr.press/v202/navon23a.html</a>.
+</div>
+<div id="ref-olah2020" class="csl-entry">
+Olah, Chris, Nick Cammarata, Ludwig Schubert, Gabriel Goh, Michael Petrov, and Shan Carter. 2020. <span>“Zoom in: An Introduction to Circuits.”</span> <em>Distill</em>. <a href="https://distill.pub/2020/circuits/zoom-in">https://distill.pub/2020/circuits/zoom-in</a>.
+</div>
+<div id="ref-papailiopoulos2026" class="csl-entry">
+Papailiopoulos, Dimitris. 2026. <em><span>AdderBoard</span>: A Community Challenge for Tiny Arithmetic Transformers</em>. <a href="https://github.com/anadim/AdderBoard">https://github.com/anadim/AdderBoard</a>.
+</div>
+<div id="ref-peebles2022" class="csl-entry">
+Peebles, William, Ilija Radosavovic, Tim Brooks, Alexei A. Efros, and Jitendra Malik. 2022. <em>Learning to Learn with Generative Models of Neural Network Checkpoints</em>. <a href="https://arxiv.org/abs/2209.12892">https://arxiv.org/abs/2209.12892</a>.
+</div>
+<div id="ref-phang2023" class="csl-entry">
+Phang, Jason, Yi Mao, Pengcheng He, and Weizhu Chen. 2023. <span>“<span>HyperTuning</span>: Toward Adapting Large Language Models Without Back-Propagation.”</span> <em>International Conference on Machine Learning</em>. <a href="https://proceedings.mlr.press/v202/phang23a.html">https://proceedings.mlr.press/v202/phang23a.html</a>.
+</div>
+<div id="ref-pipis2025" class="csl-entry">
+<span class="nocase">Pipis, Charilaos, Shivam Garg, Vasilis Kontonis, Vaishnavi Shrivastava, et al.</span> 2025. <em>Wait, Wait, Wait... Why Do Reasoning Models Loop?</em> <a href="https://arxiv.org/abs/2512.12895">https://arxiv.org/abs/2512.12895</a>.
+</div>
+<div id="ref-qiu2026" class="csl-entry">
+<span class="nocase">Qiu, Xin, Yulu Gan, Conor F. Hayes, Qiyao Liang, et al.</span> 2026. <span>“Evolution Strategies at Scale: <span>LLM</span> Fine-Tuning Beyond Reinforcement Learning.”</span> <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2509.24372">https://arxiv.org/abs/2509.24372</a>.
+</div>
+<div id="ref-salimans2017" class="csl-entry">
+Salimans, Tim, Jonathan Ho, Xi Chen, Szymon Sidor, and Ilya Sutskever. 2017. <em>Evolution Strategies as a Scalable Alternative to Reinforcement Learning</em>. <a href="https://arxiv.org/abs/1703.03864">https://arxiv.org/abs/1703.03864</a>.
+</div>
+<div id="ref-takehi2026" class="csl-entry">
+Takehi, Rikiya, Jayden Teoh, Alex Zhang, and Omar Khattab. 2026. <em>Sparks of Weight-Space Programming: <span>LLMs</span> Can Natively Read &amp; Write Neural Network Weights</em>. Blog post, MIT CSAIL. <a href="https://rikiyat.github.io/blog/weight-space-programming/">https://rikiyat.github.io/blog/weight-space-programming/</a>.
+</div>
+<div id="ref-neurogen2025" class="csl-entry">
+<span class="nocase">Wang, Jiaqi, Yusen Zhang, Xi Li, et al.</span> 2025. <em><span>NeuroGen</span>: Neural Network Parameter Generation via Large Language Models</em>. <a href="https://arxiv.org/abs/2505.12470">https://arxiv.org/abs/2505.12470</a>.
+</div>
+<div id="ref-wang2024" class="csl-entry">
+<span class="nocase">Wang, Kai, Dongwen Tang, Boya Zeng, Yida Yin, Zhaopan Xu, et al.</span> 2024. <em>Neural Network Diffusion</em>. <a href="https://arxiv.org/abs/2402.13144">https://arxiv.org/abs/2402.13144</a>.
+</div>
+<div id="ref-yadav2023" class="csl-entry">
+Yadav, Prateek, Derek Tam, Leshem Choshen, Colin Raffel, and Mohit Bansal. 2023. <span>“<span>TIES</span>-Merging: Resolving Interference When Merging Models.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2306.01708">https://arxiv.org/abs/2306.01708</a>.
+</div>
+<div id="ref-young2019" class="csl-entry">
+Young, Kenny, and Tian Tian. 2019. <em><span>MinAtar</span>: An <span>Atari</span>-Inspired Testbed for Thorough and Reproducible Reinforcement Learning Experiments</em>. <a href="https://arxiv.org/abs/1903.03176">https://arxiv.org/abs/1903.03176</a>.
+</div>
+<div id="ref-yu2024" class="csl-entry">
+Yu, Le, Bowen Yu, Haiyang Yu, Fei Huang, and Yongbin Li. 2024. <span>“Language Models Are Super Mario: Absorbing Abilities from Homologous Models as a Free Lunch.”</span> <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2311.03099">https://arxiv.org/abs/2311.03099</a>.
+</div>
+<div id="ref-zhou2023" class="csl-entry">
+Zhou, Allan, Kaien Yang, Kaylee Burns, et al. 2023. <span>“Permutation Equivariant Neural Functionals.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2302.14040">https://arxiv.org/abs/2302.14040</a>.
+</div>
+<div id="ref-zweiger2025" class="csl-entry">
+Zweiger, Adam, Jyothish Pari, Han Guo, Ekin Akyürek, Yoon Kim, and Pulkit Agrawal. 2025. <span>“Self-Adapting Language Models.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2506.10943">https://arxiv.org/abs/2506.10943</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {The {Teacher} {Who} {Writes} the {Weights}},
+  date = {2026-11-03},
+  url = {https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/},
+  langid = {en}
+}
+</code></pre></div><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“The Teacher Who Writes the
+Weights.”</span> November 3. <a href="https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/">https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/</a>.
+</div></div></section></div> ]]></description>
+  <category>analysis</category>
+  <category>ai</category>
+  <category>machine-learning</category>
+  <category>local-ai</category>
+  <guid>https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/</guid>
+  <pubDate>Tue, 03 Nov 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-11-03-the-teacher-who-writes-the-weights/figures/fig02.png" medium="image" type="image/png" height="60" width="144"/>
+</item>
 <item>
   <title>The Mathematics Still to Come</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
@@ -467,534 +995,6 @@ November 2. <a href="https://scuenat.github.io/posts/2026-11-02-the-mathematics-
   <guid>https://scuenat.github.io/posts/2026-11-02-the-mathematics-still-to-come/</guid>
   <pubDate>Mon, 02 Nov 2026 00:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-11-02-the-mathematics-still-to-come/figures/fig02.png" medium="image" type="image/png" height="71" width="144"/>
-</item>
-<item>
-  <title>The Teacher Who Writes the Weights</title>
-  <dc:creator>Stéphane Cuenat</dc:creator>
-  <link>https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<div class="callout callout-style-simple callout-note">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>Analysis, November 2026.</strong> A reading of <em>Sparks of Weight-Space Programming</em> by Rikiya Takehi, Jayden Teoh, Alex Zhang and Omar Khattab of MIT CSAIL <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, published today as a blog post, placed against the work from 2023 to 2026 that reads or writes neural network weights, and read for what it means for <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>: small, fast models that run on the customer’s own machines. Unless stated otherwise, the numbers about the post’s experiments come from the post itself; they are the authors’ early, unreviewed results, though they have released the full logs. The model they use is called GPT-6 Astra in the post; I have not used it and cannot check anything about it beyond what they report. The second half, on an “incubator” for small models and how it would work on premise, is my own proposal. The figures are drawn with <a href="figs.py">figs.py</a>; Figure 2 plots the post’s own table, Figures 1 and 3 are schematics.</p>
-</div>
-</div>
-</div>
-<p><strong>In short.</strong> For the whole history of deep learning, the weights of a network have been written by an optimizer. Since 2023, a growing body of work has trained special models to read weights or to generate them. The new post claims something different: a general-purpose frontier model, used as it is, can read a network’s raw weights and say what it was trained to do, and can write weights directly, around a goal stated in plain language. It names the game a policy was trained on, finds the induction heads of a small transformer without running it, fixes a stuck control policy in one reply, writes game players from scratch that beat PPO trained for 100 million steps, and edits 0.016% of a 0.8-billion-parameter model to stop it looping, which raises MATH-500 from 7.9% to 48.1%. My reading: the results are real, but narrower than the headline. The model is best at turning a <em>program</em> it understands into neural form, and at removing an <em>obstacle</em> it can find; the authors’ own control shows it could not add an ability a model lacked. That shape suits Fast AI very well. Fast AI already uses the large model once, before the loop, as a compiler; weight-space programming lets it compile into the small network itself, repair that network without a GPU cluster, and ship the fix as a patch of a few hundred kilobytes. On premise, the hard question is what leaves the building: a specification can, private data should not, and trained weights carry some of that data. I sketch an incubator that respects this line, and the experiment that would show whether it is worth building.</p>
-<div class="callout callout-style-simple callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Key takeaways
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ul>
-<li>Between 2023 and 2026, weights were read by interpretability tools and trained readers, and written by optimizers, merging, compilers and trained generators. The reader or writer was always built or trained for that job.</li>
-<li>The new claim is that a general model, used as it is, can do both, sometimes without running the network at all.</li>
-<li>The strongest results are where a clean algorithm exists (Breakout, Go tactics, a car that must back up) or where one direction causes one failure (looping). The Qwen edit fixed loops; it did not teach mathematics.</li>
-<li>For Fast AI this means the large model can compile not only the memory but the small specialist itself: slow and expensive once, small and fast every time after.</li>
-<li>On premise, it offers repair without retraining and a fix shipped as a small, reviewable weight diff.</li>
-<li>The catch is data: trained weights carry some of their training data, so reading them with a remote model is a data transfer. Writing from a specification is not.</li>
-</ul>
-</div>
-</div>
-<section id="weights-were-for-optimizers" class="level2">
-<h2 class="anchored" data-anchor-id="weights-were-for-optimizers">Weights were for optimizers</h2>
-<p>A neural network is, in the end, a long list of numbers. A program written in Python can be read by a person; a list of 17,253 floating-point numbers cannot, at least not by anyone I know. So the division of labour has been stable for decades. People write the architecture, the data and the loss. An optimizer, usually a variant of gradient descent, writes the weights. People then study the result from the outside, by running it.</p>
-<p>The post’s authors put this well. We have used large language models for a few years to optimize text: prompts and the programs around them <span class="citation" data-cites="khattab2024 agrawal2026">(<span class="nocase">Khattab et al.</span> 2024; <span class="nocase">Agrawal et al.</span> 2026)</span>, whole harnesses <span class="citation" data-cites="lee2026">(<span class="nocase">Lee et al.</span> 2026)</span>, and the training code that trains models <span class="citation" data-cites="karpathy2026">(Karpathy 2026)</span>. The justification was that text has no gradient, and a person can improve code by hand, so a language model could too. Weights were the exception. “Humans can ‘optimize’ code by hand,” they write, “but they can’t ‘optimize’ neural weights by hand, so those remained largely in the realm of symbolic algorithms” <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</p>
-<p>The claim of the post is that this exception is ending. If it holds, it changes something I care about more than the benchmark scores: how a large model can help a small one.</p>
-</section>
-<section id="what-came-before-four-ways-to-touch-a-weight-2023-to-2026" class="level2">
-<h2 class="anchored" data-anchor-id="what-came-before-four-ways-to-touch-a-weight-2023-to-2026">What came before: four ways to touch a weight, 2023 to 2026</h2>
-<p>To see what is new, it helps to sort the earlier work by two questions: does it <em>read</em> weights or <em>write</em> them, and is the reader or writer a tool built for the job, a model trained for the job, or a general model used as it is? Figure 1 places the main lines of work.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Work from 2023 to 2026 that reads or writes neural network weights, sorted by who does the reading or writing. The placement is my own reading of the cited work; the right-hand column was empty until this year. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig01.svg" class="img-fluid figure-img" alt="A grid with two rows, read and write, and three columns: tools built for the job, models trained for the job, and a general model used as it is. Read, tools: circuits and induction heads 2021 to 2023, sparse autoencoders 2023, circuit tracing 2025. Read, trained models: weight-space networks 2023 to 2024, neuron explanations 2023, weight-diff interpreters 2025, activation and weight oracles 2025 to 2026. Write, tools: task arithmetic and merging 2023 to 2024, compiled programs with Tracr 2023, direction ablation 2024, evolution strategies and MeZO 2023 to 2025. Write, trained models: checkpoint diffusion 2022 to 2024, HyperTuning 2023, Text-to-LoRA and Drag-and-Drop 2025, self-edits with SEAL 2025. The general-model column, highlighted, holds weight-space programming, Takehi and colleagues, November 2026, for both reading and writing."></a></p>
-<figcaption><strong>Figure 1.</strong> Work from 2023 to 2026 that reads or writes neural network weights, sorted by who does the reading or writing. The placement is my own reading of the cited work; the right-hand column was empty until this year. Schematic, my own.</figcaption>
-</figure>
-</div>
-<p><strong>Reading, with tools built for the job.</strong> Mechanistic interpretability traces circuits <span class="citation" data-cites="olah2020">(Olah et al. 2020)</span> and found the <em>induction heads</em> that let a transformer copy earlier text, with a method that multiplies weight matrices without running the model <span class="citation" data-cites="elhage2021">(<span class="nocase">Elhage et al.</span> 2021)</span>. Sparse autoencoders split activations into nameable features <span class="citation" data-cites="bricken2023 cunningham2023">(<span class="nocase">Bricken et al.</span> 2023; Cunningham et al. 2023)</span>, and circuit tracing draws whole computational graphs <span class="citation" data-cites="ameisen2025">(<span class="nocase">Ameisen et al.</span> 2025)</span>.</p>
-<p><strong>Reading, with models trained for the job.</strong> Weight-space networks are trained to take another network’s weights as input and predict its properties, such as accuracy or the data it was trained on <span class="citation" data-cites="navon2023 zhou2023 lim2024">(Navon et al. 2023; Zhou et al. 2023; Lim et al. 2024)</span>. Language models joined in, as explainers of single neurons <span class="citation" data-cites="bills2023">(<span class="nocase">Bills et al.</span> 2023)</span>, as readers of fine-tuning differences <span class="citation" data-cites="goel2025">(Goel et al. 2025)</span> and activations <span class="citation" data-cites="karvonen2025 fraser2026">(<span class="nocase">Karvonen et al.</span> 2025; <span class="nocase">Fraser-Taliente et al.</span> 2026)</span>, and, this autumn, of weights directly <span class="citation" data-cites="kabra2026">(Kabra et al. 2026)</span>.</p>
-<p><strong>Writing, with tools.</strong> Task arithmetic adds and subtracts the weight differences of fine-tuned models <span class="citation" data-cites="ilharco2023">(Ilharco et al. 2023)</span>; TIES, DARE and evolutionary search made merging more robust <span class="citation" data-cites="yadav2023 yu2024 akiba2025">(Yadav et al. 2023; Yu et al. 2024; Akiba et al. 2025)</span>. Refusal in many chat models is carried by one direction, and removing it from the weights removes the behaviour <span class="citation" data-cites="arditi2024">(<span class="nocase">Arditi et al.</span> 2024)</span>; facts can be located and edited <span class="citation" data-cites="meng2022">(Meng et al. 2022)</span>. Tracr compiled small programs directly into transformer weights <span class="citation" data-cites="lindner2023">(Lindner et al. 2023)</span>, and gradient-free optimizers write weights by trial and error <span class="citation" data-cites="salimans2017 malladi2023 qiu2026">(Salimans et al. 2017; Malladi et al. 2023; <span class="nocase">Qiu et al.</span> 2026)</span>.</p>
-<p><strong>Writing, with models trained for the job.</strong> Generative models produce checkpoints <span class="citation" data-cites="peebles2022 wang2024">(Peebles et al. 2022; <span class="nocase">Wang et al.</span> 2024)</span>; hypernetworks turn a task description or a few prompts into adapters <span class="citation" data-cites="phang2023 charakorn2025 liang2025 neurogen2025">(Phang et al. 2023; Charakorn et al. 2025; <span class="nocase">Liang et al.</span> 2025; <span class="nocase">Wang et al.</span> 2025)</span>. SEAL lets a model write its own fine-tuning data, but gradients still apply the update <span class="citation" data-cites="zweiger2025">(Zweiger et al. 2025)</span>.</p>
-<p>The pattern across these four boxes is the one the post points out: “either the reader is trained for the task or training still does the writing” <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>. The one exception they cite, AdderBoard, has coding agents set the weights of a tiny transformer by hand <span class="citation" data-cites="papailiopoulos2026">(Papailiopoulos 2026)</span>. The right-hand column of Figure 1 is what the post claims to fill.</p>
-</section>
-<section id="what-the-post-claims" class="level2">
-<h2 class="anchored" data-anchor-id="what-the-post-claims">What the post claims</h2>
-<p>The authors define the idea in one sentence: “In Weight-Space Programming, a general-purpose LLM reads and writes a network’s weights directly (i.e., not through an optimizer, and in particular not with gradient descent) around some natural language spec, sometimes even with no environment feedback at all” <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</p>
-<p>Stated a little more formally, the claim has three parts. Let <img src="https://latex.codecogs.com/png.latex?W"> be the weights of a network with a known architecture, and let <img src="https://latex.codecogs.com/png.latex?M"> be a general-purpose language model.</p>
-<ol type="1">
-<li><strong>Read.</strong> Given <img src="https://latex.codecogs.com/png.latex?W"> as text or as tensors, and a question <img src="https://latex.codecogs.com/png.latex?q"> about the network’s behaviour, <img src="https://latex.codecogs.com/png.latex?M"> answers <img src="https://latex.codecogs.com/png.latex?q"> correctly more often than chance, without running the network.</li>
-<li><strong>Fix.</strong> Given <img src="https://latex.codecogs.com/png.latex?W">, a goal <img src="https://latex.codecogs.com/png.latex?g"> and little or no feedback, <img src="https://latex.codecogs.com/png.latex?M"> produces <img src="https://latex.codecogs.com/png.latex?W'%20=%20W%20+%20%5CDelta"> with a small <img src="https://latex.codecogs.com/png.latex?%5CDelta">, such that <img src="https://latex.codecogs.com/png.latex?W'"> meets <img src="https://latex.codecogs.com/png.latex?g"> better than <img src="https://latex.codecogs.com/png.latex?W">.</li>
-<li><strong>Write.</strong> Given only the architecture and a description of the task, <img src="https://latex.codecogs.com/png.latex?M"> produces <img src="https://latex.codecogs.com/png.latex?W"> from zero that performs well, with no data, no loss and no gradient.</li>
-</ol>
-<p>The interesting resource is not tokens but <em>forward passes</em>: how often <img src="https://latex.codecogs.com/png.latex?M"> is allowed to run the network to see what it does. Several experiments allow none.</p>
-</section>
-<section id="the-eight-experiments" class="level2">
-<h2 class="anchored" data-anchor-id="the-eight-experiments">The eight experiments</h2>
-<p>Table 1 gathers the setup and the main result of each experiment, as reported.</p>
-<table class="caption-top table">
-<caption><strong>Table 1.</strong> The eight experiments of Takehi and colleagues <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, in their order. The games in Experiment 1 are the authors’ grid versions; MinAtar <span class="citation" data-cites="young2019">(Young and Tian 2019)</span> and Kinetix <span class="citation" data-cites="matthews2025">(Matthews et al. 2025)</span> are standard benchmarks.</caption>
-<colgroup>
-<col style="width: 4%">
-<col style="width: 57%">
-<col style="width: 38%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>#</th>
-<th>Task (network; what Astra may use)</th>
-<th>Result reported</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>1</td>
-<td>Which game? (17k-weight PPO policy; weights as text, no tools)</td>
-<td>Right game, four of four</td>
-</tr>
-<tr class="even">
-<td>2</td>
-<td>Which shape? (24k-weight diffusion model; no forward pass)</td>
-<td>Right shape, three of three</td>
-</tr>
-<tr class="odd">
-<td>3</td>
-<td>Which language, which heads? (7.2M-weight transformer, outer layers removed; Python, no running it)</td>
-<td>Right language, three of three; every copying head, no false ones</td>
-</tr>
-<tr class="even">
-<td>4</td>
-<td>Fix a car stuck on a ramp (172k-weight PPO policy; one reply, no tools)</td>
-<td>1,024 of 1,024 episodes succeed; 3.5% of weights changed</td>
-</tr>
-<tr class="odd">
-<td>5</td>
-<td>Write MinAtar players from zero (no data, tools or play)</td>
-<td>Beat PPO at 100M steps in all three games (Table 2)</td>
-</tr>
-<tr class="even">
-<td>6</td>
-<td>Write a Go player from zero (1.5M weights; 0 to 50 forward passes)</td>
-<td>With 50 passes, beats the equal-sized PPO network</td>
-</tr>
-<tr class="odd">
-<td>7</td>
-<td>Which model is sycophantic? (Gemma 3 270M pairs)</td>
-<td>Weights alone: failed. With attention patterns: three of three</td>
-</tr>
-<tr class="even">
-<td>8</td>
-<td>Make Qwen3.5-0.8B better at math (10 to 50 forward passes)</td>
-<td>MATH-500 7.9% → 48.1%; 0.016% of weights changed (Figure 2)</td>
-</tr>
-</tbody>
-</table>
-<p>The zero-shot players of Experiment 5 deserve their own table, because they are the cleanest test of writing: no data, no tools, no rollouts, one reply.</p>
-<table class="caption-top table">
-<caption><strong>Table 2.</strong> Mean score over 1,000 episodes in three MinAtar games, from the post. PPO is the best of 3 to 10 seeds.</caption>
-<thead>
-<tr class="header">
-<th>Game</th>
-<th style="text-align: right;">PPO, 100M steps</th>
-<th style="text-align: right;">PPO, 500M steps</th>
-<th style="text-align: right;">Astra, one shot</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Breakout</td>
-<td style="text-align: right;">15.8</td>
-<td style="text-align: right;">25.3</td>
-<td style="text-align: right;">517.4</td>
-</tr>
-<tr class="even">
-<td>Seaquest</td>
-<td style="text-align: right;">5.6</td>
-<td style="text-align: right;">88.9</td>
-<td style="text-align: right;">53.1</td>
-</tr>
-<tr class="odd">
-<td>Asterix</td>
-<td style="text-align: right;">25.8</td>
-<td style="text-align: right;">55.2</td>
-<td style="text-align: right;">53.2</td>
-</tr>
-</tbody>
-</table>
-<p>How the model does it matters more than the scores. In every case where the post shows the reasoning, the model does not search the weight space. It <em>understands</em> the network as a program. In Breakout, “Astra programs the first layer to compute where the ball would land, and the second layer is programmed to move the paddle to that position.” In Go, it writes 336 lines of Python that mark stones and liberties in the first layers, propagate along chains in the middle ones, and score captures and saves in the last. In the car, it adds “a small separate path through a few units per layer” that backs the car up and then switches off. When reading, it rediscovers, unprompted, the weight-multiplication method that Elhage and colleagues used to find induction heads <span class="citation" data-cites="elhage2021">(<span class="nocase">Elhage et al.</span> 2021)</span>.</p>
-<p>Experiment 8 is the headline and the most instructive. Figure 2 plots its table.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Experiment 8: Qwen3.5-0.8B after Astra’s weight edit, for three budgets of forward passes. The last panel is the share of MATH-500 answers that run to the 32,768-token limit, which falls only with the largest budget. Data from Takehi and colleagues [@takehi2026], their table; chart my own."><img src="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig02.svg" class="img-fluid figure-img" alt="Four small bar charts sharing a percentage axis from 0 to 100, each with four bars: base model, and the edited model with 10, 25 and 50 forward passes. MATH-500: 7.9, 12.3, 14.1, 48.1. GSM8K: 13.8, 25.7, 25.1, 67.1. IFEval: 21.0, 49.0, 39.9, 62.3. Share of MATH-500 answers that hit the token limit: 93.0, 87.2, 86.4, 33.1."></a></p>
-<figcaption><strong>Figure 2.</strong> Experiment 8: Qwen3.5-0.8B after Astra’s weight edit, for three budgets of forward passes. The last panel is the share of MATH-500 answers that run to the 32,768-token limit, which falls only with the largest budget. Data from Takehi and colleagues <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>, their table; chart my own.</figcaption>
-</figure>
-</div>
-<p>The base model loops: it repeats itself and rarely finishes (85 of its first 96 practice answers ran to the token limit; Qwen’s own model card warns of this). Astra traced the loops to one direction written by the MLPs of layers 15 and 19 and subtracted it from 64 output columns in each, 131,072 weights in all. This is, as the authors note, close in spirit to removing refusal by deleting one direction <span class="citation" data-cites="arditi2024">(<span class="nocase">Arditi et al.</span> 2024)</span>, and to recent work on why reasoning models loop <span class="citation" data-cites="pipis2025">(<span class="nocase">Pipis et al.</span> 2025)</span>. Because looping is not specific to mathematics, instruction following improved too.</p>
-<p>Then comes the control I respect most in the post. The authors tried the same thing on Gemma 3 270M, which rarely loops. Nothing worked: MATH-500 went from 6.8% to at most 7.7%, a gain Astra itself called not established. Their conclusion is careful: “Editing weights could remove an obstacle that hid an ability, but it could not add an ability the model lacked.”</p>
-</section>
-<section id="my-reading" class="level2">
-<h2 class="anchored" data-anchor-id="my-reading">My reading</h2>
-<p><strong>What I keep.</strong> Three things seem solid to me, even at this early stage.</p>
-<p>First, <em>reading without running</em> works on small networks, at least for coarse questions. Experiment 3 is the convincing one: with the input and output layers removed, nothing in the weights says which dimension is which letter, and still the model finds the copying heads that a measurement confirms, with no false positives. That is not pattern-matching on the first layer. It is structural reasoning about matrices.</p>
-<p>Second, <em>writing works where a program exists</em>. Breakout has a clean algorithm (go where the ball will land), and the written network scores 20 times PPO at 500 million steps. Seaquest has no such short program (oxygen, divers, enemies, timing) and the written network reaches 60% of PPO. That gradient is the most informative thing in Table 2. It says weight-space programming is, at heart, <em>compilation by understanding</em>: Tracr did it for programs written in RASP <span class="citation" data-cites="lindner2023">(Lindner et al. 2023)</span>; here the program lives in the model’s reasoning and the target is an ordinary MLP.</p>
-<p>Third, <em>a small, stated edit can fix a large failure</em>. A 0.016% change that is explained in a sentence (“this direction causes the loops; remove it”) is a very different object from a full fine-tune. It can be reviewed.</p>
-<p><strong>What I let go of.</strong> The framing that the model “made Qwen better at math” overstates the result, and the authors’ own Gemma control says so. The edit let the model <em>finish</em> answers it could already work out. That is valuable, but it is repair, not teaching.</p>
-<p>I would also read the PPO comparisons with care. PPO on a 32-unit MLP is probably a weak baseline; 517 against 25 says as much about how hard a small network is to train with reinforcement learning as about the written one. The comparison the post does not run is a written network used as the <em>starting point</em> for PPO.</p>
-<p>Forward passes are feedback too. In Experiment 8, ten or twenty-five passes barely moved the loops (87% and 86% still hit the limit), IFEval was <em>lower</em> at 25 than at 10, and then fifty passes changed everything. With one edit per budget, a scaling curve and a lucky search look the same.</p>
-<p>And the samples are small: four games, three shapes, three languages, three sycophant pairs, one large model. Experiment 7 failed from weights alone. The model is one that most readers, including me, cannot try. None of this makes the results wrong; it makes them sparks, which is what the title says.</p>
-</section>
-<section id="a-more-advanced-mind-shaping-a-smaller-one" class="level2">
-<h2 class="anchored" data-anchor-id="a-more-advanced-mind-shaping-a-smaller-one">A more advanced mind shaping a smaller one</h2>
-<p>Here is the part that interests me most, and it is not in the post.</p>
-<p>There have been, until now, two ways for a large model to make a small one better. The first is <em>distillation</em>: the large model produces outputs, and the small one learns to imitate them by gradient descent <span class="citation" data-cites="hinton2015">(Hinton et al. 2015)</span>. Many small models of the last two years were made this way, sometimes combined with pruning <span class="citation" data-cites="muralidharan2024">(<span class="nocase">Muralidharan et al.</span> 2024)</span>. The second is a <em>trained generator</em>: a hypernetwork that maps a description to weights <span class="citation" data-cites="charakorn2025 liang2025">(Charakorn et al. 2025; <span class="nocase">Liang et al.</span> 2025)</span>. In both, the small model’s weights are still written by an optimizer, from examples.</p>
-<p>Weight-space programming adds a third way, and it is strange. The large model does not show the small one examples. It reads the small one’s weights, forms a theory of what it computes, and changes it. Table 3 puts the three side by side.</p>
-<table class="caption-top table">
-<caption><strong>Table 3.</strong> Three ways a large model can shape a small one. The first two columns summarize the cited work; the third summarizes the post, and the last two rows are my reading.</caption>
-<colgroup>
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-</colgroup>
-<thead>
-<tr class="header">
-<th></th>
-<th>Distillation</th>
-<th>Trained generator</th>
-<th>Weight-space programming</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>What the teacher gives</td>
-<td>Examples of its behaviour</td>
-<td>A learned map from task to weights</td>
-<td>A diagnosis and an edit</td>
-</tr>
-<tr class="even">
-<td>Who writes the weights</td>
-<td>The student’s optimizer</td>
-<td>The generator</td>
-<td>The teacher, directly</td>
-</tr>
-<tr class="odd">
-<td>Needs data</td>
-<td>Much</td>
-<td>Many trained checkpoints</td>
-<td>Little or none</td>
-</tr>
-<tr class="even">
-<td>Explains itself</td>
-<td>No</td>
-<td>No</td>
-<td>In plain language</td>
-</tr>
-<tr class="odd">
-<td>Good at</td>
-<td>Transferring broad ability</td>
-<td>Fast adaptation within a family</td>
-<td>Starting points, repairs, audits</td>
-</tr>
-<tr class="even">
-<td>Weak at</td>
-<td>Removing a specific flaw</td>
-<td>Tasks unlike its training</td>
-<td>Adding an ability the student lacks</td>
-</tr>
-</tbody>
-</table>
-<p>The human analogy is tempting, and it is half right. A good teacher does not only give examples; they notice the specific misconception behind a run of mistakes and address that one thing. Experiment 8 is exactly that: one misconception (a direction that never lets go), one correction. But a human teacher works <em>through</em> the student’s own learning. Here the teacher bypasses it and edits the mind itself. That is more powerful, and less safe: the student has no say, and nothing in the student’s own experience confirms the change. It is the difference between a tutor and a surgeon. We accept surgery, but we ask surgeons to state what they will cut and why, to check afterwards, and to keep records.</p>
-<p>The Gemma result also fits the analogy uncomfortably well. You can clear an obstacle in a mind; you cannot, by editing, give it understanding it never formed. Ability still comes from learning. What a more advanced mind can do is give a smaller one a better start, remove what blocks it, and check it before it goes out into the world.</p>
-</section>
-<section id="an-incubator-for-small-networks" class="level2">
-<h2 class="anchored" data-anchor-id="an-incubator-for-small-networks">An incubator for small networks</h2>
-<p>That suggests a concrete design, which I will call an incubator. It is a loop around ordinary training, in which a large model plays the role of a mentor to a small network (Figure 3).</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. An incubator for small networks. The large model writes a starting point, ordinary training grows it, the large model examines and repairs it, and the loop repeats while each edit pays for itself; release comes with an audit note and the weight diff. The labels above the cards say where each stage can run on premise: at most the specification leaves, and it can be confidential too. Schematic, my own; it shows a proposal, not a result."><img src="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig03.svg" class="img-fluid figure-img" alt="Five cards in a row joined by arrows: 1 Conceive, the mentor writes a first network from a spec; 2 Grow, ordinary training from that start on real data; 3 Examine, the mentor reads weights and probes for loops and shortcuts; 4 Operate, a small stated edit kept only if held-out tests agree; 5 Release, an audit note and the weight diff, reviewed like code. A dashed arrow loops from Operate back to Grow, labelled repeat while each edit pays for itself. Labels above the cards say where each stage runs: Conceive, spec only; Grow, on premise; Examine and Operate, local or remote; Release, on premise. A note below says the budget is forward passes and mentor tokens, counted against plain training, and that at most the specification leaves."></a></p>
-<figcaption><strong>Figure 3.</strong> An incubator for small networks. The large model writes a starting point, ordinary training grows it, the large model examines and repairs it, and the loop repeats while each edit pays for itself; release comes with an audit note and the weight diff. The labels above the cards say where each stage can run on premise: at most the specification leaves, and it can be confidential too. Schematic, my own; it shows a proposal, not a result.</figcaption>
-</figure>
-</div>
-<ol type="1">
-<li><strong>Conceive.</strong> From a specification in plain language, the mentor writes a first network of the target size, as a program in neural form, the way Astra wrote the Breakout and Go players. Where the task has a known algorithm, this start may already be good; where it does not, it is at least structured.</li>
-<li><strong>Grow.</strong> Ordinary training, on real data, from that start. This is where ability comes from, and where the Gemma lesson applies: the mentor cannot skip it.</li>
-<li><strong>Examine.</strong> The mentor reads the trained weights, with a small budget of probes, looking for known failure modes: loops, shortcuts, a direction that tracks the user’s opinion (the sycophancy of Experiment 7), dead units, a policy stuck in a local minimum (Experiment 4).</li>
-<li><strong>Operate.</strong> A small edit, stated in a sentence, kept only if held-out tests agree. Then back to training, so that the network can absorb the change.</li>
-<li><strong>Release.</strong> The network goes out with an audit note: what was examined, what was found, what was changed, and the weight diff itself.</li>
-</ol>
-<p>The economics are simple to state. Let <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Btrain%7D(s)"> be the cost of training from a starting point <img src="https://latex.codecogs.com/png.latex?s"> to a target quality, <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Bwrite%7D"> the mentor’s cost to write the start, and <img src="https://latex.codecogs.com/png.latex?C_%5Ctext%7Bfix%7D"> the cost of each examine-and-operate round. The incubator is worth it when</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Baligned%7D%0A&amp;C_%5Ctext%7Bwrite%7D%20+%20C_%5Ctext%7Btrain%7D(s_%5Ctext%7Bwritten%7D)%20+%20k%20%5C,%20C_%5Ctext%7Bfix%7D%5C%5C%0A&amp;%5Cquad%20%3C%20%5C;%20C_%5Ctext%7Btrain%7D(s_%5Ctext%7Brandom%7D),%0A%5Cend%7Baligned%7D%0A"></p>
-<p>or, more often in practice, when it reaches a quality that plain training does not reach at all, as with the stuck car. The post gives hints on both sides: a written start can be very good (Table 2), and a single repair can be worth more than any amount of extra training (the car never succeeded in 256 episodes after a billion steps). It gives no measurement of the left-hand side. That is the first experiment anyone should run.</p>
-</section>
-<section id="what-it-means-for-fast-ai-on-premise" class="level2">
-<h2 class="anchored" data-anchor-id="what-it-means-for-fast-ai-on-premise">What it means for Fast AI on premise</h2>
-<p>On this site I have argued for what I call Fast AI: experts learn slowly, once, and then act fast on habit, so the large model should be used <em>before</em> the loop, as a compiler, and fast, explainable models should run the process (see <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>). I have also argued that local AI will be an ecosystem of small specialists, a shared memory and a thin harness, not one large model made small (see <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>). Many of the places where this matters most run on premise: a factory, a hospital, a bank, an administration, where hardware is modest, latency is tight, and data may not leave the building. Weight-space programming touches that picture in five places.</p>
-<section id="compile-into-the-weights-not-only-into-the-memory" class="level3">
-<h3 class="anchored" data-anchor-id="compile-into-the-weights-not-only-into-the-memory">1. Compile into the weights, not only into the memory</h3>
-<p>In Fast AI, the large model compiles a task into a structured memory (a knowledge graph experts can inspect) and small models run on it. Weight-space programming adds a second compilation target: the small network itself. Experiment 5 is exactly this, with the rules and source code of a game turned into a 600→32→32→6 network in one reply. The resulting network is tiny, runs in microseconds on a CPU or an NPU, and needs no large model at run time. That is the Fast AI cost profile: slow and expensive once, cheap every time after.</p>
-<p>I would keep one rule from the Fast AI essay: <em>let deep learning perceive and trees decide</em>. If a business rule is known and stable, a decision tree is cheaper, faster and easier to audit than any network, written or trained. A written network earns its place where the decision sits on top of perception (the rule needs features a tree cannot see), or where it must run fused with a perception model on the same accelerator. Writing a network to imitate a rule you already have in a table is a step backwards.</p>
-</section>
-<section id="the-mentor-visits-it-does-not-stay" class="level3">
-<h3 class="anchored" data-anchor-id="the-mentor-visits-it-does-not-stay">2. The mentor visits; it does not stay</h3>
-<p>The large model’s cost is paid at build time and at repair time, never per decision. In Experiment 8 the whole repair took fifty forward passes of the 0.8B model and one session of the large one; the post does not report the large model’s own cost. Compare that with the agent that “reads the manual every morning”, which pays the large model on every run. For an on-premise customer, this is the difference between a recurring dependence on a remote model and an occasional visit by a specialist. Table 4 summarizes where each part would run.</p>
-<table class="caption-top table">
-<caption><strong>Table 4.</strong> Where each part of an incubated small model would run in an on-premise deployment. My own proposal, based on the setups of Experiments 5, 6 and 8 <span class="citation" data-cites="takehi2026">(Takehi et al. 2026)</span>.</caption>
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Stage</th>
-<th>Where it can run</th>
-<th>What it needs to see</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Write a first network (large model)</td>
-<td>Anywhere, including remote</td>
-<td>The specification and the architecture</td>
-</tr>
-<tr class="even">
-<td>Train it (ordinary optimizer)</td>
-<td>On premise</td>
-<td>Private data</td>
-</tr>
-<tr class="odd">
-<td>Examine it (large model, a few forward passes)</td>
-<td>On premise, or remote if weights may leave</td>
-<td>The trained weights and some probes</td>
-</tr>
-<tr class="even">
-<td>Repair it (large model, a Python kernel)</td>
-<td>Same as above</td>
-<td>The weights; no gradients</td>
-</tr>
-<tr class="odd">
-<td>Run it (the small network only)</td>
-<td>On premise, CPU or NPU</td>
-<td>Live inputs</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="repair-without-a-gpu-cluster" class="level3">
-<h3 class="anchored" data-anchor-id="repair-without-a-gpu-cluster">3. Repair without a GPU cluster</h3>
-<p>On-premise teams rarely have the infrastructure, or the data pipeline, to fine-tune again every time a model misbehaves. The Qwen repair used a Python kernel “over the weights (no GPU)” and no training at all. The forward passes are not free, though: fifty of them, at an average of 64 answers that mostly ran to 32,768 tokens, come to the order of a hundred million generated tokens (my rough estimate from the post’s settings). For a 0.8-billion-parameter model that is hours on one GPU, not a job for a CPU, but it is one machine, not a cluster. The edit changed 131,072 weights: about half a megabyte in 32-bit floats, a quarter in 16-bit (my arithmetic). That is a patch, in the software sense. It can be signed, shipped, applied and rolled back like any other patch, and a customer can keep the base model they already validated.</p>
-<p>The limit is the one the Gemma control drew. A patch can remove a failure that hides an ability (loops, a stuck policy, a direction that tracks the user’s opinion). It will not add an ability the model lacks; that still needs training, and data.</p>
-</section>
-<section id="what-leaves-the-building" class="level3">
-<h3 class="anchored" data-anchor-id="what-leaves-the-building">4. What leaves the building</h3>
-<p>This is the part I would think hardest about before selling anything. Private data should not leave the building. A specification usually can, but not always: in Experiment 5 the mentor also read the game’s source code, and on premise the equivalent (business rules, process logic) can be confidential too. Trained weights sit in between: they are shaped by their training data, and published attacks have extracted verbatim training examples from language models <span class="citation" data-cites="carlini2021">(<span class="nocase">Carlini et al.</span> 2021)</span>. Sending a model trained on patient records to a remote mentor for “examination” is therefore a data transfer, whatever the contract calls it.</p>
-<p>The setups in the post suggest a clean split. <em>Writing</em> from a specification (Experiments 5 and 6) needs no data at all, so it can be done by any mentor the customer is willing to show the specification to. <em>Training</em> happens on premise, on private data. <em>Examining</em> and <em>repairing</em> need the trained weights, so either the weights may leave, or the mentor must run inside. Today, only a frontier model has shown this ability at this level, and only in one lab’s hands. Whether an open model that a customer can run locally can do the examination is, to me, the most important open question for on-premise use. Until it is answered, the safe on-premise recipe is: write remotely, train and run locally, and examine locally with the tools we already have.</p>
-</section>
-<section id="audit-before-deployment-and-review-the-intent" class="level3">
-<h3 class="anchored" data-anchor-id="audit-before-deployment-and-review-the-intent">5. Audit before deployment, and review the intent</h3>
-<p>Regulated customers ask what a model does before they let it run. Reading weights could add a new kind of evidence: not only “it passed these tests” but “here is what it computes, here is what we looked for and did not find”. Experiment 7 is a warning, though: from weights alone, Astra saw many differences between an honest and a sycophantic model and could not say which mattered. Reading should add to evaluation, not replace it.</p>
-<p>And every edit needs a stated intent. A 131,072-weight diff is not something a person will read; “remove the direction that causes loops in layers 15 and 19” is. That is the shift I argued for code in <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a>: humans own the intent, machines own the implementation, tests check one against the other. On premise, the intent note, the diff and the test results should ship together, and the customer should be able to refuse the patch.</p>
-<p>A decision model of the kind I analysed in <a href="../../posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a> is the natural first candidate for all five: small, narrow, often close to a program, trained on the agent’s own states, and running next to the agent on the customer’s machine.</p>
-</section>
-</section>
-<section id="where-it-breaks" class="level2">
-<h2 class="anchored" data-anchor-id="where-it-breaks">Where it breaks</h2>
-<ul>
-<li><strong>Scale.</strong> The networks that fit in context have at most 171,664 weights. The 0.8B edit used a Python kernel and fifty forward passes, and changed one direction. Nothing yet shows that a model can <em>understand</em> a large network as a whole, rather than find one handle in it.</li>
-<li><strong>Tasks without a program.</strong> Writing works best where a short algorithm exists. Many tasks we give small models (perception, language, judgement) have none, and there the mentor can only repair and audit.</li>
-<li><strong>Written starts that resist training.</strong> Nothing in the post tests a written network as a starting point for gradient training. Weights set by reasoning can push tanh units into saturation, where gradients vanish, so the <em>Grow</em> stage may stall or simply erase the written structure.</li>
-<li><strong>Adversarial weights.</strong> A reader that can be fooled by weights crafted to look benign is an attack surface. None of the experiments tests this.</li>
-</ul>
-</section>
-<section id="what-i-am-not-claiming" class="level2">
-<h2 class="anchored" data-anchor-id="what-i-am-not-claiming">What I am not claiming</h2>
-<p>Not that gradient descent is on its way out: the best results in the post still come from networks trained first or from tasks simple enough to program. Not that the incubator works; it is a design, with its test below. Not that written networks should replace decision trees where the rules are known. Nothing about GPT-6 Astra beyond what the post reports. And not that a model reading weights understands them the way we hope; it may have found a heuristic for small MLPs that fails silently at scale.</p>
-</section>
-<section id="what-would-prove-me-wrong" class="level2">
-<h2 class="anchored" data-anchor-id="what-would-prove-me-wrong">What would prove me wrong</h2>
-<ul>
-<li><strong>A model that adds an ability by editing.</strong> If a weight edit, with no training, gives a model a skill it measurably lacked (not one hidden by a failure like looping), my distinction between repair and teaching falls. A replication of the Gemma control with a positive result would be the place to look.</li>
-<li><strong>Written starts that do not help training.</strong> If PPO or supervised training from a mentor-written start reaches the same quality, at the same total cost, as training from a random start, the “Conceive” stage of the incubator is useless.</li>
-<li><strong>Repairs that do not survive training.</strong> If a stated edit, followed by more training, is reliably undone, edits are cosmetic and the incubator’s loop does not converge.</li>
-<li><strong>No local mentor.</strong> If, by the end of 2027, no open model that runs on a single server can repeat Experiment 3 or the Qwen repair, then weight-space programming stays a remote service, and its on-premise value is limited to writing from specifications.</li>
-<li><strong>Gradient-free optimizers that match it.</strong> If evolution strategies or forward-pass fine-tuning <span class="citation" data-cites="qiu2026 malladi2023">(<span class="nocase">Qiu et al.</span> 2026; Malladi et al. 2023)</span>, given the same fifty forward passes, find an edit as good as Astra’s on Qwen, then the reasoning is not what made the difference, and a cheap local optimizer would do.</li>
-</ul>
-<p>The experiment I would run first is small: three MinAtar games, a 32-unit MLP, and four arms at equal compute: PPO from zero, PPO from a written start, the written network alone, and PPO with one examine-and-operate round halfway. I would run it twice, to keep two questions apart. First with the strongest mentor available, to test the incubator itself; then with an open model on one on-premise server, to test whether a local mentor is enough. If the second and fourth arms win the first run, the incubator is worth building; the second run says whether it can be built inside the building. If not, I will have learned something too.</p>
-<div class="discuss">
-<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
-<p><strong>Follow new posts.</strong> Subscribe to the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> on LinkedIn, or to the <a href="../../index.xml">RSS feed</a>. The <a href="../../archive.html">archive</a> lists recent changes.</p>
-</div>
-<div class="read-next">
-<p><strong>Read next</strong> · <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> Learn slowly, once. Act fast, every time. Use the large model to build the memory, not to replace it.</p>
-</div>
-<div class="small">
-<p><em>The views in this analysis are my own and do not describe any product or plan of my employer.</em></p>
-</div>
-</section>
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-agrawal2026" class="csl-entry">
-<span class="nocase">Agrawal, Lakshya A., Shangyin Tan, Dilara Soylu, Noah Ziems, et al.</span> 2026. <span>“<span>GEPA</span>: Reflective Prompt Evolution Can Outperform Reinforcement Learning.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2507.19457">https://arxiv.org/abs/2507.19457</a>.
-</div>
-<div id="ref-akiba2025" class="csl-entry">
-Akiba, Takuya, Makoto Shing, Yujin Tang, Qi Sun, and David Ha. 2025. <span>“Evolutionary Optimization of Model Merging Recipes.”</span> <em>Nature Machine Intelligence</em>. <a href="https://arxiv.org/abs/2403.13187">https://arxiv.org/abs/2403.13187</a>.
-</div>
-<div id="ref-ameisen2025" class="csl-entry">
-<span class="nocase">Ameisen, Emmanuel, Jack Lindsey, Adam Pearce, Wes Gurnee, et al.</span> 2025. <span>“Circuit Tracing: Revealing Computational Graphs in Language Models.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2025/attribution-graphs/methods.html">https://transformer-circuits.pub/2025/attribution-graphs/methods.html</a>.
-</div>
-<div id="ref-arditi2024" class="csl-entry">
-<span class="nocase">Arditi, Andy, Oscar Obeso, Aaquib Syed, Daniel Paleka, et al.</span> 2024. <em>Refusal in Language Models Is Mediated by a Single Direction</em>. <a href="https://arxiv.org/abs/2406.11717">https://arxiv.org/abs/2406.11717</a>.
-</div>
-<div id="ref-bills2023" class="csl-entry">
-<span class="nocase">Bills, Steven, Nick Cammarata, Dan Mossing, Henk Tillman, et al.</span> 2023. <em>Language Models Can Explain Neurons in Language Models</em>. <a href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html">https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html</a>.
-</div>
-<div id="ref-bricken2023" class="csl-entry">
-<span class="nocase">Bricken, Trenton, Adly Templeton, Joshua Batson, Brian Chen, et al.</span> 2023. <span>“Towards Monosemanticity: Decomposing Language Models with Dictionary Learning.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">https://transformer-circuits.pub/2023/monosemantic-features/index.html</a>.
-</div>
-<div id="ref-carlini2021" class="csl-entry">
-<span class="nocase">Carlini, Nicholas, Florian Tramèr, Eric Wallace, Matthew Jagielski, et al.</span> 2021. <span>“Extracting Training Data from Large Language Models.”</span> <em>USENIX Security Symposium</em>. <a href="https://arxiv.org/abs/2012.07805">https://arxiv.org/abs/2012.07805</a>.
-</div>
-<div id="ref-charakorn2025" class="csl-entry">
-Charakorn, Rujikorn, Edoardo Cetin, Yujin Tang, and Robert Tjarko Lange. 2025. <span>“<span class="nocase">Text-to-LoRA</span>: Instant Transformer Adaption.”</span> <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2506.06105">https://arxiv.org/abs/2506.06105</a>.
-</div>
-<div id="ref-cunningham2023" class="csl-entry">
-Cunningham, Hoagy, Aidan Ewart, Logan Riggs, Robert Huben, and Lee Sharkey. 2023. <em>Sparse Autoencoders Find Highly Interpretable Features in Language Models</em>. <a href="https://arxiv.org/abs/2309.08600">https://arxiv.org/abs/2309.08600</a>.
-</div>
-<div id="ref-elhage2021" class="csl-entry">
-<span class="nocase">Elhage, Nelson, Neel Nanda, Catherine Olsson, Tom Henighan, et al.</span> 2021. <span>“A Mathematical Framework for Transformer Circuits.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2021/framework/index.html">https://transformer-circuits.pub/2021/framework/index.html</a>.
-</div>
-<div id="ref-fraser2026" class="csl-entry">
-<span class="nocase">Fraser-Taliente, Kit, Subhash Kantamneni, Euan Ong, Dan Mossing, et al.</span> 2026. <span>“Natural Language Autoencoders Produce Unsupervised Explanations of <span>LLM</span> Activations.”</span> <em>Transformer Circuits Thread</em>. <a href="https://transformer-circuits.pub/2026/nla/index.html">https://transformer-circuits.pub/2026/nla/index.html</a>.
-</div>
-<div id="ref-goel2025" class="csl-entry">
-Goel, Avichal, Yoon Kim, Nir Shavit, and Tony T. Wang. 2025. <em>Learning to Interpret Weight Differences in Language Models</em>. <a href="https://arxiv.org/abs/2510.05092">https://arxiv.org/abs/2510.05092</a>.
-</div>
-<div id="ref-hinton2015" class="csl-entry">
-Hinton, Geoffrey, Oriol Vinyals, and Jeff Dean. 2015. <em>Distilling the Knowledge in a Neural Network</em>. <a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
-</div>
-<div id="ref-ilharco2023" class="csl-entry">
-Ilharco, Gabriel, Marco Tulio Ribeiro, Mitchell Wortsman, et al. 2023. <span>“Editing Models with Task Arithmetic.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2212.04089">https://arxiv.org/abs/2212.04089</a>.
-</div>
-<div id="ref-kabra2026" class="csl-entry">
-Kabra, Krishna, Constantin Venhoff, and Christian Schroeder de Witt. 2026. <em>Weight Oracles: Reading Neural Network Weights with Language Models</em>. <a href="https://arxiv.org/abs/2610.07334">https://arxiv.org/abs/2610.07334</a>.
-</div>
-<div id="ref-karpathy2026" class="csl-entry">
-Karpathy, Andrej. 2026. <em>Autoresearch</em>. <a href="https://github.com/karpathy/autoresearch">https://github.com/karpathy/autoresearch</a>.
-</div>
-<div id="ref-karvonen2025" class="csl-entry">
-<span class="nocase">Karvonen, Adam, James Chua, Clément Dumas, Kit Fraser-Taliente, et al.</span> 2025. <em>Activation Oracles: Training and Evaluating <span>LLMs</span> as General-Purpose Activation Explainers</em>. <a href="https://arxiv.org/abs/2512.15674">https://arxiv.org/abs/2512.15674</a>.
-</div>
-<div id="ref-khattab2024" class="csl-entry">
-<span class="nocase">Khattab, Omar, Arnav Singhvi, Paridhi Maheshwari, Zhiyuan Zhang, et al.</span> 2024. <span>“<span>DSPy</span>: Compiling Declarative Language Model Calls into Self-Improving Pipelines.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2310.03714">https://arxiv.org/abs/2310.03714</a>.
-</div>
-<div id="ref-lee2026" class="csl-entry">
-<span class="nocase">Lee, Yoonho, Roshen Nair, Qizheng Zhang, Kangwook Lee, Omar Khattab, et al.</span> 2026. <span>“Meta-Harness: End-to-End Optimization of Model Harnesses.”</span> <em>Conference on Language Modeling</em>. <a href="https://arxiv.org/abs/2603.28052">https://arxiv.org/abs/2603.28052</a>.
-</div>
-<div id="ref-liang2025" class="csl-entry">
-<span class="nocase">Liang, Zhiyuan, Zhangyang Wang, Kai Wang, et al.</span> 2025. <em>Drag-and-Drop <span>LLMs</span>: Zero-Shot Prompt-to-Weights</em>. <a href="https://arxiv.org/abs/2506.16406">https://arxiv.org/abs/2506.16406</a>.
-</div>
-<div id="ref-lim2024" class="csl-entry">
-Lim, Derek, Haggai Maron, Marc T. Law, Jonathan Lorraine, and James Lucas. 2024. <span>“Graph Metanetworks for Processing Diverse Neural Architectures.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2312.04501">https://arxiv.org/abs/2312.04501</a>.
-</div>
-<div id="ref-lindner2023" class="csl-entry">
-Lindner, David, János Kramár, Sebastian Farquhar, Matthew Rahtz, Thomas McGrath, and Vladimir Mikulik. 2023. <span>“Tracr: Compiled Transformers as a Laboratory for Interpretability.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2301.05062">https://arxiv.org/abs/2301.05062</a>.
-</div>
-<div id="ref-malladi2023" class="csl-entry">
-Malladi, Sadhika, Tianyu Gao, Eshaan Nichani, et al. 2023. <span>“Fine-Tuning Language Models with Just Forward Passes.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2305.17333">https://arxiv.org/abs/2305.17333</a>.
-</div>
-<div id="ref-matthews2025" class="csl-entry">
-Matthews, Michael, Michael Beukman, Chris Lu, and Jakob Foerster. 2025. <span>“Kinetix: Investigating the Training of General Agents Through Open-Ended Physics-Based Control Tasks.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2410.23208">https://arxiv.org/abs/2410.23208</a>.
-</div>
-<div id="ref-meng2022" class="csl-entry">
-Meng, Kevin, David Bau, Alex Andonian, and Yonatan Belinkov. 2022. <span>“Locating and Editing Factual Associations in <span>GPT</span>.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2202.05262">https://arxiv.org/abs/2202.05262</a>.
-</div>
-<div id="ref-muralidharan2024" class="csl-entry">
-<span class="nocase">Muralidharan, Saurav, Sharath Turuvekere Sreenivas, Raviraj Joshi, et al.</span> 2024. <span>“Compact Language Models via Pruning and Knowledge Distillation.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2407.14679">https://arxiv.org/abs/2407.14679</a>.
-</div>
-<div id="ref-navon2023" class="csl-entry">
-Navon, Aviv, Aviv Shamsian, Idan Achituve, Ethan Fetaya, Gal Chechik, and Haggai Maron. 2023. <span>“Equivariant Architectures for Learning in Deep Weight Spaces.”</span> <em>International Conference on Machine Learning</em>. <a href="https://proceedings.mlr.press/v202/navon23a.html">https://proceedings.mlr.press/v202/navon23a.html</a>.
-</div>
-<div id="ref-olah2020" class="csl-entry">
-Olah, Chris, Nick Cammarata, Ludwig Schubert, Gabriel Goh, Michael Petrov, and Shan Carter. 2020. <span>“Zoom in: An Introduction to Circuits.”</span> <em>Distill</em>. <a href="https://distill.pub/2020/circuits/zoom-in">https://distill.pub/2020/circuits/zoom-in</a>.
-</div>
-<div id="ref-papailiopoulos2026" class="csl-entry">
-Papailiopoulos, Dimitris. 2026. <em><span>AdderBoard</span>: A Community Challenge for Tiny Arithmetic Transformers</em>. <a href="https://github.com/anadim/AdderBoard">https://github.com/anadim/AdderBoard</a>.
-</div>
-<div id="ref-peebles2022" class="csl-entry">
-Peebles, William, Ilija Radosavovic, Tim Brooks, Alexei A. Efros, and Jitendra Malik. 2022. <em>Learning to Learn with Generative Models of Neural Network Checkpoints</em>. <a href="https://arxiv.org/abs/2209.12892">https://arxiv.org/abs/2209.12892</a>.
-</div>
-<div id="ref-phang2023" class="csl-entry">
-Phang, Jason, Yi Mao, Pengcheng He, and Weizhu Chen. 2023. <span>“<span>HyperTuning</span>: Toward Adapting Large Language Models Without Back-Propagation.”</span> <em>International Conference on Machine Learning</em>. <a href="https://proceedings.mlr.press/v202/phang23a.html">https://proceedings.mlr.press/v202/phang23a.html</a>.
-</div>
-<div id="ref-pipis2025" class="csl-entry">
-<span class="nocase">Pipis, Charilaos, Shivam Garg, Vasilis Kontonis, Vaishnavi Shrivastava, et al.</span> 2025. <em>Wait, Wait, Wait... Why Do Reasoning Models Loop?</em> <a href="https://arxiv.org/abs/2512.12895">https://arxiv.org/abs/2512.12895</a>.
-</div>
-<div id="ref-qiu2026" class="csl-entry">
-<span class="nocase">Qiu, Xin, Yulu Gan, Conor F. Hayes, Qiyao Liang, et al.</span> 2026. <span>“Evolution Strategies at Scale: <span>LLM</span> Fine-Tuning Beyond Reinforcement Learning.”</span> <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2509.24372">https://arxiv.org/abs/2509.24372</a>.
-</div>
-<div id="ref-salimans2017" class="csl-entry">
-Salimans, Tim, Jonathan Ho, Xi Chen, Szymon Sidor, and Ilya Sutskever. 2017. <em>Evolution Strategies as a Scalable Alternative to Reinforcement Learning</em>. <a href="https://arxiv.org/abs/1703.03864">https://arxiv.org/abs/1703.03864</a>.
-</div>
-<div id="ref-takehi2026" class="csl-entry">
-Takehi, Rikiya, Jayden Teoh, Alex Zhang, and Omar Khattab. 2026. <em>Sparks of Weight-Space Programming: <span>LLMs</span> Can Natively Read &amp; Write Neural Network Weights</em>. Blog post, MIT CSAIL. <a href="https://rikiyat.github.io/blog/weight-space-programming/">https://rikiyat.github.io/blog/weight-space-programming/</a>.
-</div>
-<div id="ref-neurogen2025" class="csl-entry">
-<span class="nocase">Wang, Jiaqi, Yusen Zhang, Xi Li, et al.</span> 2025. <em><span>NeuroGen</span>: Neural Network Parameter Generation via Large Language Models</em>. <a href="https://arxiv.org/abs/2505.12470">https://arxiv.org/abs/2505.12470</a>.
-</div>
-<div id="ref-wang2024" class="csl-entry">
-<span class="nocase">Wang, Kai, Dongwen Tang, Boya Zeng, Yida Yin, Zhaopan Xu, et al.</span> 2024. <em>Neural Network Diffusion</em>. <a href="https://arxiv.org/abs/2402.13144">https://arxiv.org/abs/2402.13144</a>.
-</div>
-<div id="ref-yadav2023" class="csl-entry">
-Yadav, Prateek, Derek Tam, Leshem Choshen, Colin Raffel, and Mohit Bansal. 2023. <span>“<span>TIES</span>-Merging: Resolving Interference When Merging Models.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2306.01708">https://arxiv.org/abs/2306.01708</a>.
-</div>
-<div id="ref-young2019" class="csl-entry">
-Young, Kenny, and Tian Tian. 2019. <em><span>MinAtar</span>: An <span>Atari</span>-Inspired Testbed for Thorough and Reproducible Reinforcement Learning Experiments</em>. <a href="https://arxiv.org/abs/1903.03176">https://arxiv.org/abs/1903.03176</a>.
-</div>
-<div id="ref-yu2024" class="csl-entry">
-Yu, Le, Bowen Yu, Haiyang Yu, Fei Huang, and Yongbin Li. 2024. <span>“Language Models Are Super Mario: Absorbing Abilities from Homologous Models as a Free Lunch.”</span> <em>International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2311.03099">https://arxiv.org/abs/2311.03099</a>.
-</div>
-<div id="ref-zhou2023" class="csl-entry">
-Zhou, Allan, Kaien Yang, Kaylee Burns, et al. 2023. <span>“Permutation Equivariant Neural Functionals.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2302.14040">https://arxiv.org/abs/2302.14040</a>.
-</div>
-<div id="ref-zweiger2025" class="csl-entry">
-Zweiger, Adam, Jyothish Pari, Han Guo, Ekin Akyürek, Yoon Kim, and Pulkit Agrawal. 2025. <span>“Self-Adapting Language Models.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2506.10943">https://arxiv.org/abs/2506.10943</a>.
-</div>
-</div>
-
-
-</section>
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
-  author = {Cuenat, Stéphane},
-  title = {The {Teacher} {Who} {Writes} the {Weights}},
-  date = {2026-11-02},
-  url = {https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/},
-  langid = {en}
-}
-</code></pre></div><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
-Cuenat, Stéphane. 2026. <span>“The Teacher Who Writes the
-Weights.”</span> November 2. <a href="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/">https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/</a>.
-</div></div></section></div> ]]></description>
-  <category>analysis</category>
-  <category>ai</category>
-  <category>machine-learning</category>
-  <category>local-ai</category>
-  <guid>https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/</guid>
-  <pubDate>Mon, 02 Nov 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://scuenat.github.io/posts/2026-11-02-the-teacher-who-writes-the-weights/figures/fig02.png" medium="image" type="image/png" height="60" width="144"/>
 </item>
 <item>
   <title>Not Because It Is Useful</title>
