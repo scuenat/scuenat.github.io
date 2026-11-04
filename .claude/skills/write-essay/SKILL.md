@@ -1,11 +1,11 @@
 ---
 name: write-essay
-description: Shape and write an essay for this site (kind essay, amber ESSAY badge) — a first-person argument or reflection that carries one idea through. Use when the user asks for an essay, or after new-post chose "Essay". Starts by confirming the kind (essay, analysis, note or position paper) and defers to new-post for files, front matter, translation and publishing to main.
+description: Shape and write an essay for this site (kind essay, amber ESSAY badge) — a first-person argument or reflection that carries one idea through. Use when the user asks for an essay, or after new-post chose "Essay". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation and publishing to main.
 ---
 
 # Write an essay
 
-**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Essay", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note or a position paper?" (options Essay (Recommended) / Analysis / Note / Position paper). If the answer is not Essay, switch to **write-analysis**, **write-note** or **write-position-paper**. Then follow **new-post** for files, front matter (`kind: essay`, first category `essay`), translation, verification and publishing to `main`.
+**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Essay", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Essay (Recommended) / Analysis / Note / Position paper). If the answer is not Essay, switch to **write-analysis**, **write-note**, **write-position-paper** or **write-overview**. Then follow **new-post** for files, front matter (`kind: essay`, first category `essay`), translation, verification and publishing to `main`.
 
 ## What makes it an essay
 

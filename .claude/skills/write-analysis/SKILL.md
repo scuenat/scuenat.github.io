@@ -1,11 +1,11 @@
 ---
 name: write-analysis
-description: Shape and write an analysis for this site (kind analysis, blue ANALYSIS badge) — a close reading of a paper, post or system, or a working paper that tests an idea with a model, data or simulation. Use when the user asks for an analysis or a working paper (for a position paper use write-position-paper), or after new-post chose "Analysis". Starts by confirming the kind (essay, analysis, note or position paper) and defers to new-post for files, front matter, translation and publishing to main.
+description: Shape and write an analysis for this site (kind analysis, blue ANALYSIS badge) — a close reading of a paper, post or system, or a working paper that tests an idea with a model, data or simulation. Use when the user asks for an analysis or a working paper (for a position paper use write-position-paper), or after new-post chose "Analysis". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation and publishing to main.
 ---
 
 # Write an analysis
 
-**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Analysis", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note or a position paper?" (options Analysis (Recommended) / Essay / Note / Position paper). If the answer is not Analysis, switch to **write-essay**, **write-note** or **write-position-paper**. Then follow **new-post** for files, front matter (`kind: analysis`), translation, verification and publishing to `main`.
+**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Analysis", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Analysis (Recommended) / Essay / Note / Position paper). If the answer is not Analysis, switch to **write-essay**, **write-note**, **write-position-paper** or **write-overview**. Then follow **new-post** for files, front matter (`kind: analysis`), translation, verification and publishing to `main`.
 
 ## Two flavours
 
@@ -14,7 +14,7 @@ Ask which one, if it is not obvious:
 - **Reading of a source** — a paper, a blog post, a system. First category `analysis`. Examples: `posts/2026-10-18-the-junior-colleague`, `posts/2026-10-22-review-the-intent-not-the-diff`.
 - **Working paper** — an idea of the author's put to a test with a model, data or a simulation, without a provocative stance. First category `paper`; still `kind: analysis`. Add a `references.bib`, `bibliography: references.bib`, `google-scholar: true`, and a PDF next to `index.qmd` if one exists. Example: `posts/2026-09-29-show-what-changed`.
 
-If the post takes a deliberately provocative stance and argues for it, it is a **position paper**: use **write-position-paper** instead.
+If the post takes a deliberately provocative stance and argues for it, it is a **position paper**: use **write-position-paper** instead. If it surveys a whole field from many sources rather than reading one, it is an **overview**: use **write-overview**.
 
 Ask the user for the source (link or file) or the claim, and any data, code or numbers to use. Read the source in full before writing; never summarise from memory.
 
