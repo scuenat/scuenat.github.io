@@ -1,0 +1,186 @@
+---
+title: "Stop Shifting Left"
+subtitle: "A provocative position paper: unit tests and automatic checks, then straight to production behind a flag, where the people who know the domain do the testing"
+description: "A deliberately provocative position paper. When agents write the code, most remaining defects are about fit, not implementation, and only people who know the domain see them. Keep unit tests and automatic checks, ship behind a flag, let domain experts use it every day, and release by flipping the flag."
+date: 2026-11-04
+citation: true
+google-scholar: true
+toc-depth: 2
+bibliography: references.bib
+categories: [paper, position, ai, agents, programming, testing]
+kind: position   # card marker: essay | analysis | note | position | overview
+topics: [agentic-coding]   # home-page theme tiles (index.qmd)
+image: figures/fig01.png
+resources:
+  - figs.py
+  - sim.py
+  - results.json
+  - figures/*.png
+---
+
+::: {.callout-warning appearance="simple"}
+**A provocative paper, on purpose.** A position paper in the form of a short scientific paper: a thesis, a model, a simulation, and predictions that could prove it wrong. It follows [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd), which let go of the human approval of each change. This paper lets go of the next layer: the engineering-side testing between the unit test and the user. Figure 1 is a schematic of my own; Figures 2 and 3 and Table 2 come from the model and simulation in [sim.py](sim.py) and [figs.py](figs.py). The parameters are chosen, not measured.
+:::
+
+**Abstract.** For twenty-five years, the advice has been to *shift left*: test earlier, test more, and catch defects before anyone uses the software. Agentic coding changes what is left to catch. When an agent writes the code in an hour and fixes it in another, the defects that survive are fewer, and more often defects of *fit*: the code does what was asked, but what was asked was not quite what the domain needs. Integration suites, end-to-end tests and QA passes find implementation defects. They rarely find defects of fit, and they cost time in every cycle. I model a feature as a loop in which domain experts use each new version in production behind a flag and find a share $q$ of what remains each day. An engineering-side suite that costs $s$ extra hours per cycle speeds up that loop only when $s/T < \ln(1-e\varphi)/\ln(1-q)$, where $T$ is the length of a cycle, $\varphi$ the share of implementation defects and $e$ the share of them the suite catches. With plausible values, the suite must cost less than about four hours a cycle to pay, and the bound falls toward zero as agents make fewer implementation mistakes. In a simulation, keeping only unit tests and automatic checks halves the time to release; spending two of the days saved on one more clean day in place still releases five days earlier, with more than a third fewer defects left for customers. The rule: *keep the checks a machine can run in minutes, drop the rest, and let the people who know the domain test the real thing.* I state the conditions, and five predictions that would prove it wrong.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Claims
+
+1. **The rule.** Keep unit tests and automatic checks. Drop the engineering-side layers above them. Ship to production behind a flag, let domain experts use it daily, fix overnight, and release by flipping the flag.
+2. **Why.** With agents, the defects that remain are mostly about fit, and only people who know the domain see them. The test pyramid was built for implementation defects.
+3. **The condition.** A suite speeds up learning only if $s/T < \ln(1-e\varphi)/\ln(1-q)$. As agents improve, $\varphi$ falls and the suite stops paying.
+4. **What stays.** Unit tests, checks, staged rollout and monitoring, a thin gate for what cannot be undone, and formal quality control once at the end where the domain requires it.
+5. **What the loop needs.** Flags that really isolate, experts who take part every day, and a fix within a day.
+6. **The test.** Features shipped this way should reach release sooner with no more escaped defects and no more regressions. If they do not, the thesis is wrong.
+:::
+
+## 1. Introduction
+
+My thesis: for most features built by agents, the testing that engineering does between the unit test and the user should go. It should not shrink. It should go. Integration and end-to-end suites written for each feature, regression packs, QA passes, staging environments and user acceptance at the end of a project are all part of what I mean.
+
+This is not an argument against quality. It is an argument about where quality is learned. Every day I see agents write in an hour what used to take a week. What has not become faster is learning whether what was built is right. That knowledge sits with the people who use the software: application engineers, specialists, internal users, the colleague who has run the process for ten years. They find in an afternoon what no test plan foresaw, because they know what the software is *for*.
+
+The usual process keeps them waiting until the end. Code goes through unit tests, integration tests, end-to-end tests and a QA pass, then into staging, and only then do they see it. Every finding then goes back through every stage (Figure 1, top). That made sense when writing the code was the slow part. Now it means the fastest step, writing, waits for the slowest, the tests around it, and the most useful step, use by people who know the domain, comes last.
+
+The proposal turns this around (Figure 1, bottom). The agent writes the change with its unit tests, automatic checks run, and the change goes straight to production behind a flag that is off for customers and on for a small group of domain experts. They use it in their real work that day. What they find goes to the agent in the evening, and a new version is in production the next morning. When a day or two pass with nothing new, the loop ends and the flag is flipped for everyone, gradually.
+
+![**Figure 1.** Today, a change goes through layer after layer of tests before anyone who knows the domain sees it, and each finding goes back through every layer. In the proposal, unit tests and automatic checks are the only gate before production. The change ships behind a flag, domain experts use it in place, and a new version arrives every day until nothing new is found. Releasing is flipping the flag. Schematic, my own.](figures/fig01.png){fig-alt="Two bands. Top, today: shift left, test everything before anyone uses it. Six cards in a row: Write, Unit tests, Integration and E2E, QA pass, Acceptance in staging, Release. The three middle stages are highlighted. A curved arrow from Acceptance back to Integration and E2E is labelled each finding goes back through every stage. Bottom, proposed: ship to learn, unit tests and checks, then straight to production behind a flag. Cards: Write (the agent), Unit tests and automatic checks, Production with the flag off for customers, Use it (domain experts, flag on, highlighted), Flip for everyone, reached when nothing new is found. From Use it, an arrow labelled what they found leads down to a card Findings tonight, a new version tomorrow, which leads back up to Unit tests with the label every day."}
+
+## 2. Background: what shifting left was for
+
+**The cost curve.** The case for testing early rests on the idea that a defect costs one to two orders of magnitude more to fix the later it is found [@boehm1981]. The empirical basis of that curve is weaker than its fame [@bossavit2015], and agile practice argued from the start that short iterations and automated tests flatten it [@beck1999]. *Shift-left testing* named the practice of moving testing earlier in the life cycle [@smith2001]. The *test pyramid* gave it a shape: many fast unit tests at the base, fewer integration tests, a few end-to-end tests at the top [@cohn2009].
+
+**Deploying continuously.** Continuous delivery showed that small, frequent releases are both faster and safer than large ones [@humble2010], and the largest study of delivery performance found that speed and stability go together rather than against each other [@forsgren2018]. Large web companies went further, deploying several times a day and separating *deploying* code from *releasing* a feature with flags [@feitelson2013; @savor2016]. Flags are now common practice, with known costs: they add paths through the code and must be removed once the feature is live [@rahman2016; @hodgson2017].
+
+**Learning from use.** Using one's own software before customers do has a long history [@harrison2006]. The *build, measure, learn* loop treats a release as an experiment [@ries2011], and online controlled experiments made that loop rigorous for behaviour that can be measured at scale [@kohavi2020]. Site reliability engineering added staged rollouts and automatic rollback, so a bad build reaches few users and leaves quickly [@beyer2016].
+
+**What this paper adds.** All of this was built when writing code was the bottleneck, and the layers of testing were cheap compared with it. The previous paper in this series argued that per-change human review no longer pays when fixes are cheap. This one applies the same reasoning to testing: what each layer finds, what it costs per cycle, and whether the people who know the domain could find it sooner.
+
+## 3. A model of the loop
+
+Consider one feature, built and corrected in cycles. A cycle lasts $T$, here one working day: the agent builds a version, it is used, findings come back, the next version is built. Defects come in two kinds.
+
+- *Implementation defects*: the code does not do what was specified. A machine can, in principle, detect them: a crash, a wrong total, a broken call to another service.
+- *Fit defects*: the code does what was specified, but not what the domain needs. A unit is wrong in a corner case nobody wrote down, a step is in the wrong order for how people actually work, a report answers last year's question. Only someone who knows the domain sees them, and usually only when they use the software for real.
+
+Let $\varphi$ be the share of implementation defects among those that remain. Domain experts using the feature in place find a share $q$ of the remaining defects each cycle, of either kind. An engineering-side suite adds $s$ to each cycle, for writing, maintaining, running and triaging it, and catches a share $e$ of the implementation defects; it catches almost none of the fit defects, since it was written from the same specification as the code.
+
+Without the suite, the number of remaining defects is multiplied by $(1-q)$ each cycle of length $T$. With it, approximately by $(1-q)(1-e\varphi)$ each cycle of length $T+s$. The suite speeds up learning, defects removed per unit of time, when
+
+$$
+\frac{\ln(1-q) + \ln(1-e\varphi)}{T + s} < \frac{\ln(1-q)}{T}
+\quad\Longleftrightarrow\quad
+\frac{s}{T} < \frac{\ln(1-e\varphi)}{\ln(1-q)} .
+$$ {#eq-suite}
+
+In plain words: *the suite must cost less, as a share of a cycle, than the share of learning it adds.* With $e = 0.6$, half the defects of the implementation kind, and experts who find half of what remains each day, the right-hand side is about $0.51$: a suite pays only if it costs less than about four hours in an eight-hour cycle. Figure 3 shows the bound for other values.
+
+**What agents change.** Two terms move. First, $T$ shrinks: an agent rebuilds overnight what took a team a sprint, so the fixed cost $s$ becomes a large share of each cycle. Second, $\varphi$ falls. Agents are increasingly good at writing code that does what it is told, and with unit tests written alongside, most remaining mistakes are in what it was told. As $\varphi \to 0$, the right-hand side of @eq-suite goes to zero: no suite is cheap enough. This is an assumption, not a measurement. *Assumption F: for features built by agents with unit tests, most defects that survive the unit tests are fit defects.* Prediction H3 tests it.
+
+**What $s$ contains.** The cost of a suite is not its run time. It is writing the integration and end-to-end tests for a new feature, keeping them working as the feature changes every day, rerunning the flaky ones [@luo2014; @memon2017], keeping a staging environment close enough to production to mean something, and the QA pass on top. An agent can write the tests, but a suite that changes with the feature every day still needs a person to judge each failure: is the code wrong, or the test? That is the part of $s$ that does not shrink.
+
+**What a flag changes.** The old reason to catch everything before release was harm: a defect found by a customer costs money and trust. Behind a flag, a defect found by an expert costs almost nothing. It hurts no customer, the expert reports it, and the next version fixes it. The flag moves most of the harm term of the late-fix cost to zero, which is what made testing early valuable in the first place.
+
+## 4. The rule in practice
+
+**What stays before production.** Everything a machine runs in minutes and that does not need a person to interpret: the build, types and linters, static analysis, dependency and security scans, the unit tests the agent writes for each changed behaviour, and the session rules from the previous paper (no test deleted or weakened without a recorded decision). These are cheap, they protect existing behaviour as much as new behaviour, and they keep $\varphi$ low. They are the source of the intent, in the sense of [Intent Is the Source](../2026-10-21-intent-is-the-source/index.qmd): the checks that say what the code must do.
+
+**What goes.** Integration and end-to-end suites written per feature, manual test plans, QA passes, staging environments as a gate, and acceptance testing at the end of the project. Production, behind a flag, is the integration environment: real services, real data, real load, with none of the drift between staging and production.
+
+**What stays after production.** Releasing is still careful. Every build goes out in stages, to a small share of servers first, and rolls back automatically if error rates or latency move [@beyer2016]. The flag is flipped gradually too: experts, then a pilot group, then everyone, watching the same signals [@kohavi2020]. And the thin gate of the previous paper remains for what cannot be undone. A flag does not make a deleted table or a sent payment reversible. Code that does such things runs only behind the gate, never as a side effect of testing in place.
+
+**Who tests, and how.** A small group of domain experts, three to five per feature, who will use it as part of their real work. In my world, these are application engineers. Elsewhere, specialists or experienced internal users. They are not a QA department. They do not follow a test plan: they do their job with the new version and say what is wrong. Each cycle they spend an hour or two on it and write down what they found, in a short form the agent can read. The agent turns each finding into a unit test where it can, so the finding stays found.
+
+**Quality control is not replaced.** Where a domain requires formal quality control or validation, it still happens, once, at the end of the loop, on the exact build that will be released, before the flag is flipped. The loop does not do QC's job. It fills the gap before QC: the part of quality that only use reveals, which a test plan cannot.
+
+**When the loop ends.** When the experts go a set number of days without a new finding, two in the simulation, the feature is ready. Releasing is flipping the flag. Afterwards, the flag and the old path are removed within a set time, so flags do not pile up [@rahman2016].
+
+## 5. A simulation
+
+I simulated one feature under four policies (Table 1). The feature starts with twelve defects, half of each kind. Each fix can introduce a new defect. Unit tests catch half the new implementation defects. The full suite costs one working day per cycle and catches 60% of the remaining implementation defects and 10% of the fit defects. Domain experts find 60% of implementation defects and 40% of fit defects each day of use. The flag is flipped after two days in a row with nothing found. The parameters are chosen, not measured, and generous to the suite: it is assumed to find most implementation defects, and its cost is one day, which is short for an end-to-end suite and a QA pass.
+
+| Parameter | Value |
+|---|---|
+| Defects in the first version | 12, half of each kind ($\varphi = 0.5$) |
+| Cycle without suite, $T$ | 1 working day (agent builds in 2 h, experts use it the rest of the day) |
+| Extra cost of the suite per cycle, $s$ | 1 working day, of which 4 engineer hours (also 2 h, Figure 2) |
+| Unit tests and checks catch | 50% of new implementation defects |
+| Suite catches per cycle, $e$ | 60% of implementation defects, 10% of fit defects |
+| Experts find per day of use | 60% of implementation defects, 40% of fit defects |
+| Chance a fix brings a new defect | 15% |
+| Expert time per day of use | 2 h |
+| Release rule | flip after 2 days in a row with nothing found (1 to 5 in Figure 2) |
+| Runs | 4 000 per policy |
+
+: **Table 1.** Simulation parameters. *Shift left* runs the suite until it finds nothing, then hands over to the experts in staging; each of their findings goes back through the suite. The other policies test in place from the first day.
+
+| Policy | Days to release (p90) | Left for customers | Suite hours | Expert hours |
+|---|---|---|---|---|
+| Shift left | 13.2 (17.8) | 0.39 | 30 | 10.5 |
+| Suite + flag | 12.0 (16.0) | 0.33 | 24 | 11.8 |
+| **Unit tests + flag (proposed)** | **6.0 (9.0)** | 0.47 | 0 | 12.9 |
+| Proposed, 3 clean days | 8.0 (10.0) | **0.24** | 0 | 16.2 |
+| No tests + flag | 7.0 (9.0) | 0.43 | 0 | 14.0 |
+
+: **Table 2.** Simulation results for one feature: median days to release (90th percentile), defects left for customers to find, engineer hours on the suite and expert hours of use. *Shift left* runs the suite, then acceptance at the end; *suite + flag* runs the suite and tests in place; *proposed, 3 clean days* waits one more clean day before the flip. Standard errors are 0.01 or less for defects left. Run `python sim.py` to reproduce them.
+
+**The proposal is faster, and can be better.** Keeping only unit tests and checks releases in six days instead of thirteen, with slightly more defects left for customers: 0.47 against 0.39. That comparison is unfair to the proposal, because it stops earlier. Spend two of the seven days saved on one more clean day of use, and it releases five days before shift left with more than a third fewer defects left (0.24 against 0.39), without a single engineer hour on the suite. Figure 2 shows the whole trade-off: for any number of clean days, the proposal lies below and to the left.
+
+**The suite is not useless; it is slow.** Adding the suite to the loop in place does remove defects, 0.33 left instead of 0.47 at the same release rule. But it doubles each cycle, and the time is better spent letting experts use the feature for longer. When the suite costs two hours a cycle instead of a day, the curves almost meet (Figure 2, bottom). This is what @eq-suite predicts: the bound for these values lies between three and six hours (Figure 3).
+
+**Unit tests earn their place.** Without them, the loop takes a day longer, because experts spend their time on crashes a test would have caught. That is the line: tests that cost minutes and save a day stay; tests that cost a day and save less go.
+
+![**Figure 2.** Days until the flag is flipped for everyone against defects left for customers to find, for release rules from one to five clean days in a row (points). Top: the suite costs one working day per cycle. Bottom: it costs two hours. Lower left is better. Simulation, parameters in Table 1.](figures/fig02.png){fig-alt="Two stacked panels, each plotting defects left for customers to find on a log scale from 0.03 to 2 against days until the flag is flipped, from 3 to 24. Three falling curves of five points each. Top, suite costs a day per cycle: the proposed curve, unit tests plus flag, runs from 4.3 days and 1.3 defects to 10.6 days and 0.06; full suite plus flag from 7.9 days and 0.95 to 19.7 days and 0.03; shift left, dashed, from 9.3 days and 1.17 to 21.6 days and 0.04. The proposed curve lies well to the left. Bottom, suite costs two hours per cycle: the three curves nearly overlap between 4 and 13 days, shift left slightly to the right."}
+
+![**Figure 3.** When does an engineering-side suite pay? The largest extra cost per eight-hour cycle for which a suite still speeds up learning, from @eq-suite with $e = 0.6$, against the share of defects that are implementation defects. Below the lines the suite pays; above them it costs more than it saves. Points mark the two suite costs of Figure 2 at $\varphi = 0.5$. Model, not measurement.](figures/fig03.png){fig-alt="Chart with horizontal axis share of defects that are implementation defects, 0 to 100 percent, and vertical axis extra cost of the suite per cycle, 0 to 8 hours. Two rising curves from the origin: a dashed one, if experts find 40 percent of what remains each day, reaching 8 hours at about 66 percent; a solid one, if they find 60 percent, reaching about 7.4 hours at 95 percent. The area below the solid curve is shaded blue, the suite pays; the area above the dashed curve is shaded amber, the suite costs more than it saves. A point at 50 percent and 8 hours, labelled Table 2: one day, lies in the amber area. A point at 50 percent and 2 hours, labelled two hours, lies in the blue area near the solid curve."}
+
+## 6. Predictions and a test protocol
+
+The thesis is wrong if testing in place gives worse software, not if it is merely different. For features shipped under the rule, compared with similar features shipped with the full suite:
+
+- **H1. Faster to release.** The median time from first commit to the flag being flipped for everyone falls by at least a third.
+- **H2. No more escaped defects.** Defects reported by customers in the 30 days after the flip are no more frequent, within a margin fixed in advance.
+- **H3. Most remaining defects are about fit (Assumption F).** Of the defects experts find in place, fewer than half are of the kind an integration or end-to-end test could have caught, judged by someone who did not take part. If most are implementation defects and a suite could find them cheaply, @eq-suite says to keep the suite.
+- **H4. No more regressions.** The change failure rate of code that is *not* behind the flag, the shared code every feature touches [@forsgren2018], does not rise.
+- **H5. The experts stay engaged.** Expert participation and findings per expert hour do not decay over the months of the study. A loop nobody uses turns the proposal into shipping blind.
+
+**Protocol.** Within the same teams, features are randomly assigned to one of the two processes at the start, so team skill and calendar effects are shared. H2 and H4 are pre-registered non-inferiority tests; H1, H3 and H5 are secondary outcomes, measured from the repository, the flag system, the defect tracker and incident logs, not from opinions. Teams cannot be blinded, so defects are classified by someone outside them. If H2 or H4 fails, the thesis is wrong for the teams studied. If H3 fails, it is wrong in its reasoning, even if it happens to work.
+
+## 7. Objections and limitations
+
+**"Testing in production is reckless."** Without a flag, staged rollout and rollback, it is. The proposal is not to release untested code to customers. It is to deploy code that customers cannot reach and let experts use it. The real risk is the flag itself. In 2012, a trading firm reused an old flag for new code. On the one server of eight where the new code had not been deployed, the flag woke up long-dead code, and the firm lost about 460 million dollars in 45 minutes [@sec2013knight]. Flags are code: each one needs a unit test that, when off, the old behaviour is untouched, an owner, and a date by which it is removed [@rahman2016; @hodgson2017].
+
+**"Flags do not isolate everything."** True. A migration, a shared library or a change to a common data model is not behind any flag. That code is protected by the unit tests, the staged rollout of every build, and the daily audit of the previous paper, and H4 measures whether that is enough. Where it is not, for a shared component on which everything depends, keep the integration tests for that component. The rule is about per-feature testing, not about the contracts between systems.
+
+**"Experts are not testers."** They are not meant to be. Testers are trained to break software; experts know what it is for. The proposal needs the second skill, which the first does not replace. But expert time is scarce and expensive, and if they treat the loop as an extra duty, $q$ falls and the model's advantage with it. The loop works when using the new version is part of their real work, not on top of it.
+
+**"Production data is real."** It is, which is the point and the risk. Experts working in place create, change and read real records. Flagged features must write only what could be written by hand and corrected by hand; anything that cannot be undone goes through the thin gate. Where privacy or regulation forbids it, the loop runs on a copy of production, which keeps most of the value.
+
+**Regulated domains.** Some industries require documented verification before release. The proposal keeps it, once, at the end, on the build that will be released. It is likely to be easier, not harder: the build has been used for real by experts, with every finding recorded, before formal QC begins.
+
+**"Intent Is the Source said tests are the new source."** It did, and this paper agrees. The checks that state what the code must do, at the level of a function or a contract, stay and are written with every change. What goes are the layers that restate the same intent at higher levels and slower cost, while the intent that matters most, whether it is the right intent, is checked only by use.
+
+**Loss of skill.** If engineers no longer write end-to-end tests, they may lose the habit of thinking about the whole system [@bainbridge1983]. The loop gives them something better to think with: real findings from real use, every day. But it must be kept on purpose, for instance by having engineers read the experts' findings rather than only the agent.
+
+**Limits of the model.** It treats defects as independent and of equal weight. If the suite mainly catches severe defects, the model is biased against it. It assumes $q$ is the same every day, although experts may find the obvious problems first and the subtle ones later, which would slow the loop and favour a longer release rule. It ignores the cost of expert time beyond counting it, and the cost of the agent's work. Coverage of unit tests is not a measure of their strength [@inozemtseva2014], so "unit tests catch half" is a parameter, not a guarantee. The parameters describe one kind of feature; the direction of the result holds wherever @eq-suite holds, not its size. And the whole argument assumes that agents really do make writing and fixing code fast, which the evidence for experienced developers does not yet settle [@becker2025].
+
+## 8. Conclusion
+
+We shifted left because finding a defect late was expensive and only a test could find it early. With agents and flags, a defect found the next day by an expert behind a flag costs almost nothing, and the defects that matter most are the ones no test plan foresees. The layers between the unit test and the user were the right investment for code written by hand. For code written by agents, they slow down the only loop that tells us whether we built the right thing.
+
+Keep the checks a machine can run in minutes. Ship behind a flag. Let the people who know the domain use it tomorrow, and the day after. When they find nothing new, flip the flag. Stop shifting left: shift to the people who know.
+
+::: {.read-next}
+**Read next** · [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd)
+The paper this one follows: approve what you cannot undo, watch everything else.
+:::
+
+::: {.small}
+*The views in this paper are my own and do not describe any product or plan of my employer.*
+:::
+
+## References
+
+::: {#refs}
+:::
