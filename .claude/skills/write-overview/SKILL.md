@@ -30,7 +30,7 @@ An analysis reads one source closely; an overview maps a field. It gathers many 
    - **What is established, what is open** — short lists;
    - **My reading** — the author's own view, clearly marked as opinion;
    - **Where to start** — 3–5 sources to read first, each with one line on why.
-4. `::: {.read-next}` when there is a natural next post, the disclaimer (*The views in this overview are my own …*), then `## References` / `::: {#refs}`.
+4. `::: {.read-next}` when there is a natural next post, then in `::: {.small}` a non-exhaustiveness note before the usual disclaimer (*This overview is not exhaustive. It maps representative, openly accessible work from <period> as I could read it … Missing work and corrections are welcome.*; in French *Ce panorama n'est pas exhaustif. …*), then *The views in this overview are my own …*, then `## References` / `::: {#refs}`.
 
 ## Style
 
