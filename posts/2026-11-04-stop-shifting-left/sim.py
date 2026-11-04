@@ -22,6 +22,9 @@ P = dict(
     h_s=4.0,        # engineer hours per cycle of extra tests (write, maintain, rerun, triage)
     h_t=2.0,        # domain-tester hours per day of testing in place
     lock=1.0,       # days to generate the regression and extra unit tests once the feature is accepted
+    post_days=60,   # working days followed after release
+    reg_rate=0.05,  # daily chance that a change elsewhere breaks this feature
+    e_reg=0.7,      # share of such regressions the feature's regression suite catches
     clean_days=2,   # release (flip the flag) after this many days in a row with nothing found
     runs=4000,
     horizon=120,
@@ -39,6 +42,17 @@ POLICIES = {
 def new_defects(rng, n, p):
     imp = rng.binomial(n, p["phi"])
     return imp, n - imp
+
+
+def after_release(policy, rng, p):
+    """Regressions introduced by later changes to shared code, and how many reach customers."""
+    n = rng.binomial(p["post_days"], p["reg_rate"])
+    catch = 0.0
+    if policy != "nothing":
+        catch = p["u"]
+    if policy in ("shift_left", "suite_and_flag", "lock_in"):
+        catch = 1 - (1 - p["u"]) * (1 - p["e_reg"])
+    return n - rng.binomial(n, catch)
 
 
 def run(policy, rng, p=P):
@@ -84,15 +98,19 @@ def run(policy, rng, p=P):
 
 def summarise(p=P, seed=7):
     rng = np.random.default_rng(seed)
+    rng_post = np.random.default_rng(seed + 100)   # separate stream for the months after release
     out = {}
     for pol in POLICIES:
         rs = [run(pol, rng, p) for _ in range(p["runs"])]
+        for r in rs:
+            r["regressions"] = after_release(pol, rng_post, p)
         d = np.array([r["days"] for r in rs]); esc = np.array([r["escaped"] for r in rs])
         out[pol] = dict(
             days_median=float(np.median(d)), days_p90=float(np.percentile(d, 90)),
             escaped_mean=float(esc.mean()), escaped_se=float(esc.std() / np.sqrt(len(esc))),
             eng_h=float(np.mean([r["eng_h"] for r in rs])),
             test_h=float(np.mean([r["test_h"] for r in rs])),
+            regressions=float(np.mean([r["regressions"] for r in rs])),
         )
     return out
 
@@ -108,17 +126,7 @@ if __name__ == "__main__":
     for k, v in res.items():
         print(f"{POLICIES[k]:66s} days {v['days_median']:5.1f} (p90 {v['days_p90']:5.1f})  "
               f"escaped {v['escaped_mean']:.2f}±{v['escaped_se']:.2f}  eng {v['eng_h']:5.1f} h  "
-              f"testers {v['test_h']:5.1f} h")
+              f"testers {v['test_h']:5.1f} h  regressions {v['regressions']:.2f}")
     for phi in (0.2, 0.5, 0.8):
         print("phi", phi, "s* =", round(float(threshold(phi)), 2), "days")
-    # the proposed loop, spending one more clean day before the flip
-    rng = np.random.default_rng(8)
-    rs = [run("proposed", rng, dict(P, clean_days=3)) for _ in range(P["runs"])]
-    esc = np.array([r["escaped"] for r in rs]); d = np.array([r["days"] for r in rs])
-    res["proposed_3_clean_days"] = dict(days_median=float(np.median(d)), days_p90=float(np.percentile(d, 90)),
-                                        escaped_mean=float(esc.mean()), escaped_se=float(esc.std() / np.sqrt(len(esc))),
-                                        eng_h=0.0, test_h=float(np.mean([r["test_h"] for r in rs])))
-    v = res["proposed_3_clean_days"]
-    print(f"{'Proposed, three clean days before the flip':66s} days {v['days_median']:5.1f} (p90 {v['days_p90']:5.1f})  "
-          f"escaped {v['escaped_mean']:.2f}±{v['escaped_se']:.2f}  testers {v['test_h']:5.1f} h")
     json.dump(res, open("results.json", "w"), indent=2)

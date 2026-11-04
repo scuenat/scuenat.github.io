@@ -142,7 +142,7 @@ def fig_loop():
     # top band: today
     ax.add_patch(FancyBboxPatch((0.3, 13.4), 32.4, 6.9, boxstyle="round,pad=0,rounding_size=0.45",
                                 fc="#eef1f4", ec="none", zorder=0.5))
-    heading(ax, 0.95, 19.65, "TODAY: SHIFT LEFT", "Test everything before anyone uses it", color=NAVY)
+    heading(ax, 0.95, 19.65, "THE FIRST WORLD: SHIFT LEFT", "Test everything before anyone uses it", color=NAVY)
     y = 14.5
     steps = [("Write", None, NAVY, 4.2), ("Unit tests", None, NAVY, 4.6),
              ("Integration\nand E2E", None, AMBER, 4.9), ("QA pass", None, AMBER, 4.2),
@@ -165,8 +165,8 @@ def fig_loop():
     # bottom band: proposed
     ax.add_patch(FancyBboxPatch((0.3, 0.3), 32.4, 11.9, boxstyle="round,pad=0,rounding_size=0.45",
                                 fc=SAND_T, ec="none", zorder=0.5))
-    heading(ax, 0.95, 11.55, "PROPOSED: SHIP TO LEARN",
-            "Develop behind a flag with unit tests; lock in with regression tests when done", color=WARM)
+    heading(ax, 0.95, 11.55, "THE TWO WORLDS TOGETHER",
+            "Learn with experts behind a flag; lock in with regression tests when done", color=WARM)
     y = 5.6
     card(ax, 0.95, y, 5.0, 2.9, "Write", "the agent", accent=NAVY, fs=10.5, subfs=8)
     card(ax, 6.95, y, 6.0, 2.9, "Unit tests", "and automatic checks", accent=NAVY, fs=10.5, subfs=8)
@@ -251,7 +251,7 @@ def fig_frontier():
     lines = [("shift_left", "Shift left", MUTED, (0, (4, 3))),
              ("suite_and_flag", "Full suite + flag", NAVY, "-"),
              ("proposed", "Unit tests + flag", WARM, (0, (2, 2))),
-             ("lock_in", "Unit tests + flag + lock-in (proposed)", WARM, "-")]
+             ("lock_in", "Two worlds: flag, then lock-in", WARM, "-")]
     data = {}
     for ax, s, title in zip(axes, (1.0, 0.25), ("Suite costs a day per cycle", "Suite costs two hours per cycle")):
         for pol, lab, col, ls in lines:

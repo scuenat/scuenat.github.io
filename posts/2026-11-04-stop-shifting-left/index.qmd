@@ -1,7 +1,7 @@
 ---
 title: "Stop Shifting Left"
-subtitle: "A provocative position paper: while a feature is being built, unit tests and a flag are enough; the people who know the domain do the testing, and the regression suite is written once, when the feature is done"
-description: "A deliberately provocative position paper. Build new features with unit tests only, in production behind a flag, tested daily by domain experts. Write the regression suite once, when the feature is done."
+subtitle: "A provocative position paper: build new features with unit tests and a flag, let the people who know the domain test them, and write the regression suite once the feature is done"
+description: "A deliberately provocative position paper. Two worlds of testing, combined: build new features behind a flag, tested daily by domain experts, then lock them in with a regression suite."
 date: 2026-11-04
 citation: true
 google-scholar: true
@@ -19,46 +19,65 @@ resources:
 ---
 
 ::: {.callout-warning appearance="simple"}
-**A provocative paper, on purpose.** A thesis, a model, a simulation and predictions that could prove it wrong. It follows [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd), which let go of approving each change; this one lets go of the testing layers around a feature *while it is being built*. Figures 1 and 2 are schematics of my own; Figures 3 and 4 and Table 2 come from [sim.py](sim.py) and [figs.py](figs.py). The parameters are chosen, not measured.
+**A provocative paper, on purpose.** A thesis, a model, a simulation and predictions that could prove it wrong. It follows [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd), which let go of approving each change. This one lets go of the testing layers around a feature *while it is being built*, and keeps them for when it is done. Figures 1 and 2 are schematics of my own. Figures 3 and 4 and Table 3 come from [sim.py](sim.py) and [figs.py](figs.py). The parameters are chosen, not measured.
 :::
 
-**Abstract.** The standard advice is to *shift left*: test earlier and more, before anyone uses the software. When agents write the code, the defects that survive unit tests are mostly defects of *fit*: the code does what was asked, but not what the domain needs. Integration suites, end-to-end tests and QA passes rarely catch these, and while a feature is still changing they cost time in every cycle. I propose two phases. **Develop:** unit tests and automatic checks only, deploy to production behind a flag, let domain experts use each version in their real work, fix overnight. **Lock in:** when the feature is accepted, generate the regression suite and extra unit tests from the behaviour the experts approved, automate them, then flip the flag. A simple model shows that a suite run in every cycle pays only if $s/T < \ln(1-e\varphi)/\ln(1-q)$, which with plausible values means less than about four hours per cycle. In a simulation, develop-then-lock-in reaches the market in 7 days instead of 13, with the same number of escaped defects and an eighth of the engineering time. Existing features keep a fully automated regression suite on every build. I give the conditions and five predictions that would prove the thesis wrong.
+**Abstract.** There are two worlds of testing. In the first, we *shift left*: test early, in layers, before anyone uses the software. It gives stability and protects against regressions, at the price of slow learning. In the second, we *ship to learn*: put the feature in front of people who know the domain and correct it every day. It is fast and finds what no test plan foresaw, at the price of fragility. When agents write the code, the defects that survive unit tests are mostly about *fit*: the code does what was asked, but not what the domain needs. Only people who know the domain see those. I propose combining the two worlds in sequence. **Develop** each new feature with unit tests and automatic checks, in production behind a flag, used daily by domain experts. **Lock it in** when it is done, with a regression suite generated from the accepted behaviour, and then flip the flag. A simple model shows that a suite run in every development cycle pays only if $s/T < \ln(1-e\varphi)/\ln(1-q)$. In a simulation, the combined process reaches the market in 7 days instead of 13. It leaves the same number of defects for customers over the first three months, for an eighth of the engineering time. AI does not settle what is right for the domain, and generated tests can lock in mistakes. What we should let go of is not rigour but the belief that a feature can be known to be right before anyone has used it.
 
 ::: {.callout-tip appearance="simple" icon="false"}
 ## Claims
 
-1. **The rule.** While a feature is being built: unit tests, automatic checks, a flag, and domain experts using it every day. When it is done: lock it in with a generated, automated regression suite, then flip the flag.
-2. **Why.** With agents, most defects that remain are about fit, and only people who know the domain see them. A suite written for a moving feature mostly tests behaviour that will change.
-3. **The condition.** A suite run in every cycle pays only if $s/T < \ln(1-e\varphi)/\ln(1-q)$. As agents improve, $\varphi$ falls and the bound goes to zero.
-4. **Existing features.** They are protected by a fully automated regression suite that runs on every build. Nothing in this proposal touches it.
-5. **The test.** Features built this way should reach the market sooner, with no more escaped defects and no more regressions. If they do not, the thesis is wrong.
+1. **Two worlds.** Shift left gives stability; ship to learn gives fit and speed. Each fails alone. Used in sequence, they keep both strengths.
+2. **The rule.** While a feature is built: unit tests, automatic checks, a flag and domain experts every day. When it is done: lock it in with a generated regression suite, then flip the flag.
+3. **Why now.** With agents, most remaining defects are about fit. A suite run in every cycle pays only if $s/T < \ln(1-e\varphi)/\ln(1-q)$, and the bound falls as agents improve.
+4. **Existing features.** They keep a fully automated regression suite on every build. Nothing here weakens it.
+5. **What AI does not solve.** Judging fit, and knowing when a plausible test is wrong. Those stay with people.
+6. **What to let go.** Certainty before use, not care. If features built this way escape more defects or cause more regressions, the thesis is wrong.
 :::
 
 ## 1. Introduction
 
-My thesis: **while a new feature is being developed, the testing layers between the unit test and the user should go.** That means integration and end-to-end suites written as the feature evolves, manual test plans, QA passes, staging as a gate and acceptance at the end. They should not shrink. They should go, until the feature is done.
+My thesis: **while a new feature is being developed, the testing layers between the unit test and the user should go.** That means integration and end-to-end suites written as the feature changes, manual test plans, QA passes, staging as a gate and acceptance at the end. They should not shrink. They should wait, until the feature is done.
 
-Every day I see agents write in an hour what used to take a week. What has not sped up is learning whether what was built is right. That knowledge belongs to the people who use the software: application engineers, specialists, experienced internal users. In an afternoon they find what no test plan foresaw, because they know what the software is *for*. The usual process puts them last. Each finding they make then goes back through every layer (Figure 1, top).
+Every day I see agents write in an hour what used to take a week. What has not sped up is learning whether what was built is right. That knowledge belongs to the people who use the software: application engineers, specialists, experienced internal users. They know what the software is *for*.
 
-The proposal turns this around (Figure 1, bottom). The agent writes the change with its unit tests, the checks run, and the change goes to production behind a flag: off for customers, on for a few domain experts. They use it that day, their findings go to the agent in the evening, and a new version is ready the next morning. When a day or two go by with nothing new, the feature is done. Only then do we write the full regression suite, against behaviour that no longer moves. Then we flip the flag.
+::: {.callout-note appearance="simple" icon="false"}
+**An illustrative case** (made up, but typical). An agent builds a feature that schedules maintenance for equipment. The specification says: next service 90 days after the last one. Unit tests pass, and an end-to-end suite written from the same specification would pass too. On the first afternoon, an application engineer using it notices that the count must restart after a *repair*, not only after a scheduled service, because that is how the equipment is certified. Nobody wrote that down. No test could have caught it, since every test was written from the same specification as the code. The fix ships the next morning.
+:::
 
-![**Figure 1.** Today, each layer of tests runs before anyone who knows the domain sees the change, and each finding goes back through every layer. In the proposal, unit tests and automatic checks are the only gate before production. Experts use the feature behind a flag, and a new version arrives each day. When the feature is done, a regression suite locks in the accepted behaviour, and the flag is flipped. Schematic, my own.](figures/fig01.png){fig-alt="Two bands. Top, today: shift left, test everything before anyone uses it. Six cards: Write, Unit tests, Integration and E2E, QA pass, Acceptance in staging, Release; a curved arrow from Acceptance back to Integration is labelled each finding goes back through every stage. Bottom, proposed: develop behind a flag with unit tests; lock in with regression tests when done. Cards: Write (the agent), Unit tests and automatic checks, Production (flag off for customers), Use it (domain experts). From Use it, an arrow labelled what they found leads to Findings tonight, a new version tomorrow, and back to Unit tests, labelled every day. From Use it, an arrow labelled done leads to Lock in (regression tests), then down to Flip for everyone."}
+The usual process shows the feature to that engineer last, after every layer of testing, and each of their findings goes back through every layer (Figure 1, top). The proposal shows it to them first, behind a flag, and keeps the layers for the end (Figure 1, bottom).
+
+![**Figure 1.** In the first world, each layer of tests runs before anyone who knows the domain sees the change, and each finding goes back through every layer. With the two worlds together, unit tests and automatic checks are the only gate before production. Experts use the feature behind a flag and a new version arrives each day. When the feature is done, a regression suite locks in the accepted behaviour, and the flag is flipped. Schematic, my own.](figures/fig01.png){fig-alt="Two bands. Top, the first world, shift left: test everything before anyone uses it. Six cards: Write, Unit tests, Integration and E2E, QA pass, Acceptance in staging, Release; a curved arrow from Acceptance back to Integration is labelled each finding goes back through every stage. Bottom, the two worlds together: learn with experts behind a flag; lock in with regression tests when done. Cards: Write (the agent), Unit tests and automatic checks, Production (flag off for customers), Use it (domain experts). From Use it, an arrow labelled what they found leads to Findings tonight, a new version tomorrow, and back to Unit tests, labelled every day. From Use it, an arrow labelled done leads to Lock in (regression tests), then down to Flip for everyone."}
 
 ## 2. Background
 
-**Shift left.** Testing early rests on the claim that a defect costs one to two orders of magnitude more to fix the later it is found [@boehm1981]. The evidence for that curve is thinner than its fame [@bossavit2015], and agile practice argued that short iterations flatten it [@beck1999]. *Shift-left testing* named the practice of moving tests earlier [@smith2001], and the *test pyramid* gave it a shape: many unit tests, fewer integration tests, a few end-to-end tests [@cohn2009].
+**Shift left.** Early testing rests on the claim that a defect costs one to two orders of magnitude more to fix the later it is found [@boehm1981]. The evidence for that curve is thinner than its fame suggests [@bossavit2015], and agile practice argued that short iterations flatten it [@beck1999]. The practice of moving tests earlier got a name [@smith2001] and a shape, the test pyramid [@cohn2009].
 
-**Deploy is not release.** Continuous delivery showed that small, frequent releases are both faster and safer [@humble2010; @forsgren2018]. Large web companies deploy many times a day and decide separately, with flags, when a feature is *released* [@feitelson2013; @savor2016]. Flags have known costs: more paths through the code, and flags that must be removed [@rahman2016; @hodgson2017]. Staged rollouts and automatic rollback limit the damage of a bad build [@beyer2016].
+**Ship to learn.** Continuous delivery showed that small, frequent releases are faster and safer [@humble2010; @forsgren2018]. Large web companies separate deploying code from releasing a feature, using flags [@feitelson2013; @savor2016], and flags have known costs [@rahman2016; @hodgson2017]. Using one's own software first is an old habit [@harrison2006]. *Build, measure, learn* treats a release as an experiment [@ries2011], and controlled experiments made that rigorous [@kohavi2020].
 
-**Learning from use.** Using one's own software before customers do is an old practice [@harrison2006]. *Build, measure, learn* treats each release as an experiment [@ries2011], and controlled experiments made that rigorous at scale [@kohavi2020].
+**Locking in behaviour.** *Characterization tests* record what a system does, so later changes cannot alter it unnoticed [@feathers2004]. Regression suites are selected and prioritised to run fast on every change [@yoo2012; @memon2017]. Language models now generate useful unit tests [@schafer2024; @alshahwan2024]. Writing tests has become cheap. Knowing which behaviour is right has not.
 
-**Locking in behaviour.** *Characterization tests* record what a system does today so that later changes cannot alter it unnoticed [@feathers2004]. Regression suites are then selected and prioritised so they run fast on every change [@yoo2012; @memon2017]. Language models now generate useful unit tests [@schafer2024], and at Meta they improve existing test suites in production use [@alshahwan2024]. Writing the suite has become cheap. Deciding what the right behaviour is has not.
+**The limits of the machine.** Deep learning systems are fluent but brittle outside what they have seen [@marcus2019; @marcus2020]. @quattrociocchi2025 argue that language models reach outputs by a route that differs from human judgement at every stage, from grounding to values. They name *Epistemia* the condition in which plausible output replaces the work of judging it. @capraro2026 warns of the reverse error: coming to see human judgement itself as pattern completion.
 
-## 3. A model of the development loop
+## 3. Two worlds
 
-A feature is built in cycles of length $T$, here one working day. Defects come in two kinds. *Implementation defects*: the code does not do what was specified, which a machine can detect. *Fit defects*: the code does what was specified, but not what the domain needs, which only someone who knows the domain notices, usually while using it.
+Each world was built for a different problem, and each fails when used alone (Table 1).
 
-Let $\varphi$ be the share of implementation defects among those left. Experts using the feature in place find a share $q$ of the remaining defects each cycle. An engineering-side suite adds $s$ to each cycle and catches a share $e$ of implementation defects, but almost no fit defects, because it is written from the same specification as the code. Without the suite, remaining defects are multiplied by $(1-q)$ every $T$. With it, by roughly $(1-q)(1-e\varphi)$ every $T+s$. The suite speeds up learning when
+| | Shift left | Ship to learn | Together |
+|---|---|---|---|
+| Built for | code written by hand, costly to change | behaviour that must be discovered in use | features built by agents, cheap to change |
+| Finds well | implementation defects, regressions | fit defects, surprises | both, each at its moment |
+| Fails at | fit; slow cycles; tests for behaviour that will change | regressions; fragile releases; no lasting safety net | needs experts, a fast fix loop and flag discipline |
+| Tests are written | before use, rewritten as the feature moves | rarely | unit tests always; regression suite once, when the feature is done |
+| Who judges quality | the test plan | the user | the expert while building, the suite afterwards |
+
+: **Table 1.** Two worlds of testing and their combination.
+
+The combination is not a compromise between them. It uses each world for what it does best, in sequence. While the feature is still changing, the second world rules: learn as fast as possible from people who know the domain, with only the cheap checks that keep the code sane. When the feature stops changing, the first world takes over: lock in the behaviour with a thorough, automated suite, so that it stays correct through every future change. Shift left was right about rigour and wrong about timing. Ship to learn was right about timing and wrong about permanence.
+
+## 4. A model of the development loop
+
+A feature is built in cycles of length $T$, here one working day. *Implementation defects* mean the code does not do what was specified; a machine can detect them. *Fit defects* mean the code does what was specified, but not what the domain needs. Let $\varphi$ be the share of implementation defects among those left. Experts using the feature in place find a share $q$ of the remaining defects each cycle. A suite run in every cycle adds $s$ to it and catches a share $e$ of implementation defects. It catches almost no fit defects, because it is written from the same specification as the code. Without the suite, remaining defects are multiplied by $(1-q)$ every $T$. With it, they are multiplied by roughly $(1-q)(1-e\varphi)$ every $T+s$. The suite speeds up learning when
 
 $$
 \frac{\ln(1-q) + \ln(1-e\varphi)}{T + s} < \frac{\ln(1-q)}{T}
@@ -66,98 +85,107 @@ $$
 \frac{s}{T} < \frac{\ln(1-e\varphi)}{\ln(1-q)} .
 $$ {#eq-suite}
 
-In plain words: *the suite must cost a smaller share of the cycle than the share of learning it adds.* With $e = 0.6$, half the defects of each kind and experts who find half of what remains each day, the bound is about $0.51$: under four hours in an eight-hour cycle.
+*The suite must cost a smaller share of the cycle than the share of learning it adds.* Take $e = 0.6$, half the defects of each kind, and experts who find half of what remains each day. The bound is then about $0.51$: under four hours in an eight-hour cycle.
 
-**What agents change.** $T$ shrinks, so the fixed cost $s$ becomes a large part of each cycle. And $\varphi$ falls: agents with unit tests increasingly write code that does what it is told, so most remaining mistakes are in what it was told. As $\varphi \to 0$, the bound goes to zero. *Assumption F: for features built by agents with unit tests, most defects that survive the unit tests are fit defects.* Prediction H3 tests it.
+**What agents change.** First, $T$ shrinks, so a fixed $s$ becomes a large part of each cycle. Second, $\varphi$ falls: agents with unit tests increasingly do what they are told, so most remaining mistakes are in what they were told. As $\varphi \to 0$, the bound goes to zero. *Assumption F: for features built by agents with unit tests, most defects that survive the unit tests are fit defects.* Prediction H3 tests it.
 
-**Why $s$ is large while a feature moves.** The cost of a suite is not its run time. It is writing tests for behaviour that changes every day, rewriting them when it does, rerunning flaky ones [@luo2014], and having a person decide, for each failure, whether the code or the test is wrong. Figure 2 shows the effect: during development, most effort on higher-level tests goes into behaviour that will change. Once the feature is accepted, its behaviour stops moving, and the same tests are written once and stay valid.
+**Why $s$ is large while a feature moves.** A suite's cost is not its run time. It is writing tests for behaviour that changes every day, rewriting them, rerunning the flaky ones [@luo2014], and deciding for each failure whether the code or the test is wrong. Once the feature is accepted, its behaviour stops moving, and the same tests are written once and stay valid (Figure 2).
 
-![**Figure 2.** Schematic. Top: how much of a feature's behaviour still changes each day. Middle: under shift left, integration and end-to-end tests are written and rewritten throughout development, mostly for behaviour that will change. Bottom: in the proposal, development carries only unit tests; the regression suite is generated once, from the accepted behaviour, and then runs automatically on every build.](figures/fig02.png){fig-alt="Three stacked bar charts over the life of a feature, from first version to accepted to later. Background bands mark develop behind the flag, lock in, and in the market. Top: behaviour change per day falls steadily during development and is near zero after acceptance. Middle, shift left: test-writing effort is high from the first days and stays at a medium level through development and beyond, labelled most of this effort tests behaviour that will change. Bottom, proposed: small bars for unit tests with each change during development, one tall bar at acceptance labelled generated from the accepted behaviour, then automated, and small green bars afterwards labelled runs on every build, guards against regressions."}
+![**Figure 2.** Schematic. Top: how much of a feature's behaviour still changes each day. Middle: in the first world, integration and end-to-end tests are written and rewritten throughout development, mostly for behaviour that will change. Bottom: with the two worlds together, development carries only unit tests. The regression suite is generated once, from the accepted behaviour, and then runs on every build.](figures/fig02.png){fig-alt="Three stacked bar charts over the life of a feature, from first version to accepted to later. Background bands mark develop behind the flag, lock in, and in the market. Top: behaviour change per day falls during development and is near zero after acceptance. Middle, shift left: test-writing effort is high from the first days and stays at a medium level through development and beyond, labelled most of this effort tests behaviour that will change. Bottom, proposed: small bars for unit tests during development, one tall bar at acceptance labelled generated from the accepted behaviour, then automated, and small green bars afterwards labelled runs on every build, guards against regressions."}
 
-**What a flag changes.** We used to catch everything before release because a defect reaching customers caused harm. Behind a flag, a defect an expert finds hurts no customer: it is reported, and the next version fixes it. The flag removes most of the harm that made early testing worth its cost.
+## 5. The rule in practice
 
-## 4. The rule in practice
+**Developing a new feature.** Before production, only checks that run in minutes: the build, types and linters, static analysis, dependency and security scans, and unit tests for each changed behaviour. No test may be deleted or weakened without a recorded decision. The feature then goes to production behind a flag. Three to five domain experts use it in their real work, an hour or two a day, and note what they find. Where possible, the agent turns each finding into a unit test.
 
-**Developing a new feature.** Before production: the build, types and linters, static analysis, dependency and security scans, and the unit tests the agent writes for each changed behaviour. No test is deleted or weakened without a recorded decision, as in the previous paper. These checks run in minutes and keep $\varphi$ low. After that, the feature goes to production behind a flag. Three to five domain experts use it in their real work, an hour or two a day, and write down what they find in a short form the agent can read. Where possible, the agent turns each finding into a unit test.
+**Done: lock it in.** When the experts go two days without a new finding, the feature is done, and its behaviour is stable enough to test in depth. The agent generates the regression suite from the accepted behaviour. It contains characterization tests taken from the experts' sessions, end-to-end scenarios for the main paths, and unit tests for every edge case the experts found. A person, ideally one of the experts, reads the suite's scenarios and confirms that they describe what should happen. The suite is then automated on every build, and the flag is flipped in stages [@beyer2016; @kohavi2020]. Where the domain requires formal quality control, it happens here, once, on the build that will be released.
 
-**Done: lock it in.** When the experts go two days without a new finding, the feature is done. Behaviour is now stable, and that is the right moment to test it in depth. The agent generates the regression suite from the accepted behaviour: characterization tests [@feathers2004] taken from the experts' recorded sessions, end-to-end scenarios for the main paths, and extra unit tests for the edge cases the experts found. These tests encode what the experts approved, not what the specification said. A person checks that the suite covers what matters, and from then on it runs automatically on every build. Then the flag is flipped, in stages: experts, then a pilot group, then everyone, watching errors and latency [@beyer2016; @kohavi2020]. Afterwards the flag and the old path are removed [@rahman2016].
+**Existing features.** Everything already in the market keeps its automated regression suite on every build, and a failure blocks the build. A new feature changes shared code, and that is where regressions come from. This suite is what lets the expert loop move fast without breaking what customers rely on.
 
-**Existing features.** Everything already in the market is protected by its automated regression suite, which runs on every build and is selected and prioritised to stay fast [@yoo2012; @memon2017]. This is not optional and not manual. A new feature under development changes shared code too, and that is where regressions come from. The suite is what lets the experts' loop move fast without breaking what customers already rely on. A failure in it blocks the build like a failing unit test.
+**Always.** Every build is rolled out in stages with automatic rollback. The thin gate of the previous paper still applies to what cannot be undone, because a flag does not make a deleted table reversible. Once a feature is released, its flag and the old code path are removed [@rahman2016].
 
-**What stays in every phase.** Staged rollout and automatic rollback for every build. The thin gate from the previous paper for what cannot be undone: a flag does not make a deleted table or a sent payment reversible. And where a domain requires formal quality control or validation, it happens once, at lock-in, on the build that will be released. The loop does not replace QC. It fills the gap before it, with the part of quality that only use reveals.
+## 6. A simulation
 
-## 5. A simulation
-
-I simulated one feature under five policies. It starts with twelve defects, half of each kind, and every fix has some chance of adding a new one. The full suite costs one working day per cycle. It catches 60% of the remaining implementation defects and 10% of the fit defects. Experts find 60% and 40% respectively each day. Lock-in is the same suite run once, in one day, after acceptance. The parameters (Table 1) are chosen, not measured, and generous to the suite.
+I simulated one feature under five policies, then the 60 working days after its release, during which changes elsewhere break it from time to time (Table 2). The suite run in every cycle costs one working day. Lock-in is the same suite, run once after acceptance and kept on every build afterwards. The parameters are chosen, not measured, and generous to the suite.
 
 | Parameter | Value |
 |---|---|
 | Defects in the first version | 12, $\varphi = 0.5$ |
 | Cycle without suite, $T$ | 1 working day |
-| Suite per cycle, $s$ | 1 working day, 4 engineer hours (2 h in Figure 3) |
-| Lock-in | the same suite once, 1 day, 4 engineer hours |
-| Unit tests and checks catch | 50% of new implementation defects |
-| Suite catches, $e$ | 60% of implementation, 10% of fit defects |
+| Suite per cycle, $s$ | 1 day, 4 engineer hours (2 h in Figure 3) |
+| Lock-in | the same suite once: 1 day, 4 engineer hours |
+| Unit tests catch | 50% of new implementation defects and of regressions |
+| Suite catches, $e$ | 60% of implementation, 10% of fit defects, 70% of regressions |
 | Experts find per day | 60% of implementation, 40% of fit defects |
 | Chance a fix adds a defect | 15% |
+| After release | 60 working days; a regression arrives on 5% of days |
 | Done when | 2 days in a row with nothing found (1 to 5 in Figure 3) |
 | Runs | 4 000 per policy |
 
-: **Table 1.** Simulation parameters. *Shift left* runs the suite until it finds nothing, then hands over to experts; each finding goes back through the suite. The other policies test in place from day one.
+: **Table 2.** Simulation parameters. *Shift left* runs the suite until it finds nothing, then hands over to experts. The other policies test in place from day one.
 
-| Policy | Days to market (p90) | Left for customers | Suite hours | Expert hours |
+| Policy | Days to market (p90) | Escaped at release | Regressions, 60 days | Suite hours |
 |---|---|---|---|---|
-| Shift left | 13.2 (17.8) | 0.39 | 30 | 10.5 |
-| Suite + flag | 12.0 (16.0) | 0.33 | 24 | 11.8 |
-| Unit tests + flag | 6.0 (9.0) | 0.47 | 0 | 12.9 |
-| **Unit tests + flag + lock-in (proposed)** | **7.0 (9.1)** | **0.39** | **4** | 12.8 |
-| No tests + flag | 7.0 (9.0) | 0.46 | 0 | 13.9 |
+| Shift left | 13.2 (17.8) | 0.39 | 0.46 | 30 |
+| Suite + flag | 12.0 (16.0) | 0.33 | 0.46 | 24 |
+| Unit tests + flag | 6.0 (9.0) | 0.47 | 1.48 | 0 |
+| **Two worlds: flag, then lock-in** | **7.0 (9.1)** | **0.39** | **0.46** | **4** |
+| No tests + flag | 7.0 (9.0) | 0.46 | 2.99 | 0 |
 
-: **Table 2.** Simulation results for one feature: median days to market (90th percentile), defects left for customers, engineer hours on the suite, and expert hours. Standard errors are 0.01 or less for defects left. Run `python sim.py` to reproduce them.
+: **Table 3.** Results for one feature: median days to market (90th percentile), defects left for customers at release, regressions that reach customers in the next 60 working days, and engineer hours on the suite. Standard errors are 0.01 or less. Run `python sim.py` to reproduce them.
 
-**The proposal reaches the market in about half the time with the same quality.** Develop-then-lock-in releases in 7 days instead of 13.2, with the same number of defects left for customers (0.39) and 4 engineer hours on the suite instead of 30. The same suite costs less written once than written and rewritten throughout development.
+**Together, the two worlds reach the market in half the time with the same quality.** The combined process releases in 7 days instead of 13.2. It leaves the same number of defects for customers at release (0.39) and over the following three months (0.46), for 4 engineer hours on the suite instead of 30.
 
-**The suite is useful; running it in every cycle is slow.** Running the suite in every cycle, on top of testing in place, does remove defects: 0.33 left. But each cycle takes twice as long. Waiting for the experts to find nothing new for longer brings the same gain sooner (Figure 3, top). When the suite costs two hours a cycle instead of a day, the policies almost meet (Figure 3, bottom), as @eq-suite predicts: for these values the bound lies between three and six hours (Figure 4).
+**The second world alone is fast but fragile.** With unit tests and a flag only, the feature ships a day sooner. It then lets three times as many regressions through, 1.48 instead of 0.46, because nothing protects it once the experts move on. The lock-in does not find many new bugs in the feature: one more day of expert use would remove about as many (Figure 3). Its value is that it keeps the feature working afterwards.
 
-**Lock-in is not there to find bugs in the new feature.** In the simulation, one more day of expert use removes about as many defects as the lock-in day, and Figure 3 shows it. The lock-in suite earns its day later: it is what keeps the feature working through every future change. The model, which follows one feature until release, does not count that benefit. Prediction H4 does.
+**The first world alone is safe but slow.** Running the suite in every cycle removes a few more defects before release (0.33). But each cycle takes twice as long, and the same gain comes sooner from more days of expert use (Figure 3, top). When the suite costs two hours instead of a day, the policies almost meet (Figure 3, bottom), as @eq-suite predicts: for these values the bound lies between three and six hours (Figure 4).
 
-**Unit tests earn their place.** Without them, the loop takes a day longer at the median, because experts spend their time on crashes that a test would have caught. That is the line: keep a test that costs minutes and saves a day. Drop a test that costs a day per cycle while the feature still moves.
-
-![**Figure 3.** Days until the flag is flipped against defects left for customers, for release rules from one to five clean days in a row (points). Top: the suite costs one working day per cycle. Bottom: two hours. Lower left is better. Simulation, parameters in Table 1.](figures/fig03.png){fig-alt="Two stacked panels plotting defects left for customers on a log scale against days until the flag is flipped. Four curves of five points each. Top, suite costs a day per cycle: unit tests plus flag (dotted amber) from 4.3 days and 1.3 defects to 10.6 days and 0.06; unit tests plus flag plus lock-in, the proposal (solid amber), just to its right, from 5.3 days and 1.07 to 11.7 days and 0.06; full suite plus flag (blue) from 7.9 days and 0.95 to 19.7 days and 0.03; shift left (dashed grey) from 9.3 days and 1.17 to 21.6 days and 0.04. Both amber curves lie far to the left. Bottom, suite costs two hours per cycle: all four curves nearly overlap between 4 and 13 days."}
+![**Figure 3.** Days until the flag is flipped against defects left for customers at release, for release rules from one to five clean days in a row (points). Top: the suite costs one working day per cycle. Bottom: two hours. Lower left is better. Regressions after release are not shown; see Table 3. Simulation, parameters in Table 2.](figures/fig03.png){fig-alt="Two stacked panels plotting defects left for customers on a log scale against days until the flag is flipped. Four curves of five points each. Top, suite costs a day per cycle: unit tests plus flag (dotted amber) from 4.3 days and 1.3 defects to 10.6 days and 0.06; two worlds: flag, then lock-in (solid amber), just to its right, from 5.3 days and 1.07 to 11.7 days and 0.06; full suite plus flag (blue) from 7.9 days and 0.95 to 19.7 days and 0.03; shift left (dashed grey) from 9.3 days and 1.17 to 21.6 days and 0.04. Both amber curves lie far to the left. Bottom, suite costs two hours per cycle: all four curves nearly overlap between 4 and 13 days."}
 
 ![**Figure 4.** When does a suite run in every cycle pay? The largest extra cost per eight-hour cycle for which it still speeds up learning, from @eq-suite with $e = 0.6$, against the share of implementation defects. Below the lines it pays; above them it costs more than it saves. Points mark the two suite costs of Figure 3. Model, not measurement.](figures/fig04.png){fig-alt="Chart with horizontal axis share of defects that are implementation defects, 0 to 100 percent, and vertical axis extra cost of the suite per cycle, 0 to 8 hours. Two rising curves from the origin: dashed, if experts find 40 percent of what remains each day, reaching 8 hours near 66 percent; solid, if they find 60 percent, reaching about 7.4 hours at 95 percent. Below the solid curve, shaded blue, the suite pays; above the dashed curve, shaded amber, it costs more than it saves. A point at 50 percent and 8 hours, labelled Figure 3: one day, is in the amber area; a point at 50 percent and 2 hours is in the blue area."}
 
-## 6. Predictions and a test protocol
+## 7. What AI will not solve
 
-For features built under the rule, compared with similar features built with the full suite in every cycle:
+This proposal depends on agents being fast, but it does not ask them to judge, and it should not.
 
-- **H1. Faster to market.** The median time from first commit to the flag being flipped for everyone falls by at least a third.
+**Fit is not in the specification.** An agent can only build from what it is told. The maintenance rule in section 1 was in no document, only in the engineer's experience of how the equipment is certified. Language models lack that grounding in a world they have not experienced [@quattrociocchi2025], and they are brittle beyond what they have seen [@marcus2020]. That is why the expert, not the agent, decides when a feature is done.
+
+**Generated tests can lock in mistakes.** A characterization test records what the system does, not what it should do [@feathers2004]. If a fit defect survives the loop, the lock-in will faithfully protect it. A generated suite that passes produces exactly the feeling of knowing without judgement that @quattrociocchi2025 call Epistemia. So a person who knows the domain reads the scenarios before they become the reference, and treats a green suite as evidence, not proof.
+
+**Experts are not language models.** It would be easy to conclude that if agents write code and tests, they could soon replace the experts too. @capraro2026 describes the bias behind that conclusion: seeing human judgement as one more form of pattern completion. The expert's value lies in what the model lacks: knowing what matters here, noticing what is missing, and being able to say "I don't know yet, let me use it tomorrow".
+
+**Accountability does not move.** When a feature is released, someone answers for it. Agents make building and fixing cheap; they do not make responsibility cheap.
+
+## 8. Predictions and a test protocol
+
+For features built with the two worlds in sequence, compared with similar features built with the full suite in every cycle:
+
+- **H1. Faster to market.** Median time from first commit to the flag being flipped for everyone falls by at least a third.
 - **H2. No more escaped defects.** Customer-reported defects in the 30 days after the flip are no more frequent, within a margin fixed in advance.
-- **H3. Most remaining defects are about fit (Assumption F).** Fewer than half of the defects experts find in place could have been caught by an integration or end-to-end test, as judged by someone outside the team.
-- **H4. No more regressions.** The change failure rate of code *outside* the flag [@forsgren2018] does not rise, and locked-in features break no more often in the following six months.
+- **H3. Most remaining defects are about fit (Assumption F).** Fewer than half of what experts find in place could have been caught by an integration or end-to-end test, as judged by someone outside the team.
+- **H4. No more regressions.** The change failure rate of code outside the flag [@forsgren2018] does not rise, and locked-in features break no more often in the following six months.
 - **H5. The experts stay engaged.** Participation and findings per expert hour do not decay over the study.
 
-**Protocol.** Within the same teams, features are randomly assigned to one process at the start. H2 and H4 are pre-registered non-inferiority tests; H1, H3 and H5 are secondary, measured from the repository, the flag system, the defect tracker and incident logs. If H2 or H4 fails, the thesis is wrong for those teams. If H3 fails, its reasoning is wrong, even if the outcome looks good.
+**Protocol.** Within the same teams, features are randomly assigned to one process at the start. H2 and H4 are pre-registered non-inferiority tests. H1, H3 and H5 are secondary, measured from the repository, the flag system, the defect tracker and incident logs. If H2 or H4 fails, the thesis is wrong for those teams. If H3 fails, its reasoning is wrong, even if the outcome looks good.
 
-## 7. Objections and limitations
+## 9. Objections and limitations
 
-**"Testing in production is reckless."** Without a flag, staged rollout and rollback, it is. Here customers cannot reach the code. The real risk is the flag itself: in 2012 a trading firm reused an old flag, woke up dead code on the one server of eight that had not been updated, and lost about 460 million dollars in 45 minutes [@sec2013knight]. Flags are code. Each needs a unit test showing that, when off, the old behaviour is untouched, an owner, and a removal date.
+**"Testing in production is reckless."** Without a flag, staged rollout and rollback, it is. Here customers cannot reach the code. The real risk is the flag itself. In 2012, a trading firm reused an old flag that woke up dead code on the one server of eight that had not been updated, and it lost about 460 million dollars in 45 minutes [@sec2013knight]. Flags are code. Each needs a unit test showing that, when off, the old behaviour is untouched, plus an owner and a removal date.
 
-**"Regressions in existing features."** This is the strongest objection, and the proposal does not drop that protection. Shared code is not behind the flag, so the automated regression suite of existing features runs on every build, and a failure blocks it. What goes is the per-cycle suite for the feature still under construction, not the suite guarding what customers already use.
-
-**"Experts are not testers."** They are not meant to be. Testers know how to break software; experts know what it is for, and the loop needs the second skill. Their time is scarce. If the loop becomes an extra duty, $q$ falls and the advantage with it. It works when using the new version is part of their real work.
+**"Experts are not testers."** They are not meant to be. Testers know how to break software; experts know what it is for. Their time is scarce, and if the loop becomes an extra duty, $q$ falls and the advantage with it. The loop works when using the new version is part of their real work.
 
 **"Production data is real."** Flagged features may write only what could be corrected by hand. Anything that cannot be undone goes through the thin gate. Where privacy or regulation forbids it, the loop runs on a copy of production.
 
-**"Intent Is the Source said tests are the source."** [It did](../2026-10-21-intent-is-the-source/index.qmd), and the two papers agree. While a feature moves, unit tests state the intent. Once it is accepted, the regression suite states it for good. What goes is restating a moving intent in slow, high-level tests before anyone knows whether it is the right intent.
+**"Intent Is the Source said tests are the source."** [It did](../2026-10-21-intent-is-the-source/index.qmd), and the two papers agree. While a feature moves, unit tests state its intent. Once it is accepted, the regression suite states it for good.
 
-**Limits of the model.** It treats defects as independent and equally severe. It assumes $q$ is constant, although experts may find the obvious problems first. It does not count the value of the regression suite after release, which favours shift left in the comparison. Its parameters describe one kind of feature, so the direction of the result holds wherever @eq-suite holds, not its size. It also assumes agents really make writing and fixing fast, which the evidence for experienced developers does not yet settle [@becker2025].
+**Limits of the model.** It treats defects as independent and equally severe. It assumes $q$ is constant, although experts may find obvious problems first. The regression rate and the suite's catch rate after release are assumed, not measured. The direction of the result holds wherever @eq-suite holds, not its size. And it assumes agents make writing and fixing fast, which the evidence for experienced developers does not yet settle [@becker2025].
 
-## 8. Conclusion
+## 10. Conclusion: what to let go
 
-We shifted left because a defect found late was expensive and only a test could find it early. With agents and flags, a defect an expert finds tomorrow behind a flag costs almost nothing. The defects that matter most are the ones no test plan foresees. Testing in depth a feature that is still changing slows the only loop that tells us whether we built the right thing.
+It would be easy to read this paper as "AI is fast, so test less". That is not the claim. The proposal keeps every automated check, writes a full regression suite for every feature and protects everything already in the market. It asks more of the people who know the domain, not less.
 
-Keep the checks a machine runs in minutes. Keep the automated regression suite that protects what already exists. Build each new feature behind a flag, with the people who know the domain using it every day. When they find nothing new, lock it in with a regression suite and flip the flag. Stop shifting left while you build. Test in depth when the feature is done.
+What it lets go of is one belief: that we can know a feature is right before anyone has used it. Shift left was built on that belief, and with code written by hand it was a reasonable bet. Layers of tests written from a specification gave a feeling of certainty, but they could only confirm what the specification already said. The most important question, whether we built the right thing, was answered last, when it was most expensive to change.
+
+Letting go of that certainty is not letting go of care. It means testing at the moment the tests mean something: learning from use while the feature still moves, locking it in once it has stopped. Machines run the checks. People judge the fit. Build with the people who know, then make it last.
 
 ::: {.read-next}
 **Read next** · [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd)
