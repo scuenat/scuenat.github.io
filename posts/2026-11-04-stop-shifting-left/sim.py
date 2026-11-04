@@ -21,6 +21,7 @@ P = dict(
     beta=0.15,      # chance each fix introduces a new defect
     h_s=4.0,        # engineer hours per cycle of extra tests (write, maintain, rerun, triage)
     h_t=2.0,        # domain-tester hours per day of testing in place
+    lock=1.0,       # days to generate the regression and extra unit tests once the feature is accepted
     clean_days=2,   # release (flip the flag) after this many days in a row with nothing found
     runs=4000,
     horizon=120,
@@ -30,6 +31,7 @@ POLICIES = {
     "shift_left": "Shift left: full test suite, then acceptance at the end",
     "suite_and_flag": "Full test suite, and testing in place behind a flag",
     "proposed": "Unit tests and checks, testing in place behind a flag (proposed)",
+    "lock_in": "Proposed, then lock-in: regression and unit tests generated once, before the flip",
     "nothing": "No tests at all, testing in place behind a flag",
 }
 
@@ -41,6 +43,7 @@ def new_defects(rng, n, p):
 
 def run(policy, rng, p=P):
     unit = policy != "nothing"
+    lock_in = policy == "lock_in"
     suite = policy in ("shift_left", "suite_and_flag")
     in_place_from_start = policy != "shift_left"
     imp, fit = new_defects(rng, p["n0"], p)
@@ -65,6 +68,9 @@ def run(policy, rng, p=P):
             imp -= c_i; fit -= c_f
             clean = clean + 1 if c_i + c_f == 0 and found_imp + found_fit == 0 else 0
             if clean == p["clean_days"]:
+                if lock_in:   # write the suite once, against behaviour that no longer moves
+                    t += p["lock"]; eng_h += p["h_s"]
+                    imp -= rng.binomial(imp, p["e"]); fit -= rng.binomial(fit, p["e_fit"])
                 return dict(days=t, escaped=imp + fit, eng_h=eng_h, test_h=test_h)
             found_imp += c_i; found_fit += c_f
         # fixes, each may bring a new defect
