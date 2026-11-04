@@ -17,7 +17,341 @@
 <width>144</width>
 </image>
 <generator>quarto-1.11.9</generator>
-<lastBuildDate>Tue, 03 Nov 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Wed, 04 Nov 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Who Writes the Learning Rule?</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Overview, November 2026.</strong> A map of the research from 2020 to 2026 on one question: can a neural network learn well with only local rules, and can it build the machinery that does the learning, instead of having it designed? It starts from a paper published in <em>PNAS</em> in October 2026 <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span> and places it among about twenty openly accessible sources, mostly from 2020 to 2026, with two earlier papers as background. I chose works that are cited often, are open access or have a free preprint, and stand for a distinct line of work; the list is not complete. I read them through their abstracts, their preprints and the publishers’ or institutes’ summaries, not always in full, so I keep to what those state and give numbers only where a source gives them. The five figures are schematics of my own, drawn with <a href="figs.py">figs.py</a>; they simplify the ideas and show no data.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> In a standard neural network, people design everything that makes learning happen: the wiring, the rule that changes each connection, and the backward pass that tells each connection how to change. The brain has no such designer, which is why neuroscientists have long doubted that it runs backpropagation. Work since 2020 has relaxed the design step by step. A first line keeps the rules local but lets feedback connections learn or settle until they carry useful error signals, and gets close to backpropagation on real benchmarks. A second line drops the backward pass altogether. A third uses an outer loop to <em>learn</em> the plasticity rule itself. A fourth, the newest, lets structure emerge: networks that grow their own wiring, and, in the <em>PNAS</em> paper, circuits that assemble out of random connections under simple local rules and then behave like gradient descent. My reading: the result is real and interesting, but it moves the design rather than removing it. Someone still chooses the local rules; what emerges is the circuit that turns them into learning. That is already a lot. It suggests that learning may be less an algorithm we must install than a property that well-chosen local dynamics fall into.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Backpropagation needs each connection to know something it cannot see locally: how the error at the output depends on it. That is the <em>credit assignment</em> problem.</li>
+<li>Local approximations (learned feedback, predictive coding, equilibrium propagation, burst-dependent plasticity, e-prop) get close to backpropagation on benchmarks such as ImageNet or CIFAR-10, using only local signals.</li>
+<li>Some methods drop the backward pass entirely (Forward-Forward, SoftHebb). They are simpler and more local, and still behind on hard tasks.</li>
+<li>Meta-learning can <em>discover</em> plasticity rules, and sometimes rediscovers known ones such as Oja’s rule.</li>
+<li>The newest step lets the learning circuit assemble itself from random connectivity <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>. The local rules are still designed; the machinery that turns them into gradient-like learning is not.</li>
+<li>None of this shows that the brain does it this way. It shows which local dynamics are <em>sufficient</em>.</li>
+</ul>
+</div>
+</div>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">1. The question</h2>
+<p>A deep network learns by changing millions of connection strengths a little at a time. To know which way to change one connection, it needs to know how that connection affected the error at the output, many layers away. Backpropagation computes this exactly: it sends the error backwards through the network, using the <em>same</em> weights as the forward pass, transposed. This is the <em>credit assignment</em> problem, and backpropagation is the reference answer.</p>
+<p>For a brain, the answer looks wrong in at least three ways. A synapse would need to know the strength of a different synapse, on the backward path, and keep it exactly equal to its own: the <em>weight transport</em> problem. The backward pass would need a separate, precisely timed phase. And the derivatives it carries are not obviously something a neuron computes. For decades this was taken as a sign that the brain does something else.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. The weight transport problem. In backpropagation, the error travels back through a copy of the forward weights, transposed, so each synapse would need to know the strength of another. Feedback alignment uses fixed random feedback instead; learned feedback lets the feedback weights adjust themselves from local activity. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig01.svg" class="img-fluid figure-img" alt="Three panels, each with an input layer and an output layer of three neurons, a forward arrow labelled W going up and an error arrow going down. Backpropagation: the error arrow is solid navy, labelled feedback = W transposed; note: feedback must copy the forward weights exactly, each synapse would need to know another's. Feedback alignment: the error arrow is dashed grey, labelled feedback = B, random; note: fixed random feedback, forward weights adapt to it, works but weakly on hard tasks. Learned feedback: the error arrow is amber, labelled B learns to track W; note: feedback weights learn from local activity, Kolen-Pollack, weight mirrors."></a></p>
+<figcaption><strong>Figure 1.</strong> The weight transport problem. In backpropagation, the error travels back through a copy of the forward weights, transposed, so each synapse would need to know the strength of another. Feedback alignment uses fixed random feedback instead; learned feedback lets the feedback weights adjust themselves from local activity. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p>In 2020, Lillicrap, Santoro, Marris, Akerman and Hinton reopened the question in a review that framed this period of research <span class="citation" data-cites="lillicrap2020">(Lillicrap et al. 2020)</span>. Their argument was that the brain could use feedback connections to induce neural activity whose <em>local differences</em> encode error signals close to those of backpropagation. The brain would not run backpropagation; it would approximate its effect with signals each synapse can see.</p>
+<p>The question this overview follows goes one step further. Even if local signals can approximate the gradient, someone still has to design the circuit that produces them. Who does that in a brain? There is no engineer. So the deeper question is whether the learning machinery itself can come from local interactions: grow, assemble, or be found by a slower process such as evolution.</p>
+</section>
+<section id="a-map" class="level2">
+<h2 class="anchored" data-anchor-id="a-map">2. A map</h2>
+<p>Figure 2 sorts the work by one question: what does the designer still fix? I separate three things a designer can fix: the <em>wiring</em> (which neurons connect), the <em>plasticity rule</em> (how a connection changes, given what it can see), and the <em>learning circuit</em> (whatever produces the error signals that tell connections how to change: in backpropagation, the exact backward pass).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Five lines of work on learning with local rules, 2020 to 2026, sorted by what the designer still fixes: the wiring, the plasticity rule, and the learning circuit that carries error signals. Moving down, more is learned or emerges. Two placements are simplifications: in the learned-rules row, the circuit in which the rule acts is usually designed, though Lindsey and Litwin-Kumar also meta-learn the feedback; in the last row, neural cellular automata grow shapes, not learning machinery, and are there as the origin of the growth idea. In that row, the wiring emerges in growing networks and the learning circuit emerges in self-assembling learning; the local rules remain designed. Placement is my own reading of the cited work. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig02.svg" class="img-fluid figure-img" alt="Five rows, top to bottom, each with a card, three dots and a list of works. Backpropagation, the reference point: wiring, plasticity rule and learning circuit all designed by hand. Local approximations, with local rules and feedback that learns or settles: wiring and rule designed, learning circuit learned; works listed are Kolen-Pollack and weight mirrors 2019, e-prop 2020, predictive coding 2020, burst plasticity 2021, equilibrium propagation 2021, prospective configuration 2024. No backward pass, each layer learns on its own: wiring and rule designed, no learning circuit needed; Forward-Forward 2022, SoftHebb 2023. Learned rules, an outer loop finds the plasticity rule: wiring designed, rule learned, learning circuit designed; Confavreux and colleagues 2020, Najarro and Risi 2020, Lindsey and Litwin-Kumar 2020, Jordan and colleagues 2021, Kirsch and Schmidhuber 2021, Shervani-Tabar and Rosenbaum 2023. Self-assembly, wiring or learning circuit emerges: wiring emergent, rule designed, learning circuit emergent; neural cellular automata 2020, developmental programs 2023, heterosynaptic circuits 2025, self-assembling learning 2026."></a></p>
+<figcaption><strong>Figure 2.</strong> Five lines of work on learning with local rules, 2020 to 2026, sorted by what the designer still fixes: the wiring, the plasticity rule, and the learning circuit that carries error signals. Moving down, more is learned or emerges. Two placements are simplifications: in the learned-rules row, the circuit in which the rule acts is usually designed, though Lindsey and Litwin-Kumar also meta-learn the feedback; in the last row, neural cellular automata grow shapes, not learning machinery, and are there as the origin of the growth idea. In that row, the wiring emerges in growing networks and the learning circuit emerges in self-assembling learning; the local rules remain designed. Placement is my own reading of the cited work. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p>Table 1 gives the same works with what each one claims, in the authors’ terms.</p>
+<p><strong>Table 1.</strong> Representative work, 2019 to 2026. Results are as reported by the authors; they come from different tasks and settings and should not be compared across rows.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Line of work</th>
+<th>What is local</th>
+<th>Reported result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Learned feedback</strong>: Kolen-Pollack, weight mirrors <span class="citation" data-cites="akrout2019">(Akrout et al. 2019)</span></td>
+<td>Feedback weights learn to track forward weights</td>
+<td>Outperform feedback alignment on ImageNet and nearly match backprop</td>
+</tr>
+<tr class="even">
+<td><strong>Predictive coding</strong>: Millidge et al. <span class="citation" data-cites="millidge2020">(Millidge et al. 2020)</span></td>
+<td>Prediction errors, mostly Hebbian updates</td>
+<td>Converges to exact backprop gradients on arbitrary computation graphs</td>
+</tr>
+<tr class="odd">
+<td><strong>Equilibrium propagation</strong>: Laborieux et al. <span class="citation" data-cites="laborieux2021">(Laborieux et al. 2021)</span></td>
+<td>Contrast between two settled states</td>
+<td>11.7% test error on CIFAR-10, close to BPTT</td>
+</tr>
+<tr class="even">
+<td><strong>Burst-dependent plasticity</strong>: Payeur et al. <span class="citation" data-cites="payeur2021">(Payeur et al. 2021)</span></td>
+<td>Bursts versus single spikes</td>
+<td>Higher layers coordinate learning in lower ones</td>
+</tr>
+<tr class="odd">
+<td><strong>Online spiking learning</strong>: e-prop <span class="citation" data-cites="bellec2020">(Bellec et al. 2020)</span></td>
+<td>Eligibility traces plus a learning signal</td>
+<td>Approaches BPTT for recurrent spiking networks</td>
+</tr>
+<tr class="even">
+<td><strong>Activity first, then weights</strong>: Prospective configuration <span class="citation" data-cites="song2024">(Song et al. 2024)</span></td>
+<td>Inferred activity, then local updates</td>
+<td>More efficient than backprop in several biologically relevant settings</td>
+</tr>
+<tr class="odd">
+<td><strong>No backward pass</strong>: Forward-Forward <span class="citation" data-cites="hinton2022">(Hinton 2022)</span></td>
+<td>A “goodness” objective per layer</td>
+<td>Works on small problems; offered as preliminary</td>
+</tr>
+<tr class="even">
+<td><strong>No feedback at all</strong>: SoftHebb <span class="citation" data-cites="journe2023">(Journé et al. 2023)</span></td>
+<td>Hebbian, soft winner-take-all</td>
+<td>99.4% MNIST, 80.3% CIFAR-10, 27.3% ImageNet</td>
+</tr>
+<tr class="odd">
+<td><strong>Learned rules</strong>: Confavreux et al. <span class="citation" data-cites="confavreux2020">(Confavreux et al. 2020)</span>; Jordan et al. <span class="citation" data-cites="jordan2021">(Jordan et al. 2021)</span></td>
+<td>Rules found by an outer loop</td>
+<td>Rediscover Oja’s rule; find interpretable rules for spiking networks</td>
+</tr>
+<tr class="even">
+<td><strong>Learned learning</strong>: VS-ML <span class="citation" data-cites="kirsch2021">(Kirsch and Schmidhuber 2021)</span></td>
+<td>Shared tiny LSTMs in place of weights</td>
+<td>Meta-learned algorithms that can improve on backprop in their tests</td>
+</tr>
+<tr class="odd">
+<td><strong>Growth</strong>: Developmental programs <span class="citation" data-cites="najarro2023">(Najarro et al. 2023)</span></td>
+<td>Neurons communicate only locally</td>
+<td>Networks grow instead of being designed</td>
+</tr>
+<tr class="even">
+<td><strong>Self-assembly</strong>: Self-assembling learning <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span></td>
+<td>Heterosynaptic plasticity</td>
+<td>Circuits approximate SGD <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>; performance comparable to backprop <span class="citation" data-cites="mcgovern2026">(McGovern Institute for Brain Research 2026)</span></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="approximating-backpropagation-with-local-signals" class="level2">
+<h2 class="anchored" data-anchor-id="approximating-backpropagation-with-local-signals">3. Approximating backpropagation with local signals</h2>
+<p>The largest body of work keeps the goal of backpropagation, a gradient, and asks how to get it with signals a synapse can see. Figure 3 shows three of the ideas side by side.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Three ways to carry an error signal with local information. In equilibrium propagation, each synapse compares its activity in a free and a nudged state. In predictive coding, error units compute the difference between activity and prediction, and each weight changes with that error and its own input. In burst-dependent plasticity, a burst strengthens a recently active synapse and a single spike weakens it, so feedback that changes the burst rate acts as a teaching signal. Simplified from the cited papers. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig03.svg" class="img-fluid figure-img" alt="Three rows of three cards. Equilibrium propagation: 1. free phase, network settles on the input; 2. nudged phase, output pulled toward the target, settles again; 3. update, each synapse compares its two states; delta w is proportional to pre times post nudged minus pre times post free. Predictive coding: prediction, each layer predicts the one below; error unit, epsilon equals activity minus prediction; update, error times the local input; delta w is proportional to epsilon times pre, both available at the synapse. Burst-dependent plasticity: presynaptic trace, the input was recently active; then either burst, postsynaptic burst, strengthen, or single spike, postsynaptic spike, weaken; feedback from above changes the burst rate, a teaching signal."></a></p>
+<figcaption><strong>Figure 3.</strong> Three ways to carry an error signal with local information. In equilibrium propagation, each synapse compares its activity in a free and a nudged state. In predictive coding, error units compute the difference between activity and prediction, and each weight changes with that error and its own input. In burst-dependent plasticity, a burst strengthens a recently active synapse and a single spike weakens it, so feedback that changes the burst rate acts as a teaching signal. Simplified from the cited papers. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p><strong>Learning the feedback.</strong> The simplest trick, <em>feedback alignment</em> (Figure 1, middle), sends errors back through fixed random weights; the forward weights then come to align with them. It works for shallow networks and struggles on hard tasks. Just before this period, Akrout and colleagues showed two ways for the feedback path to <em>learn</em> good weights without copying them: a “weight mirror” circuit, and a variant of an old algorithm by Kolen and Pollack. On ImageNet both outperformed feedback alignment and nearly matched backpropagation <span class="citation" data-cites="akrout2019">(Akrout et al. 2019)</span>. This is the first hint of the theme of this overview: part of the learning machinery need not be designed if it can learn itself.</p>
+<p><strong>Letting the network settle.</strong> Predictive coding treats each layer as predicting the one below and passes prediction errors around. Millidge, Tschantz and Buckley showed that, with only local and mostly Hebbian updates, it converges to the exact backpropagation gradients, not only in layered networks but on arbitrary computation graphs, including CNNs, RNNs and LSTMs, and performs on par with backpropagation on their benchmarks <span class="citation" data-cites="millidge2020">(Millidge et al. 2020)</span>. The exact match needs a simplification, the <em>fixed prediction assumption</em>, which holds each layer’s prediction fixed while errors settle; Rosenbaum showed that, under it, predictive coding performs the same computation as backpropagation, and reviews of the field have questioned how a brain would implement it <span class="citation" data-cites="rosenbaum2022 millidge2021">(Rosenbaum 2022; Millidge et al. 2021)</span>. Equilibrium propagation follows a related idea: let the network settle, nudge the output toward the target, let it settle again, and update each connection from the difference between the two states. It had struggled to scale; Laborieux and colleagues traced the problem to a bias in the gradient estimate, removed most of it with nudges in both directions, and reached 11.7% test error on CIFAR-10 with a deep convolutional network, close to backpropagation through time. The method in its original form assumes symmetric connections, the same weight in both directions, which is the weight transport problem again; a variant with separate forward and backward connections reached 13.2% <span class="citation" data-cites="laborieux2021">(Laborieux et al. 2021)</span>.</p>
+<p><strong>Using what neurons actually do.</strong> Payeur and colleagues started from the biology. If plasticity depends on high-frequency <em>bursts</em> of spikes, so that a burst strengthens a synapse and a single spike weakens it, then neurons higher in a hierarchy can coordinate the learning of lower ones; it works, they report, together with short-term synaptic dynamics, active apical dendrites and plasticity in the feedback pathways <span class="citation" data-cites="payeur2021">(Payeur et al. 2021)</span>. For recurrent spiking networks, Bellec and colleagues proposed e-prop: each synapse keeps a local <em>eligibility trace</em> and combines it with a learning signal sent from above, which avoids storing and replaying the network’s history. It approaches the performance of backpropagation through time and suits low-power neuromorphic chips <span class="citation" data-cites="bellec2020">(Bellec et al. 2020)</span>.</p>
+<p><strong>Changing the order.</strong> Song, Bogacz and colleagues went beyond approximation. In <em>prospective configuration</em>, the network first infers the activity it <em>should</em> have after learning, and only then changes the weights to consolidate it; backpropagation does the reverse. They report that this learns more efficiently than backpropagation in situations animals face, such as deep structures and online learning, and explains behavioural and neural data that backpropagation does not <span class="citation" data-cites="song2024">(Song et al. 2024)</span>. This is the first sign that the brain’s way might be <em>better</em> for its job, not a weaker copy.</p>
+<p>What this line shows: the gradient does not need a designed backward pass, as long as feedback connections are present and their dynamics are right. What it still assumes: someone designed those dynamics.</p>
+</section>
+<section id="learning-without-a-backward-pass" class="level2">
+<h2 class="anchored" data-anchor-id="learning-without-a-backward-pass">4. Learning without a backward pass</h2>
+<p>A smaller line asks whether the gradient is needed at all.</p>
+<p>Hinton’s Forward-Forward algorithm replaces the forward and backward passes with two forward passes, one on real data and one on “negative” data, and gives each layer its own objective: high “goodness” for real data, low for negative <span class="citation" data-cites="hinton2022">(Hinton 2022)</span>. Hinton presented it as preliminary, shown to work on a few small problems; one practical promise is that the negative passes could be done offline, so that learning on the real data needs no stored activities.</p>
+<p>SoftHebb goes further: no feedback, no target, no error signal of any kind, only Hebbian learning in soft winner-take-all layers, with a linear classifier on top. With up to five hidden layers, Journé and colleagues report 99.4% on MNIST, 80.3% on CIFAR-10, 76.2% on STL-10 and 27.3% on ImageNet <span class="citation" data-cites="journe2023">(Journé et al. 2023)</span>. Those numbers are far from the state of the art on hard tasks, but they are the best I found for learning that is purely local in this strong sense.</p>
+<p>What this line shows: a lot can be learned with no credit assignment across layers. What it does not show yet: that this is enough for hard problems.</p>
+</section>
+<section id="learning-the-learning-rule" class="level2">
+<h2 class="anchored" data-anchor-id="learning-the-learning-rule">5. Learning the learning rule</h2>
+<p>The third line stops designing the plasticity rule and lets an outer loop find it, often by evolution or gradient descent over the rule’s few parameters. The network still learns with local rules during its “lifetime”; the rule itself is the product of a slower process, as it would be in biology (Figure 4).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Learning the learning rule. In the fast loop, a network starts from random weights and a local rule with parameters θ changes them while it lives through its task. In the slow loop, evolution or meta-learning scores how well each lifetime went and adjusts θ. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig04.svg" class="img-fluid figure-img" alt="An amber outer frame labelled slow loop, evolution or meta-learning, over many lifetimes, contains a blue inner frame labelled fast loop, one lifetime. Inside the fast loop, a Network card, weights w start random, exchanges arrows with a Local rule card, delta w equals f theta of pre, post, signal; note: the network lives its task, the rule changes w at every step. An arrow leads to a Score card, how well did it learn by the end of life, then down to an Update theta card, change the rule's few parameters, which points back to the local rule."></a></p>
+<figcaption><strong>Figure 4.</strong> Learning the learning rule. In the fast loop, a network starts from random weights and a local rule with parameters θ changes them while it lives through its task. In the slow loop, evolution or meta-learning scores how well each lifetime went and adjusts θ. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p>Confavreux, Zenke, Agnes, Lillicrap and Vogels framed it clearly: judge a plasticity rule not by how well it fits recordings, but by what function it carves into a random network. Their search rediscovered Oja’s rule, a classic rule that extracts the main direction of variation in the input, and, at network level, Oja’s rule paired with an anti-Hebbian rule that extracts several components; they also found rules for spiking networks with plastic inhibition <span class="citation" data-cites="confavreux2020">(Confavreux et al. 2020)</span>. Jordan, Schmidt, Senn and Petrovici evolved rules as compact symbolic expressions, so that people can read them, and report new mechanisms for learning from reward, gradient-descent-like rules for learning from targets, and STDP-like rules with homeostasis <span class="citation" data-cites="jordan2021">(Jordan et al. 2021)</span>.</p>
+<p>Najarro and Risi went to the extreme: start from completely random weights and evolve only the synapse-specific Hebbian rules. The rules alone let a simulated robot learn to walk, and adapt to damage it had not seen in training, with no reward signal during its lifetime <span class="citation" data-cites="najarro2020">(Najarro and Risi 2020)</span>. Reviewers at NeurIPS noted that fixed, trained weights still did better in some settings (<a href="https://papers.neurips.cc/paper_files/paper/2020/file/ee23e7ad9b473ad072d57aaa9b2a5222-Review.html">reviews</a>).</p>
+<p>Two studies brought feedback back in. Lindsey and Litwin-Kumar meta-learned networks that use feedback connections and local plasticity, with feedback not tied to the forward weights; they matched or exceeded a gradient-based online meta-learning method and did particularly well at continual learning <span class="citation" data-cites="lindsey2020">(Lindsey and Litwin-Kumar 2020)</span>. Shervani-Tabar and Rosenbaum meta-learned one shared, interpretable rule on top of random feedback, and report improved online learning in deep networks with little data, a setting where feedback alignment learns slowly <span class="citation" data-cites="shervani2023">(Shervani-Tabar and Rosenbaum 2023)</span>.</p>
+<p>Kirsch and Schmidhuber asked the broadest version: if every weight is replaced by a tiny shared recurrent network, can the whole system learn how to learn? They show that weight sharing and sparsity are enough to express powerful learning algorithms; that such a system can implement backpropagation in its forward dynamics alone; and that it can meta-learn new algorithms that, in their tests, improve on backpropagation and generalise to new datasets <span class="citation" data-cites="kirsch2021">(Kirsch and Schmidhuber 2021)</span>.</p>
+<p>What this line shows: plasticity rules are not sacred; they can be found, and sometimes found rules beat designed ones. What it still assumes: a designed outer loop, and usually a designed circuit in which the rule acts.</p>
+</section>
+<section id="growing-the-machinery" class="level2">
+<h2 class="anchored" data-anchor-id="growing-the-machinery">6. Growing the machinery</h2>
+<p>The newest line lets structure itself emerge.</p>
+<p><strong>Growing wiring.</strong> In 2020, Mordvintsev, Randazzo, Niklasson and Levin trained <em>neural cellular automata</em>: a grid of cells, each running the same small network and talking only to its neighbours, that grows a target image from a single cell and regrows it after damage <span class="citation" data-cites="mordvintsev2020">(Mordvintsev et al. 2020)</span>. It was about shapes, not learning, but it showed that robust global structure can come from purely local rules. Najarro, Sudhakaran and Risi applied the idea to networks themselves: a <em>neural developmental program</em>, using only local communication between neurons, grows a network instead of having it designed, and they tested the grown networks on reinforcement and supervised learning <span class="citation" data-cites="najarro2023">(Najarro et al. 2023)</span>.</p>
+<p><strong>Assembling the learning circuit.</strong> The <em>PNAS</em> paper by Liao, Ziyin, Gan and colleagues at MIT takes the last step on my map <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>. They call the framework <em>Self-Assembling Learning</em>, and its main example a <em>Self-Assembling Motif</em>. According to the abstract, the motif can emerge from random connectivity under <em>heterosynaptic</em> plasticity (in general, rules in which a synapse changes with the activity of other synapses on the same neuron, not only its own), and, repeated across layers, the motifs self-organise into networks whose dynamics approximate a generalised form of stochastic gradient descent. MIT’s news piece reports image classification comparable to networks trained with backpropagation, and is careful about the biology: whether the brain uses these motifs is not settled <span class="citation" data-cites="mcgovern2026">(McGovern Institute for Brain Research 2026)</span>. I could read only the abstract and that summary, not the full paper, so I leave the exact circuit, the conditions and the benchmark numbers to the paper itself. Figure 5 sketches the idea at that level of detail.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. The idea of self-assembling learning, simplified. A network starts with random connections; synapses follow a local heterosynaptic rule; a motif with a forward and a feedback stream assembles; stacked motifs make a network whose learning approximates a generalised stochastic gradient descent. This is a sketch of the idea as the authors describe it in their abstract, not the paper’s exact circuit [@liao2026]. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig05.svg" class="img-fluid figure-img" alt="Four panels. 1. Random connectivity: scattered neurons with random links; no structure is designed. 2. A local, heterosynaptic rule: three synapses arrive at one neuron, the middle one highlighted as this synapse, the others labelled neighbour; a synapse changes with its neighbours' activity. 3. A motif assembles: a forward stream going up and a feedback stream going down, linked by dashed cross-links; a forward and a feedback stream whose connections now fit together. 4. Motifs stack into layers: three motif boxes, an upward arrow on the left and an arrow labelled errors flow back on the right; the whole network now learns like generalised SGD. Footnote: schematic of the idea, not the paper's exact circuit."></a></p>
+<figcaption><strong>Figure 5.</strong> The idea of self-assembling learning, simplified. A network starts with random connections; synapses follow a local heterosynaptic rule; a motif with a forward and a feedback stream assembles; stacked motifs make a network whose learning approximates a generalised stochastic gradient descent. This is a sketch of the idea as the authors describe it in their abstract, not the paper’s exact circuit <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p>A 2025 preprint by Ziyin, Chuang and Poggio, <em>Heterosynaptic Circuits Are Universal Gradient Machines</em>, generalises the idea and, in the authors’ words, proposes “a design principle for the learning circuits of the biological brain” <span class="citation" data-cites="ziyin2025">(Ziyin et al. 2025)</span>.</p>
+<p>What is new here, compared with the earlier lines, is where the design stops. In Section 3, someone designed the feedback circuit. In Section 5, an outer loop found the rule, but within a designed circuit. Here, the rules are fixed and simple, and the <em>circuit that makes them add up to gradient learning</em> is not designed at all: it falls out of the dynamics.</p>
+</section>
+<section id="what-is-established-what-is-open" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-established-what-is-open">7. What is established, what is open</h2>
+<p><strong>Established, in the sense that several groups report it:</strong></p>
+<ul>
+<li>Local signals can approximate backpropagation’s gradients closely, in theory and on benchmarks up to ImageNet, provided feedback connections exist <span class="citation" data-cites="akrout2019 millidge2020 laborieux2021">(Akrout et al. 2019; Millidge et al. 2020; Laborieux et al. 2021)</span>.</li>
+<li>Weight transport is not required: feedback can learn its own weights, or be random, if the forward weights or the rule adapt <span class="citation" data-cites="akrout2019 shervani2023">(Akrout et al. 2019; Shervani-Tabar and Rosenbaum 2023)</span>.</li>
+<li>Plasticity rules can be discovered by an outer loop, and found rules can rediscover classic ones or do better than hand-designed ones in narrow tests <span class="citation" data-cites="confavreux2020 jordan2021 kirsch2021">(Confavreux et al. 2020; Jordan et al. 2021; Kirsch and Schmidhuber 2021)</span>.</li>
+<li>At least one circuit that implements gradient-like learning can assemble itself from random connectivity under local rules <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>.</li>
+</ul>
+<p><strong>Open:</strong></p>
+<ul>
+<li><strong>Scale.</strong> Most results are on MNIST, CIFAR-10, small control tasks or, at best, ImageNet. None of these methods has trained anything like a modern language model.</li>
+<li><strong>Cost.</strong> Settling dynamics, two-phase learning and outer loops cost time. Whether local learning is cheaper in practice depends on hardware; on GPUs, backpropagation is very hard to beat. On neuromorphic chips the answer may differ <span class="citation" data-cites="bellec2020">(Bellec et al. 2020)</span>.</li>
+<li><strong>Biology.</strong> Showing that a mechanism is sufficient does not show that the brain uses it. The burst, heterosynaptic and predictive-coding proposals each make testable predictions; the experiments are hard and mostly not done.</li>
+<li><strong>What is still designed.</strong> Every system on the map has a designer somewhere: the local rules, the outer loop, or the growth program. Moving the design one level up is progress; it is not the absence of design.</li>
+</ul>
+<p><strong>Not covered here.</strong> This map leaves out several lines that a specialist would expect: dendritic and multi-compartment neuron models, in which a neuron’s apical dendrite carries the error; target propagation; three-factor rules, in which a neuromodulator such as dopamine gates a local change; and the evidence that biologically motivated methods struggle at scale, which a 2018 study found for target propagation and feedback alignment on ImageNet <span class="citation" data-cites="bartunov2018">(Bartunov et al. 2018)</span>. Each would deserve its own overview.</p>
+</section>
+<section id="my-reading" class="level2">
+<h2 class="anchored" data-anchor-id="my-reading">8. My reading</h2>
+<p>I find the self-assembly result the most interesting on the map, for a reason that is easy to overstate, so let me be precise about it.</p>
+<p>It does not show that a network can invent learning from nothing. Someone chose the heterosynaptic rules, and someone chose to stack the motifs in layers. What it shows is that, given those simple local rules, a <em>working learning circuit</em> is something the dynamics fall into, rather than something that must be wired by hand. That changes how I think about backpropagation. It stops looking like an algorithm that a brain would have to implement against all odds, and starts looking like a kind of attractor: a behaviour that many local dynamical systems approach, the way many physical systems settle into the same few patterns. That is a hypothesis, not a result: one paper shows one such system, and I know of no study yet of how general the effect is.</p>
+<p>If that is right, two consequences follow. The first is for neuroscience: the search should be for local rules and conditions under which gradient-like learning emerges, not for a hidden backward pass. Several lines here, from bursts to prospective configuration, already point that way. The second is for machine learning, and it is more speculative. Today we fix the architecture and the learning algorithm, then optimise the weights. The lines in Sections 5 and 6 suggest a different split: fix a small set of local rules, and let the structure and part of the learning machinery organise themselves, as the brain must have done. Whether that can ever compete with backpropagation on a GPU, I doubt; whether it matters for systems that must keep learning on their own, with little power and no data centre, I think it might. For now it is a direction, with small-scale evidence, not a replacement.</p>
+</section>
+<section id="where-to-start" class="level2">
+<h2 class="anchored" data-anchor-id="where-to-start">9. Where to start</h2>
+<ul>
+<li><strong>Lillicrap and colleagues, “Backpropagation and the brain”</strong> <span class="citation" data-cites="lillicrap2020">(Lillicrap et al. 2020)</span>. The framing for everything since 2020; short, clear and widely cited.</li>
+<li><strong>Millidge, Tschantz and Buckley on predictive coding</strong> <span class="citation" data-cites="millidge2020">(Millidge et al. 2020)</span>. The cleanest result that local rules can give exact gradients.</li>
+<li><strong>Confavreux and colleagues on meta-learned plasticity</strong> <span class="citation" data-cites="confavreux2020">(Confavreux et al. 2020)</span>. The idea that rules should be judged by what they build.</li>
+<li><strong>Mordvintsev and colleagues, “Growing Neural Cellular Automata”</strong> <span class="citation" data-cites="mordvintsev2020">(Mordvintsev et al. 2020)</span>. Interactive, open, and the best intuition for structure from local rules.</li>
+<li><strong>Liao, Ziyin, Gan and colleagues in <em>PNAS</em></strong> <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>, with its free preprint. Where the map currently ends.</li>
+</ul>
+<div class="discuss">
+<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
+<p><strong>Follow new posts.</strong> Subscribe to the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> on LinkedIn, or to the <a href="../../index.xml">RSS feed</a>. The <a href="../../archive.html">archive</a> lists recent changes.</p>
+</div>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-11-02-the-mathematics-still-to-come/index.html">The Mathematics Still to Come</a> AI runs on old mathematics and works before we understand it. What may have to be invented.</p>
+</div>
+<div class="small">
+<p><em>This overview is not exhaustive. It maps representative, openly accessible work from 2020 to 2026 as I could read it, often through abstracts and summaries, and the field moves fast. Missing work and corrections are welcome.</em></p>
+<p><em>The views in this overview are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-akrout2019" class="csl-entry">
+Akrout, Mohamed, Collin Wilson, Peter Humphreys, Timothy Lillicrap, and Douglas Tweed. 2019. <span>“Deep Learning Without Weight Transport.”</span> <em>Advances in Neural Information Processing Systems</em> 32. <a href="https://arxiv.org/abs/1904.05391">https://arxiv.org/abs/1904.05391</a>.
+</div>
+<div id="ref-bartunov2018" class="csl-entry">
+Bartunov, Sergey, Adam Santoro, Blake A. Richards, Luke Marris, Geoffrey E. Hinton, and Timothy Lillicrap. 2018. <span>“Assessing the Scalability of Biologically-Motivated Deep Learning Algorithms and Architectures.”</span> <em>Advances in Neural Information Processing Systems</em> 31. <a href="https://arxiv.org/abs/1807.04587">https://arxiv.org/abs/1807.04587</a>.
+</div>
+<div id="ref-bellec2020" class="csl-entry">
+Bellec, Guillaume, Franz Scherr, Anand Subramoney, et al. 2020. <span>“A Solution to the Learning Dilemma for Recurrent Networks of Spiking Neurons.”</span> <em>Nature Communications</em> 11: 3625. <a href="https://doi.org/10.1038/s41467-020-17236-y">https://doi.org/10.1038/s41467-020-17236-y</a>.
+</div>
+<div id="ref-confavreux2020" class="csl-entry">
+Confavreux, Basile, Friedemann Zenke, Everton J. Agnes, Timothy Lillicrap, and Tim P. Vogels. 2020. <span>“A Meta-Learning Approach to (Re)discover Plasticity Rules That Carve a Desired Function into a Neural Network.”</span> <em>Advances in Neural Information Processing Systems</em> 33: 16398–408. <a href="https://papers.neurips.cc/paper_files/paper/2020/file/bdbd5ebfde4934142c8a88e7a3796cd5-Paper.pdf">https://papers.neurips.cc/paper_files/paper/2020/file/bdbd5ebfde4934142c8a88e7a3796cd5-Paper.pdf</a>.
+</div>
+<div id="ref-hinton2022" class="csl-entry">
+Hinton, Geoffrey. 2022. <em>The Forward-Forward Algorithm: Some Preliminary Investigations</em>. <a href="https://arxiv.org/abs/2212.13345">https://arxiv.org/abs/2212.13345</a>.
+</div>
+<div id="ref-jordan2021" class="csl-entry">
+Jordan, Jakob, Maximilian Schmidt, Walter Senn, and Mihai A. Petrovici. 2021. <span>“Evolving Interpretable Plasticity for Spiking Networks.”</span> <em>eLife</em> 10: e66273. <a href="https://doi.org/10.7554/eLife.66273">https://doi.org/10.7554/eLife.66273</a>.
+</div>
+<div id="ref-journe2023" class="csl-entry">
+Journé, Adrien, Hector Garcia Rodriguez, Qinghai Guo, and Timoleon Moraitis. 2023. <span>“Hebbian Deep Learning Without Feedback.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2209.11883">https://arxiv.org/abs/2209.11883</a>.
+</div>
+<div id="ref-kirsch2021" class="csl-entry">
+Kirsch, Louis, and Jürgen Schmidhuber. 2021. <span>“Meta Learning Backpropagation and Improving It.”</span> <em>Advances in Neural Information Processing Systems</em> 34: 14122–34. <a href="https://arxiv.org/abs/2012.14905">https://arxiv.org/abs/2012.14905</a>.
+</div>
+<div id="ref-laborieux2021" class="csl-entry">
+Laborieux, Axel, Maxence Ernoult, Benjamin Scellier, Yoshua Bengio, Julie Grollier, and Damien Querlioz. 2021. <span>“Scaling Equilibrium Propagation to Deep ConvNets by Drastically Reducing Its Gradient Estimator Bias.”</span> <em>Frontiers in Neuroscience</em> 15: 633674. <a href="https://doi.org/10.3389/fnins.2021.633674">https://doi.org/10.3389/fnins.2021.633674</a>.
+</div>
+<div id="ref-liao2026" class="csl-entry">
+<span class="nocase">Liao, Qianli, Liu Ziyin, Yulu Gan, et al.</span> 2026. <span>“How Biological Synapses Self-Assemble Gradient Learning.”</span> <em>Proceedings of the National Academy of Sciences</em> 123 (41). <a href="https://doi.org/10.1073/pnas.2606245123">https://doi.org/10.1073/pnas.2606245123</a>.
+</div>
+<div id="ref-lillicrap2020" class="csl-entry">
+Lillicrap, Timothy P., Adam Santoro, Luke Marris, Colin J. Akerman, and Geoffrey Hinton. 2020. <span>“Backpropagation and the Brain.”</span> <em>Nature Reviews Neuroscience</em> 21: 335–46. <a href="https://doi.org/10.1038/s41583-020-0277-3">https://doi.org/10.1038/s41583-020-0277-3</a>.
+</div>
+<div id="ref-lindsey2020" class="csl-entry">
+Lindsey, Jack, and Ashok Litwin-Kumar. 2020. <span>“Learning to Learn with Feedback and Local Plasticity.”</span> <em>Advances in Neural Information Processing Systems</em> 33. <a href="https://arxiv.org/abs/2006.09549">https://arxiv.org/abs/2006.09549</a>.
+</div>
+<div id="ref-mcgovern2026" class="csl-entry">
+McGovern Institute for Brain Research. 2026. <em>How Artificial Neural Networks Build Their Own Learning Machinery</em>. MIT McGovern Institute news. <a href="https://mcgovern.mit.edu/2026/10/05/how-artificial-neural-networks-build-their-own-learning-machinery/">https://mcgovern.mit.edu/2026/10/05/how-artificial-neural-networks-build-their-own-learning-machinery/</a>.
+</div>
+<div id="ref-millidge2021" class="csl-entry">
+Millidge, Beren, Anil Seth, and Christopher L. Buckley. 2021. <em>Predictive Coding: A Theoretical and Experimental Review</em>. <a href="https://arxiv.org/abs/2107.12979">https://arxiv.org/abs/2107.12979</a>.
+</div>
+<div id="ref-millidge2020" class="csl-entry">
+Millidge, Beren, Alexander Tschantz, and Christopher L. Buckley. 2020. <em>Predictive Coding Approximates Backprop Along Arbitrary Computation Graphs</em>. <a href="https://arxiv.org/abs/2006.04182">https://arxiv.org/abs/2006.04182</a>.
+</div>
+<div id="ref-mordvintsev2020" class="csl-entry">
+Mordvintsev, Alexander, Ettore Randazzo, Eyvind Niklasson, and Michael Levin. 2020. <span>“Growing Neural Cellular Automata.”</span> <em>Distill</em>, ahead of print. <a href="https://doi.org/10.23915/distill.00023">https://doi.org/10.23915/distill.00023</a>.
+</div>
+<div id="ref-najarro2020" class="csl-entry">
+Najarro, Elias, and Sebastian Risi. 2020. <span>“Meta-Learning Through <span>Hebbian</span> Plasticity in Random Networks.”</span> <em>Advances in Neural Information Processing Systems</em> 33. <a href="https://arxiv.org/abs/2007.02686">https://arxiv.org/abs/2007.02686</a>.
+</div>
+<div id="ref-najarro2023" class="csl-entry">
+Najarro, Elias, Shyam Sudhakaran, and Sebastian Risi. 2023. <em>Towards Self-Assembling Artificial Neural Networks Through Neural Developmental Programs</em>. <a href="https://arxiv.org/abs/2307.08197">https://arxiv.org/abs/2307.08197</a>.
+</div>
+<div id="ref-payeur2021" class="csl-entry">
+Payeur, Alexandre, Jordan Guerguiev, Friedemann Zenke, Blake A. Richards, and Richard Naud. 2021. <span>“Burst-Dependent Synaptic Plasticity Can Coordinate Learning in Hierarchical Circuits.”</span> <em>Nature Neuroscience</em>. <a href="https://www.biorxiv.org/content/10.1101/2020.03.30.015511">https://www.biorxiv.org/content/10.1101/2020.03.30.015511</a>.
+</div>
+<div id="ref-rosenbaum2022" class="csl-entry">
+Rosenbaum, Robert. 2022. <span>“On the Relationship Between Predictive Coding and Backpropagation.”</span> <em>PLoS ONE</em> 17 (3): e0266102. <a href="https://arxiv.org/abs/2106.13082">https://arxiv.org/abs/2106.13082</a>.
+</div>
+<div id="ref-shervani2023" class="csl-entry">
+Shervani-Tabar, Navid, and Robert Rosenbaum. 2023. <span>“Meta-Learning Biologically Plausible Plasticity Rules with Random Feedback Pathways.”</span> <em>Nature Communications</em> 14: 1805. <a href="https://doi.org/10.1038/s41467-023-37562-1">https://doi.org/10.1038/s41467-023-37562-1</a>.
+</div>
+<div id="ref-song2024" class="csl-entry">
+Song, Yuhang, Beren Millidge, Tommaso Salvatori, Thomas Lukasiewicz, Zhenghua Xu, and Rafal Bogacz. 2024. <span>“Inferring Neural Activity Before Plasticity as a Foundation for Learning Beyond Backpropagation.”</span> <em>Nature Neuroscience</em> 27 (2): 348–58. <a href="https://doi.org/10.1038/s41593-023-01514-1">https://doi.org/10.1038/s41593-023-01514-1</a>.
+</div>
+<div id="ref-ziyin2025" class="csl-entry">
+Ziyin, Liu, Isaac Chuang, and Tomaso Poggio. 2025. <em>Heterosynaptic Circuits Are Universal Gradient Machines</em>. <a href="https://arxiv.org/abs/2505.02248">https://arxiv.org/abs/2505.02248</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Who {Writes} the {Learning} {Rule?}},
+  date = {2026-11-04},
+  url = {https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/},
+  langid = {en}
+}
+</code></pre></div><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“Who Writes the Learning Rule?”</span>
+November 4. <a href="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/">https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/</a>.
+</div></div></section></div> ]]></description>
+  <category>overview</category>
+  <category>ai</category>
+  <category>machine-learning</category>
+  <category>neuroscience</category>
+  <guid>https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/</guid>
+  <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig02.png" medium="image" type="image/png" height="199" width="144"/>
+</item>
 <item>
   <title>The Teacher Who Writes the Weights</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
@@ -5917,105 +6251,6 @@ Boundary.”</span> October 16. <a href="https://scuenat.github.io/posts/2026-10
   <guid>https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/</guid>
   <pubDate>Fri, 16 Oct 2026 00:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-10-16-decided-in-the-bulk/figures/fig01.png" medium="image" type="image/png" height="84" width="144"/>
-</item>
-<item>
-  <title>A Universe Without a Bottom</title>
-  <dc:creator>Stéphane Cuenat</dc:creator>
-  <link>https://scuenat.github.io/posts/2026-10-15-a-universe-without-a-bottom/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<div class="callout callout-style-simple callout-note">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>Something different, just this once.</strong> This blog is usually about AI, machines and measurement. This essay is not. It is a personal detour into physics, written by someone who is neither a physicist nor a mathematician, following a question out of curiosity. Its follow-up, <a href="../../posts/2026-10-16-decided-in-the-bulk/index.html">Decided in the Bulk, Written on the Boundary</a>, brings the question back to AI.</p>
-</div>
-</div>
-</div>
-<section id="it-must-be-simpler-than-this" class="level2">
-<h2 class="anchored" data-anchor-id="it-must-be-simpler-than-this">It must be simpler than this</h2>
-<p>I am not a physicist. I am not a mathematician. But one evening I opened a new physics paper, <em>Holograms and Standard Models</em> by Miyashita, Sekino and Susskind, and tried to follow it.</p>
-<p>I got lost quickly. Fermions, ensembles, double-scaled limits, Feynman diagrams that look like flowers. And my first reaction was simple: something is wrong here. It must be easier. I believe the universe is fundamentally simple.</p>
-<p>This essay is what happened when I followed that feeling. I didn’t find the answer. I found better questions, and maybe that is the point.</p>
-</section>
-<section id="the-surface-knows-everything" class="level2">
-<h2 class="anchored" data-anchor-id="the-surface-knows-everything">The surface knows everything</h2>
-<p>The first surprise came from black holes. In the 1970s, Bekenstein and Hawking found that the information a black hole can hold depends on the area of its surface, not on its volume.</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0AS%20=%20%5Cfrac%7BA%7D%7B4%5C,%5Cell_P%5E2%7D%0A"></p>
-<p>In plain words: cover the horizon with tiny tiles, each the size of the smallest length physics knows, and you have counted everything inside. Double the size of the black hole and its information grows four times, not eight.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. The surface knows everything. Left: a horizon covered with tiles, each the smallest area physics knows. Right: make a black hole twice as wide and the room inside grows eight times, but the information it can hold grows only four times, like its surface. Schematic, my own; the code is in figs.py."><img src="https://scuenat.github.io/posts/2026-10-15-a-universe-without-a-bottom/figures/fig01.png" class="img-fluid figure-img" alt="Left: a sphere covered with a grid, a few tiles on its surface shaded amber. Right: bars for a black hole and one twice as wide; volume grows from 1 to 8, information from 1 to 4."></a></p>
-<figcaption><strong>Figure 1.</strong> The surface knows everything. Left: a horizon covered with tiles, each the smallest area physics knows. Right: make a black hole twice as wide and the room inside grows eight times, but the information it can hold grows only four times, like its surface. Schematic, my own; the code is in <a href="figs.py">figs.py</a>.</figcaption>
-</figure>
-</div>
-<p>This is strange. In everyday life a bigger box holds more things because it has more room inside. Here the inside seems to be written on the walls. Physicists call this the holographic principle: our three-dimensional world may be like an image projected from a flat surface.</p>
-<p>So I asked myself: what if area and volume are not two different things? What if they are two faces of the same idea? It turns out physicists ask this too. Some say the area measures how much things are connected (entanglement) and the volume measures how complicated they are. Maybe space is just the shape that information takes when we look at it from inside.</p>
-</section>
-<section id="everything-from-nothing" class="level2">
-<h2 class="anchored" data-anchor-id="everything-from-nothing">Everything from nothing</h2>
-<p>Einstein did not change physics with more complicated equations. He took one simple idea completely seriously: light moves at the same speed for everyone. So I wondered if we are looking in the wrong place. What if there is nothing at all, and that nothing is creating everything?</p>
-<p>To my surprise, the paper I could not follow says something close to this. The authors put their model at infinite temperature. That sounds extreme, but it means something simple: every possibility is equally likely. No preference, no structure, no information. It is the state of maximum ignorance, the closest thing to “nothing” that quantum physics allows.</p>
-<p>And from this featureless state they claim a whole small world appears: particles, forces, even the tiny energy of empty space. Their motto is “set it and forget it.” You choose one number, how big the system is, and the rest follows.</p>
-<p>Others had similar dreams. Some physicists noticed that the energy of matter and the energy of gravity may cancel exactly, so a universe might cost nothing to make. John Wheeler said “it from bit”: reality built from yes-or-no answers, information before matter. Of course, their “nothing” still has laws of physics in it. Why there are laws at all is still a mystery.</p>
-</section>
-<section id="grains-within-grains" class="level2">
-<h2 class="anchored" data-anchor-id="grains-within-grains">Grains within grains</h2>
-<p>Then another thought. What if we never reach the final piece? What if there is no end?</p>
-<p>History points that way. We thought atoms were the bottom. Then we found the nucleus, then quarks. Each time the “fundamental” level turned out to be made of something else.</p>
-<p>But the black hole formula seems to say no. If a region can hold only a limited amount of information, it cannot hide infinite layers inside. There must be a floor.</p>
-<p>Unless the floor belongs only to us. What if what we call the universe is just one grain? The limit would apply inside our horizon, the part we can see, and not to everything. Some cosmologists already imagine this: space inflating forever, making bubble universes like ours, each one a grain, each with its own rules.</p>
-<p>And it should work both ways. In 1987 physicists showed that a tiny bubble of very dense energy could grow into a new universe. From outside it would look like a small black hole that disappears. From inside it would be a whole cosmos, expanding, maybe one day full of people asking the same questions. A grain inside our grain. And maybe ours is a grain inside someone else’s.</p>
-</section>
-<section id="the-vertigo" class="level2">
-<h2 class="anchored" data-anchor-id="the-vertigo">The vertigo</h2>
-<p>At this point I felt something I did not expect. A kind of dizziness. Nothing creating everything. Grains inside grains. No final layer. Are we at the end of thinking, or just getting close to going a bit mad?</p>
-<p>I don’t think it is madness. Pascal, more than three hundred years ago, wrote that the eternal silence of infinite spaces frightened him. Einstein said the most incomprehensible thing about the universe is that it is comprehensible. The dizziness seems to be what you feel when you follow the questions honestly.</p>
-<p>The hard part is not the physics. It is accepting that we may go from nothing to nothing, with no final answer waiting for us. We want an end. We tell stories with endings. We look for the cause behind the cause. Being told the chain may never close feels like losing the ground under your feet.</p>
-</section>
-<section id="the-meaning-is-in-the-middle" class="level2">
-<h2 class="anchored" data-anchor-id="the-meaning-is-in-the-middle">The meaning is in the middle</h2>
-<p>Mathematics went through this once. In 1931 Kurt Gödel proved that mathematics can never be complete: there will always be true things it cannot prove. Many thought it was the end. It was not. Mathematics kept growing, and the open horizon became part of its beauty.</p>
-<p>Maybe physics is the same. An end out of reach does not make the answers along the way less real. Feynman said he could live with doubt and not knowing, and that it was more interesting than having answers that might be wrong.</p>
-<p>And “from nothing to nothing” forgets the middle. The middle is everything: stars, black holes, and someone on a quiet evening trying to understand a paper too difficult for them. If there is no final end, then asking is not a failure to arrive. Maybe it is what the universe does when it becomes complex enough to look at itself.</p>
-<p>I started by believing the universe must be simple. I still believe it. But maybe simple does not mean finished.</p>
-<div class="discuss">
-<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
-<p><strong>Follow new posts.</strong> Subscribe to the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> on LinkedIn, or to the <a href="../../index.xml">RSS feed</a>. The <a href="../../archive.html">archive</a> lists recent changes.</p>
-</div>
-<div class="read-next">
-<p><strong>Read next</strong> · <a href="../../posts/2026-10-16-decided-in-the-bulk/index.html">Decided in the Bulk, Written on the Boundary</a><br>
-The same question, turned into an experiment on an AI image generator.</p>
-</div>
-</section>
-<section id="sources" class="level2">
-<h2 class="anchored" data-anchor-id="sources">Sources</h2>
-<ul>
-<li>Miyashita, Sekino and Susskind, <em>Holograms and Standard Models</em> (2026)</li>
-<li><a href="https://en.wikipedia.org/wiki/Black_hole_thermodynamics#Black_hole_entropy">Bekenstein–Hawking black hole entropy</a>, Wikipedia</li>
-<li>Blau, Guendelman and Guth, <a href="https://doi.org/10.1103/PhysRevD.35.1747">“Dynamics of false-vacuum bubbles”</a>, <em>Physical Review D</em> 35, 1747 (1987)</li>
-<li>Kurt Gödel, <a href="https://en.wikipedia.org/wiki/G%C3%B6del%27s_incompleteness_theorems">incompleteness theorems</a> (1931)</li>
-</ul>
-<div class="small">
-<p><em>The views in this essay are my own and do not describe any product or plan of my employer.</em></p>
-</div>
-
-
-</section>
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section></div> ]]></description>
-  <category>essay</category>
-  <category>physics</category>
-  <category>personal</category>
-  <guid>https://scuenat.github.io/posts/2026-10-15-a-universe-without-a-bottom/</guid>
-  <pubDate>Thu, 15 Oct 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://scuenat.github.io/posts/2026-10-15-a-universe-without-a-bottom/figures/cover.png" medium="image" type="image/png" height="79" width="144"/>
 </item>
 </channel>
 </rss>

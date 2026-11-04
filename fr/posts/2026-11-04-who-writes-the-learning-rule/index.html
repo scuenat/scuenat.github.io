@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Panorama de l’apprentissage par règles locales, 2020-2026 : approcher la rétropropagation, s’en passer, apprendre la règle, laisser le circuit s’assembler.">
+
+<title>Qui écrit la règle d’apprentissage ? – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-1fea922cf19b9d1ff494188e66a1ca33.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-503f2b66c949cdc95b56413fc6b9e15e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-1fea922cf19b9d1ff494188e66a1ca33.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-11-04-who-writes-the-learning-rule/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/">
+<meta name="alt-lang-url" content="/posts/2026-11-04-who-writes-the-learning-rule/">
+<link rel="canonical" href="https://scuenat.github.io/fr/posts/2026-11-04-who-writes-the-learning-rule/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-11-04","description":"Panorama de l’apprentissage par règles locales, 2020-2026 : approcher la rétropropagation, s’en passer, apprendre la règle, laisser le circuit s’assembler.","headline":"Qui écrit la règle d’apprentissage ?","image":"https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig02.png","inLanguage":"fr","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["panorama","ia","apprentissage-automatique","neurosciences"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/fr/posts/2026-11-04-who-writes-the-learning-rule/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"translationOfWork":{"@id":"https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/"},"url":"https://scuenat.github.io/fr/posts/2026-11-04-who-writes-the-learning-rule/"}</script>
+
+
+<meta property="og:title" content="Qui écrit la règle d’apprentissage ? – AI, Honestly">
+<meta property="og:description" content="Panorama de l’apprentissage par règles locales, 2020-2026 : approcher la rétropropagation, s’en passer, apprendre la règle, laisser le circuit s’assembler.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig02.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="3196">
+<meta property="og:image:width" content="2311">
+<meta name="twitter:title" content="Qui écrit la règle d’apprentissage ? – AI, Honestly">
+<meta name="twitter:description" content="Panorama de l’apprentissage par règles locales, 2020-2026 : approcher la rétropropagation, s’en passer, apprendre la règle, laisser le circuit s’assembler.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig02.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Aller au contenu principal</a><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site web">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre" aria-label="Basculer le mode sombre"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#la-question" id="toc-la-question" class="nav-link active" data-scroll-target="#la-question">1. La question</a></li>
+  <li><a href="#une-carte" id="toc-une-carte" class="nav-link" data-scroll-target="#une-carte">2. Une carte</a></li>
+  <li><a href="#approcher-la-rétropropagation-avec-des-signaux-locaux" id="toc-approcher-la-rétropropagation-avec-des-signaux-locaux" class="nav-link" data-scroll-target="#approcher-la-rétropropagation-avec-des-signaux-locaux">3. Approcher la rétropropagation avec des signaux locaux</a></li>
+  <li><a href="#apprendre-sans-passe-arrière" id="toc-apprendre-sans-passe-arrière" class="nav-link" data-scroll-target="#apprendre-sans-passe-arrière">4. Apprendre sans passe arrière</a></li>
+  <li><a href="#apprendre-la-règle-dapprentissage" id="toc-apprendre-la-règle-dapprentissage" class="nav-link" data-scroll-target="#apprendre-la-règle-dapprentissage">5. Apprendre la règle d’apprentissage</a></li>
+  <li><a href="#faire-pousser-la-machinerie" id="toc-faire-pousser-la-machinerie" class="nav-link" data-scroll-target="#faire-pousser-la-machinerie">6. Faire pousser la machinerie</a></li>
+  <li><a href="#ce-qui-est-établi-ce-qui-reste-ouvert" id="toc-ce-qui-est-établi-ce-qui-reste-ouvert" class="nav-link" data-scroll-target="#ce-qui-est-établi-ce-qui-reste-ouvert">7. Ce qui est établi, ce qui reste ouvert</a></li>
+  <li><a href="#ma-lecture" id="toc-ma-lecture" class="nav-link" data-scroll-target="#ma-lecture">8. Ma lecture</a></li>
+  <li><a href="#par-où-commencer" id="toc-par-où-commencer" class="nav-link" data-scroll-target="#par-où-commencer">9. Par où commencer</a></li>
+  <li><a href="#références" id="toc-références" class="nav-link" data-scroll-target="#références">Références</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Qui écrit la règle d’apprentissage ?</h1>
+<p class="subtitle lead">Plasticité locale, règles d’apprentissage apprises et circuits qui s’auto-assemblent, de 2020 à 2026 : ce qu’un réseau peut construire lui-même</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">panorama</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">apprentissage-automatique</div>
+    <div class="quarto-category">neurosciences</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Panorama de l’apprentissage par règles locales, 2020-2026 : approcher la rétropropagation, s’en passer, apprendre la règle, laisser le circuit s’assembler.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">4 novembre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Panorama, novembre 2026.</strong> Une carte des recherches de 2020 à 2026 sur une question : un réseau de neurones peut-il bien apprendre avec des règles uniquement locales, et peut-il construire lui-même la machinerie qui fait l’apprentissage, au lieu qu’on la conçoive pour lui ? Le point de départ est un article paru dans <em>PNAS</em> en octobre 2026 <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span>, que je place parmi une vingtaine de sources librement accessibles, surtout de 2020 à 2026, avec deux articles plus anciens en toile de fond. J’ai retenu des travaux souvent cités, en accès libre ou avec une prépublication gratuite, et représentatifs d’une ligne de recherche distincte ; la liste n’est pas exhaustive. Je les ai lus à travers leurs résumés, leurs prépublications et les présentations des éditeurs ou des instituts, pas toujours en entier : je m’en tiens donc à ce qu’ils affirment et ne donne de chiffres que lorsqu’une source en donne. Les cinq figures sont des schémas de moi, qui simplifient les idées et ne montrent aucune donnée, dessinés avec <a href="../../../posts/2026-11-04-who-writes-the-learning-rule/figs.py">figs.py</a>. Les figures sont en anglais. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../posts/2026-11-04-who-writes-the-learning-rule/index.html">Version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Dans un réseau de neurones classique, des personnes conçoivent tout ce qui rend l’apprentissage possible : le câblage, la règle qui modifie chaque connexion, et la passe arrière qui dit à chaque connexion comment changer. Le cerveau n’a pas de concepteur de ce genre, et c’est pourquoi les neuroscientifiques doutent depuis longtemps qu’il pratique la rétropropagation. Depuis 2020, les travaux ont relâché cette conception étape par étape. Une première ligne garde des règles locales mais laisse des connexions de retour apprendre ou se stabiliser jusqu’à porter des signaux d’erreur utiles, et s’approche de la rétropropagation sur de vrais bancs d’essai. Une deuxième supprime complètement la passe arrière. Une troisième utilise une boucle externe pour <em>apprendre</em> la règle de plasticité elle-même. Une quatrième, la plus récente, laisse la structure émerger : des réseaux qui font pousser leur propre câblage et, dans l’article de <em>PNAS</em>, des circuits qui s’assemblent à partir de connexions aléatoires sous des règles locales simples, puis se comportent comme une descente de gradient. Ma lecture : le résultat est réel et intéressant, mais il déplace la conception plutôt qu’il ne la supprime. Quelqu’un choisit encore les règles locales ; ce qui émerge, c’est le circuit qui les transforme en apprentissage. C’est déjà beaucoup. Cela suggère que l’apprentissage est peut-être moins un algorithme à installer qu’une propriété vers laquelle tombent des dynamiques locales bien choisies.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Astuce</span>À retenir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>La rétropropagation exige que chaque connexion sache quelque chose qu’elle ne peut pas voir localement : comment l’erreur en sortie dépend d’elle. C’est le problème de l’<em>attribution du mérite</em> (<em>credit assignment</em>).</li>
+<li>Les approximations locales (retour appris, codage prédictif, propagation à l’équilibre, plasticité dépendante des bouffées, e-prop) s’approchent de la rétropropagation sur des bancs d’essai comme ImageNet ou CIFAR-10, avec des signaux uniquement locaux.</li>
+<li>Certaines méthodes suppriment entièrement la passe arrière (Forward-Forward, SoftHebb). Elles sont plus simples et plus locales, et restent en retrait sur les tâches difficiles.</li>
+<li>Le méta-apprentissage peut <em>découvrir</em> des règles de plasticité, et retrouve parfois des règles connues comme celle d’Oja.</li>
+<li>L’étape la plus récente laisse le circuit d’apprentissage s’assembler lui-même à partir d’une connectivité aléatoire <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span>. Les règles locales restent conçues ; la machinerie qui les transforme en apprentissage de type gradient ne l’est pas.</li>
+<li>Rien de cela ne montre que le cerveau procède ainsi. Cela montre quelles dynamiques locales <em>suffisent</em>.</li>
+</ul>
+</div>
+</div>
+<section id="la-question" class="level2">
+<h2 class="anchored" data-anchor-id="la-question">1. La question</h2>
+<p>Un réseau profond apprend en modifiant des millions de forces de connexion, un peu à la fois. Pour savoir dans quel sens modifier une connexion, il doit savoir comment elle a influencé l’erreur en sortie, plusieurs couches plus loin. La rétropropagation le calcule exactement : elle renvoie l’erreur vers l’arrière à travers le réseau, en utilisant les <em>mêmes</em> poids que la passe avant, transposés. C’est le problème de l’<em>attribution du mérite</em>, et la rétropropagation en est la réponse de référence.</p>
+<p>Pour un cerveau, cette réponse semble fausse d’au moins trois façons. Une synapse devrait connaître la force d’une autre synapse, sur le chemin de retour, et la maintenir exactement égale à la sienne : c’est le problème du <em>transport des poids</em>. La passe arrière exigerait une phase séparée, minutée avec précision. Et les dérivées qu’elle transporte ne sont pas, à l’évidence, quelque chose que calcule un neurone. Pendant des décennies, on y a vu le signe que le cerveau fait autre chose.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Le problème du transport des poids. Dans la rétropropagation, l’erreur repart en arrière à travers une copie transposée des poids avant : chaque synapse devrait connaître la force d’une autre. L’alignement par retour utilise à la place un retour aléatoire fixe ; le retour appris laisse les poids de retour s’ajuster d’eux-mêmes à partir de l’activité locale. Schéma, de moi."><img src="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig01.svg" class="img-fluid figure-img" alt="Trois panneaux, chacun avec une couche « input » et une couche « output » de trois neurones, une flèche avant marquée « W » qui monte et une flèche « error » qui descend. « Backpropagation » : flèche d'erreur pleine, bleu marine, marquée « feedback = W » transposé ; note : le retour doit copier exactement les poids avant, chaque synapse devrait connaître ceux d'une autre. « Feedback alignment » : flèche d'erreur en pointillés gris, « feedback = B, random » ; note : retour aléatoire fixe, les poids avant s'y adaptent, fonctionne mais faiblement sur les tâches difficiles. « Learned feedback » : flèche d'erreur ambre, « B learns to track W » ; note : les poids de retour apprennent à partir de l'activité locale, Kolen-Pollack, miroirs de poids."></a></p>
+<figcaption><strong>Figure 1.</strong> Le problème du transport des poids. Dans la rétropropagation, l’erreur repart en arrière à travers une copie transposée des poids avant : chaque synapse devrait connaître la force d’une autre. L’alignement par retour utilise à la place un retour aléatoire fixe ; le retour appris laisse les poids de retour s’ajuster d’eux-mêmes à partir de l’activité locale. Schéma, de moi.</figcaption>
+</figure>
+</div>
+<p>En 2020, Lillicrap, Santoro, Marris, Akerman et Hinton ont rouvert la question dans une revue qui a cadré cette période de recherche <span class="citation" data-cites="lillicrap2020">(<a href="#ref-lillicrap2020" role="doc-biblioref">Lillicrap et al. 2020</a>)</span>. Leur argument : le cerveau pourrait utiliser des connexions de retour pour induire une activité neuronale dont les <em>différences locales</em> codent des signaux d’erreur proches de ceux de la rétropropagation. Le cerveau n’exécuterait pas la rétropropagation ; il en approcherait l’effet avec des signaux que chaque synapse peut voir.</p>
+<p>La question que suit ce panorama va un pas plus loin. Même si des signaux locaux peuvent approcher le gradient, quelqu’un doit encore concevoir le circuit qui les produit. Qui le fait dans un cerveau ? Il n’y a pas d’ingénieur. La question de fond est donc de savoir si la machinerie d’apprentissage elle-même peut naître d’interactions locales : pousser, s’assembler, ou être trouvée par un processus plus lent comme l’évolution.</p>
+</section>
+<section id="une-carte" class="level2">
+<h2 class="anchored" data-anchor-id="une-carte">2. Une carte</h2>
+<p>La figure 2 classe les travaux selon une question : qu’est-ce que le concepteur fixe encore ? Je distingue trois choses qu’un concepteur peut fixer : le <em>câblage</em> (quels neurones sont reliés), la <em>règle de plasticité</em> (comment une connexion change, étant donné ce qu’elle voit), et le <em>circuit d’apprentissage</em> (ce qui produit les signaux d’erreur indiquant aux connexions comment changer ; dans la rétropropagation, la passe arrière exacte).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Cinq lignes de travaux sur l’apprentissage par règles locales, de 2020 à 2026, classées selon ce que le concepteur fixe encore : le câblage, la règle de plasticité, et le circuit d’apprentissage qui porte les signaux d’erreur. Vers le bas, une part croissante est apprise ou émerge. Deux placements sont des simplifications : dans la ligne des règles apprises, le circuit dans lequel agit la règle est en général conçu, même si Lindsey et Litwin-Kumar méta-apprennent aussi le retour ; dans la dernière ligne, les automates cellulaires neuronaux font pousser des formes, pas une machinerie d’apprentissage, et y figurent comme origine de l’idée de croissance. Dans cette ligne, le câblage émerge dans les réseaux qui poussent, et le circuit d’apprentissage émerge dans l’apprentissage auto-assemblé ; les règles locales restent conçues. Le placement est ma propre lecture des travaux cités. Schéma, de moi."><img src="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig02.svg" class="img-fluid figure-img" alt="Cinq lignes, de haut en bas, chacune avec une carte, trois points et une liste de travaux. « Backpropagation », le point de référence : « Wiring », « Plasticity rule » et « Learning circuit » sont tous conçus à la main. « Local approximations », règles locales et retour qui apprend ou se stabilise : câblage et règle conçus, circuit d'apprentissage appris ; travaux cités : Kolen-Pollack et miroirs de poids 2019, e-prop 2020, codage prédictif 2020, plasticité par bouffées 2021, propagation à l'équilibre 2021, configuration prospective 2024. « No backward pass », chaque couche apprend seule : câblage et règle conçus, pas de circuit d'apprentissage nécessaire ; Forward-Forward 2022, SoftHebb 2023. « Learned rules », une boucle externe trouve la règle de plasticité : câblage conçu, règle apprise, circuit d'apprentissage conçu ; Confavreux et collègues 2020, Najarro et Risi 2020, Lindsey et Litwin-Kumar 2020, Jordan et collègues 2021, Kirsch et Schmidhuber 2021, Shervani-Tabar et Rosenbaum 2023. « Self-assembly », le câblage ou le circuit d'apprentissage émerge : câblage émergent, règle conçue, circuit d'apprentissage émergent ; automates cellulaires neuronaux 2020, programmes de développement 2023, circuits hétérosynaptiques 2025, apprentissage auto-assemblé 2026."></a></p>
+<figcaption><strong>Figure 2.</strong> Cinq lignes de travaux sur l’apprentissage par règles locales, de 2020 à 2026, classées selon ce que le concepteur fixe encore : le câblage, la règle de plasticité, et le circuit d’apprentissage qui porte les signaux d’erreur. Vers le bas, une part croissante est apprise ou émerge. Deux placements sont des simplifications : dans la ligne des règles apprises, le circuit dans lequel agit la règle est en général conçu, même si Lindsey et Litwin-Kumar méta-apprennent aussi le retour ; dans la dernière ligne, les automates cellulaires neuronaux font pousser des formes, pas une machinerie d’apprentissage, et y figurent comme origine de l’idée de croissance. Dans cette ligne, le câblage émerge dans les réseaux qui poussent, et le circuit d’apprentissage émerge dans l’apprentissage auto-assemblé ; les règles locales restent conçues. Le placement est ma propre lecture des travaux cités. Schéma, de moi.</figcaption>
+</figure>
+</div>
+<p>Le tableau 1 reprend les mêmes travaux, avec ce que chacun affirme, dans les termes des auteurs.</p>
+<p><strong>Tableau 1.</strong> Travaux représentatifs, 2019 à 2026. Les résultats sont ceux rapportés par les auteurs ; ils portent sur des tâches et des réglages différents et ne doivent pas être comparés d’une ligne à l’autre.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Ligne de travaux</th>
+<th>Ce qui est local</th>
+<th>Résultat rapporté</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Retour appris</strong> : Kolen-Pollack, miroirs de poids <span class="citation" data-cites="akrout2019">(<a href="#ref-akrout2019" role="doc-biblioref">Akrout et al. 2019</a>)</span></td>
+<td>Les poids de retour apprennent à suivre les poids avant</td>
+<td>Dépassent l’alignement par retour sur ImageNet et égalent presque la rétropropagation</td>
+</tr>
+<tr class="even">
+<td><strong>Codage prédictif</strong> : Millidge et coll. <span class="citation" data-cites="millidge2020">(<a href="#ref-millidge2020" role="doc-biblioref">Millidge et al. 2020</a>)</span></td>
+<td>Erreurs de prédiction, mises à jour surtout hebbiennes</td>
+<td>Converge vers les gradients exacts de la rétropropagation sur des graphes de calcul quelconques</td>
+</tr>
+<tr class="odd">
+<td><strong>Propagation à l’équilibre</strong> : Laborieux et coll. <span class="citation" data-cites="laborieux2021">(<a href="#ref-laborieux2021" role="doc-biblioref">Laborieux et al. 2021</a>)</span></td>
+<td>Contraste entre deux états stabilisés</td>
+<td>11,7 % d’erreur de test sur CIFAR-10, proche de la BPTT</td>
+</tr>
+<tr class="even">
+<td><strong>Plasticité par bouffées</strong> : Payeur et coll. <span class="citation" data-cites="payeur2021">(<a href="#ref-payeur2021" role="doc-biblioref">Payeur et al. 2021</a>)</span></td>
+<td>Bouffées contre potentiels isolés</td>
+<td>Les couches hautes coordonnent l’apprentissage des couches basses</td>
+</tr>
+<tr class="odd">
+<td><strong>Apprentissage impulsionnel en ligne</strong> : e-prop <span class="citation" data-cites="bellec2020">(<a href="#ref-bellec2020" role="doc-biblioref">Bellec et al. 2020</a>)</span></td>
+<td>Traces d’éligibilité et signal d’apprentissage</td>
+<td>Approche la BPTT pour les réseaux impulsionnels récurrents</td>
+</tr>
+<tr class="even">
+<td><strong>L’activité d’abord, les poids ensuite</strong> : Configuration prospective <span class="citation" data-cites="song2024">(<a href="#ref-song2024" role="doc-biblioref">Song et al. 2024</a>)</span></td>
+<td>Activité inférée, puis mises à jour locales</td>
+<td>Plus efficace que la rétropropagation dans plusieurs situations biologiquement pertinentes</td>
+</tr>
+<tr class="odd">
+<td><strong>Pas de passe arrière</strong> : Forward-Forward <span class="citation" data-cites="hinton2022">(<a href="#ref-hinton2022" role="doc-biblioref">Hinton 2022</a>)</span></td>
+<td>Un objectif de « goodness » par couche</td>
+<td>Fonctionne sur de petits problèmes ; présenté comme préliminaire</td>
+</tr>
+<tr class="even">
+<td><strong>Aucun retour</strong> : SoftHebb <span class="citation" data-cites="journe2023">(<a href="#ref-journe2023" role="doc-biblioref">Journé et al. 2023</a>)</span></td>
+<td>Hebbien, winner-take-all souple</td>
+<td>99,4 % sur MNIST, 80,3 % sur CIFAR-10, 27,3 % sur ImageNet</td>
+</tr>
+<tr class="odd">
+<td><strong>Règles apprises</strong> : Confavreux et coll. <span class="citation" data-cites="confavreux2020">(<a href="#ref-confavreux2020" role="doc-biblioref">Confavreux et al. 2020</a>)</span> ; Jordan et coll. <span class="citation" data-cites="jordan2021">(<a href="#ref-jordan2021" role="doc-biblioref">Jordan et al. 2021</a>)</span></td>
+<td>Règles trouvées par une boucle externe</td>
+<td>Retrouvent la règle d’Oja ; trouvent des règles lisibles pour réseaux impulsionnels</td>
+</tr>
+<tr class="even">
+<td><strong>Apprentissage appris</strong> : VS-ML <span class="citation" data-cites="kirsch2021">(<a href="#ref-kirsch2021" role="doc-biblioref">Kirsch et Schmidhuber 2021</a>)</span></td>
+<td>De petits LSTM partagés à la place des poids</td>
+<td>Des algorithmes méta-appris qui peuvent améliorer la rétropropagation dans leurs tests</td>
+</tr>
+<tr class="odd">
+<td><strong>Croissance</strong> : Programmes de développement <span class="citation" data-cites="najarro2023">(<a href="#ref-najarro2023" role="doc-biblioref">Najarro et al. 2023</a>)</span></td>
+<td>Les neurones ne communiquent que localement</td>
+<td>Les réseaux poussent au lieu d’être conçus</td>
+</tr>
+<tr class="even">
+<td><strong>Auto-assemblage</strong> : Apprentissage auto-assemblé <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span></td>
+<td>Plasticité hétérosynaptique</td>
+<td>Les circuits approchent la SGD <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span> ; performances comparables à la rétropropagation <span class="citation" data-cites="mcgovern2026">(<a href="#ref-mcgovern2026" role="doc-biblioref">McGovern Institute for Brain Research 2026</a>)</span></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="approcher-la-rétropropagation-avec-des-signaux-locaux" class="level2">
+<h2 class="anchored" data-anchor-id="approcher-la-rétropropagation-avec-des-signaux-locaux">3. Approcher la rétropropagation avec des signaux locaux</h2>
+<p>Le plus gros des travaux garde l’objectif de la rétropropagation, un gradient, et se demande comment l’obtenir avec des signaux qu’une synapse peut voir. La figure 3 montre trois de ces idées côte à côte.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Trois façons de porter un signal d’erreur avec une information locale. Dans la propagation à l’équilibre, chaque synapse compare son activité dans un état libre et dans un état poussé. Dans le codage prédictif, des unités d’erreur calculent la différence entre activité et prédiction, et chaque poids change avec cette erreur et sa propre entrée. Dans la plasticité dépendante des bouffées, une bouffée renforce une synapse récemment active et un potentiel isolé l’affaiblit : un retour qui modifie le taux de bouffées agit comme un signal d’enseignement. Simplifié d’après les articles cités. Schéma, de moi."><img src="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig03.svg" class="img-fluid figure-img" alt="Trois lignes de trois cartes. « Equilibrium propagation » : « 1. free phase », le réseau se stabilise sur l'entrée ; « 2. nudged phase », la sortie est tirée vers la cible et se stabilise de nouveau ; « 3. update », chaque synapse compare ses deux états ; delta w proportionnel à pré fois post poussé moins pré fois post libre. « Predictive coding » : « prediction », chaque couche prédit celle du dessous ; « error unit », epsilon égale activité moins prédiction ; « update », l'erreur fois l'entrée locale ; delta w proportionnel à epsilon fois pré, tous deux disponibles à la synapse. « Burst-dependent plasticity » : « presynaptic trace », l'entrée a été active récemment ; puis soit « burst », bouffée postsynaptique, renforcer, soit « single spike », potentiel postsynaptique isolé, affaiblir ; le retour venu d'en haut modifie le taux de bouffées, un signal d'enseignement."></a></p>
+<figcaption><strong>Figure 3.</strong> Trois façons de porter un signal d’erreur avec une information locale. Dans la propagation à l’équilibre, chaque synapse compare son activité dans un état libre et dans un état poussé. Dans le codage prédictif, des unités d’erreur calculent la différence entre activité et prédiction, et chaque poids change avec cette erreur et sa propre entrée. Dans la plasticité dépendante des bouffées, une bouffée renforce une synapse récemment active et un potentiel isolé l’affaiblit : un retour qui modifie le taux de bouffées agit comme un signal d’enseignement. Simplifié d’après les articles cités. Schéma, de moi.</figcaption>
+</figure>
+</div>
+<p><strong>Apprendre le retour.</strong> L’astuce la plus simple, l’<em>alignement par retour</em> (<em>feedback alignment</em>, figure 1, au centre), renvoie les erreurs par des poids aléatoires fixes ; les poids avant finissent par s’aligner sur eux. Cela fonctionne pour des réseaux peu profonds et peine sur les tâches difficiles. Juste avant cette période, Akrout et ses collègues ont montré deux façons pour le chemin de retour d’<em>apprendre</em> de bons poids sans les copier : un circuit « miroir de poids », et une variante d’un ancien algorithme de Kolen et Pollack. Sur ImageNet, les deux dépassaient l’alignement par retour et égalaient presque la rétropropagation <span class="citation" data-cites="akrout2019">(<a href="#ref-akrout2019" role="doc-biblioref">Akrout et al. 2019</a>)</span>. C’est le premier indice du thème de ce panorama : une partie de la machinerie d’apprentissage n’a pas besoin d’être conçue si elle peut s’apprendre elle-même.</p>
+<p><strong>Laisser le réseau se stabiliser.</strong> Le codage prédictif traite chaque couche comme prédisant celle du dessous et fait circuler les erreurs de prédiction. Millidge, Tschantz et Buckley ont montré qu’avec des mises à jour uniquement locales et surtout hebbiennes, il converge vers les gradients exacts de la rétropropagation, non seulement dans les réseaux en couches mais sur des graphes de calcul quelconques, CNN, RNN et LSTM compris, et qu’il fait jeu égal avec la rétropropagation sur leurs bancs d’essai <span class="citation" data-cites="millidge2020">(<a href="#ref-millidge2020" role="doc-biblioref">Millidge et al. 2020</a>)</span>. L’égalité exacte suppose une simplification, l’<em>hypothèse de prédiction fixe</em>, qui maintient la prédiction de chaque couche constante pendant que les erreurs se stabilisent ; Rosenbaum a montré que, sous cette hypothèse, le codage prédictif effectue le même calcul que la rétropropagation, et des revues du domaine se sont demandé comment un cerveau la mettrait en œuvre <span class="citation" data-cites="rosenbaum2022 millidge2021">(<a href="#ref-rosenbaum2022" role="doc-biblioref">Rosenbaum 2022</a>; <a href="#ref-millidge2021" role="doc-biblioref">Millidge et al. 2021</a>)</span>. La propagation à l’équilibre suit une idée voisine : laisser le réseau se stabiliser, pousser légèrement la sortie vers la cible, le laisser se stabiliser de nouveau, et mettre à jour chaque connexion à partir de la différence entre les deux états. Elle peinait à passer à l’échelle ; Laborieux et ses collègues ont attribué le problème à un biais dans l’estimation du gradient, l’ont en grande partie supprimé avec des poussées dans les deux sens, et ont atteint 11,7 % d’erreur de test sur CIFAR-10 avec un réseau convolutif profond, près de la rétropropagation dans le temps. Dans sa forme d’origine, la méthode suppose des connexions symétriques, le même poids dans les deux sens, ce qui ramène le problème du transport des poids ; une variante avec des connexions avant et arrière distinctes a atteint 13,2 % <span class="citation" data-cites="laborieux2021">(<a href="#ref-laborieux2021" role="doc-biblioref">Laborieux et al. 2021</a>)</span>.</p>
+<p><strong>Utiliser ce que font vraiment les neurones.</strong> Payeur et ses collègues sont partis de la biologie. Si la plasticité dépend de <em>bouffées</em> de potentiels d’action à haute fréquence, de sorte qu’une bouffée renforce une synapse et qu’un potentiel isolé l’affaiblit, alors les neurones plus haut dans une hiérarchie peuvent coordonner l’apprentissage des neurones plus bas ; cela fonctionne, rapportent-ils, avec une dynamique synaptique à court terme, des dendrites apicales actives et de la plasticité dans les voies de retour <span class="citation" data-cites="payeur2021">(<a href="#ref-payeur2021" role="doc-biblioref">Payeur et al. 2021</a>)</span>. Pour les réseaux impulsionnels récurrents, Bellec et ses collègues ont proposé e-prop : chaque synapse garde une <em>trace d’éligibilité</em> locale et la combine avec un signal d’apprentissage venu d’en haut, ce qui évite de stocker et de rejouer l’histoire du réseau. La méthode approche les performances de la rétropropagation dans le temps et convient aux puces neuromorphiques à faible consommation <span class="citation" data-cites="bellec2020">(<a href="#ref-bellec2020" role="doc-biblioref">Bellec et al. 2020</a>)</span>.</p>
+<p><strong>Changer l’ordre.</strong> Song, Bogacz et leurs collègues sont allés au-delà de l’approximation. Dans la <em>configuration prospective</em>, le réseau infère d’abord l’activité qu’il <em>devrait</em> avoir après l’apprentissage, et ne modifie qu’ensuite les poids pour la consolider ; la rétropropagation fait l’inverse. Ils rapportent que cette méthode apprend plus efficacement que la rétropropagation dans des situations que rencontrent les animaux, comme les structures profondes et l’apprentissage en ligne, et qu’elle explique des données comportementales et neuronales que la rétropropagation n’explique pas <span class="citation" data-cites="song2024">(<a href="#ref-song2024" role="doc-biblioref">Song et al. 2024</a>)</span>. C’est le premier signe que la manière du cerveau pourrait être <em>meilleure</em> pour sa tâche, et non une copie affaiblie.</p>
+<p>Ce que montre cette ligne : le gradient n’a pas besoin d’une passe arrière conçue, pourvu que des connexions de retour existent et que leur dynamique soit la bonne. Ce qu’elle suppose encore : que quelqu’un a conçu cette dynamique.</p>
+</section>
+<section id="apprendre-sans-passe-arrière" class="level2">
+<h2 class="anchored" data-anchor-id="apprendre-sans-passe-arrière">4. Apprendre sans passe arrière</h2>
+<p>Une ligne plus restreinte se demande si le gradient est seulement nécessaire.</p>
+<p>L’algorithme Forward-Forward de Hinton remplace les passes avant et arrière par deux passes avant, l’une sur des données réelles et l’autre sur des données « négatives », et donne à chaque couche son propre objectif : une « goodness » élevée pour les données réelles, faible pour les négatives <span class="citation" data-cites="hinton2022">(<a href="#ref-hinton2022" role="doc-biblioref">Hinton 2022</a>)</span>. Hinton l’a présenté comme préliminaire, démontré sur quelques petits problèmes ; une promesse pratique est que les passes négatives pourraient se faire hors ligne, de sorte qu’apprendre sur les données réelles ne demande pas de stocker les activités.</p>
+<p>SoftHebb va plus loin : aucun retour, aucune cible, aucun signal d’erreur d’aucune sorte, seulement un apprentissage hebbien dans des couches <em>winner-take-all</em> souples, avec un classifieur linéaire au-dessus. Avec jusqu’à cinq couches cachées, Journé et ses collègues rapportent 99,4 % sur MNIST, 80,3 % sur CIFAR-10, 76,2 % sur STL-10 et 27,3 % sur ImageNet <span class="citation" data-cites="journe2023">(<a href="#ref-journe2023" role="doc-biblioref">Journé et al. 2023</a>)</span>. Ces chiffres sont loin de l’état de l’art sur les tâches difficiles, mais ce sont les meilleurs que j’ai trouvés pour un apprentissage purement local en ce sens fort.</p>
+<p>Ce que montre cette ligne : on peut apprendre beaucoup sans aucune attribution du mérite entre couches. Ce qu’elle ne montre pas encore : que cela suffit pour des problèmes difficiles.</p>
+</section>
+<section id="apprendre-la-règle-dapprentissage" class="level2">
+<h2 class="anchored" data-anchor-id="apprendre-la-règle-dapprentissage">5. Apprendre la règle d’apprentissage</h2>
+<p>La troisième ligne cesse de concevoir la règle de plasticité et laisse une boucle externe la trouver, souvent par évolution ou par descente de gradient sur les quelques paramètres de la règle. Le réseau apprend toujours avec des règles locales pendant sa « vie » ; la règle elle-même est le produit d’un processus plus lent, comme elle le serait en biologie (figure 4).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Apprendre la règle d’apprentissage. Dans la boucle rapide, un réseau part de poids aléatoires et une règle locale de paramètres θ les modifie pendant qu’il vit sa tâche. Dans la boucle lente, l’évolution ou le méta-apprentissage évalue chaque vie et ajuste θ. Schéma, de moi."><img src="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig04.svg" class="img-fluid figure-img" alt="Un cadre extérieur ambre, « slow loop, evolution or meta-learning, over many lifetimes », contient un cadre intérieur bleu, « fast loop, one lifetime ». Dans la boucle rapide, une carte « Network », poids w aléatoires au départ, échange des flèches avec une carte « Local rule », delta w égale f thêta de pré, post, signal ; note : le réseau vit sa tâche, la règle change w à chaque pas. Une flèche mène à une carte « Score », a-t-il bien appris à la fin de sa vie, puis à une carte « Update θ », changer les quelques paramètres de la règle, qui renvoie vers la règle locale."></a></p>
+<figcaption><strong>Figure 4.</strong> Apprendre la règle d’apprentissage. Dans la boucle rapide, un réseau part de poids aléatoires et une règle locale de paramètres θ les modifie pendant qu’il vit sa tâche. Dans la boucle lente, l’évolution ou le méta-apprentissage évalue chaque vie et ajuste θ. Schéma, de moi.</figcaption>
+</figure>
+</div>
+<p>Confavreux, Zenke, Agnes, Lillicrap et Vogels l’ont formulé clairement : juger une règle de plasticité non par sa capacité à reproduire des enregistrements, mais par la fonction qu’elle grave dans un réseau aléatoire. Leur recherche a retrouvé la règle d’Oja, une règle classique qui extrait la principale direction de variation de l’entrée, et, à l’échelle du réseau, la règle d’Oja associée à une règle anti-hebbienne qui extrait plusieurs composantes ; ils ont aussi trouvé des règles pour des réseaux impulsionnels à inhibition plastique <span class="citation" data-cites="confavreux2020">(<a href="#ref-confavreux2020" role="doc-biblioref">Confavreux et al. 2020</a>)</span>. Jordan, Schmidt, Senn et Petrovici ont fait évoluer des règles sous forme d’expressions symboliques compactes, lisibles par des humains, et rapportent de nouveaux mécanismes pour apprendre à partir de récompenses, des règles de type descente de gradient pour apprendre à partir de cibles, et des règles de type STDP avec homéostasie <span class="citation" data-cites="jordan2021">(<a href="#ref-jordan2021" role="doc-biblioref">Jordan et al. 2021</a>)</span>.</p>
+<p>Najarro et Risi sont allés à l’extrême : partir de poids entièrement aléatoires et ne faire évoluer que des règles hebbiennes propres à chaque synapse. Les règles seules permettent à un robot simulé d’apprendre à marcher, et de s’adapter à des dommages jamais vus à l’entraînement, sans signal de récompense pendant sa vie <span class="citation" data-cites="najarro2020">(<a href="#ref-najarro2020" role="doc-biblioref">Najarro et Risi 2020</a>)</span>. Les relecteurs de NeurIPS ont noté que des poids fixes entraînés faisaient encore mieux dans certains cas (<a href="https://papers.neurips.cc/paper_files/paper/2020/file/ee23e7ad9b473ad072d57aaa9b2a5222-Review.html">relectures</a>).</p>
+<p>Deux études ont réintroduit le retour. Lindsey et Litwin-Kumar ont méta-appris des réseaux qui utilisent des connexions de retour et de la plasticité locale, avec un retour non lié aux poids avant ; ils égalent ou dépassent une méthode de méta-apprentissage en ligne fondée sur le gradient, et brillent particulièrement en apprentissage continu <span class="citation" data-cites="lindsey2020">(<a href="#ref-lindsey2020" role="doc-biblioref">Lindsey et Litwin-Kumar 2020</a>)</span>. Shervani-Tabar et Rosenbaum ont méta-appris une règle unique, partagée et lisible, au-dessus d’un retour aléatoire, et rapportent un meilleur apprentissage en ligne de réseaux profonds avec peu de données, un cadre où l’alignement par retour apprend lentement <span class="citation" data-cites="shervani2023">(<a href="#ref-shervani2023" role="doc-biblioref">Shervani-Tabar et Rosenbaum 2023</a>)</span>.</p>
+<p>Kirsch et Schmidhuber ont posé la version la plus large : si chaque poids est remplacé par un minuscule réseau récurrent partagé, l’ensemble peut-il apprendre à apprendre ? Ils montrent que le partage de poids et la parcimonie suffisent à exprimer des algorithmes d’apprentissage puissants ; qu’un tel système peut implémenter la rétropropagation dans sa seule dynamique avant ; et qu’il peut méta-apprendre de nouveaux algorithmes qui, dans leurs tests, améliorent la rétropropagation et se généralisent à de nouveaux jeux de données <span class="citation" data-cites="kirsch2021">(<a href="#ref-kirsch2021" role="doc-biblioref">Kirsch et Schmidhuber 2021</a>)</span>.</p>
+<p>Ce que montre cette ligne : les règles de plasticité ne sont pas sacrées ; on peut les trouver, et des règles trouvées battent parfois des règles conçues. Ce qu’elle suppose encore : une boucle externe conçue, et en général un circuit conçu dans lequel la règle agit.</p>
+</section>
+<section id="faire-pousser-la-machinerie" class="level2">
+<h2 class="anchored" data-anchor-id="faire-pousser-la-machinerie">6. Faire pousser la machinerie</h2>
+<p>La ligne la plus récente laisse la structure elle-même émerger.</p>
+<p><strong>Faire pousser le câblage.</strong> En 2020, Mordvintsev, Randazzo, Niklasson et Levin ont entraîné des <em>automates cellulaires neuronaux</em> : une grille de cellules, chacune exécutant le même petit réseau et ne parlant qu’à ses voisines, qui fait pousser une image cible à partir d’une seule cellule et la reconstitue après un dommage <span class="citation" data-cites="mordvintsev2020">(<a href="#ref-mordvintsev2020" role="doc-biblioref">Mordvintsev et al. 2020</a>)</span>. Il s’agissait de formes, pas d’apprentissage, mais cela montrait qu’une structure globale robuste peut naître de règles purement locales. Najarro, Sudhakaran et Risi ont appliqué l’idée aux réseaux eux-mêmes : un <em>programme de développement neuronal</em>, n’utilisant que des communications locales entre neurones, fait pousser un réseau au lieu qu’on le conçoive, et ils ont testé les réseaux obtenus en apprentissage par renforcement et en apprentissage supervisé <span class="citation" data-cites="najarro2023">(<a href="#ref-najarro2023" role="doc-biblioref">Najarro et al. 2023</a>)</span>.</p>
+<p><strong>Assembler le circuit d’apprentissage.</strong> L’article de <em>PNAS</em> de Liao, Ziyin, Gan et leurs collègues du MIT franchit la dernière marche de ma carte <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span>. Ils appellent le cadre <em>Self-Assembling Learning</em> (apprentissage auto-assemblé), et son principal exemple un <em>Self-Assembling Motif</em> (motif auto-assemblé). D’après le résumé, le motif peut émerger d’une connectivité aléatoire sous l’effet d’une plasticité <em>hétérosynaptique</em> (en général, des règles dans lesquelles une synapse change avec l’activité d’autres synapses du même neurone, et pas seulement la sienne), et, répétés sur plusieurs couches, les motifs s’auto-organisent en réseaux dont la dynamique approche une forme généralisée de descente de gradient stochastique. L’article d’actualité du MIT fait état d’une classification d’images comparable à celle de réseaux entraînés par rétropropagation, et reste prudent sur la biologie : savoir si le cerveau utilise ces motifs n’est pas tranché <span class="citation" data-cites="mcgovern2026">(<a href="#ref-mcgovern2026" role="doc-biblioref">McGovern Institute for Brain Research 2026</a>)</span>. Je n’ai pu lire que le résumé et cette présentation, pas l’article complet ; je laisse donc à l’article lui-même le circuit exact, les conditions et les chiffres. La figure 5 esquisse l’idée à ce niveau de détail.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. L’idée de l’apprentissage auto-assemblé, simplifiée. Un réseau part de connexions aléatoires ; les synapses suivent une règle hétérosynaptique locale ; un motif à deux flux, avant et retour, s’assemble ; empilés, les motifs forment un réseau dont l’apprentissage approche une descente de gradient stochastique généralisée. C’est une esquisse de l’idée telle que les auteurs la décrivent dans leur résumé, pas le circuit exact de l’article [@liao2026]. Schéma, de moi."><img src="../../../posts/2026-11-04-who-writes-the-learning-rule/figures/fig05.svg" class="img-fluid figure-img" alt="Quatre panneaux. « 1. Random connectivity » : des neurones épars reliés au hasard ; aucune structure n'est conçue. « 2. A local, heterosynaptic rule » : trois synapses arrivent sur un neurone, celle du milieu mise en évidence, « this synapse », les autres marquées « neighbour » ; une synapse change avec l'activité de ses voisines. « 3. A motif assembles » : un flux « forward » qui monte et un flux « feedback » qui descend, reliés par des liens croisés en pointillés ; deux flux dont les connexions s'ajustent désormais. « 4. Motifs stack into layers » : trois boîtes « motif », une flèche montante à gauche et une flèche « errors flow back » à droite ; tout le réseau apprend désormais comme une SGD généralisée. Note : schéma de l'idée, pas le circuit exact de l'article."></a></p>
+<figcaption><strong>Figure 5.</strong> L’idée de l’apprentissage auto-assemblé, simplifiée. Un réseau part de connexions aléatoires ; les synapses suivent une règle hétérosynaptique locale ; un motif à deux flux, avant et retour, s’assemble ; empilés, les motifs forment un réseau dont l’apprentissage approche une descente de gradient stochastique généralisée. C’est une esquisse de l’idée telle que les auteurs la décrivent dans leur résumé, pas le circuit exact de l’article <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span>. Schéma, de moi.</figcaption>
+</figure>
+</div>
+<p>Une prépublication de 2025 de Ziyin, Chuang et Poggio, <em>Heterosynaptic Circuits Are Universal Gradient Machines</em>, généralise l’idée et, selon les termes des auteurs, propose « un principe de conception pour les circuits d’apprentissage du cerveau biologique » <span class="citation" data-cites="ziyin2025">(<a href="#ref-ziyin2025" role="doc-biblioref">Ziyin et al. 2025</a>)</span>.</p>
+<p>Ce qui est nouveau ici, par rapport aux lignes précédentes, c’est l’endroit où s’arrête la conception. Dans la section 3, quelqu’un concevait le circuit de retour. Dans la section 5, une boucle externe trouvait la règle, mais à l’intérieur d’un circuit conçu. Ici, les règles sont fixes et simples, et le <em>circuit qui les fait aboutir à un apprentissage par gradient</em> n’est pas conçu du tout : il découle de la dynamique.</p>
+</section>
+<section id="ce-qui-est-établi-ce-qui-reste-ouvert" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-est-établi-ce-qui-reste-ouvert">7. Ce qui est établi, ce qui reste ouvert</h2>
+<p><strong>Établi, au sens où plusieurs groupes le rapportent :</strong></p>
+<ul>
+<li>Des signaux locaux peuvent approcher de près les gradients de la rétropropagation, en théorie et sur des bancs d’essai jusqu’à ImageNet, pourvu que des connexions de retour existent <span class="citation" data-cites="akrout2019 millidge2020 laborieux2021">(<a href="#ref-akrout2019" role="doc-biblioref">Akrout et al. 2019</a>; <a href="#ref-millidge2020" role="doc-biblioref">Millidge et al. 2020</a>; <a href="#ref-laborieux2021" role="doc-biblioref">Laborieux et al. 2021</a>)</span>.</li>
+<li>Le transport des poids n’est pas nécessaire : le retour peut apprendre ses propres poids, ou être aléatoire, si les poids avant ou la règle s’adaptent <span class="citation" data-cites="akrout2019 shervani2023">(<a href="#ref-akrout2019" role="doc-biblioref">Akrout et al. 2019</a>; <a href="#ref-shervani2023" role="doc-biblioref">Shervani-Tabar et Rosenbaum 2023</a>)</span>.</li>
+<li>Des règles de plasticité peuvent être découvertes par une boucle externe, et les règles trouvées peuvent retrouver des règles classiques ou faire mieux que des règles conçues à la main dans des tests ciblés <span class="citation" data-cites="confavreux2020 jordan2021 kirsch2021">(<a href="#ref-confavreux2020" role="doc-biblioref">Confavreux et al. 2020</a>; <a href="#ref-jordan2021" role="doc-biblioref">Jordan et al. 2021</a>; <a href="#ref-kirsch2021" role="doc-biblioref">Kirsch et Schmidhuber 2021</a>)</span>.</li>
+<li>Au moins un circuit qui implémente un apprentissage de type gradient peut s’assembler de lui-même à partir d’une connectivité aléatoire sous des règles locales <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span>.</li>
+</ul>
+<p><strong>Ouvert :</strong></p>
+<ul>
+<li><strong>L’échelle.</strong> La plupart des résultats portent sur MNIST, CIFAR-10, de petites tâches de contrôle ou, au mieux, ImageNet. Aucune de ces méthodes n’a entraîné quoi que ce soit qui ressemble à un modèle de langage moderne.</li>
+<li><strong>Le coût.</strong> Les dynamiques de stabilisation, l’apprentissage en deux phases et les boucles externes prennent du temps. Que l’apprentissage local coûte moins cher en pratique dépend du matériel ; sur GPU, la rétropropagation est très difficile à battre. Sur des puces neuromorphiques, la réponse pourrait être différente <span class="citation" data-cites="bellec2020">(<a href="#ref-bellec2020" role="doc-biblioref">Bellec et al. 2020</a>)</span>.</li>
+<li><strong>La biologie.</strong> Montrer qu’un mécanisme suffit ne montre pas que le cerveau l’utilise. Les propositions par bouffées, hétérosynaptiques et de codage prédictif font chacune des prédictions testables ; les expériences sont difficiles et, pour la plupart, pas faites.</li>
+<li><strong>Ce qui reste conçu.</strong> Chaque système de la carte a un concepteur quelque part : les règles locales, la boucle externe, ou le programme de croissance. Faire remonter la conception d’un niveau est un progrès ; ce n’est pas l’absence de conception.</li>
+</ul>
+<p><strong>Ce qui n’est pas couvert ici.</strong> Cette carte laisse de côté plusieurs lignes qu’un spécialiste attendrait : les modèles de neurones dendritiques et multicompartimentaux, dans lesquels la dendrite apicale porte l’erreur ; la propagation de cibles ; les règles à trois facteurs, dans lesquelles un neuromodulateur comme la dopamine autorise un changement local ; et les indices que les méthodes d’inspiration biologique peinent à passer à l’échelle, ce qu’une étude de 2018 a constaté pour la propagation de cibles et l’alignement par retour sur ImageNet <span class="citation" data-cites="bartunov2018">(<a href="#ref-bartunov2018" role="doc-biblioref">Bartunov et al. 2018</a>)</span>. Chacune mériterait son propre panorama.</p>
+</section>
+<section id="ma-lecture" class="level2">
+<h2 class="anchored" data-anchor-id="ma-lecture">8. Ma lecture</h2>
+<p>Je trouve le résultat d’auto-assemblage le plus intéressant de la carte, pour une raison facile à exagérer ; je veux donc être précis.</p>
+<p>Il ne montre pas qu’un réseau peut inventer l’apprentissage à partir de rien. Quelqu’un a choisi les règles hétérosynaptiques, et quelqu’un a choisi d’empiler les motifs en couches. Ce qu’il montre, c’est que, étant donné ces règles locales simples, un <em>circuit d’apprentissage qui fonctionne</em> est quelque chose vers quoi la dynamique tombe, plutôt que quelque chose qu’il faut câbler à la main. Cela change la façon dont je pense la rétropropagation. Elle cesse de ressembler à un algorithme qu’un cerveau devrait implémenter contre toute attente, et commence à ressembler à une sorte d’attracteur : un comportement dont s’approchent de nombreux systèmes dynamiques locaux, comme de nombreux systèmes physiques se stabilisent dans les mêmes quelques motifs. C’est une hypothèse, pas un résultat : un article montre un tel système, et je ne connais encore aucune étude sur la généralité de l’effet.</p>
+<p>Si c’est juste, deux conséquences suivent. La première concerne les neurosciences : il faudrait chercher les règles locales et les conditions sous lesquelles un apprentissage de type gradient émerge, et non une passe arrière cachée. Plusieurs lignes présentées ici, des bouffées à la configuration prospective, vont déjà dans ce sens. La seconde concerne l’apprentissage automatique, et elle est plus spéculative. Aujourd’hui, on fixe l’architecture et l’algorithme d’apprentissage, puis on optimise les poids. Les lignes des sections 5 et 6 suggèrent un autre partage : fixer un petit ensemble de règles locales, et laisser la structure et une partie de la machinerie d’apprentissage s’organiser d’elles-mêmes, comme le cerveau a dû le faire. Que cela puisse un jour rivaliser avec la rétropropagation sur un GPU, j’en doute ; que cela compte pour des systèmes qui doivent continuer d’apprendre seuls, avec peu d’énergie et sans centre de données, je pense que c’est possible. Pour l’instant, c’est une direction, avec des preuves à petite échelle, pas un remplacement.</p>
+</section>
+<section id="par-où-commencer" class="level2">
+<h2 class="anchored" data-anchor-id="par-où-commencer">9. Par où commencer</h2>
+<ul>
+<li><strong>Lillicrap et ses collègues, <span lang="en">« Backpropagation and the Brain »</span></strong> <span class="citation" data-cites="lillicrap2020">(<a href="#ref-lillicrap2020" role="doc-biblioref">Lillicrap et al. 2020</a>)</span>. Le cadre de tout ce qui a suivi depuis 2020 ; court, clair et très cité.</li>
+<li><strong>Millidge, Tschantz et Buckley sur le codage prédictif</strong> <span class="citation" data-cites="millidge2020">(<a href="#ref-millidge2020" role="doc-biblioref">Millidge et al. 2020</a>)</span>. Le résultat le plus net montrant que des règles locales peuvent donner des gradients exacts.</li>
+<li><strong>Confavreux et ses collègues sur la plasticité méta-apprise</strong> <span class="citation" data-cites="confavreux2020">(<a href="#ref-confavreux2020" role="doc-biblioref">Confavreux et al. 2020</a>)</span>. L’idée qu’on doit juger les règles par ce qu’elles construisent.</li>
+<li><strong>Mordvintsev et ses collègues, <span lang="en">« Growing Neural Cellular Automata »</span></strong> <span class="citation" data-cites="mordvintsev2020">(<a href="#ref-mordvintsev2020" role="doc-biblioref">Mordvintsev et al. 2020</a>)</span>. Interactif, ouvert, et la meilleure intuition d’une structure née de règles locales.</li>
+<li><strong>Liao, Ziyin, Gan et leurs collègues dans <em>PNAS</em></strong> <span class="citation" data-cites="liao2026">(<a href="#ref-liao2026" role="doc-biblioref"><span class="nocase">Liao et al.</span> 2026</a>)</span>, avec sa prépublication gratuite. Là où la carte s’arrête aujourd’hui.</li>
+</ul>
+<div class="discuss">
+<p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
+<p><strong>Suivre les nouveaux textes.</strong> Abonnez-vous à la <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> sur LinkedIn (en anglais) ou au <a href="../../../fr/index.xml">flux RSS</a>. La page <a href="../../../fr/archive.html">Tous les textes</a> liste les derniers changements.</p>
+</div>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-11-02-the-mathematics-still-to-come/index.html">Les mathématiques à venir</a> L’IA tourne sur des mathématiques anciennes et fonctionne avant qu’on la comprenne. Ce qu’il faudra peut-être inventer.</p>
+</div>
+<div class="small">
+<p><em>Ce panorama n’est pas exhaustif. Il présente des travaux représentatifs et librement accessibles de 2020 à 2026, tels que j’ai pu les lire, souvent à travers des résumés et des présentations, et le domaine évolue vite. Les travaux manquants et les corrections sont les bienvenus.</em></p>
+<p><em>Les opinions exprimées dans ce panorama sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-akrout2019" class="csl-entry" role="listitem">
+Akrout, Mohamed, Collin Wilson, Peter Humphreys, Timothy Lillicrap, et Douglas Tweed. 2019. <span>«&nbsp;Deep Learning without Weight Transport&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em> 32. <a href="https://arxiv.org/abs/1904.05391">https://arxiv.org/abs/1904.05391</a>.
+</div>
+<div id="ref-bartunov2018" class="csl-entry" role="listitem">
+Bartunov, Sergey, Adam Santoro, Blake A. Richards, Luke Marris, Geoffrey E. Hinton, et Timothy Lillicrap. 2018. <span>«&nbsp;Assessing the Scalability of Biologically-Motivated Deep Learning Algorithms and Architectures&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em> 31. <a href="https://arxiv.org/abs/1807.04587">https://arxiv.org/abs/1807.04587</a>.
+</div>
+<div id="ref-bellec2020" class="csl-entry" role="listitem">
+Bellec, Guillaume, Franz Scherr, Anand Subramoney, et al. 2020. <span>«&nbsp;A Solution to the Learning Dilemma for Recurrent Networks of Spiking Neurons&nbsp;»</span>. <em>Nature Communications</em> 11: 3625. <a href="https://doi.org/10.1038/s41467-020-17236-y">https://doi.org/10.1038/s41467-020-17236-y</a>.
+</div>
+<div id="ref-confavreux2020" class="csl-entry" role="listitem">
+Confavreux, Basile, Friedemann Zenke, Everton J. Agnes, Timothy Lillicrap, et Tim P. Vogels. 2020. <span>«&nbsp;A Meta-Learning Approach to (Re)discover Plasticity Rules That Carve a Desired Function into a Neural Network&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em> 33: 16398‑408. <a href="https://papers.neurips.cc/paper_files/paper/2020/file/bdbd5ebfde4934142c8a88e7a3796cd5-Paper.pdf">https://papers.neurips.cc/paper_files/paper/2020/file/bdbd5ebfde4934142c8a88e7a3796cd5-Paper.pdf</a>.
+</div>
+<div id="ref-hinton2022" class="csl-entry" role="listitem">
+Hinton, Geoffrey. 2022. <em>The Forward-Forward Algorithm: Some Preliminary Investigations</em>. <a href="https://arxiv.org/abs/2212.13345">https://arxiv.org/abs/2212.13345</a>.
+</div>
+<div id="ref-jordan2021" class="csl-entry" role="listitem">
+Jordan, Jakob, Maximilian Schmidt, Walter Senn, et Mihai A. Petrovici. 2021. <span>«&nbsp;Evolving Interpretable Plasticity for Spiking Networks&nbsp;»</span>. <em>eLife</em> 10: e66273. <a href="https://doi.org/10.7554/eLife.66273">https://doi.org/10.7554/eLife.66273</a>.
+</div>
+<div id="ref-journe2023" class="csl-entry" role="listitem">
+Journé, Adrien, Hector Garcia Rodriguez, Qinghai Guo, et Timoleon Moraitis. 2023. <span>«&nbsp;Hebbian Deep Learning without Feedback&nbsp;»</span>. <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2209.11883">https://arxiv.org/abs/2209.11883</a>.
+</div>
+<div id="ref-kirsch2021" class="csl-entry" role="listitem">
+Kirsch, Louis, et Jürgen Schmidhuber. 2021. <span>«&nbsp;Meta Learning Backpropagation and Improving It&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em> 34: 14122‑34. <a href="https://arxiv.org/abs/2012.14905">https://arxiv.org/abs/2012.14905</a>.
+</div>
+<div id="ref-laborieux2021" class="csl-entry" role="listitem">
+Laborieux, Axel, Maxence Ernoult, Benjamin Scellier, Yoshua Bengio, Julie Grollier, et Damien Querlioz. 2021. <span>«&nbsp;Scaling Equilibrium Propagation to Deep ConvNets by Drastically Reducing Its Gradient Estimator Bias&nbsp;»</span>. <em>Frontiers in Neuroscience</em> 15: 633674. <a href="https://doi.org/10.3389/fnins.2021.633674">https://doi.org/10.3389/fnins.2021.633674</a>.
+</div>
+<div id="ref-liao2026" class="csl-entry" role="listitem">
+<span class="nocase">Liao, Qianli, Liu Ziyin, Yulu Gan, et al.</span> 2026. <span>«&nbsp;How Biological Synapses Self-Assemble Gradient Learning&nbsp;»</span>. <em>Proceedings of the National Academy of Sciences</em> 123 (41). <a href="https://doi.org/10.1073/pnas.2606245123">https://doi.org/10.1073/pnas.2606245123</a>.
+</div>
+<div id="ref-lillicrap2020" class="csl-entry" role="listitem">
+Lillicrap, Timothy P., Adam Santoro, Luke Marris, Colin J. Akerman, et Geoffrey Hinton. 2020. <span>«&nbsp;Backpropagation and the Brain&nbsp;»</span>. <em>Nature Reviews Neuroscience</em> 21: 335‑46. <a href="https://doi.org/10.1038/s41583-020-0277-3">https://doi.org/10.1038/s41583-020-0277-3</a>.
+</div>
+<div id="ref-lindsey2020" class="csl-entry" role="listitem">
+Lindsey, Jack, et Ashok Litwin-Kumar. 2020. <span>«&nbsp;Learning to Learn with Feedback and Local Plasticity&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em> 33. <a href="https://arxiv.org/abs/2006.09549">https://arxiv.org/abs/2006.09549</a>.
+</div>
+<div id="ref-mcgovern2026" class="csl-entry" role="listitem">
+McGovern Institute for Brain Research. 2026. <em>How Artificial Neural Networks Build Their Own Learning Machinery</em>. MIT McGovern Institute news. <a href="https://mcgovern.mit.edu/2026/10/05/how-artificial-neural-networks-build-their-own-learning-machinery/">https://mcgovern.mit.edu/2026/10/05/how-artificial-neural-networks-build-their-own-learning-machinery/</a>.
+</div>
+<div id="ref-millidge2021" class="csl-entry" role="listitem">
+Millidge, Beren, Anil Seth, et Christopher L. Buckley. 2021. <em>Predictive Coding: A Theoretical and Experimental Review</em>. <a href="https://arxiv.org/abs/2107.12979">https://arxiv.org/abs/2107.12979</a>.
+</div>
+<div id="ref-millidge2020" class="csl-entry" role="listitem">
+Millidge, Beren, Alexander Tschantz, et Christopher L. Buckley. 2020. <em>Predictive Coding Approximates Backprop along Arbitrary Computation Graphs</em>. <a href="https://arxiv.org/abs/2006.04182">https://arxiv.org/abs/2006.04182</a>.
+</div>
+<div id="ref-mordvintsev2020" class="csl-entry" role="listitem">
+Mordvintsev, Alexander, Ettore Randazzo, Eyvind Niklasson, et Michael Levin. 2020. <span>«&nbsp;Growing Neural Cellular Automata&nbsp;»</span>. <em>Distill</em>, publication en ligne anticipée. <a href="https://doi.org/10.23915/distill.00023">https://doi.org/10.23915/distill.00023</a>.
+</div>
+<div id="ref-najarro2020" class="csl-entry" role="listitem">
+Najarro, Elias, et Sebastian Risi. 2020. <span>«&nbsp;Meta-Learning through <span>Hebbian</span> Plasticity in Random Networks&nbsp;»</span>. <em>Advances in Neural Information Processing Systems</em> 33. <a href="https://arxiv.org/abs/2007.02686">https://arxiv.org/abs/2007.02686</a>.
+</div>
+<div id="ref-najarro2023" class="csl-entry" role="listitem">
+Najarro, Elias, Shyam Sudhakaran, et Sebastian Risi. 2023. <em>Towards Self-Assembling Artificial Neural Networks through Neural Developmental Programs</em>. <a href="https://arxiv.org/abs/2307.08197">https://arxiv.org/abs/2307.08197</a>.
+</div>
+<div id="ref-payeur2021" class="csl-entry" role="listitem">
+Payeur, Alexandre, Jordan Guerguiev, Friedemann Zenke, Blake A. Richards, et Richard Naud. 2021. <span>«&nbsp;Burst-Dependent Synaptic Plasticity Can Coordinate Learning in Hierarchical Circuits&nbsp;»</span>. <em>Nature Neuroscience</em>. <a href="https://www.biorxiv.org/content/10.1101/2020.03.30.015511">https://www.biorxiv.org/content/10.1101/2020.03.30.015511</a>.
+</div>
+<div id="ref-rosenbaum2022" class="csl-entry" role="listitem">
+Rosenbaum, Robert. 2022. <span>«&nbsp;On the Relationship between Predictive Coding and Backpropagation&nbsp;»</span>. <em>PLoS ONE</em> 17 (3): e0266102. <a href="https://arxiv.org/abs/2106.13082">https://arxiv.org/abs/2106.13082</a>.
+</div>
+<div id="ref-shervani2023" class="csl-entry" role="listitem">
+Shervani-Tabar, Navid, et Robert Rosenbaum. 2023. <span>«&nbsp;Meta-Learning Biologically Plausible Plasticity Rules with Random Feedback Pathways&nbsp;»</span>. <em>Nature Communications</em> 14: 1805. <a href="https://doi.org/10.1038/s41467-023-37562-1">https://doi.org/10.1038/s41467-023-37562-1</a>.
+</div>
+<div id="ref-song2024" class="csl-entry" role="listitem">
+Song, Yuhang, Beren Millidge, Tommaso Salvatori, Thomas Lukasiewicz, Zhenghua Xu, et Rafal Bogacz. 2024. <span>«&nbsp;Inferring Neural Activity before Plasticity as a Foundation for Learning beyond Backpropagation&nbsp;»</span>. <em>Nature Neuroscience</em> 27 (2): 348‑58. <a href="https://doi.org/10.1038/s41593-023-01514-1">https://doi.org/10.1038/s41593-023-01514-1</a>.
+</div>
+<div id="ref-ziyin2025" class="csl-entry" role="listitem">
+Ziyin, Liu, Isaac Chuang, et Tomaso Poggio. 2025. <em>Heterosynaptic Circuits Are Universal Gradient Machines</em>. <a href="https://arxiv.org/abs/2505.02248">https://arxiv.org/abs/2505.02248</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Qui écrit la règle d’apprentissage\,?},
+  date = {2026-11-04},
+  url = {https://scuenat.github.io/fr/posts/2026-11-04-who-writes-the-learning-rule/},
+  langid = {fr}
+}
+</code></pre><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Qui écrit la règle
+d’apprentissage ?”</span> November 4. <a href="https://scuenat.github.io/fr/posts/2026-11-04-who-writes-the-learning-rule/">https://scuenat.github.io/fr/posts/2026-11-04-who-writes-the-learning-rule/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Basculer le mode sombre");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Basculer le mode sombre");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      const newWindowLabel = "(opens in a new tab)";
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            describeNewWindow(link);
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Code défilable","output":"Sortie défilable"};
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
