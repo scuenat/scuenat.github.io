@@ -138,7 +138,7 @@ RUNGS = [
       "Burst plasticity 2021", "Equilibrium prop. 2021", "Prospective config. 2024"]),
     ("No backward pass", "each layer learns\non its own", ("D", "D", "-"),
      ["Forward-Forward 2022", "SoftHebb 2023"]),
-    ("Learned rules", "an outer loop finds\nthe plasticity rule", ("D", "E", "E"),
+    ("Learned rules", "an outer loop finds\nthe plasticity rule", ("D", "E", "D"),
      ["Confavreux et al. 2020", "Najarro & Risi 2020", "Lindsey & Litwin-Kumar 2020",
       "Jordan et al. 2021", "Kirsch & Schmidhuber 2021", "Shervani-Tabar & R. 2023"]),
     ("Self-assembly", "wiring or learning\ncircuit emerges", ("E", "D", "E"),
