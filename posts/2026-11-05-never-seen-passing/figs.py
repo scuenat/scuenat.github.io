@@ -1,4 +1,4 @@
-"""Figures for "The Time We Cannot Compress".
+"""Figures for "Never Seen Passing".
 
 On purpose, these figures do not use the site's usual style (Inter type, white cards,
 the navy and amber palette). The essay is partly about everything starting to look the
