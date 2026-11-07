@@ -1,4 +1,4 @@
-"""Figures pour « Les temps changent, les murs aussi ».
+"""Figures pour « Les murs, eux, sont en marche ».
 
 Version française des trois figures de l'édition de la newsletter, dans la palette du site.
 Exécuter depuis ce dossier : python figs.py
