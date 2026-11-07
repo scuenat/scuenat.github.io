@@ -17,7 +17,337 @@
 <width>144</width>
 </image>
 <generator>quarto-1.11.9</generator>
-<lastBuildDate>Sat, 07 Nov 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 08 Nov 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>It Must Be Simpler Than This</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-warning">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Position paper, November 2026. A provocative paper, on purpose.</strong> A short paper with a thesis, a measure, two small worked examples and predictions that could prove it wrong. It gathers one idea that runs, mostly unnamed, through every post on this site since September, from dashboards and agents to black holes. Figures are my own; the numbers in Figures 1 and 2 are computed by <a href="figs.py">figs.py</a> and stored in <a href="results.json">results.json</a>.</p>
+</div>
+</div>
+</div>
+<p><strong>Abstract.</strong> We call a system complex when describing it takes a long time. I argue that this length is mostly a property of the description, not of the system. Formally, the <em>apparent</em> complexity <img src="https://latex.codecogs.com/png.latex?A(x)"> of a thing is the length of the description we actually use; its <em>intrinsic</em> complexity is the length of the shortest description that would regenerate it, a rule plus what the rule leaves out, <img src="https://latex.codecogs.com/png.latex?K(x)%20%5Clesssim%20L(G)%20+%20L(x%20%5Cmid%20G)">. The gap <img src="https://latex.codecogs.com/png.latex?A%20-%20K"> is excess, and it has three sources: we look at the <strong>wrong level</strong>, we describe in the <strong>wrong frame</strong>, or we carry <strong>mass</strong>, layers kept after their reason has gone. Each has its own remedy: change level, change variable, remove. Two cautions keep the thesis honest. A short rule can be expensive to run, so simplicity of description is not simplicity of computation. And a short rule is a hypothesis, so it must carry its residual, the part it does not explain, as the alarm that says when it is wrong. I collect the evidence from twenty-six earlier posts, give two worked examples, and state five predictions, with what would refute each.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Claims
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>The thesis.</strong> Most of what we call complex is a short rule we have not found, not a long one we must accept.</li>
+<li><strong>The measure.</strong> Complexity is description length: a rule plus a residual. A good simplification makes the sum smaller, not just the rule.</li>
+<li><strong>Three sources of excess.</strong> Wrong level, wrong frame, and mass. Change level, change variable, remove.</li>
+<li><strong>Short is not cheap.</strong> A simple rule may be costly to run. Then pay the cost once, and reuse the result.</li>
+<li><strong>Keep the residual.</strong> A simple description is only safe while someone watches what it leaves out.</li>
+<li><strong>The test.</strong> In models, agents, processes and dashboards, the shorter complete description should do at least as well. Where it does not, the thesis is wrong.</li>
+</ol>
+</div>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
+<p>One evening I opened a physics paper I could not follow, and my first reaction was: <em>it must be simpler than this</em> (<a href="../../posts/2026-10-15-a-universe-without-a-bottom/index.html">A Universe Without a Bottom</a>). I meant it as a feeling. Three weeks later, with twenty-six posts behind me, I think it is a claim, and a testable one.</p>
+<p>The posts were about very different things: dashboards, agents, code review, memory in small models, learning rules, time, black holes. Read together, they keep making one move. Something looks complicated; we find that most of the complication came from where we stood, what we measured, or what we refused to throw away; and what remains is short. The dashboard full of numbers becomes the one shape that changed. The agent that reasons from scratch on every run becomes a habit compiled once. Sixteen hours of review a day become a rule that fits in one line.</p>
+<p>This paper states that move precisely, says where it comes from, and says where it fails. It is provocative on purpose: it claims that complexity, in most cases that matter to us, is an error of description, and that the right response is to look for a shorter one rather than to build tools for living with the long one.</p>
+</section>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">2. Background</h2>
+<p>The idea is old, and none of the pieces here are mine.</p>
+<p><strong>Description length.</strong> Solomonoff and Kolmogorov defined the complexity of an object as the length of the shortest program that produces it <span class="citation" data-cites="solomonoff1964 kolmogorov1965">(Solomonoff 1964; Kolmogorov 1965)</span>. Rissanen turned this into a practical rule for science and statistics, minimum description length: the best model is the one that minimises the length of the model plus the length of the data given the model <span class="citation" data-cites="rissanen1978 grunwald2007">(Rissanen 1978; Grünwald 2007)</span>. Gell-Mann and Lloyd called the first part <em>effective complexity</em>: the length of the regularities, with the randomness set aside <span class="citation" data-cites="gellmann1996">(Gell-Mann and Lloyd 1996)</span>.</p>
+<p><strong>Levels.</strong> Simon observed that complex systems that survive are nearly decomposable: hierarchies of parts that interact strongly inside and weakly between, so each level can be described almost on its own <span class="citation" data-cites="simon1962">(Simon 1962)</span>. Anderson warned in the same spirit that each level has its own laws: <em>more is different</em> <span class="citation" data-cites="anderson1972">(Anderson 1972)</span>.</p>
+<p><strong>Software.</strong> Brooks separated essential complexity, which belongs to the problem, from accidental complexity, which belongs to our tools and habits <span class="citation" data-cites="brooks1987">(Brooks 1987)</span>; Moseley and Marks argued that most of what makes large systems hard is accidental, mostly state <span class="citation" data-cites="moseley2006">(Moseley and Marks 2006)</span>. Gall put the engineering version bluntly: a complex system that works has evolved from a simple system that worked <span class="citation" data-cites="gall1975">(Gall 1975)</span>.</p>
+<p><strong>The limits.</strong> Wolfram showed that very short rules can produce behaviour with no known shortcut <span class="citation" data-cites="wolfram2002">(Wolfram 2002)</span>, and Bennett defined <em>logical depth</em>, the time a short program needs to produce its output, to separate the two <span class="citation" data-cites="bennett1988">(Bennett 1988)</span>. And on the side of taste, Hossenfelder argued that the wish for simple, beautiful laws has led physics astray as often as it has guided it <span class="citation" data-cites="hossenfelder2018">(Hossenfelder 2018)</span>.</p>
+<p>What I add is narrower: a bookkeeping of where excess comes from, a rule for practice, and the claim that, in the domains this site covers, the excess is usually large.</p>
+</section>
+<section id="a-minimal-definition" class="level2">
+<h2 class="anchored" data-anchor-id="a-minimal-definition">3. A minimal definition</h2>
+<p>Take something we want to describe: a dataset, a codebase, a process, a pattern. Call it <img src="https://latex.codecogs.com/png.latex?x">.</p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?A(x)">, the <strong>apparent complexity</strong>, is the length of the description we actually use: the raw data we store, the code we keep, the steps we follow.</li>
+<li><img src="https://latex.codecogs.com/png.latex?G"> is a <strong>generator</strong>: a rule, model or program that reproduces <img src="https://latex.codecogs.com/png.latex?x"> up to some error. <img src="https://latex.codecogs.com/png.latex?L(G)"> is the length of the rule; <img src="https://latex.codecogs.com/png.latex?L(x%20%5Cmid%20G)"> is the length of the <strong>residual</strong>, what the rule leaves out.</li>
+<li><img src="https://latex.codecogs.com/png.latex?K(x)">, the <strong>intrinsic complexity</strong>, is the length of the shortest such pair:</li>
+</ul>
+<p><span id="eq-two-part"><img src="https://latex.codecogs.com/png.latex?%0AK(x)%20%5C;%5Capprox%5C;%20%5Cmin_G%20%5Cbig%5B%5C,%20L(G)%20+%20L(x%20%5Cmid%20G)%20%5C,%5Cbig%5D.%0A%5Ctag%7B1%7D"></span></p>
+<p>The <strong>excess</strong> is what we pay for describing <img src="https://latex.codecogs.com/png.latex?x"> badly:</p>
+<p><span id="eq-excess"><img src="https://latex.codecogs.com/png.latex?%0AE(x)%20%5C;=%5C;%20A(x)%20-%20K(x)%20%5C;%5Cgeq%5C;%200%20.%0A%5Ctag%7B2%7D"></span></p>
+<p>The thesis is that, for most systems people build or study, <img src="https://latex.codecogs.com/png.latex?E"> is large compared with <img src="https://latex.codecogs.com/png.latex?K">. As a bookkeeping device, not a theorem, I split it three ways:</p>
+<p><span id="eq-sources"><img src="https://latex.codecogs.com/png.latex?%0AE%20%5C;%5Capprox%5C;%20E_%7B%5Ctext%7Blevel%7D%7D%20+%20E_%7B%5Ctext%7Bframe%7D%7D%20+%20E_%7B%5Ctext%7Bmass%7D%7D%20.%0A%5Ctag%7B3%7D"></span></p>
+<p><img src="https://latex.codecogs.com/png.latex?E_%7B%5Ctext%7Blevel%7D%7D"> is what we pay for describing parts when the regularity lives in the whole. <img src="https://latex.codecogs.com/png.latex?E_%7B%5Ctext%7Bframe%7D%7D"> is what we pay for describing in a variable where the pattern does not show. <img src="https://latex.codecogs.com/png.latex?E_%7B%5Ctext%7Bmass%7D%7D"> is what we pay for layers whose reason has gone. What is left, <img src="https://latex.codecogs.com/png.latex?K">, is the essential part in Brooks’s sense.</p>
+<p>Two quantities sit outside this sum and must not be confused with it. The first is <strong>depth</strong> <img src="https://latex.codecogs.com/png.latex?D(x)">: the time the shortest generator takes to run <span class="citation" data-cites="bennett1988">(Bennett 1988)</span>. A thing can be short and deep. The second is the residual itself, <img src="https://latex.codecogs.com/png.latex?L(x%20%5Cmid%20G)">: it is not waste but the instrument that tells us whether <img src="https://latex.codecogs.com/png.latex?G"> is still right.</p>
+<p><img src="https://latex.codecogs.com/png.latex?K"> cannot be computed in general <span class="citation" data-cites="kolmogorov1965">(Kolmogorov 1965)</span>. We only ever hold upper bounds: every description we find is one. So the thesis is a claim about how far our current bounds are from the truth, and about where to look to bring them down.</p>
+</section>
+<section id="the-arguments" class="level2">
+<h2 class="anchored" data-anchor-id="the-arguments">4. The arguments</h2>
+<section id="two-small-worked-examples" class="level3">
+<h3 class="anchored" data-anchor-id="two-small-worked-examples">4.1 Two small worked examples</h3>
+<p><strong>Short, and it looks it; short, and it does not.</strong> Figure 1 stores three patterns of the same size, 128 rows of 255 cells, in three ways: raw, after a general-purpose compressor, and as the shortest Python program I wrote that prints it. Rule 90, a one-line rule, draws nested triangles; the compressor finds most of the regularity (4.0 KB to 375 bytes), and the program needs 134 bytes. Rule 30 is the same one-line rule with a different number. Its output looks random, and the compressor barely helps (1.7 KB), but the program is still 134 bytes. The apparent complexity of Rule 30 is a property of the compressor, not of the pattern.</p>
+<p>The third panel is the honest twist. The “coin flips” were drawn from a seeded pseudo-random generator, so they too have a short program, 106 bytes. Looking at the pattern, neither you nor the compressor can tell. This is the uncomputability of <img src="https://latex.codecogs.com/png.latex?K"> in one picture: we can never be sure there is no shorter rule.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Three patterns of the same size, each stored three ways (log scale). Rule 90 looks simple and is. Rule 30 looks random, yet the same 134-byte program produces it. The “coin flips” came from a seeded generator, so they have a short program too, which nothing in the picture reveals. Computed by figs.py; numbers in results.json."><img src="https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/figures/fig01.svg" class="img-fluid figure-img" alt="Three rows. Left of each row, a pattern of 128 by 255 black and white cells, shown in its central 128 columns. Top, Rule 90 in navy: nested triangles. Middle, Rule 30 in amber: a triangle filled with irregular, random-looking texture. Bottom, coin flips in grey: uniform noise. Right of each row, three horizontal bars on a log scale: Raw, Compressor, Program. Rule 90: 4.0 KB, 375 B, 134 B. Rule 30: 4.0 KB, 1.7 KB, 134 B. Coin flips: 4.0 KB, 4.0 KB, 106 B."></a></p>
+<figcaption><strong>Figure 1.</strong> Three patterns of the same size, each stored three ways (log scale). Rule 90 looks simple and is. Rule 30 looks random, yet the same 134-byte program produces it. The “coin flips” came from a seeded generator, so they have a short program too, which nothing in the picture reveals. Computed by <a href="figs.py">figs.py</a>; numbers in <a href="results.json">results.json</a>.</figcaption>
+</figure>
+</div>
+<p><strong>The simplest complete description is the true one.</strong> Figure 2 is the statistical version, the same lesson as in <a href="../../posts/2026-09-29-show-what-changed/index.html">Show What Changed, Not the Data</a>. Forty noisy points come from a quadratic. Fitting polynomials of rising degree, the residual keeps shrinking, so a model judged by fit alone keeps growing. Counting both parts of Equation&nbsp;1, the total is shortest at degree 2, the law that produced the data. Simplicity here is not a taste; it is the length of a complete description, and it points at the truth.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Two-part description length for polynomial fits to 40 noisy points from a quadratic. The residual (grey) keeps falling as the model grows; the cost of stating the model (amber) keeps rising; their sum (navy) is shortest at degree 2, the true law. A crude MDL count (BIC-style model cost, Gaussian residual), computed by figs.py."><img src="https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/figures/fig02.svg" class="img-fluid figure-img" alt="Line chart, bits on the vertical axis against polynomial degree from 0 to 14. A grey residual line falls steeply from about 103 at degree 0 to about 28 at degree 2, then slowly to 20. An amber model-cost line rises steadily from about 3 to 40. A navy total line falls from 106 to a minimum of about 36 at degree 2, circled and labelled shortest total, degree 2, the true law, then rises to 60 at degree 14."></a></p>
+<figcaption><strong>Figure 2.</strong> Two-part description length for polynomial fits to 40 noisy points from a quadratic. The residual (grey) keeps falling as the model grows; the cost of stating the model (amber) keeps rising; their sum (navy) is shortest at degree 2, the true law. A crude MDL count (BIC-style model cost, Gaussian residual), computed by <a href="figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+</section>
+<section id="the-three-sources-across-the-site" class="level3">
+<h3 class="anchored" data-anchor-id="the-three-sources-across-the-site">4.2 The three sources, across the site</h3>
+<p>Table 1 reads the earlier posts against Equation&nbsp;3. Each row is something that looked complex, and the shorter description the post arrived at.</p>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> Eleven of the earlier posts, read as reductions of apparent complexity. The last column names the main source of excess in Equation&nbsp;3.</caption>
+<colgroup>
+<col style="width: 24%">
+<col style="width: 26%">
+<col style="width: 36%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Post</th>
+<th>What looked complex</th>
+<th>The shorter description</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="../../posts/2026-09-29-show-what-changed/index.html">Show What Changed</a></td>
+<td>A dashboard of hundreds of metrics</td>
+<td>The difference between today’s shape and last week’s</td>
+<td>Frame</td>
+</tr>
+<tr class="even">
+<td><a href="../../posts/2026-11-02-the-mathematics-still-to-come/index.html">The Mathematics Still to Come</a></td>
+<td>Billions of weights</td>
+<td>Smooth power laws in size, data and compute <span class="citation" data-cites="kaplan2020">(Kaplan et al. 2020)</span></td>
+<td>Level</td>
+</tr>
+<tr class="odd">
+<td><a href="../../posts/2026-10-15-a-universe-without-a-bottom/index.html">A Universe Without a Bottom</a></td>
+<td>Everything inside a black hole</td>
+<td>One number per patch of its surface <span class="citation" data-cites="bekenstein1973">(Bekenstein 1973)</span></td>
+<td>Frame</td>
+</tr>
+<tr class="even">
+<td><a href="../../posts/2026-10-16-decided-in-the-bulk/index.html">Decided in the Bulk</a></td>
+<td>An image forming from noise</td>
+<td>Large decisions first, then edges</td>
+<td>Level</td>
+</tr>
+<tr class="odd">
+<td><a href="../../posts/2026-11-04-who-writes-the-learning-rule/index.html">Who Writes the Learning Rule?</a></td>
+<td>A designed backward pass</td>
+<td>A learning circuit that local rules fall into</td>
+<td>Level</td>
+</tr>
+<tr class="even">
+<td><a href="../../posts/2026-10-21-intent-is-the-source/index.html">Intent Is the Source</a></td>
+<td>The code</td>
+<td>Intent plus the checks that define it</td>
+<td>Frame</td>
+</tr>
+<tr class="odd">
+<td><a href="../../posts/2026-11-07-a-finite-state-of-mind/index.html">A Finite State of Mind</a></td>
+<td>A long agent history</td>
+<td>A short written state, shaped like a lab notebook <span class="citation" data-cites="belcak2026">(Belcak et al. 2026)</span></td>
+<td>Frame</td>
+</tr>
+<tr class="even">
+<td><a href="../../posts/2026-10-20-the-interface-is-data/index.html">The Interface Is Data</a></td>
+<td><img src="https://latex.codecogs.com/png.latex?N%20%5Ctimes%20M"> adapters</td>
+<td>One description, read at run time</td>
+<td>Mass</td>
+</tr>
+<tr class="odd">
+<td><a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a></td>
+<td>An agent reasoning from scratch on every run</td>
+<td>A habit compiled once, and a loop kept for exceptions</td>
+<td>Mass</td>
+</tr>
+<tr class="even">
+<td><a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a></td>
+<td>A human gate on every change</td>
+<td><em>Approve what you cannot undo; watch everything else</em></td>
+<td>Mass</td>
+</tr>
+<tr class="odd">
+<td><a href="../../posts/2026-10-24-work-has-mass/index.html">Work Has Mass</a></td>
+<td>Frameworks layered on frameworks</td>
+<td>Everything you make, you carry</td>
+<td>Mass</td>
+</tr>
+</tbody>
+</table>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Three sources of apparent complexity, with examples from the posts in Table 1, and the remedy for each. What remains after all three is the essential part. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/figures/fig03.svg" class="img-fluid figure-img" alt="Three stacked cards, each with an arrow to a coloured box on the right. Source 1, wrong level: looking at the parts when the law lives in the whole; examples molecules to temperature, tokens to scaling laws, synapses to a learning circuit; remedy: change level. Source 2, wrong frame: describing in a variable where the pattern does not show; examples state to what changed, volume to boundary, code to intent and checks; remedy: change variable. Source 3, mass: layers kept after the reason for them has gone; examples a gate on every change, glue code for every pair, re-reasoning on every run; remedy: remove. At the bottom: what remains after all three is the essential part: keep it, and watch what it misses."></a></p>
+<figcaption><strong>Figure 3.</strong> Three sources of apparent complexity, with examples from the posts in Table 1, and the remedy for each. What remains after all three is the essential part. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p><strong>Level.</strong> Temperature is the textbook case: no one describes a gas molecule by molecule. The same move appears whenever the regularity lives in the whole, and Simon’s near-decomposability says why it so often works <span class="citation" data-cites="simon1962">(Simon 1962)</span>. The claim in <a href="../../posts/2026-11-02-the-mathematics-still-to-come/index.html">The Mathematics Still to Come</a> is that machine learning is still looking for this level: its systems are described weight by weight while its behaviour already follows a few smooth laws.</p>
+<p><strong>Frame.</strong> The same information can be long in one variable and short in another. A dashboard showing levels is long; the same system shown as change is mostly empty. An agent’s history is long; the state it needs to continue is short, and the NVIDIA team found that strong models lose little when the history is replaced by it <span class="citation" data-cites="belcak2026">(Belcak et al. 2026)</span>. Code is long; the intent and the checks that define correct code are shorter, which is the thesis of <a href="../../posts/2026-10-21-intent-is-the-source/index.html">Intent Is the Source</a>.</p>
+<p><strong>Mass.</strong> The most common source, and the least glamorous. A gate, a ceremony, an adapter or a layer of reasoning was added for a reason; the reason went, the layer stayed. <a href="../../posts/2026-10-24-work-has-mass/index.html">Work Has Mass</a> gives the law: everything you make, you carry. AI makes this source worse, because it lowers the cost of adding a layer, not the cost of carrying it. Here the remedy is not a better description but a shorter system: remove.</p>
+</section>
+<section id="short-is-not-cheap" class="level3">
+<h3 class="anchored" data-anchor-id="short-is-not-cheap">4.3 Short is not cheap</h3>
+<p>Rule 30 has a 134-byte description, but to know its millionth row you must, as far as anyone knows, run it a million times <span class="citation" data-cites="wolfram2002">(Wolfram 2002)</span>. A short rule can be deep <span class="citation" data-cites="bennett1988">(Bennett 1988)</span>. This is where simplicity is most often misread: “it is simple” is heard as “it is easy”.</p>
+<p>The posts suggest the answer: pay the depth once. <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> uses the large model as a compiler, slow and once, so that what runs every time is short and fast. <a href="../../posts/2026-10-18-the-junior-colleague/index.html">The Junior Colleague</a> shows the same at the level of single choices: a small model trained on the large model’s own runs took over most decisions in customer-service agents, 86.3% cheaper, as long as it knew when it was unsure. Distillation is the general version <span class="citation" data-cites="hinton2015">(Hinton et al. 2015)</span>. The simple thing is not the computation; it is what the computation leaves behind.</p>
+</section>
+<section id="keep-the-residual" class="level3">
+<h3 class="anchored" data-anchor-id="keep-the-residual">4.4 Keep the residual</h3>
+<p>A short description is a hypothesis. Reality can move in a direction it does not cover, and then the description stays quiet while the world changes, which is the objection a reader raised in <a href="../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">What a Quiet Screen Cannot See</a>. The answer there generalises: the residual <img src="https://latex.codecogs.com/png.latex?L(x%20%5Cmid%20G)"> is cheap to watch, and it grows when the rule stops fitting. The rule and its leftover belong together. Throwing away the residual to make the picture cleaner is not simplification; it is blindness.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. The rule in practice. Find the generator once, on the slow path; act with it fast; watch what it leaves out; when the leftover grows, go back to the slow path. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/figures/fig04.svg" class="img-fluid figure-img" alt="A loop of four cards. Observations (data, traces, incidents) leads to Find the generator (slow, once: the short rule), which leads, labelled rule holds, to Act with it (fast, every time, explainable), which leads to Watch the residual (what the rule leaves out), which leads back, by a dashed arrow labelled residual grows, to Observations. Below: the leftover grows, the rule is wrong, go back to the slow path. And: Fast AI is this loop for automation; the quiet-screen dashboard is this loop for monitoring; a scientific theory is this loop for nature."></a></p>
+<figcaption><strong>Figure 4.</strong> The rule in practice. Find the generator once, on the slow path; act with it fast; watch what it leaves out; when the leftover grows, go back to the slow path. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p>Put together, the rule is short enough to remember: <strong>find the generator, pay its depth once, keep its residual, and remove what neither needs.</strong></p>
+</section>
+</section>
+<section id="predictions-and-a-test-protocol" class="level2">
+<h2 class="anchored" data-anchor-id="predictions-and-a-test-protocol">5. Predictions and a test protocol</h2>
+<p>Each prediction names a domain from the site, a measurement, and the result that would refute the thesis there.</p>
+<ul>
+<li><strong>P1. Models.</strong> Among models trained to the same training loss on the same task, those whose behaviour has a shorter description, measured by prequential coding <span class="citation" data-cites="blier2018">(Blier and Ollivier 2018)</span>, generalise better. <em>Refuted if</em> description length does not predict held-out error once training loss is controlled.</li>
+<li><strong>P2. Agents.</strong> Replacing an agent’s history with a short written state loses accuracy in proportion to how much of the task’s state cannot be written down. <em>Refuted if</em> the loss is unrelated to that measure, or if long-history agents win consistently on tasks whose state fits on a page.</li>
+<li><strong>P3. Processes.</strong> Teams that remove a layer whose reason no longer holds (a gate, a ceremony, a handover) deliver faster with no more failures; teams that add layers to AI-assisted work slow down without fewer failures. <em>Refuted if</em> removal raises failure rates in a stepped-wedge trial like the one in <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>.</li>
+<li><strong>P4. Monitoring.</strong> A dashboard that shows only changes of shape plus a residual alarm detects regime shifts at least as early as a full dashboard, for a fraction of the reading time. <em>Refuted if</em> it misses shifts the full dashboard catches, at comparable false-alarm rates.</li>
+<li><strong>P5. The global test.</strong> Across these domains, when we search seriously for a shorter complete description, we usually find one that does at least as well. <em>Refuted if</em> serious searches mostly come back with descriptions about as long as what we started with: then the world is as complex as it looks, and the essays on this site were lucky.</li>
+</ul>
+<p><strong>Protocol.</strong> For P1, a benchmark of small models on held-out tasks with prequential description length, as in <span class="citation" data-cites="blier2018">Blier and Ollivier (2018)</span>. For P2, the task suites of <span class="citation" data-cites="belcak2026">Belcak et al. (2026)</span>, with tasks annotated for how much of their state is physical or tacit. For P3 and P4, the stepped-wedge design of the review paper: teams adopt the change one at a time in random order, outcomes are measured from logs, not self-reports. P5 is a summary of the other four, judged a year from now.</p>
+</section>
+<section id="objections-and-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="objections-and-limitations">6. Objections and limitations</h2>
+<p><strong>“More is different” <span class="citation" data-cites="anderson1972">(Anderson 1972)</span>.</strong> Higher levels have their own laws that cannot be read off the lower ones. I agree, and it supports the thesis: simplicity is found at the right level, not necessarily at the bottom. Reduction and simplification are different things.</p>
+<p><strong>Irreducibility <span class="citation" data-cites="wolfram2002">(Wolfram 2002)</span>.</strong> Some processes have no shortcut. Yes, and Figure 1 shows one. They are short to describe and deep to run; the thesis is about the first, and Section 4.3 deals with the second.</p>
+<p><strong>Essential complexity is real <span class="citation" data-cites="brooks1987">(Brooks 1987)</span>.</strong> Some problems are hard in themselves. The thesis does not say <img src="https://latex.codecogs.com/png.latex?K"> is small; it says <img src="https://latex.codecogs.com/png.latex?E"> is usually large compared with <img src="https://latex.codecogs.com/png.latex?K">. P5 tests exactly that, and the bench in <a href="../../posts/2026-11-07-a-finite-state-of-mind/index.html">A Finite State of Mind</a>, with its samples, instruments and living cells, is a place where I expect <img src="https://latex.codecogs.com/png.latex?K"> to dominate.</p>
+<p><strong>The wish for simplicity misleads <span class="citation" data-cites="hossenfelder2018">(Hossenfelder 2018)</span>.</strong> It can, when simplicity is used as a criterion of truth before the data. Here it is a length to be measured, and every simple description must carry its residual. A beautiful rule with a growing residual is a wrong rule.</p>
+<p><strong>Complexity is only moved, never removed.</strong> Sometimes. Moving it to the right place, into checks, a compiler or a one-time slow path, is often the point. But the accounting must include where it went: a rule that is short because its complexity was pushed onto users has not reduced <img src="https://latex.codecogs.com/png.latex?E">.</p>
+<p><strong>Survivorship.</strong> The posts in Table 1 are the cases where I found a shorter description; the cases where I did not are not posts. This is the strongest reason to treat Table 1 as illustration, not evidence. The evidence has to come from P1 to P5.</p>
+<p><strong>Limits of the formalism.</strong> <img src="https://latex.codecogs.com/png.latex?K"> is uncomputable, so Equation&nbsp;2 is a bound, not a measurement. The split in Equation&nbsp;3 is a heuristic: the sources overlap, and the shares cannot be measured separately in general. The worked examples are toys chosen to illustrate, not to prove.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
+<p>Poincaré said the scientist studies nature because it is beautiful, with the beauty of an order the mind can grasp <span class="citation" data-cites="poincare1914">(Poincaré 1914)</span>. I would put it in plainer words: we look because we suspect it is shorter than it seems. Most of the time the suspicion is right, because most of the length was ours: the level we chose, the variable we measured, the layers we would not drop. What remains after that is the real thing, short or not, and the residual is how we stay honest about it.</p>
+<p>When something looks complex, assume first that the description is wrong. It must be simpler than this, until the residual says it is not.</p>
+<div class="discuss">
+<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
+<p><strong>Follow new posts.</strong> Subscribe to the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> on LinkedIn, or to the <a href="../../index.xml">RSS feed</a>. The <a href="../../archive.html">archive</a> lists recent changes.</p>
+</div>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-15-a-universe-without-a-bottom/index.html">A Universe Without a Bottom</a> The evening where the feeling started: surfaces that know everything, and grains within grains.</p>
+</div>
+<div class="small">
+<p><em>The views in this paper are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-anderson1972" class="csl-entry">
+Anderson, Philip W. 1972. <span>“More Is Different.”</span> <em>Science</em> 177 (4047): 393–96. <a href="https://doi.org/10.1126/science.177.4047.393">https://doi.org/10.1126/science.177.4047.393</a>.
+</div>
+<div id="ref-bekenstein1973" class="csl-entry">
+Bekenstein, Jacob D. 1973. <span>“Black Holes and Entropy.”</span> <em>Physical Review D</em> 7 (8): 2333–46. <a href="https://doi.org/10.1103/PhysRevD.7.2333">https://doi.org/10.1103/PhysRevD.7.2333</a>.
+</div>
+<div id="ref-belcak2026" class="csl-entry">
+Belcak, Peter, Saurav Muralidharan, Jindong Jiang, et al. 2026. <em>You Don’t Need Long Context</em>. NVIDIA. <a href="https://arxiv.org/abs/2611.05306">https://arxiv.org/abs/2611.05306</a>.
+</div>
+<div id="ref-bennett1988" class="csl-entry">
+Bennett, Charles H. 1988. <span>“Logical Depth and Physical Complexity.”</span> In <em>The Universal Turing Machine: A Half-Century Survey</em>, edited by Rolf Herken. Oxford University Press.
+</div>
+<div id="ref-blier2018" class="csl-entry">
+Blier, Léonard, and Yann Ollivier. 2018. <span>“The Description Length of Deep Learning Models.”</span> <em>Advances in Neural Information Processing Systems 31</em>. <a href="https://arxiv.org/abs/1802.07044">https://arxiv.org/abs/1802.07044</a>.
+</div>
+<div id="ref-brooks1987" class="csl-entry">
+Brooks, Frederick P. 1987. <span>“No Silver Bullet: Essence and Accidents of Software Engineering.”</span> <em>Computer</em> 20 (4): 10–19. <a href="https://doi.org/10.1109/MC.1987.1663532">https://doi.org/10.1109/MC.1987.1663532</a>.
+</div>
+<div id="ref-gall1975" class="csl-entry">
+Gall, John. 1975. <em>General Systemantics: An Essay on How Systems Work, and Especially How They Fail</em>. General Systemantics Press.
+</div>
+<div id="ref-gellmann1996" class="csl-entry">
+Gell-Mann, Murray, and Seth Lloyd. 1996. <span>“Information Measures, Effective Complexity, and Total Information.”</span> <em>Complexity</em> 2 (1): 44–52.
+</div>
+<div id="ref-grunwald2007" class="csl-entry">
+Grünwald, Peter D. 2007. <em>The Minimum Description Length Principle</em>. MIT Press.
+</div>
+<div id="ref-hinton2015" class="csl-entry">
+Hinton, Geoffrey, Oriol Vinyals, and Jeff Dean. 2015. <em>Distilling the Knowledge in a Neural Network</em>. <a href="https://arxiv.org/abs/1503.02531">https://arxiv.org/abs/1503.02531</a>.
+</div>
+<div id="ref-hossenfelder2018" class="csl-entry">
+Hossenfelder, Sabine. 2018. <em>Lost in Math: How Beauty Leads Physics Astray</em>. Basic Books.
+</div>
+<div id="ref-kaplan2020" class="csl-entry">
+Kaplan, Jared, Sam McCandlish, Tom Henighan, et al. 2020. <em>Scaling Laws for Neural Language Models</em>. <a href="https://arxiv.org/abs/2001.08361">https://arxiv.org/abs/2001.08361</a>.
+</div>
+<div id="ref-kolmogorov1965" class="csl-entry">
+Kolmogorov, Andrei N. 1965. <span>“Three Approaches to the Quantitative Definition of Information.”</span> <em>Problems of Information Transmission</em> 1 (1): 1–7.
+</div>
+<div id="ref-moseley2006" class="csl-entry">
+Moseley, Ben, and Peter Marks. 2006. <span>“Out of the Tar Pit.”</span> <em>Software Practice Advancement (SPA)</em>.
+</div>
+<div id="ref-poincare1914" class="csl-entry">
+Poincaré, Henri. 1914. <em>Science and Method</em>. Translated by Francis Maitland. Thomas Nelson; Sons.
+</div>
+<div id="ref-rissanen1978" class="csl-entry">
+Rissanen, Jorma. 1978. <span>“Modeling by Shortest Data Description.”</span> <em>Automatica</em> 14 (5): 465–71. <a href="https://doi.org/10.1016/0005-1098(78)90005-5">https://doi.org/10.1016/0005-1098(78)90005-5</a>.
+</div>
+<div id="ref-simon1962" class="csl-entry">
+Simon, Herbert A. 1962. <span>“The Architecture of Complexity.”</span> <em>Proceedings of the American Philosophical Society</em> 106 (6): 467–82.
+</div>
+<div id="ref-solomonoff1964" class="csl-entry">
+Solomonoff, Ray J. 1964. <span>“A Formal Theory of Inductive Inference. Part <span>I</span>.”</span> <em>Information and Control</em> 7 (1): 1–22. <a href="https://doi.org/10.1016/S0019-9958(64)90223-2">https://doi.org/10.1016/S0019-9958(64)90223-2</a>.
+</div>
+<div id="ref-wolfram2002" class="csl-entry">
+Wolfram, Stephen. 2002. <em>A New Kind of Science</em>. Wolfram Media.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {It {Must} {Be} {Simpler} {Than} {This}},
+  date = {2026-11-08},
+  url = {https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/},
+  langid = {en}
+}
+</code></pre></div><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“It Must Be Simpler Than This.”</span>
+November 8. <a href="https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/">https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/</a>.
+</div></div></section></div> ]]></description>
+  <category>paper</category>
+  <category>position</category>
+  <category>ai</category>
+  <category>philosophy</category>
+  <category>mathematics</category>
+  <guid>https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/</guid>
+  <pubDate>Sun, 08 Nov 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-11-08-it-must-be-simpler-than-this/figures/fig01.png" medium="image" type="image/png" height="236" width="144"/>
+</item>
 <item>
   <title>A Finite State of Mind</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
@@ -614,8 +944,8 @@ Cuenat, Stéphane. 2026. <span>“Never Seen Passing.”</span> November 5.
 <p><strong>Assembling the learning circuit.</strong> The <em>PNAS</em> paper by Liao, Ziyin, Gan and colleagues at MIT takes the last step on my map <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>. They call the framework <em>Self-Assembling Learning</em>, and its main example a <em>Self-Assembling Motif</em>. According to the abstract, the motif can emerge from random connectivity under <em>heterosynaptic</em> plasticity (in general, rules in which a synapse changes with the activity of other synapses on the same neuron, not only its own), and, repeated across layers, the motifs self-organise into networks whose dynamics approximate a generalised form of stochastic gradient descent. MIT’s news piece reports image classification comparable to networks trained with backpropagation, and is careful about the biology: whether the brain uses these motifs is not settled <span class="citation" data-cites="mcgovern2026">(McGovern Institute for Brain Research 2026)</span>. I could read only the abstract and that summary, not the full paper, so I leave the exact circuit, the conditions and the benchmark numbers to the paper itself. Figure 5 sketches the idea at that level of detail.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. The idea of self-assembling learning, simplified. A network starts with random connections; synapses follow a local heterosynaptic rule; a motif with a forward and a feedback stream assembles; stacked motifs make a network whose learning approximates a generalised stochastic gradient descent. This is a sketch of the idea as the authors describe it in their abstract, not the paper’s exact circuit [@liao2026]. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig05.svg" class="img-fluid figure-img" alt="Four panels. 1. Random connectivity: scattered neurons with random links; no structure is designed. 2. A local, heterosynaptic rule: three synapses arrive at one neuron, the middle one highlighted as this synapse, the others labelled neighbour; a synapse changes with its neighbours' activity. 3. A motif assembles: a forward stream going up and a feedback stream going down, linked by dashed cross-links; a forward and a feedback stream whose connections now fit together. 4. Motifs stack into layers: three motif boxes, an upward arrow on the left and an arrow labelled errors flow back on the right; the whole network now learns like generalised SGD. Footnote: schematic of the idea, not the paper's exact circuit."></a></p>
-<figcaption><strong>Figure 5.</strong> The idea of self-assembling learning, simplified. A network starts with random connections; synapses follow a local heterosynaptic rule; a motif with a forward and a feedback stream assembles; stacked motifs make a network whose learning approximates a generalised stochastic gradient descent. This is a sketch of the idea as the authors describe it in their abstract, not the paper’s exact circuit <span class="citation" data-cites="liao2026">(<span class="nocase">Liao et al.</span> 2026)</span>. Schematic, my own.</figcaption>
+<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. The idea of self-assembling learning, simplified. A network starts with random connections; synapses follow a local heterosynaptic rule; a motif with a forward and a feedback stream assembles; stacked motifs make a network whose learning approximates a generalised stochastic gradient descent. This is a sketch of the idea as the authors describe it in their abstract, not the exact circuit of Liao and colleagues’ paper. Schematic, my own."><img src="https://scuenat.github.io/posts/2026-11-04-who-writes-the-learning-rule/figures/fig05.svg" class="img-fluid figure-img" alt="Four panels. 1. Random connectivity: scattered neurons with random links; no structure is designed. 2. A local, heterosynaptic rule: three synapses arrive at one neuron, the middle one highlighted as this synapse, the others labelled neighbour; a synapse changes with its neighbours' activity. 3. A motif assembles: a forward stream going up and a feedback stream going down, linked by dashed cross-links; a forward and a feedback stream whose connections now fit together. 4. Motifs stack into layers: three motif boxes, an upward arrow on the left and an arrow labelled errors flow back on the right; the whole network now learns like generalised SGD. Footnote: schematic of the idea, not the paper's exact circuit."></a></p>
+<figcaption><strong>Figure 5.</strong> The idea of self-assembling learning, simplified. A network starts with random connections; synapses follow a local heterosynaptic rule; a motif with a forward and a feedback stream assembles; stacked motifs make a network whose learning approximates a generalised stochastic gradient descent. This is a sketch of the idea as the authors describe it in their abstract, not the exact circuit of Liao and colleagues’ paper. Schematic, my own.</figcaption>
 </figure>
 </div>
 <p>A 2025 preprint by Ziyin, Chuang and Poggio, <em>Heterosynaptic Circuits Are Universal Gradient Machines</em>, generalises the idea and, in the authors’ words, proposes “a design principle for the learning circuits of the biological brain” <span class="citation" data-cites="ziyin2025">(Ziyin et al. 2025)</span>.</p>
@@ -5672,185 +6002,6 @@ Cuenat, Stéphane. 2026. <span>“The Interface Is Data.”</span> October
   <guid>https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/</guid>
   <pubDate>Tue, 20 Oct 2026 00:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-10-20-the-interface-is-data/figures/fig05.png" medium="image" type="image/png" height="93" width="144"/>
-</item>
-<item>
-  <title>The Junior Colleague</title>
-  <dc:creator>Stéphane Cuenat</dc:creator>
-  <link>https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<div class="series-note">
-<p><strong>Agentic Coding</strong> · Part 1 of 5 · <a href="../../agentic-coding.html">Read the whole series</a></p>
-</div>
-<div class="callout callout-style-simple callout-note">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>Analysis, October 2026.</strong> An analysis of <a href="https://arxiv.org/abs/2610.21412">Zhu et al., <em>JevAgentHarness: Benchmarking, Deploying and Training Decision Models That Share Control with LLMs</em></a> (UIUC, Princeton, Google; arXiv 2610.21412, 15 October 2026), read in the light of my earlier essay <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a>. Unless stated otherwise, numbers come from that paper. Figures are my own, drawn with the code in <a href="figs.py">figs.py</a>.</p>
-</div>
-</div>
-</div>
-<p><strong>Abstract.</strong> Most of an AI agent’s calls to a large language model end in a multiple-choice pick: which tool, which argument, stop or continue. Zhu and colleagues ask whether these picks can be handed to a small <em>decision model</em> that answers in milliseconds, without losing task success. Their answer is yes, under three conditions: the decision model is tested inside the agent rather than on isolated questions, it is used only when its confidence clears a threshold fitted on the agent’s own runs, and it is trained on the states the agent actually reaches, including after its own mistakes. Under these conditions, an open 4B model made customer-service agents 86.3% cheaper and 2.5 times faster with no detectable loss of success. The gains were small in coding agents, and the method failed badly on a rule the model had never seen, until thresholds were refitted. I argue that this is the missing piece of Fast AI: a fast path at the level of single choices, which knows when it is unsure and learns its habits from the slow path.</p>
-<div class="callout callout-style-simple callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Main findings
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ul>
-<li><strong>Most agent steps are multiple choice.</strong> They need a model that picks and says how sure it is, not one that writes.</li>
-<li><strong>A fitted threshold protects success.</strong> It cut cost by 14.2% without losing a single task; a fixed threshold lost 21.5 points.</li>
-<li><strong>Isolated scores mislead.</strong> The best model on isolated questions solved only 69.5% of agent tasks; a less accurate one solved 91.5%.</li>
-<li><strong>Training on the agent’s own states works.</strong> A 4B model went from 13.5% to 96.0% of shifted tasks solved, for 2.2 GPU-hours.</li>
-<li><strong>The gains depend on repetition.</strong> 86–89% cheaper in customer service and text games, 7–10.5% in coding agents.</li>
-<li><strong>Fast models fail confidently on new rules.</strong> 3.0% of tasks solved against 88.0% for the large model alone, until refitting.</li>
-</ul>
-</div>
-</div>
-<section id="the-question" class="level2">
-<h2 class="anchored" data-anchor-id="the-question">1. The question</h2>
-<p>In <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> I argued that automation should learn slowly, once, and act fast every time, keeping the large model for the exceptions. The essay left one practical question open: inside a running agent, how do you know which steps are routine, and what answers them if not the large model?</p>
-<p>The JevAgentHarness paper addresses exactly this. Its starting observation is simple. Watch an agent work and count what it decides. A customer asks to cancel an order; the agent must choose to look up the order, cancel it, or ask the customer first; then which order; then which reason from a fixed list; then whether the task is done. Each of these is a call to a large language model that reads the whole context and writes its answer token by token, in seconds. Yet almost every one ends in picking one item from a list the harness already knows.</p>
-<p>The authors identify eight such <em>decision points</em> in one step of an agent loop: three that choose what the agent does (the tool, its arguments, or the next action) and five that control the loop (write memory, read memory, reflect after a failure, stop, or route the step to a cheaper model). Their research question is how a harness can delegate these choices “to a fast, cheap decision model when the model is reliable, so that agentic tasks become faster and cheaper with little loss of success.”</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schematic. Today the large model makes every choice of the loop. With a decision model, the routine choices are answered in milliseconds, and the large model is called only where the decision model is unsure."><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig01.png" class="img-fluid figure-img" alt="Two rows of six steps. Top: six LLM boxes for tool, args and stop, seconds each. Bottom: five green decision-model boxes and one unsure box that calls the LLM: one LLM call, the rest in milliseconds."></a></p>
-<figcaption><strong>Figure 1.</strong> Schematic. Today the large model makes every choice of the loop. With a decision model, the routine choices are answered in milliseconds, and the large model is called only where the decision model is unsure.</figcaption>
-</figure>
-</div>
-</section>
-<section id="background-decision-models" class="level2">
-<h2 class="anchored" data-anchor-id="background-decision-models">2. Background: decision models</h2>
-<p><em>Decision models</em> are a new class of model built for this kind of choice. Given a context and a question with fixed options, they return a probability for each option instead of generating text. The best known is Jev, released by TypeSafe in September 2026 and presented as a “System One” model, after Daniel Kahneman’s fast, intuitive mode of thinking (<a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">TypeSafe announcement</a>). Its weights and size are not public. In one episode recorded by Zhu and colleagues, a call to Jev took 28% of an LLM call’s time and 2.6% of its price; the <a href="https://github.com/JevAgentHarness/JevAgentHarness">project repository</a> estimates about 0.15 s and $0.0001 for a typical coding-agent state.</p>
-<p>Open counterparts appeared within weeks, among them Intern-Decision, StartLux-Decision and OpenJev. So did the first independent evaluations, which are worth reading before trusting any of these models. As a cheap judge, Jev detected alignment failures such as sycophancy and prompt injection about as well as a reference LLM scorer, at a fraction of the cost (<a href="https://arxiv.org/abs/2609.29429">Guo et al., 2026</a>). As a rubric judge, it was found “cheaper, faster, and wrong in the same places” as LLMs (<a href="https://arxiv.org/abs/2609.29769">Rao and Callison-Burch, 2026</a>). Adversarial tests show that small edits to a question can flip its typed answers (<a href="https://arxiv.org/abs/2609.31142">JevAdvBench</a>), and one study reports that swapping the order of “yes” and “no” changes many of its answers (<a href="https://arxiv.org/abs/2610.00346">arXiv 2610.00346</a>).</p>
-<p>The idea itself is older than these models. A classifier that may abstain when unsure is known as <em>selective classification</em> (<a href="https://arxiv.org/abs/1705.08500">Geifman and El-Yaniv, 2017</a>); one that hands cases to an expert is <em>learning to defer</em> (<a href="https://arxiv.org/abs/2006.01862">Mozannar and Sontag, 2020</a>). Routers and cascades such as <a href="https://arxiv.org/abs/2305.05176">FrugalGPT</a> and <a href="https://arxiv.org/abs/2406.18665">RouteLLM</a> apply it to whole requests, and agents that think “fast and slow”, such as <a href="https://arxiv.org/abs/2305.17390">SwiftSage</a> or the <a href="https://arxiv.org/abs/2410.08328">Talker-Reasoner</a> architecture, apply it to whole steps. What is new in JevAgentHarness is the grain: one typed choice at a time, inside the agent, with a threshold per kind of choice.</p>
-</section>
-<section id="the-approach" class="level2">
-<h2 class="anchored" data-anchor-id="the-approach">3. The approach</h2>
-<p>The paper has three parts, one for each condition the authors believe a decision model needs to be useful.</p>
-<p><strong>A benchmark at three levels.</strong> AgentDecisionBench tests decision models on isolated questions (level 1), at each step of recorded agent runs, where answers are scored but not executed (level 2), and in control of a running agent, where every choice changes what comes next (level 3). Because public benchmarks only check the end of a run, the authors built DecisionGym, a simulated customer-service desk in the style of <a href="https://arxiv.org/abs/2406.12045">τ-bench</a>, which knows the acceptable next steps at every reachable state, including after detours. Each task offers 68 tools in shuffled order, among them 31 near-duplicates of the core tools.</p>
-<p><strong>A harness that asks, then decides whether to trust.</strong> JevAgentHarness plugs into existing harnesses such as mini-SWE-agent or the pi terminal agent through their hooks. At each routine choice, it asks the decision model a typed multiple-choice question: tools, fixed-list or yes/no argument values, or spans to copy from the context. In the main mode, the <em>cascade</em>, the answer is used only when the decision model’s confidence <img src="https://latex.codecogs.com/png.latex?c"> clears a threshold. Otherwise the large model decides as usual. The paper derives the threshold from a simple cost argument: delegating is worth it when</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0Ac%20%5C;%5Cge%5C;%20q_L%20-%20%5Cfrac%7B%5CDelta%20C%7D%7BV%7D,%0A"></p>
-<p>where <img src="https://latex.codecogs.com/png.latex?q_L"> is how often the large model gets this choice right, <img src="https://latex.codecogs.com/png.latex?%5CDelta%20C"> the price of the saved call and <img src="https://latex.codecogs.com/png.latex?V"> the cost of a wrong choice. The small model may be slightly less accurate than the large one, as long as the saving covers the extra risk. In practice, the agent first runs on separate tasks while the decision model answers silently (<em>shadow mode</em>), and the threshold is fitted on these runs for each decision point. With Jev and Gemini 3.5 Flash, the fitted thresholds were 1.00 for tools and 0.99 for arguments: only near-certain answers are used.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. The threshold rule of Zhu and colleagues, with illustrative values of my own. When a call costs little against what a wrong choice costs, the threshold sits just under the large model’s own accuracy."><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig02.png" class="img-fluid figure-img" alt="Three falling lines of the lowest confidence worth trusting against the ratio of saved call price to the cost of a wrong choice, for an LLM right 99%, 95% and 90% of the time. A marker at 0.01 shows thresholds close to the LLM's accuracy."></a></p>
-<figcaption><strong>Figure 2.</strong> The threshold rule of Zhu and colleagues, with illustrative values of my own. When a call costs little against what a wrong choice costs, the threshold sits just under the large model’s own accuracy.</figcaption>
-</figure>
-</div>
-<p><strong>A model trained on the agent’s own states.</strong> AgentDecision-4B is Qwen3-4B with a LoRA adapter. The harness ran 587 training tasks and recorded every decision state, 15,694 in all. To include states after errors, a scripted policy repeated mistakes seen during development, an idea from imitation learning (<a href="https://arxiv.org/abs/1011.0686">Ross et al., 2011</a>), so that 30.9% of the states follow a mistake. Jev’s probabilities served as soft labels, mixed with the correct answer, under a loss that also keeps the probabilities calibrated. A second stage of reinforcement learning inside the agent loop rewarded success with fewer LLM calls.</p>
-<p>The protocol is careful: the models, tasks and tests were registered before the main runs, each delegation was tested alone for non-inferiority (less than 3 points of success lost, at the 5% level, with a correction for multiple tests), and only then were the passing delegations combined and tested on new tasks.</p>
-</section>
-<section id="findings" class="level2">
-<h2 class="anchored" data-anchor-id="findings">4. Findings</h2>
-<section id="isolated-scores-misrank-decision-models" class="level3">
-<h3 class="anchored" data-anchor-id="isolated-scores-misrank-decision-models">4.1 Isolated scores misrank decision models</h3>
-<p>On isolated questions, the models were within about 5 points of each other. Inside a running agent, their task success spread over 57 points. StartLux-9B, the most accurate on isolated tool choice at 92.2%, solved 69.5% of tasks. AgentDecision-4B, at 89.3%, solved 91.5%. The difference lies in the hard states, such as the moments when the right move is to ask the customer before an irreversible action: there, AgentDecision-4B answered 67.4% correctly and Jev 58.3%. Accuracy on recorded agent steps ranked the models nearly as task success did (Kendall correlation 0.84).</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Accuracy on isolated questions against tasks solved when the model makes the agent’s tool choices, on shifted customer-service tasks. Data from Zhu et al., Figure 4b."><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig03.png" class="img-fluid figure-img" alt="Scatter of tasks solved inside the agent against isolated accuracy. Isolated accuracies all lie between 87% and 92%, while task success ranges from 34% for Intern-Decision-4B to 91.5% for AgentDecision-4B. StartLux-9B, the most accurate in isolation, solves 69.5%."></a></p>
-<figcaption><strong>Figure 3.</strong> Accuracy on isolated questions against tasks solved when the model makes the agent’s tool choices, on shifted customer-service tasks. Data from Zhu et al., Figure 4b.</figcaption>
-</figure>
-</div>
-</section>
-<section id="a-fitted-threshold-protects-success" class="level3">
-<h3 class="anchored" data-anchor-id="a-fitted-threshold-protects-success">4.2 A fitted threshold protects success</h3>
-<p>With a fitted threshold, Jev made 27.2% of the tool choices and 20.8% of the argument choices, cutting cost by 14.2% without changing the outcome of any of 500 tasks. Without a threshold, letting Jev make every tool choice lost 19.0 points of success; a fixed threshold of 0.5 lost 21.5. The threshold, not the model, is what makes delegation safe.</p>
-</section>
-<section id="training-on-the-agents-own-states-works" class="level3">
-<h3 class="anchored" data-anchor-id="training-on-the-agents-own-states-works">4.3 Training on the agent’s own states works</h3>
-<p>Supervised training on the agent’s own states raised the 4B model from 13.5% to 96.0% of shifted tasks solved, for 2.2 GPU-hours. The same recipe raised StartLux-4B from 49.0% to 98.0%. The reinforcement-learning stage added no measurable gain, which the authors report plainly. The student beat its teacher: Jev solved 82.0% of the same tasks. On one L4 graphics card, AgentDecision-4B answered in a median of 31 ms, against 809 ms for a call to Gemini 3.5 Flash.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Tasks solved on shifted customer-service tasks, with different decision models making the agent’s tool choices. Data from Zhu et al., Table 3."><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig04.png" class="img-fluid figure-img" alt="Horizontal bars. Untrained Qwen3-4B 13.5%; after training on the agent's states 96.0%; after RL 96.0%; with public data, AgentDecision-4B 91.5%; Jev 82.0%; StartLux-4B 49.0%, and 98.0% with the recipe; Intern-Decision-4B 34.0%."></a></p>
-<figcaption><strong>Figure 4.</strong> Tasks solved on shifted customer-service tasks, with different decision models making the agent’s tool choices. Data from Zhu et al., Table 3.</figcaption>
-</figure>
-</div>
-</section>
-<section id="the-gains-depend-on-how-much-the-choices-repeat" class="level3">
-<h3 class="anchored" data-anchor-id="the-gains-depend-on-how-much-the-choices-repeat">4.4 The gains depend on how much the choices repeat</h3>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. LLM cost saved, with the change in task success against the large model alone, in four settings. Data from Zhu et al., Tables 1 and 2."><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig05.png" class="img-fluid figure-img" alt="Horizontal bars of LLM cost saved: customer service 86.3%, +0.5 points, 2.5 times faster; ALFWorld 89.0%, +4.3 points, about twice as fast; hard tasks with a new rule 30.5%, +2.0 points, slower; coding agents 7.0 to 10.5%, -6.0 to +7.9 points."></a></p>
-<figcaption><strong>Figure 5.</strong> LLM cost saved, with the change in task success against the large model alone, in four settings. Data from Zhu et al., Tables 1 and 2.</figcaption>
-</figure>
-</div>
-<ul>
-<li><strong>Customer service.</strong> On 500 new tasks, AgentDecision-4B on its own graphics card made 99.9% of the tool choices and 75.0% of the argument choices, saving 4.5 LLM calls per task: 86.3% cheaper, 2.5 times faster, success within half a point of the large model alone.</li>
-<li><strong>Text games.</strong> On ALFWorld, a 4B model trained on the game’s states made the agent 89.0% cheaper and about twice as fast, with higher success, and kept these gains in unseen rooms.</li>
-<li><strong>Coding agents.</strong> Actions are free text, so the decision model could only choose which LLM writes each step. Savings were 7.0–10.5%, and success varied by harness.</li>
-</ul>
-</section>
-<section id="fast-models-fail-confidently-on-new-rules" class="level3">
-<h3 class="anchored" data-anchor-id="fast-models-fail-confidently-on-new-rules">4.5 Fast models fail confidently on new rules</h3>
-<p>On harder tasks with a cancellation rule no model was trained on, AgentDecision-4B made most cancel-or-ship choices but got only 81.6% of them right, and the agent solved 3.0% of the tasks, against 88.0% for the large model alone. Refitting the threshold restored success; retraining on the rule raised the model’s accuracy from 76.5% to 95.3%. In the same vein, all 34 of Jev’s failed tasks began with an irreversible wrong tool choice, usually cancelling where the agent should have asked.</p>
-</section>
-</section>
-<section id="analysis-what-this-means-for-fast-ai" class="level2">
-<h2 class="anchored" data-anchor-id="analysis-what-this-means-for-fast-ai">5. Analysis: what this means for Fast AI</h2>
-<p>Fast AI proposed a split: deep networks perceive, a knowledge graph remembers, trees decide, and the agentic loop is kept for the exceptions. The paper does not test this architecture, but its results bear on it in five ways.</p>
-<p><strong>Decision models fill the gap between trees and the large model.</strong> Gradient-boosted trees remain my choice when a decision rests on structured features. But many choices in a process come as text: a customer message, a chat history, a ticket. These used to fall to the large model by default. A small decision model now handles them in milliseconds, with a probability attached.</p>
-<p><strong>“Knowing when unsure” becomes an engineering step.</strong> Fast AI required every fast model to know when to hand over, without saying how. The paper’s answer is concrete: run in shadow mode, measure, fit one threshold per kind of choice, refit when something changes. Finding 4.2 shows this step matters more than the choice of model.</p>
-<p><strong>The habit loop is the training loop.</strong> Finding 4.3 is the habit-forming step of Fast AI, made measurable. The slow, expensive teachers, Jev and the large model, label the agent’s own experience once. The fast student learns the habits of this agent in this domain, including how to recover from its own errors. Logged deferrals become the next round of training data.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Fast AI with a decision model. Each listed choice goes to a small decision model. Above its threshold, it decides; below, the large model, an agent or a person does. The logs, including the agent’s mistakes, are used to retrain the model and refit the thresholds, which are tested in shadow mode before they are trusted."><img src="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png" class="img-fluid figure-img" alt="Flow from a listed choice to a small decision model, then to a fast path if confident enough or a slow path (LLM, agent, person) if not, both leading to an action. Dashed loop: slow path to logs of states, deferrals and mistakes, to retrain and refit, to shadow mode, back to the decision model."></a></p>
-<figcaption><strong>Figure 6.</strong> Fast AI with a decision model. Each listed choice goes to a small decision model. Above its threshold, it decides; below, the large model, an agent or a person does. The logs, including the agent’s mistakes, are used to retrain the model and refit the thresholds, which are tested in shadow mode before they are trusted.</figcaption>
-</figure>
-</div>
-<p><strong>The knowledge graph still matters, perhaps more.</strong> A decision model is only as good as its options, and Finding 4.5 shows what happens when the rules change under it. In a well-built system, the graph supplies the options (which tools apply to this supplier, which approvers are valid for this amount) and holds the rules in a form a person can read and correct. When a rule changes, the change is made once in the graph, and the thresholds are refitted. Habits in weights are fast; habits in a graph are auditable. A serious system needs both.</p>
-<p><strong>It fits the local ecosystem.</strong> A 4B model on one graphics card is the kind of small specialist I described in <a href="../../posts/2026-10-17-an-ecosystem-not-an-oracle/index.html">An Ecosystem, Not an Oracle</a>. NVIDIA researchers make the same argument for agents in general: most of what agents do is narrow and repetitive, and small models can do it more economically (<a href="https://arxiv.org/abs/2506.02153">Belcak et al., 2025</a>). Decision models push this furthest, because picking an option is far narrower than writing.</p>
-</section>
-<section id="limits-and-open-questions" class="level2">
-<h2 class="anchored" data-anchor-id="limits-and-open-questions">6. Limits and open questions</h2>
-<p>The paper is careful about its limits, and they shape how far its results can be carried.</p>
-<ul>
-<li><strong>External validity.</strong> All tasks are in English, most runs use Gemini models, and the most striking numbers come from the authors’ own environment, DecisionGym. Independent replication on real workloads is the next step.</li>
-<li><strong>Fitted to one agent.</strong> Thresholds and trained models are fitted to one agent’s runs. A new agent, new tools or a new task family call for refitting and, for the best accuracy, retraining.</li>
-<li><strong>Silent drift.</strong> Finding 4.5 shows that confidence does not drop on its own when rules change. The authors suggest tracking the share of answers above the threshold; I would add the shape-based monitoring of <a href="../../posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">What a Quiet Screen Cannot See</a>.</li>
-<li><strong>Irreversible actions.</strong> A confident wrong choice at an irreversible step ends the task. The authors warn that a decision-model guard should never be the only control on such an action, and that adapters should not be used as security boundaries.</li>
-<li><strong>Statistics.</strong> The main tests show that success drops by less than 3 points; showing equal success would need an equivalence test. The authors did not compare against learned routers such as RouteLLM on the same tasks.</li>
-<li><strong>Licence.</strong> The trained weights are released under a non-commercial licence, partly because they are trained on outputs of a proprietary model.</li>
-</ul>
-<p>Two questions seem open to me. First, how much of the gain survives when the options themselves must be discovered, rather than listed by the harness? Second, can the threshold and the knowledge graph be kept in step automatically, so that a rule change in the graph triggers refitting before it triggers failures?</p>
-</section>
-<section id="conclusion" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion">7. Conclusion</h2>
-<p>The large model was never meant to answer “which of these three tools?” ten thousand times a day. It was meant to handle what is new, and to teach.</p>
-<p>JevAgentHarness shows a careful way to arrange this: ask a small decision model first, trust it only above a threshold fitted on your own runs, test it on your own work rather than on a leaderboard, and train it on the states your agent really reaches, mistakes included. When the choices repeat, the result is an agent several times faster and far cheaper, with no detectable loss of success. When the world changes, the same discipline of shadow mode, refitting and retraining is what keeps it safe.</p>
-<p>That is a junior colleague in the best sense: fast on the routine, honest about what they do not know, and getting better every month from what the seniors decide. It is also Fast AI, one choice at a time.</p>
-<div class="discuss">
-<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
-<p><strong>Follow new posts.</strong> Subscribe to the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> on LinkedIn, or to the <a href="../../index.xml">RSS feed</a>. The <a href="../../archive.html">archive</a> lists recent changes.</p>
-</div>
-<div class="read-next">
-<p><strong>Read next</strong> · <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> Why the large model should build the memory once, instead of reasoning through every run.</p>
-</div>
-<div class="small">
-<p><em>The views in this analysis are my own and do not describe any product or plan of my employer.</em></p>
-</div>
-
-
-</section>
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section></div> ]]></description>
-  <category>analysis</category>
-  <category>ai</category>
-  <category>agents</category>
-  <category>automation</category>
-  <guid>https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/</guid>
-  <pubDate>Sun, 18 Oct 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://scuenat.github.io/posts/2026-10-18-the-junior-colleague/figures/fig06.png" medium="image" type="image/png" height="80" width="144"/>
 </item>
 </channel>
 </rss>
