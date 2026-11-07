@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-11-07">
+<meta name="description" content="GQA shrinks what each token costs, compaction shrinks how many tokens an agent keeps, and AI use in science follows what can be written down. One resource, three levers.">
+
+<title>A Finite State of Mind – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-c8b8ceedad013c85258ac115b0fac031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-570fffb2a16957715d6a1457a72cee5d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-c8b8ceedad013c85258ac115b0fac031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/posts/2026-11-07-a-finite-state-of-mind/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/">
+<meta name="alt-lang-url" content="/fr/posts/2026-11-07-a-finite-state-of-mind/">
+<link rel="canonical" href="https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"datePublished":"2026-11-07","description":"GQA shrinks what each token costs, compaction shrinks how many tokens an agent keeps, and AI use in science follows what can be written down. One resource, three levers.","headline":"A Finite State of Mind","image":"https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/figures/fig04.png","inLanguage":"en","isPartOf":{"@type":"Blog","name":"AI, Honestly","url":"https://scuenat.github.io/"},"keywords":["analysis","ai","memory","science","philosophy"],"license":"https://creativecommons.org/licenses/by/4.0/","mainEntityOfPage":"https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/","publisher":{"@type":"Person","name":"Stéphane Cuenat","sameAs":["https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"],"url":"https://scuenat.github.io/about.html"},"url":"https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/","workTranslation":{"@id":"https://scuenat.github.io/fr/posts/2026-11-07-a-finite-state-of-mind/"}}</script>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="A Finite State of Mind – AI, Honestly">
+<meta property="og:description" content="GQA shrinks what each token costs, compaction shrinks how many tokens an agent keeps, and AI use in science follows what can be written down. One resource, three levers.">
+<meta property="og:image" content="https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/figures/fig04.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="3122">
+<meta property="og:image:width" content="2312">
+<meta name="twitter:title" content="A Finite State of Mind – AI, Honestly">
+<meta name="twitter:description" content="GQA shrinks what each token costs, compaction shrinks how many tokens an agent keeps, and AI use in science follows what can be written down. One resource, three levers.">
+<meta name="twitter:image" content="https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/figures/fig04.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#three-posts-one-resource" id="toc-three-posts-one-resource" class="nav-link active" data-scroll-target="#three-posts-one-resource">Three posts, one resource</a></li>
+  <li><a href="#the-first-lever-bytes-per-token" id="toc-the-first-lever-bytes-per-token" class="nav-link" data-scroll-target="#the-first-lever-bytes-per-token">The first lever: bytes per token</a></li>
+  <li><a href="#the-second-lever-tokens-kept" id="toc-the-second-lever-tokens-kept" class="nav-link" data-scroll-target="#the-second-lever-tokens-kept">The second lever: tokens kept</a></li>
+  <li><a href="#the-levers-multiply" id="toc-the-levers-multiply" class="nav-link" data-scroll-target="#the-levers-multiply">The levers multiply</a></li>
+  <li><a href="#the-third-lever-what-can-be-written-down" id="toc-the-third-lever-what-can-be-written-down" class="nav-link" data-scroll-target="#the-third-lever-what-can-be-written-down">The third lever: what can be written down</a></li>
+  <li><a href="#where-the-three-meet" id="toc-where-the-three-meet" class="nav-link" data-scroll-target="#where-the-three-meet">Where the three meet</a></li>
+  <li><a href="#what-it-means-for-the-next-few-years" id="toc-what-it-means-for-the-next-few-years" class="nav-link" data-scroll-target="#what-it-means-for-the-next-few-years">What it means for the next few years</a></li>
+  <li><a href="#a-philosophical-perspective" id="toc-a-philosophical-perspective" class="nav-link" data-scroll-target="#a-philosophical-perspective">A philosophical perspective</a></li>
+  <li><a href="#limits" id="toc-limits" class="nav-link" data-scroll-target="#limits">Limits</a></li>
+  <li><a href="#what-would-prove-me-wrong" id="toc-what-would-prove-me-wrong" class="nav-link" data-scroll-target="#what-would-prove-me-wrong">What would prove me wrong</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">A Finite State of Mind</h1>
+<p class="subtitle lead">Shared attention heads, short contexts and AI in science: three readings of one scarce resource</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">analysis</div>
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">memory</div>
+    <div class="quarto-category">science</div>
+    <div class="quarto-category">philosophy</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    GQA shrinks what each token costs, compaction shrinks how many tokens an agent keeps, and AI use in science follows what can be written down. One resource, three levers.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 7, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Analysis, November 2026.</strong> Three posts I saved this week, read together: a technology executive’s summary of NVIDIA’s paper <em>You don’t need long context</em> <span class="citation" data-cites="exec2026post belcak2026">(<a href="#ref-exec2026post" role="doc-biblioref">A technology executive 2026</a>; <a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>)</span>, Johannes Hermle’s announcement of Anthropic’s report on how researchers use Claude <span class="citation" data-cites="hermle2026post hermle2026">(<a href="#ref-hermle2026post" role="doc-biblioref">Hermle 2026</a>; <a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>, and Ramakrushna Mohapatra’s explainer on multi-head, multi-query and grouped-query attention <span class="citation" data-cites="mohapatra2026">(<a href="#ref-mohapatra2026" role="doc-biblioref">Mohapatra 2026</a>)</span>. I read the paper and the report in full. Every number taken from a source is cited where it is used. The figures are drawn with <a href="figs.py">figs.py</a>: Figure 1 is computed, Figures 2 and 3 plot the sources’ numbers, Figure 4 is my own schematic.</p>
+</div>
+</div>
+</div>
+<p><strong>In short.</strong> The three posts are about one thing: what a system must hold in mind while it works, and what that costs. Grouped-query attention shrinks the memory per remembered token <span class="citation" data-cites="ainslie2023">(<a href="#ref-ainslie2023" role="doc-biblioref">Ainslie et al. 2023</a>)</span>. The NVIDIA paper shrinks the number of tokens kept: strong models lose little when their history is replaced by a short written state <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, secs. 3–5</a>)</span>. The Anthropic report shows that AI is used where research tasks are formal and checkable, and least at the bench <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>. The first two levers multiply, and all three meet in one place: the best compaction NVIDIA found has the shape of a lab notebook. What does not fit on the page, the sample, the instrument, the question worth asking, is where the bottleneck and the human part of the work remain.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key takeaways
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>One resource, three levers:</strong> bytes per remembered token (architecture), tokens remembered (the agent’s harness), and which work can be put into tokens at all (the field).</li>
+<li><strong>Long context is mostly a habit.</strong> Frequent compaction kept frontier models within a few points of full history, and selective reading often beat it <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, secs. 3–4</a>)</span>.</li>
+<li><strong>The good notepad is a lab notebook:</strong> aim, facts, methods, checks, dead ends, next step.</li>
+<li><strong>You may not own the model; you can own the notepad.</strong></li>
+</ul>
+</div>
+</div>
+<section id="three-posts-one-resource" class="level2">
+<h2 class="anchored" data-anchor-id="three-posts-one-resource">Three posts, one resource</h2>
+<p>The executive’s post: late tokens cost up to 7 times more than early ones, aggressive compaction costs little accuracy, and “your agent doesn’t need a photographic memory. It needs a good notepad. It’s Guy Pearce in Memento and it still ships the PR” <span class="citation" data-cites="exec2026post">(<a href="#ref-exec2026post" role="doc-biblioref">A technology executive 2026</a>)</span>. Hermle’s post: Claude is used most per researcher in computer science, mathematics and statistics, use tracks AI capability, and output could double in some fields, with physical work as the bottleneck <span class="citation" data-cites="hermle2026post">(<a href="#ref-hermle2026post" role="doc-biblioref">Hermle 2026</a>)</span>. Mohapatra’s post: decoding is limited by memory, because every generated token reads the whole key-value (KV) cache; for a Llama 3 8B-shaped model, multi-head attention (MHA) stores 512 KiB per token, multi-query attention (MQA) 16 KiB, and grouped-query attention (GQA) sits between <span class="citation" data-cites="mohapatra2026">(<a href="#ref-mohapatra2026" role="doc-biblioref">Mohapatra 2026</a>)</span>.</p>
+<p>What ties them is the <strong>working state</strong>: what a system keeps at hand to take its next step. For a transformer it is the KV cache <span class="citation" data-cites="pope2023">(<a href="#ref-pope2023" role="doc-biblioref"><span class="nocase">Pope et al.</span> 2023</a>)</span>:</p>
+<p><span class="math display">
+\text{KV bytes} = B \times N, \qquad B = 2\,L\,H_{kv}\,d\,b,
+</span></p>
+<p>where <span class="math inline">B</span>, the bytes per token, is set by the architecture (<span class="math inline">L</span> layers, <span class="math inline">H_{kv}</span> key-value heads of dimension <span class="math inline">d</span>, <span class="math inline">b</span> bytes per number), and <span class="math inline">N</span>, the tokens kept, is set by the harness that runs the model. The attention post is about <span class="math inline">B</span>. The NVIDIA paper is about <span class="math inline">N</span>. The Anthropic report is about what comes before both: which work can be turned into tokens at all.</p>
+</section>
+<section id="the-first-lever-bytes-per-token" class="level2">
+<h2 class="anchored" data-anchor-id="the-first-lever-bytes-per-token">The first lever: bytes per token</h2>
+<p>The attention post’s numbers check out: <span class="math inline">2 \times 32 \times 32 \times 128 \times 2</span> bytes is 512 KiB per token with 32 K/V heads, 128 KiB with the 8 that Llama 3 uses <span class="citation" data-cites="dubey2024">(<a href="#ref-dubey2024" role="doc-biblioref">Llama Team 2024</a>)</span>, 16 KiB with one (my arithmetic, in <a href="figs.py">figs.py</a>). GQA, introduced in 2023, keeps most of MHA’s quality at most of MQA’s speed <span class="citation" data-cites="ainslie2023">(<a href="#ref-ainslie2023" role="doc-biblioref">Ainslie et al. 2023</a>)</span>. Since then the lever has been pulled hard: DeepSeek’s latent attention caches about 69 KiB per token for a 671-billion-parameter model (my arithmetic from its published configuration <span class="citation" data-cites="deepseek2024 deepseek2024v3">(<a href="#ref-deepseek2024" role="doc-biblioref">DeepSeek-AI 2024a</a>, <a href="#ref-deepseek2024v3" role="doc-biblioref">2024b</a>)</span>), sliding windows and token eviction keep fewer tokens per layer <span class="citation" data-cites="xiao2024 zhang2023h2o">(<a href="#ref-xiao2024" role="doc-biblioref">Xiao et al. 2024</a>; <a href="#ref-zhang2023h2o" role="doc-biblioref"><span class="nocase">Zhang et al.</span> 2023</a>)</span>, and state space models carry a fixed-size state <span class="citation" data-cites="gu2023">(<a href="#ref-gu2023" role="doc-biblioref">Gu and Dao 2023</a>)</span>, which hybrids such as Nemotron-H use in place of most attention layers <span class="citation" data-cites="nemotronh2025">(<a href="#ref-nemotronh2025" role="doc-biblioref">NVIDIA 2025</a>)</span>. Yet <span class="math inline">N</span> kept growing: several context windows now exceed <em>War and Peace</em> <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, table 1)</span>.</p>
+</section>
+<section id="the-second-lever-tokens-kept" class="level2">
+<h2 class="anchored" data-anchor-id="the-second-lever-tokens-kept">The second lever: tokens kept</h2>
+<p>The NVIDIA paper asks whether long contexts are necessary, and answers no <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 1</a> and 6)</span>.</p>
+<p><strong>The cost.</strong> On H100 GPUs under load, serving a 256K window instead of 16K costs 3.6 times more per generated token for GLM 5.2, 5.6 for Kimi K2.6 and 7 for Qwen 3 Coder Next <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, fig. 1</a> and 4)</span>. So the post’s “up to 7x” is right, with a nuance: it is about the window a server reserves, not the position of one token.</p>
+<p><strong>The method.</strong> A minimal agent, one Bash command per turn, runs in three regimes: full history; compaction when the context crosses a threshold, after which a fresh conversation starts from the task and a written recap; and compaction after every single action <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 2.4</a>)</span>. Long documents stay on disk and are read with <code>grep</code> and bounded reads.</p>
+<p><strong>The results.</strong> Across six long-horizon benchmarks, compaction moves accuracy between −3.7 and +5.6 points for Claude Opus 4.5 and between −3.3 and +4.4 for GPT 5.6 Sol <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 3</a>)</span>. On long-input tasks, selective reading usually <em>beats</em> pasting everything in: RULER recall rises from 62.5% to 95.7% for Opus <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, table 15)</span>. Figure 2 shows the most striking result.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 2. One action per context against full history and the best compaction, on SWE-bench Verified and Terminal-Bench 2.1. Top: accuracy. Bottom: the largest single context per task; full history reaches 130K to 200K tokens, one action per context a median of 7K to 9K. Data from Table 2 of the paper [@belcak2026]; chart my own."><img src="figures/fig02.svg" class="img-fluid figure-img" alt="Two charts, one above the other. Top, grouped bars of accuracy in percent for four cases, each with full history, best compaction and one action per context: Opus 4.5 on SWE-bench Verified 70, 75, 70; Opus 4.5 on Terminal-Bench 2.1 47, 53, 52; GPT 5.6 on SWE-bench Verified 84, 89, 82; GPT 5.6 on Terminal-Bench 2.1 88, 89, 84. Bottom, on a log scale from 5K to 200K tokens, the median and maximum of the largest context per task: full history medians 17K to 32K with maxima 130K to 200K; best compaction medians 19K to 24K with maxima 22K to 40K; one action per context medians 7K to 9K with maxima 15K to 37K."></a></p>
+<figcaption><strong>Figure 2.</strong> One action per context against full history and the best compaction, on SWE-bench Verified and Terminal-Bench 2.1. Top: accuracy. Bottom: the largest single context per task; full history reaches 130K to 200K tokens, one action per context a median of 7K to 9K. Data from Table 2 of the paper <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>)</span>; chart my own.</figcaption>
+</figure>
+</div>
+<p>From this the authors propose a <strong>semantic state space model</strong>: a model trained to read a written state, take one action, and rewrite the state so that another instance can continue. Unlike Mamba’s hidden state, this one is “explainable natural language” <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 5.1</a>)</span>.</p>
+<p>Three caveats. The savings assume prices that follow serving cost; at today’s flat prices, compaction sometimes costs <em>more</em>, as for GPT 5.6 Sol on SWE-bench Verified <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, table 3)</span>. The result holds for strong models: one open model collapsed from 53.0% to 3.6% under tight compaction <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, app. D, table 9)</span>. And the benchmarks have checkable ends; the authors themselves show that a task needing the <em>i</em>-th of many coin tosses must eventually fail under any fixed budget <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 3.1</a>)</span>.</p>
+</section>
+<section id="the-levers-multiply" class="level2">
+<h2 class="anchored" data-anchor-id="the-levers-multiply">The levers multiply</h2>
+<p>Because the two levers act on different factors, their effects multiply (Figure 1).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 1. KV cache of one sequence for a Llama 3 8B-shaped model in FP16, by tokens kept (rows) and attention layout (columns), and how many sequences fit in 64 GiB, roughly what an 80 GB GPU has left after the weights. 32K is the median largest context of full-history agents in the paper, 8K the median with one action per context [@belcak2026, table 2]. Computed in figs.py; my own."><img src="figures/fig01.svg" class="img-fluid figure-img" alt="A grid of five rows and three columns. Rows: 256K, 128K, 32K, 16K and 8K tokens kept. Columns: MHA with 32 K/V heads and 512 KiB per token, GQA with 8 heads and 128 KiB, MQA with 1 head and 16 KiB. At 256K: 128 GiB (does not fit), 32 GiB (2 at once), 4 GiB (16). At 128K: 64 GiB (1), 16 GiB (4), 2 GiB (32). At 32K: 16 GiB (4), 4 GiB (16), 512 MiB (128). At 16K: 8 GiB (8), 2 GiB (32), 256 MiB (256). At 8K: 4 GiB (16), 1 GiB (64), 128 MiB (512)."></a></p>
+<figcaption><strong>Figure 1.</strong> KV cache of one sequence for a Llama 3 8B-shaped model in FP16, by tokens kept (rows) and attention layout (columns), and how many sequences fit in 64 GiB, roughly what an 80 GB GPU has left after the weights. 32K is the median largest context of full-history agents in the paper, 8K the median with one action per context <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, table 2)</span>. Computed in figs.py; my own.</figcaption>
+</figure>
+</div>
+<p>From MHA at 256K (128 GiB, which does not fit) to GQA at 8K (1 GiB, 64 sequences at once), the cache shrinks 128 times: 4 from the architecture, 32 from the harness. That compares the window a server must reserve. For a typical task the factor is smaller: full-history agents peak at a median of 32K tokens <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, table 2)</span>, so going to 8K saves 4 times, and GQA another 4, about 16 times in all. Either way the harness lever matches or beats the architecture, needs no retraining, and anyone who writes an agent can pull it today.</p>
+</section>
+<section id="the-third-lever-what-can-be-written-down" class="level2">
+<h2 class="anchored" data-anchor-id="the-third-lever-what-can-be-written-down">The third lever: what can be written down</h2>
+<p>The report never mentions context or tokens. Reading its findings as a statement about what can be written down is my interpretation, and I flag it as such.</p>
+<p>The Anthropic report classifies 207,049 research sessions from August and September 2026 by field and task, and adds a survey of 528 scientists <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>. Computer science is 4.3% of the world’s researchers but 32.7% of Claude Code sessions; data analysis is the largest task, ideation one of the smallest, although scientists rate it the most important <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>. Use rises with how well AI could do a task, and that capability correlates with how well the task suits reinforcement learning (+0.78), that is, with having a checkable result; it falls with the physical share of the task (−0.57) <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>.</p>
+<p>A simple production model, where the slowest step limits the rest, turns this into scenarios (Figure 3). With today’s abilities widely adopted, output rises up to about 2x in statistics and computer science. If AI did every non-physical step, low-physical fields would reach 15 to 16 times, but bench sciences only 3 to 4, because physical steps take about 40% of their research time, against 4% in the median field <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>. The authors call these “illustrative scenarios, not forecasts” <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Research output for a fixed budget, relative to no AI, in two scenarios of the Anthropic report. Top: today’s abilities, widely adopted. Bottom: all non-physical steps done by AI; the darker bar is the low end of the stated range. Data from the report [@hermle2026]; chart my own."><img src="figures/fig03.svg" class="img-fluid figure-img" alt="Two horizontal bar charts, one above the other. Top, titled today's abilities, widely adopted: arts 1.35 times, anthropology 1.36, chemistry 1.41, computer science 1.96, statistics 2.02. Bottom, titled all non-physical steps automated: statistics, computer science, economics, mathematics, psychology and most social sciences 15 to 16 times; biology, chemistry, materials, agricultural and biomedical sciences 3 to 4 times."></a></p>
+<figcaption><strong>Figure 3.</strong> Research output for a fixed budget, relative to no AI, in two scenarios of the Anthropic report. Top: today’s abilities, widely adopted. Bottom: all non-physical steps done by AI; the darker bar is the low end of the stated range. Data from the report <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>; chart my own.</figcaption>
+</figure>
+</div>
+<p>The worry behind it is old. Ideas are getting harder to find <span class="citation" data-cites="bloom2020">(<a href="#ref-bloom2020" role="doc-biblioref">Bloom et al. 2020</a>)</span>, partly because each researcher must absorb more before contributing: the “burden of knowledge” <span class="citation" data-cites="jones2009">(<a href="#ref-jones2009" role="doc-biblioref">Jones 2009</a>)</span>. Seen from the first two posts, that is science’s long-context problem.</p>
+</section>
+<section id="where-the-three-meet" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-three-meet">Where the three meet</h2>
+<p>The NVIDIA team found that the best compactions are not faithful summaries but “carefully cherry-picked briefs for further execution” <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, app. A)</span>. Their recap asks for the objective, established facts kept apart from unverified ideas, changes made, checks run, dead ends, and the next step with “the condition for completion” <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>, app. G.1)</span>. That is a lab notebook (Figure 4).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. The compaction recap used by Belcak et al.&nbsp;(Appendix G.1), item by item, next to the parts of a lab notebook or a scientific paper. Schematic, my own."><img src="figures/fig04.svg" class="img-fluid figure-img" alt="Two columns of six cards joined by double arrows. Left, compaction recap: Objective; Established facts, observations kept apart from unverified ideas; Applied changes; Verification; Dead ends; Remaining plan, next step and the condition for completion. Right, lab notebook or a paper: Aim; Results; Methods; Controls; Negative results; Next experiment. A note at the bottom: what neither can hold: the sample, the instrument, the living cell; that state stays in the world."></a></p>
+<figcaption><strong>Figure 4.</strong> The compaction recap used by Belcak et al.&nbsp;(Appendix G.1), item by item, next to the parts of a lab notebook or a scientific paper. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p>Science solved its long-context problem this way, at least since its first journals in 1665. No scientist holds the whole literature in mind. Each reads a compacted state (a review, a textbook), takes a few actions in a career, and writes back an updated state for someone else. Standing on the shoulders of giants is compaction across generations. Read together, the three sources say:</p>
+<ol type="1">
+<li><strong>What is checkable may compact well.</strong> This is my hypothesis, not a finding of either source. AI is used where results can be checked <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>, and a written state works where the task has a verifiable end <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026</a>)</span>.</li>
+<li><strong>The world does not compact.</strong> An experiment is the coin-toss case: observations with no structure until you have them. A cell culture’s state is in no context window, which is why about 40% of bench research time resists AI <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>. Polanyi said we know more than we can tell <span class="citation" data-cites="polanyi1966">(<a href="#ref-polanyi1966" role="doc-biblioref">Polanyi 1966</a>)</span>; in the lab, much of it is in the hands.</li>
+<li><strong>Read selectively.</strong> Data analysis is half of Claude Code’s science sessions <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>, and agents analyse best by querying, not by pasting <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 4</a>)</span>. “A wealth of information creates a poverty of attention” <span class="citation" data-cites="simon1971">(<a href="#ref-simon1971" role="doc-biblioref">Simon 1971</a>)</span>.</li>
+</ol>
+</section>
+<section id="what-it-means-for-the-next-few-years" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-means-for-the-next-few-years">What it means for the next few years</h2>
+<p><strong>Prices that depend on context.</strong> If a 256K window costs 3.6 to 7 times more to serve <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, fig. 1</a>)</span>, flat prices subsidise long contexts. Expect context tiers, and short-context agents as the default.</p>
+<p><strong>Models trained to hand over.</strong> The authors expect semantic state models to be “considerably more data-efficient to train” <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 5.1</a>)</span>. Writing a good handoff, the skill the collapsing open model lacked, becomes a trained ability.</p>
+<p><strong>Agents you can own.</strong> At 8K tokens, a GQA model of Llama 3 8B’s shape needs a 1 GiB cache (Figure 1), and the paper runs models locally because data “must remain on-device for privacy or cost reasons” <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 2.3</a>)</span>. The executive’s claim that cloud AI is aligned with its owner <span class="citation" data-cites="exec2026post">(<a href="#ref-exec2026post" role="doc-biblioref">A technology executive 2026</a>)</span> is an opinion the paper does not test. What it does show is that a short written state is portable: you can read it, audit it and hand it to another model. You may not own the model; you can own the notepad. That is the shared memory <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> needs.</p>
+<p><strong>The bottleneck moves to the bench and to the question.</strong> Lab automation turns physical steps into tool calls <span class="citation" data-cites="boiko2023">(<a href="#ref-boiko2023" role="doc-biblioref">Boiko et al. 2023</a>)</span>, and what remains is ideation, about 4% of sessions today <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>.</p>
+<p><strong>A state that can be audited, and attacked.</strong> A written state can be read by a person, which a neural state never allowed. But whatever enters the notes is believed by every later instance. Keep provenance: where each fact came from, so it can be checked again, as I argued in <a href="../../posts/2026-11-01-the-context-is-the-wire/index.html">The Context Is the Wire</a>.</p>
+</section>
+<section id="a-philosophical-perspective" class="level2">
+<h2 class="anchored" data-anchor-id="a-philosophical-perspective">A philosophical perspective</h2>
+<p>The paper ends by recalling that computability itself assumes “a bounded amount of input at a time and maintaining only a finite state of mind” <span class="citation" data-cites="belcak2026">(<a href="#ref-belcak2026" role="doc-biblioref">Belcak et al. 2026, sec. 6</a>)</span>. That is Turing’s 1936 human computer, who sees a few symbols at a time and, when interrupted, leaves a note saying how to continue <span class="citation" data-cites="turing1937">(<a href="#ref-turing1937" role="doc-biblioref">Turing 1937</a>)</span>. The single-action agent is Turing’s computer, rediscovered at the cost of billions of parameters.</p>
+<p>Remembering everything was never the goal. Borges’s Funes remembers every leaf he has seen and cannot think: “To think is to forget differences, generalize, make abstractions” <span class="citation" data-cites="borges1942">(<a href="#ref-borges1942" role="doc-biblioref">Borges 1962</a>)</span>. Nietzsche held that action needs forgetting <span class="citation" data-cites="nietzsche1874">(<a href="#ref-nietzsche1874" role="doc-biblioref">Nietzsche 1874</a>)</span>. Full history is Funes; compaction is the forgetting that makes the next step possible.</p>
+<p>Memento adds the warning. Leonard lives by notes <span class="citation" data-cites="nolan2000">(<a href="#ref-nolan2000" role="doc-biblioref">Nolan 2000</a>)</span>; Clark and Chalmers would say such notes are part of the mind, like Otto’s notebook <span class="citation" data-cites="clark1998">(<a href="#ref-clark1998" role="doc-biblioref">Clark and Chalmers 1998</a>)</span>. But some of Leonard’s notes are written to deceive him, and Plato’s Thamus warned that writing gives a reminder, not memory, and the look of wisdom without the substance <span class="citation" data-cites="plato_phaedrus">(<a href="#ref-plato_phaedrus" role="doc-biblioref">Plato c. 370 BCE</a>)</span>. A mind made of notes is as trustworthy as its notes. That is why the best compaction records how each fact was checked.</p>
+<p>And this is what stays ours. A compaction keeps what is relevant to the work ahead, and relevance depends on the aim. The model can write the brief once it has the objective; it cannot tell which objective is worth pursuing. Scientists use AI least for ideation and value it most <span class="citation" data-cites="hermle2026">(<a href="#ref-hermle2026" role="doc-biblioref">Hermle et al. 2026</a>)</span>. What remains human is the line at the top of the notebook: the aim, and what is worth remembering for. I argued the same in <a href="../../posts/2026-11-01-not-because-it-is-useful/index.html">Not Because It Is Useful</a>.</p>
+<p>So keep the notebook short, checked and yours. You may not own the model; you can own the notepad.</p>
+</section>
+<section id="limits" class="level2">
+<h2 class="anchored" data-anchor-id="limits">Limits</h2>
+<ul>
+<li><strong>Three kinds of evidence.</strong> The cache arithmetic is exact; the NVIDIA costs estimate a price that does not yet exist; the Anthropic data are model-classified sessions from a company that sells the model, and its acceleration figures are scenarios.</li>
+<li><strong>Analogies are analogies.</strong> A paper is not a compaction prompt, and GQA groups are not research teams.</li>
+<li><strong>Short tasks.</strong> Most SWE-bench Verified tasks were estimated at under an hour of human work <span class="citation" data-cites="chowdhury2024">(<a href="#ref-chowdhury2024" role="doc-biblioref"><span class="nocase">Chowdhury et al.</span> 2024</a>)</span>. Research carries state for months.</li>
+<li><strong>My hypothesis.</strong> That checkable work is what compacts well is my reading; neither source tests it.</li>
+</ul>
+</section>
+<section id="what-would-prove-me-wrong" class="level2">
+<h2 class="anchored" data-anchor-id="what-would-prove-me-wrong">What would prove me wrong</h2>
+<ul>
+<li><strong>Long context wins at equal cost.</strong> If, by the end of 2027, full-history agents beat compacted ones by more than a few points at the same serving cost.</li>
+<li><strong>Compaction works without checks.</strong> If written-state agents match full history on open-ended work with no verifiable end, my link between checkability and compaction is wrong.</li>
+<li><strong>Bench sciences catch up without labs.</strong> If AI use per researcher in chemistry and biomedicine matches the formal sciences before lab automation spreads.</li>
+</ul>
+<div class="discuss">
+<p><strong>Questions or objections?</strong> Reply under the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter edition</a> on LinkedIn, or <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">send me a message</a>. Good questions often become the next essay.</p>
+<p><strong>Follow new posts.</strong> Subscribe to the <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> on LinkedIn, or to the <a href="../../index.xml">RSS feed</a>. The <a href="../../archive.html">archive</a> lists recent changes.</p>
+</div>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-26-where-memory-lives/index.html">Where Memory Lives</a> Four experiments on what a small model should remember and what it should look up, including when the KV cache outweighs the model.</p>
+</div>
+<div class="small">
+<p><em>The views in this analysis are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-exec2026post" class="csl-entry" role="listitem">
+A technology executive. 2026. <em><span>NVIDIA</span> Just Dropped a Paper <span>“You Don’t Need Long Context”</span></em>. LinkedIn post.
+</div>
+<div id="ref-ainslie2023" class="csl-entry" role="listitem">
+Ainslie, Joshua, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. 2023. <span>“<span>GQA</span>: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.”</span> <em>Proceedings of EMNLP</em>. <a href="https://arxiv.org/abs/2305.13245">https://arxiv.org/abs/2305.13245</a>.
+</div>
+<div id="ref-belcak2026" class="csl-entry" role="listitem">
+Belcak, Peter, Saurav Muralidharan, Jindong Jiang, et al. 2026. <em>You Don’t Need Long Context</em>. NVIDIA. <a href="https://arxiv.org/abs/2611.05306">https://arxiv.org/abs/2611.05306</a>.
+</div>
+<div id="ref-bloom2020" class="csl-entry" role="listitem">
+Bloom, Nicholas, Charles I. Jones, John Van Reenen, and Michael Webb. 2020. <span>“Are Ideas Getting Harder to Find?”</span> <em>American Economic Review</em> 110 (4): 1104–44. <a href="https://doi.org/10.1257/aer.20180338">https://doi.org/10.1257/aer.20180338</a>.
+</div>
+<div id="ref-boiko2023" class="csl-entry" role="listitem">
+Boiko, Daniil A., Robert MacKnight, Ben Kline, and Gabe Gomes. 2023. <span>“Autonomous Chemical Research with Large Language Models.”</span> <em>Nature</em> 624: 570–78. <a href="https://doi.org/10.1038/s41586-023-06792-0">https://doi.org/10.1038/s41586-023-06792-0</a>.
+</div>
+<div id="ref-borges1942" class="csl-entry" role="listitem">
+Borges, Jorge Luis. 1962. <span>“Funes the Memorious.”</span> In <em>Labyrinths: Selected Stories and Other Writings</em>, edited by Donald A. Yates and James E. Irby. New Directions.
+</div>
+<div id="ref-chowdhury2024" class="csl-entry" role="listitem">
+<span class="nocase">Chowdhury, Neil, James Aung, Chan Jun Shern, et al.</span> 2024. <em>Introducing <span class="nocase">SWE-bench Verified</span></em>. OpenAI blog. <a href="https://openai.com/index/introducing-swe-bench-verified/">https://openai.com/index/introducing-swe-bench-verified/</a>.
+</div>
+<div id="ref-clark1998" class="csl-entry" role="listitem">
+Clark, Andy, and David Chalmers. 1998. <span>“The Extended Mind.”</span> <em>Analysis</em> 58 (1): 7–19. <a href="https://doi.org/10.1093/analys/58.1.7">https://doi.org/10.1093/analys/58.1.7</a>.
+</div>
+<div id="ref-deepseek2024" class="csl-entry" role="listitem">
+DeepSeek-AI. 2024a. <em><span>DeepSeek-V2</span>: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</em>. <a href="https://arxiv.org/abs/2405.04434">https://arxiv.org/abs/2405.04434</a>.
+</div>
+<div id="ref-deepseek2024v3" class="csl-entry" role="listitem">
+DeepSeek-AI. 2024b. <em><span>DeepSeek-V3</span> Technical Report</em>. <a href="https://arxiv.org/abs/2412.19437">https://arxiv.org/abs/2412.19437</a>.
+</div>
+<div id="ref-gu2023" class="csl-entry" role="listitem">
+Gu, Albert, and Tri Dao. 2023. <em>Mamba: Linear-Time Sequence Modeling with Selective State Spaces</em>. <a href="https://arxiv.org/abs/2312.00752">https://arxiv.org/abs/2312.00752</a>.
+</div>
+<div id="ref-hermle2026post" class="csl-entry" role="listitem">
+Hermle, Johannes. 2026. <em>Today, We Are Releasing a New Report: <span>AI</span> for Scientific Discovery: How Researchers Use <span>Claude</span></em>. LinkedIn post.
+</div>
+<div id="ref-hermle2026" class="csl-entry" role="listitem">
+Hermle, Johannes, Benjamin Jones, Lukas Althoff, et al. 2026. <em><span>AI</span> for Scientific Discovery: How Researchers Use <span>Claude</span></em>. Technical Report. The Anthropic Institute. <a href="https://www.anthropic.com/research/how-researchers-use-claude">https://www.anthropic.com/research/how-researchers-use-claude</a>.
+</div>
+<div id="ref-jones2009" class="csl-entry" role="listitem">
+Jones, Benjamin F. 2009. <span>“The Burden of Knowledge and the <span>‘Death of the Renaissance Man’</span>: Is Innovation Getting Harder?”</span> <em>Review of Economic Studies</em> 76 (1): 283–317. <a href="https://doi.org/10.1111/j.1467-937X.2008.00531.x">https://doi.org/10.1111/j.1467-937X.2008.00531.x</a>.
+</div>
+<div id="ref-dubey2024" class="csl-entry" role="listitem">
+Llama Team. 2024. <em>The <span>Llama</span> 3 Herd of Models</em>. <a href="https://arxiv.org/abs/2407.21783">https://arxiv.org/abs/2407.21783</a>.
+</div>
+<div id="ref-mohapatra2026" class="csl-entry" role="listitem">
+Mohapatra, Ramakrushna. 2026. <em><span>MHA</span>, <span>MQA</span> and <span>GQA</span></em>. LinkedIn post.
+</div>
+<div id="ref-nietzsche1874" class="csl-entry" role="listitem">
+Nietzsche, Friedrich. 1874. <em>On the Uses and Disadvantages of History for Life</em>.
+</div>
+<div id="ref-nolan2000" class="csl-entry" role="listitem">
+Nolan, Christopher. 2000. <em>Memento</em>. Film, Newmarket Films.
+</div>
+<div id="ref-nemotronh2025" class="csl-entry" role="listitem">
+NVIDIA. 2025. <em><span>Nemotron-H</span>: A Family of Accurate and Efficient Hybrid <span>Mamba-Transformer</span> Models</em>. <a href="https://arxiv.org/abs/2504.03624">https://arxiv.org/abs/2504.03624</a>.
+</div>
+<div id="ref-plato_phaedrus" class="csl-entry" role="listitem">
+Plato. c. 370 BCE. <em>Phaedrus</em>.
+</div>
+<div id="ref-polanyi1966" class="csl-entry" role="listitem">
+Polanyi, Michael. 1966. <em>The Tacit Dimension</em>. Doubleday.
+</div>
+<div id="ref-pope2023" class="csl-entry" role="listitem">
+<span class="nocase">Pope, Reiner, Sholto Douglas, Aakanksha Chowdhery, Jacob Devlin, James Bradbury, et al.</span> 2023. <span>“Efficiently Scaling Transformer Inference.”</span> <em>Proceedings of Machine Learning and Systems (MLSys)</em>. <a href="https://arxiv.org/abs/2211.05102">https://arxiv.org/abs/2211.05102</a>.
+</div>
+<div id="ref-simon1971" class="csl-entry" role="listitem">
+Simon, Herbert A. 1971. <span>“Designing Organizations for an Information-Rich World.”</span> In <em>Computers, Communications, and the Public Interest</em>, edited by Martin Greenberger. Johns Hopkins Press.
+</div>
+<div id="ref-turing1937" class="csl-entry" role="listitem">
+Turing, Alan M. 1937. <span>“On Computable Numbers, with an Application to the <span>Entscheidungsproblem</span>.”</span> <em>Proceedings of the London Mathematical Society</em> s2-42 (1): 230–65. <a href="https://doi.org/10.1112/plms/s2-42.1.230">https://doi.org/10.1112/plms/s2-42.1.230</a>.
+</div>
+<div id="ref-xiao2024" class="csl-entry" role="listitem">
+Xiao, Guangxuan, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis. 2024. <span>“Efficient Streaming Language Models with Attention Sinks.”</span> <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2309.17453">https://arxiv.org/abs/2309.17453</a>.
+</div>
+<div id="ref-zhang2023h2o" class="csl-entry" role="listitem">
+<span class="nocase">Zhang, Zhenyu, Ying Sheng, Tianyi Zhou, Tianlong Chen, et al.</span> 2023. <span>“<span>H<span class="math inline">_2</span>O</span>: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models.”</span> <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2306.14048">https://arxiv.org/abs/2306.14048</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {A {Finite} {State} of {Mind}},
+  date = {2026-11-07},
+  url = {https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/},
+  langid = {en}
+}
+</code></pre><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“A Finite State of Mind.”</span> November
+7. <a href="https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/">https://scuenat.github.io/posts/2026-11-07-a-finite-state-of-mind/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Toggle dark mode");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Toggle dark mode");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      const newWindowLabel = "(opens in a new tab)";
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            describeNewWindow(link);
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
