@@ -1,0 +1,143 @@
+---
+title: "Un état d'esprit fini"
+subtitle: "Têtes d'attention partagées, contextes courts et IA en science : trois lectures d'une même ressource rare"
+description: "GQA réduit ce que coûte chaque jeton, la compaction réduit le nombre de jetons gardés, et l'IA en science suit ce qui peut s'écrire. Une ressource, trois leviers."
+date: 2026-11-07
+citation: true
+bibliography: ../../../posts/2026-11-07-a-finite-state-of-mind/references.bib
+toc-depth: 2
+categories: [analyse, ia, mémoire, science, philosophie]
+kind: analysis   # card marker: essay | analysis | note | position | overview
+topics: [memory, fast-ai]   # home-page theme tiles (index.qmd)
+image: ../../../posts/2026-11-07-a-finite-state-of-mind/figures/fig04.png
+---
+
+::: {.callout-note appearance="simple"}
+**Analyse, novembre 2026.** Trois publications que j'ai gardées cette semaine, lues ensemble : le résumé, par un dirigeant technique, de l'article de NVIDIA *You don't need long context* [@exec2026post; @belcak2026], l'annonce par Johannes Hermle du rapport d'Anthropic sur l'usage de Claude par les chercheurs [@hermle2026post; @hermle2026], et l'explication de Ramakrushna Mohapatra sur l'attention multi-têtes, multi-requêtes et à requêtes groupées [@mohapatra2026]. J'ai lu l'article et le rapport en entier. Chaque chiffre repris d'une source est cité là où il est utilisé. Les figures sont tracées avec [figs.py](../../../posts/2026-11-07-a-finite-state-of-mind/figs.py) : la figure 1 est calculée, les figures 2 et 3 reprennent les chiffres des sources, la figure 4 est un schéma de moi. Les figures sont en anglais. *Traduit automatiquement de l'anglais ; quelques erreurs sont possibles. [Version originale](../../../posts/2026-11-07-a-finite-state-of-mind/index.qmd).*
+:::
+
+**En bref.** Les trois publications parlent d'une seule chose : ce qu'un système doit garder en tête pendant qu'il travaille, et ce que cela coûte. L'attention à requêtes groupées réduit la mémoire par jeton retenu [@ainslie2023]. L'article de NVIDIA réduit le nombre de jetons gardés : les modèles forts perdent peu quand leur historique est remplacé par un court état écrit [@belcak2026, sect. 3–5]. Le rapport d'Anthropic montre que l'IA sert là où les tâches de recherche sont formelles et vérifiables, et le moins à la paillasse [@hermle2026]. Les deux premiers leviers se multiplient, et les trois se rejoignent en un point : la meilleure compaction trouvée par NVIDIA a la forme d'un cahier de laboratoire. Ce qui ne tient pas sur la page, l'échantillon, l'instrument, la question qui mérite d'être posée, est là où restent le goulot et la part humaine du travail.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## À retenir
+
+- **Une ressource, trois leviers :** les octets par jeton retenu (l'architecture), le nombre de jetons retenus (le harnais de l'agent), et ce qui, dans un travail, peut être mis en jetons (le domaine).
+- **Le long contexte est surtout une habitude.** Une compaction fréquente a gardé les modèles de pointe à quelques points de l'historique complet, et la lecture sélective a souvent fait mieux [@belcak2026, sect. 3–4].
+- **Le bon bloc-notes est un cahier de laboratoire :** but, faits, méthodes, vérifications, impasses, étape suivante.
+- **Vous ne possédez peut-être pas le modèle ; vous pouvez posséder le bloc-notes.**
+:::
+
+## Trois publications, une ressource
+
+Celle du dirigeant : les derniers jetons coûtent jusqu'à 7 fois plus que les premiers, une compaction agressive coûte peu de précision, et « votre agent n'a pas besoin d'une mémoire photographique. Il a besoin d'un bon bloc-notes. C'est Guy Pearce dans Memento, et il livre quand même la pull request » [@exec2026post]. Celle de Hermle : Claude est le plus utilisé par chercheur en informatique, en mathématiques et en statistique, l'usage suit la capacité de l'IA, et la production pourrait doubler dans certains domaines, le travail physique restant le goulot [@hermle2026post]. Celle de Mohapatra : le décodage est limité par la mémoire, car chaque jeton généré lit tout le cache clé-valeur (KV) ; pour un modèle de la forme de Llama 3 8B, l'attention multi-têtes (MHA) stocke 512 Kio par jeton, l'attention multi-requêtes (MQA) 16 Kio, et l'attention à requêtes groupées (GQA) se situe entre les deux [@mohapatra2026].
+
+Ce qui les relie est l'**état de travail** : ce qu'un système garde sous la main pour faire son pas suivant. Pour un transformeur, c'est le cache KV [@pope2023] :
+
+$$
+\text{octets KV} = B \times N, \qquad B = 2\,L\,H_{kv}\,d\,b,
+$$
+
+où $B$, les octets par jeton, est fixé par l'architecture ($L$ couches, $H_{kv}$ têtes clé-valeur de dimension $d$, $b$ octets par nombre), et $N$, les jetons gardés, par le harnais qui fait tourner le modèle. La publication sur l'attention porte sur $B$. L'article de NVIDIA porte sur $N$. Le rapport d'Anthropic porte sur ce qui vient avant les deux : quel travail peut être mis en jetons.
+
+## Le premier levier : les octets par jeton
+
+Les chiffres de la publication sur l'attention se vérifient : $2 \times 32 \times 32 \times 128 \times 2$ octets font 512 Kio par jeton avec 32 têtes K/V, 128 Kio avec les 8 qu'utilise Llama 3 [@dubey2024], 16 Kio avec une seule (mon calcul, dans [figs.py](../../../posts/2026-11-07-a-finite-state-of-mind/figs.py)). GQA, introduite en 2023, garde l'essentiel de la qualité de MHA avec l'essentiel de la vitesse de MQA [@ainslie2023]. Depuis, ce levier a été tiré fort : l'attention latente de DeepSeek met en cache environ 69 Kio par jeton pour un modèle de 671 milliards de paramètres (mon calcul à partir de sa configuration publiée [@deepseek2024; @deepseek2024v3]), les fenêtres glissantes et l'éviction de jetons gardent moins de jetons par couche [@xiao2024; @zhang2023h2o], et les modèles à espace d'états portent un état de taille fixe [@gu2023], que des hybrides comme Nemotron-H utilisent à la place de la plupart des couches d'attention [@nemotronh2025]. Pourtant $N$ n'a cessé de grandir : plusieurs fenêtres de contexte dépassent aujourd'hui *Guerre et Paix* [@belcak2026, tabl. 1].
+
+## Le second levier : les jetons gardés
+
+L'article de NVIDIA demande si les longs contextes sont nécessaires, et répond non [@belcak2026, sect. 1 et 6].
+
+**Le coût.** Sur des GPU H100 sous charge, servir une fenêtre de 256K au lieu de 16K coûte 3,6 fois plus par jeton généré pour GLM 5.2, 5,6 fois pour Kimi K2.6 et 7 fois pour Qwen 3 Coder Next [@belcak2026, fig. 1 et 4]. Le « jusqu'à 7 fois » de la publication est donc juste, avec une nuance : il porte sur la fenêtre qu'un serveur réserve, pas sur la position d'un jeton.
+
+**La méthode.** Un agent minimal, une commande Bash par tour, tourne selon trois régimes : historique complet ; compaction quand le contexte franchit un seuil, après quoi une conversation neuve repart de la tâche et d'un récapitulatif écrit ; et compaction après chaque action [@belcak2026, sect. 2.4]. Les longs documents restent sur le disque et sont lus avec `grep` et des lectures bornées.
+
+**Les résultats.** Sur six benchmarks à long horizon, la compaction fait varier la précision entre −3,7 et +5,6 points pour Claude Opus 4.5 et entre −3,3 et +4,4 pour GPT 5.6 Sol [@belcak2026, sect. 3]. Sur les tâches à longue entrée, la lecture sélective fait généralement *mieux* que tout coller : le rappel sur RULER passe de 62,5 % à 95,7 % pour Opus [@belcak2026, tabl. 15]. La figure 2 montre le résultat le plus frappant.
+
+![**Figure 2.** Une action par contexte comparée à l'historique complet et à la meilleure compaction, sur SWE-bench Verified et Terminal-Bench 2.1. En haut : la précision. En bas : le plus grand contexte unique par tâche ; l'historique complet atteint 130K à 200K jetons, une action par contexte une médiane de 7K à 9K. Données du tableau 2 de l'article [@belcak2026] ; graphique de moi.](../../../posts/2026-11-07-a-finite-state-of-mind/figures/fig02.svg){fig-alt="Deux graphiques, l'un au-dessus de l'autre. En haut, des barres groupées de précision en pourcentage pour quatre cas, chacun avec « Full history », « Best compaction » et « One action per context » : Opus 4.5 sur SWE-bench Verified 70, 75, 70 ; Opus 4.5 sur Terminal-Bench 2.1 47, 53, 52 ; GPT 5.6 sur SWE-bench Verified 84, 89, 82 ; GPT 5.6 sur Terminal-Bench 2.1 88, 89, 84. En bas, sur une échelle logarithmique de 5K à 200K jetons, la médiane et le maximum du plus grand contexte par tâche : historique complet, médianes de 17K à 32K et maxima de 130K à 200K ; meilleure compaction, médianes de 19K à 24K et maxima de 22K à 40K ; une action par contexte, médianes de 7K à 9K et maxima de 15K à 37K."}
+
+Les auteurs en tirent un **modèle à espace d'états sémantique** : un modèle entraîné à lire un état écrit, faire une action, puis réécrire l'état pour qu'une autre instance puisse continuer. Contrairement à l'état caché de Mamba, celui-ci est en « langage naturel explicable » [@belcak2026, sect. 5.1].
+
+Trois réserves. Les économies supposent des prix qui suivent le coût de service ; aux prix fixes actuels, la compaction coûte parfois *plus*, comme pour GPT 5.6 Sol sur SWE-bench Verified [@belcak2026, tabl. 3]. Le résultat vaut pour des modèles forts : un modèle ouvert s'est effondré de 53,0 % à 3,6 % sous une compaction serrée [@belcak2026, annexe D, tabl. 9]. Et les benchmarks ont une fin vérifiable ; les auteurs montrent eux-mêmes qu'une tâche qui demande le *i*-ème d'une longue série de pile ou face finira par échouer sous tout budget fixe [@belcak2026, sect. 3.1].
+
+## Les leviers se multiplient
+
+Comme les deux leviers agissent sur des facteurs différents, leurs effets se multiplient (figure 1).
+
+![**Figure 1.** Cache KV d'une séquence pour un modèle de la forme de Llama 3 8B en FP16, selon le nombre de jetons gardés (lignes) et l'organisation de l'attention (colonnes), et combien de séquences tiennent dans 64 Gio, à peu près ce qu'il reste sur un GPU de 80 Go après les poids. 32K est le plus grand contexte médian des agents à historique complet dans l'article, 8K la médiane avec une action par contexte [@belcak2026, tabl. 2]. Calculé dans figs.py ; de moi.](../../../posts/2026-11-07-a-finite-state-of-mind/figures/fig01.svg){fig-alt="Une grille de cinq lignes et trois colonnes. Lignes : 256K, 128K, 32K, 16K et 8K jetons gardés. Colonnes : MHA avec 32 têtes K/V et 512 KiB par jeton, GQA avec 8 têtes et 128 KiB, MQA avec 1 tête et 16 KiB. À 256K : 128 GiB (« does not fit »), 32 GiB (2 à la fois), 4 GiB (16). À 128K : 64 GiB (1), 16 GiB (4), 2 GiB (32). À 32K : 16 GiB (4), 4 GiB (16), 512 MiB (128). À 16K : 8 GiB (8), 2 GiB (32), 256 MiB (256). À 8K : 4 GiB (16), 1 GiB (64), 128 MiB (512)."}
+
+De MHA à 256K (128 Gio, qui ne tient pas) à GQA à 8K (1 Gio, 64 séquences à la fois), le cache diminue d'un facteur 128 : 4 grâce à l'architecture, 32 grâce au harnais. Cette comparaison porte sur la fenêtre qu'un serveur doit réserver. Pour une tâche typique, le facteur est plus petit : les agents à historique complet culminent à une médiane de 32K jetons [@belcak2026, tabl. 2], donc passer à 8K fait gagner 4 fois, et GQA encore 4, soit environ 16 fois en tout. Dans les deux cas, le levier du harnais égale ou dépasse celui de l'architecture, ne demande aucun ré-entraînement, et quiconque écrit un agent peut le tirer dès aujourd'hui.
+
+## Le troisième levier : ce qui peut s'écrire
+
+Le rapport ne parle jamais de contexte ni de jetons. Lire ses résultats comme un constat sur ce qui peut s'écrire est mon interprétation, et je la signale comme telle.
+
+Le rapport d'Anthropic classe 207 049 sessions de recherche d'août et septembre 2026 par domaine et par tâche, et y ajoute une enquête auprès de 528 scientifiques [@hermle2026]. L'informatique représente 4,3 % des chercheurs du monde mais 32,7 % des sessions Claude Code ; l'analyse de données est la tâche la plus fréquente, l'idéation l'une des plus rares, alors que les scientifiques la jugent la plus importante [@hermle2026]. L'usage croît avec ce que l'IA pourrait faire d'une tâche, et cette capacité est corrélée à l'aptitude de la tâche à l'apprentissage par renforcement (+0,78), c'est-à-dire au fait d'avoir un résultat vérifiable ; elle baisse avec la part physique de la tâche (−0,57) [@hermle2026].
+
+Un modèle de production simple, où l'étape la plus lente limite les autres, en tire des scénarios (figure 3). Avec les capacités actuelles largement adoptées, la production augmente jusqu'à environ 2 fois en statistique et en informatique. Si l'IA faisait toutes les étapes non physiques, les domaines peu physiques atteindraient 15 à 16 fois, mais les sciences de paillasse seulement 3 à 4, parce que les étapes physiques y prennent environ 40 % du temps de recherche, contre 4 % dans le domaine médian [@hermle2026]. Les auteurs parlent de « scénarios illustratifs, pas de prévisions » [@hermle2026].
+
+![**Figure 3.** Production de recherche à budget fixe, rapportée à l'absence d'IA, dans deux scénarios du rapport d'Anthropic. En haut : les capacités actuelles, largement adoptées. En bas : toutes les étapes non physiques faites par l'IA ; la barre foncée est le bas de la fourchette annoncée. Données du rapport [@hermle2026] ; graphique de moi.](../../../posts/2026-11-07-a-finite-state-of-mind/figures/fig03.svg){fig-alt="Deux graphiques à barres horizontales, l'un au-dessus de l'autre. En haut, intitulé « Today's abilities, widely adopted » : arts 1,35 fois, anthropologie 1,36, chimie 1,41, informatique 1,96, statistique 2,02. En bas, intitulé « All non-physical steps automated » : statistique, informatique, économie, mathématiques, psychologie et la plupart des sciences sociales, 15 à 16 fois ; biologie, chimie, matériaux, sciences agricoles et biomédicales, 3 à 4 fois."}
+
+L'inquiétude qui sous-tend tout cela est ancienne. Les idées sont de plus en plus difficiles à trouver [@bloom2020], en partie parce que chaque chercheur doit assimiler davantage avant de contribuer : le « fardeau du savoir » [@jones2009]. Vu depuis les deux premières publications, c'est le problème de long contexte de la science.
+
+## Là où les trois se rejoignent
+
+L'équipe de NVIDIA a constaté que les meilleures compactions ne sont pas des résumés fidèles, mais des notes de passation choisies avec soin pour la suite du travail [@belcak2026, annexe A]. Son récapitulatif demande l'objectif, les faits établis séparés des idées non vérifiées, les modifications faites, les vérifications effectuées, les impasses, et l'étape suivante avec « la condition d'achèvement » [@belcak2026, annexe G.1]. C'est un cahier de laboratoire (figure 4).
+
+![**Figure 4.** Le récapitulatif de compaction utilisé par Belcak et coll. (annexe G.1), point par point, en regard des parties d'un cahier de laboratoire ou d'un article scientifique. Schéma, de moi.](../../../posts/2026-11-07-a-finite-state-of-mind/figures/fig04.svg){fig-alt="Deux colonnes de six cartes reliées par des doubles flèches. À gauche, le récapitulatif de compaction : « Objective » ; « Established facts », les observations séparées des idées non vérifiées ; « Applied changes » ; « Verification » ; « Dead ends » ; « Remaining plan », l'étape suivante et la condition d'achèvement. À droite, le cahier de laboratoire ou l'article : « Aim », « Results », « Methods », « Controls », « Negative results », « Next experiment ». Une note en bas : ce qu'aucun des deux ne peut contenir, l'échantillon, l'instrument, la cellule vivante ; cet état reste dans le monde."}
+
+La science a résolu ainsi son problème de long contexte, au moins depuis ses premières revues, en 1665. Aucun scientifique ne garde toute la littérature en tête. Chacun lit un état compacté (une revue, un manuel), fait quelques actions au cours d'une carrière, et réécrit un état mis à jour pour quelqu'un d'autre. Se tenir sur les épaules des géants, c'est une compaction à l'échelle des générations. Lues ensemble, les trois sources disent :
+
+1. **Ce qui se vérifie se compacte peut-être bien.** C'est mon hypothèse, pas un résultat de l'une ou l'autre source. L'IA sert là où les résultats peuvent être vérifiés [@hermle2026], et un état écrit fonctionne là où la tâche a une fin vérifiable [@belcak2026].
+2. **Le monde ne se compacte pas.** Une expérience est le cas du pile ou face : des observations sans structure tant qu'on ne les a pas. L'état d'une culture cellulaire n'est dans aucune fenêtre de contexte, et c'est pourquoi environ 40 % du temps de recherche à la paillasse résiste à l'IA [@hermle2026]. Polanyi disait que nous savons plus que nous ne pouvons dire [@polanyi1966] ; au laboratoire, une grande part de ce savoir est dans les mains.
+3. **Lire de façon sélective.** L'analyse de données représente la moitié des sessions scientifiques de Claude Code [@hermle2026], et les agents analysent mieux en interrogeant qu'en collant [@belcak2026, sect. 4]. Une abondance d'information crée une pauvreté d'attention [@simon1971].
+
+## Ce que cela signifie pour les prochaines années
+
+**Des prix qui dépendent du contexte.** Si une fenêtre de 256K coûte 3,6 à 7 fois plus cher à servir [@belcak2026, fig. 1], des prix fixes subventionnent les longs contextes. Attendons-nous à des paliers de contexte, et à des agents à contexte court par défaut.
+
+**Des modèles entraînés à passer le relais.** Les auteurs s'attendent à ce que les modèles à état sémantique soient « considérablement plus efficaces en données à entraîner » [@belcak2026, sect. 5.1]. Écrire une bonne passation, la compétence qui manquait au modèle ouvert effondré, devient une capacité entraînée.
+
+**Des agents que l'on peut posséder.** À 8K jetons, un modèle GQA de la forme de Llama 3 8B a besoin d'un cache de 1 Gio (figure 1), et l'article fait tourner des modèles en local parce que des données doivent rester sur l'appareil pour des raisons de confidentialité ou de coût [@belcak2026, sect. 2.3]. L'affirmation du dirigeant selon laquelle l'IA dans le cloud est alignée sur son propriétaire [@exec2026post] est une opinion que l'article ne teste pas. Ce qu'il montre, c'est qu'un court état écrit est portable : on peut le lire, l'auditer et le confier à un autre modèle. Vous ne possédez peut-être pas le modèle ; vous pouvez posséder le bloc-notes. C'est la mémoire partagée dont [Fast AI](../2026-10-11-fast-ai/index.qmd) a besoin.
+
+**Le goulot se déplace vers la paillasse et vers la question.** L'automatisation des laboratoires transforme les étapes physiques en appels d'outils [@boiko2023], et ce qui reste, c'est l'idéation, environ 4 % des sessions aujourd'hui [@hermle2026].
+
+**Un état que l'on peut auditer, et attaquer.** Un état écrit peut être lu par une personne, ce qu'un état neuronal n'a jamais permis. Mais ce qui entre dans les notes est cru par toutes les instances suivantes. Gardons la provenance : d'où vient chaque fait, pour pouvoir le vérifier à nouveau, comme je le soutenais dans [Le contexte est le fil](../2026-11-01-the-context-is-the-wire/index.qmd).
+
+## Une perspective philosophique
+
+L'article se termine en rappelant que la calculabilité elle-même suppose de ne comprendre qu'une quantité bornée d'entrée à la fois et de ne maintenir qu'un état d'esprit fini [@belcak2026, sect. 6]. C'est le calculateur humain de Turing en 1936, qui ne voit que quelques symboles à la fois et qui, s'il est interrompu, laisse une note disant comment continuer [@turing1937]. L'agent à une action par contexte est le calculateur de Turing, redécouvert au prix de milliards de paramètres.
+
+Tout retenir n'a jamais été le but. Le Funes de Borges se souvient de chaque feuille qu'il a vue et ne peut pas penser : « Penser, c'est oublier des différences, c'est généraliser, abstraire » [@borges1942]. Nietzsche tenait que l'action a besoin d'oubli [@nietzsche1874]. L'historique complet, c'est Funes ; la compaction est l'oubli qui rend possible le pas suivant.
+
+Memento ajoute l'avertissement. Leonard vit de notes [@nolan2000] ; Clark et Chalmers diraient que de telles notes font partie de l'esprit, comme le carnet d'Otto [@clark1998]. Mais certaines notes de Leonard sont écrites pour le tromper, et le Thamus de Platon avertissait que l'écriture donne un rappel, pas la mémoire, et l'apparence de la sagesse sans sa substance [@plato_phaedrus]. Un esprit fait de notes est aussi fiable que ses notes. C'est pourquoi la meilleure compaction consigne comment chaque fait a été vérifié.
+
+Et voici ce qui reste à nous. Une compaction garde ce qui est utile au travail à venir, et ce qui est utile dépend du but. Le modèle peut écrire la note une fois qu'il a l'objectif ; il ne peut pas dire quel objectif mérite d'être poursuivi. Les scientifiques utilisent l'IA le moins pour l'idéation et y tiennent le plus [@hermle2026]. Ce qui reste humain, c'est la ligne en haut du cahier : le but, et ce pour quoi il vaut la peine de se souvenir. Je soutenais la même chose dans [Pas parce que c'est utile](../2026-11-01-not-because-it-is-useful/index.qmd).
+
+Gardez donc le cahier court, vérifié, et à vous. Vous ne possédez peut-être pas le modèle ; vous pouvez posséder le bloc-notes.
+
+## Limites
+
+- **Trois sortes de preuves.** L'arithmétique du cache est exacte ; les coûts de NVIDIA estiment un prix qui n'existe pas encore ; les données d'Anthropic sont des sessions classées par un modèle, publiées par une entreprise qui vend le modèle, et ses chiffres d'accélération sont des scénarios.
+- **Les analogies sont des analogies.** Un article n'est pas une invite de compaction, et les groupes de GQA ne sont pas des équipes de recherche.
+- **Des tâches courtes.** La plupart des tâches de SWE-bench Verified ont été estimées à moins d'une heure de travail humain [@chowdhury2024]. La recherche porte un état pendant des mois.
+- **Mon hypothèse.** Que le travail vérifiable soit ce qui se compacte bien est ma lecture ; aucune des deux sources ne le teste.
+
+## Ce qui me donnerait tort
+
+- **Le long contexte gagne à coût égal.** Si, d'ici fin 2027, des agents à historique complet battent des agents compactés de plus de quelques points au même coût de service.
+- **La compaction marche sans vérification.** Si des agents à état écrit égalent l'historique complet sur un travail ouvert sans fin vérifiable, mon lien entre vérifiabilité et compaction est faux.
+- **Les sciences de paillasse rattrapent sans laboratoires.** Si l'usage de l'IA par chercheur en chimie et en biomédecine rejoint celui des sciences formelles avant que l'automatisation des laboratoires ne se répande.
+
+::: {.read-next}
+**À lire ensuite** · [Là où vit la mémoire](../2026-10-26-where-memory-lives/index.qmd)
+Quatre expériences sur ce qu'un petit modèle doit retenir et ce qu'il doit aller chercher, y compris quand le cache KV pèse plus que le modèle.
+:::
+
+::: {.small}
+*Les opinions exprimées dans cette analyse sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.*
+:::
+
+## Références
+
+::: {#refs}
+:::
