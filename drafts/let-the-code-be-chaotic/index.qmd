@@ -1,9 +1,9 @@
 ---
 title: "Let the Code Be Chaotic"
-subtitle: "A provocative position paper: AI now writes code that solves real problems. We still treat it like code written by hand. Automate the loop, gate a sliver, and move people above it"
+subtitle: "A provocative position paper: AI now writes code that solves real problems, and we still control it as if a person had written it. Automate the loop, gate a sliver, and move people above it"
 description: "A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop."
 date: 2026-11-11   # drafting date; promote-draft.py sets the publication date
-draft-version: 3   # raise by one on every revision pushed to the drafts area
+draft-version: 4   # raise by one on every revision pushed to the drafts area
 draft-revised: 2026-11-11
 citation: true
 google-scholar: true
@@ -21,220 +21,201 @@ resources:
 ---
 
 ::: {.callout-warning appearance="simple"}
-**Position paper, November 2026. Provocative by intention.** This paper takes a stance on purpose and states it more sharply than the evidence can yet prove. It is not a warning against AI coding. It is a challenge to how we use it: we built machines that write working code, and then put a person at their output to read every line, as if nothing had changed. The paper borrows one idea from chaos theory, gathers what research since 2021 has shown, says where people should stand instead and what that means for a team, and ends with tests anyone can run against it. It continues [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd) and [Review the Intent, Not the Diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd). Figures 1 to 3 come from small simulations in [sim.py](sim.py), drawn by [figs.py](figs.py), with all numbers in [results.json](results.json). Figures 4 and 5 are schematics of my own.
+**Position paper, November 2026. Provocative by intention.** The thesis is stated more sharply than the evidence can yet prove, to start an argument. It is not a warning against AI coding; it challenges how we use it. It follows [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd) and [Review the Intent, Not the Diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd). Figures 1 to 3 come from the simulations in [sim.py](sim.py) (numbers in [results.json](results.json)); Figures 4 and 5 are schematics of my own.
 :::
 
-**Abstract.** In little more than a year, AI agents went from fixing a third of a benchmark of real GitHub issues to fixing four in five, and AI now writes a large share of new code at some of the largest software companies. Yet most teams still control this code the way they controlled hand-written code: a person reads every change. I argue that this is the wrong place for people. AI-generated code is chaotic, in the precise sense that small differences in prompt or context lead to very different programs, and that is mostly harmless. What makes a system stable is not a predictable path but an *attractor*: checks that pull behaviour back to the promise after every change. The paper splits the freedom of generated code into three zones: behaviour the checks hold, details nobody can observe, and behaviour people can observe that nothing checks yet. Machines should run the loop in all three: generate, check, fix, and turn what is unchecked into checks. People gate only the thin slice of actions that cannot be undone. Everywhere else they leave the loop, not the system: they move above it, where they set the promise, decide which checks must exist, structure the architecture and choose what to build. The provocation, stated plainly: **automate the loop, gate a sliver, and move people above it.**
+**Abstract.** AI agents now fix most real-world issues in the standard benchmark, and write a large share of new code at major companies. Yet the default control is unchanged: a person reads every change. I argue this puts people in the wrong place. Generated code is chaotic: small differences in prompt or context give very different programs. That is mostly harmless. Stability comes from an *attractor*, checks that pull behaviour back to the promise after every change, not from a predictable path. Machines should run that loop everywhere. People gate only what cannot be undone, and otherwise move above the loop: they set the promise, the required checks, the structure and the direction.
 
 ::: {.callout-tip appearance="simple" icon="false"}
 ## Claims
 
-1. **The provocation.** AI coding has outgrown the way we control it. Stop reading every line an AI writes; the code's unpredictability is real and mostly harmless.
-2. **Where stability comes from.** Not from a deterministic generator or careful reading, but from fast checks that pull behaviour back to the promise: an attractor.
-3. **Three zones, all automated.** Machines hold the checked behaviour, ignore what nobody can observe, and keep turning what is observable but unchecked into checks.
-4. **A sliver of human gates.** People approve only what cannot be undone: deleting data, moving money, releasing, adding a dependency.
-5. **People above the loop.** Not in it, not gone from it: they set the promise, the checks that must exist, the structure and the direction. The level of their work changes, not its importance.
-6. **Security included.** Security is the most important part of the unchecked zone, and it is held the same way: by automated checks, sandboxes, and a gate at the point of no return.
+1. **Provocation.** Stop reading every line an AI writes. Its unpredictability is real and mostly harmless.
+2. **Stability.** It comes from fast checks that pull behaviour back to the promise (an attractor), not from deterministic generation or careful reading.
+3. **Three zones, all automated.** Machines hold what is checked, ignore what nobody can observe, and turn what is observable but unchecked into checks.
+4. **A sliver of gates.** People approve only the irreversible: deleting data, moving money, releasing, adding a dependency.
+5. **People above the loop.** Not in it, not gone: they guide and structure the whole. The level of their work changes, not its importance.
+6. **Security included.** It is held the same way: automated checks, sandboxes, and a gate at the point of no return.
 :::
 
-## 1. Introduction: a remarkable year, and a habit that did not change
+## 1. A remarkable year, an unchanged habit
 
-The last year in AI coding was remarkable, and it is worth saying so plainly before challenging anything.
+What the last year achieved:
 
-In August 2024, the best model on SWE-bench Verified, a set of 500 real GitHub issues checked by human engineers, resolved 33.2% of them [@openai2024]. In November 2025, a model resolved 80.9% [@anthropic2025]. Agents no longer complete a line; they read a repository, plan a change across files, run the tests, read the failures and try again. At Google, more than a quarter of all new code was already generated by AI at the end of 2024 [@pichai2024]. In the 2025 Stack Overflow survey, 84% of developers said they use or plan to use AI tools [@stackoverflow2025]. Whatever one thinks of the hype, the machine that writes code has arrived, and it is good at it.
+- **Agents solve real issues.** On SWE-bench Verified (500 real GitHub issues), the best model resolved 33.2% in August 2024 [@openai2024] and 80.9% in November 2025 [@anthropic2025].
+- **AI writes production code.** More than a quarter of new code at Google was AI-generated by late 2024 [@pichai2024].
+- **Adoption is the norm.** 84% of developers use or plan to use AI tools [@stackoverflow2025].
 
-Now the provocation. Read the rest of Google's sentence: the code is generated by AI, *"then reviewed and accepted by engineers"* [@pichai2024]. That is the industry's default today. We built a generator that writes in minutes what took a team days, and then placed a person at its output to read every line, exactly where they stood in 2015. The same survey found that more developers distrust the accuracy of AI tools (46%) than trust it (33%) [@stackoverflow2025], and the usual answer to distrust is more reading.
+What did not change: Google's sentence continues, the code is *"then reviewed and accepted by engineers"* [@pichai2024]. That is the industry default. We built a generator that writes in minutes what took a team days, and kept a person at its output reading every line. Trust is low (46% of developers distrust AI accuracy, 33% trust it [@stackoverflow2025]), and the usual answer to distrust is more reading.
 
-I think this is the wrong answer, and this paper is written to say so as sharply as I can:
+The provocation:
 
 > **Stop reading every line your AI writes. Automate the loop, gate a sliver, and move people above it.**
 
-The objection I heard most to [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), which made the economic case, was a single word: *chaos*. Generated code is not repeatable. The same request returns different programs, and even with the temperature at zero, sending the same coding task to ChatGPT several times often returns programs that behave differently on the tests [@ouyang2023]. "Deterministic" settings are not deterministic in practice either: the output of a served model can depend on how many other requests happen to share its batch on the server [@he2025]. This paper takes the word *chaos* literally, and argues that it is the best news in the story, not the worst.
+The usual objection is one word: *chaos*. Generated code is not repeatable. The same coding task, sent several times to the same model, often returns programs that behave differently, even at temperature zero [@ouyang2023]; even "deterministic" serving varies with how requests are batched [@he2025]. This paper takes *chaos* literally, and argues it is good news.
 
-## 2. What the research shows
+## 2. What the evidence says
 
-The research on AI coding since 2021 is large, and some of it is sobering. Read with one question in mind, *where do things go wrong?*, it tells a consistent story.
+Asked *where do things go wrong?*, the research since 2021 is consistent:
 
-**The field already measures behaviour, not code.** When OpenAI introduced Codex and the HumanEval benchmark, it judged generated programs by whether they pass unit tests (*pass@k*), not by how close they are to a reference solution, because textual similarity says little about correctness [@chen2021]. SWE-bench does the same with real issues: a patch counts if the repository's tests pass after it is applied, whatever the code looks like [@jimenez2024]. The research community accepted years ago that two very different programs can both be right. The remarkable progress in the previous section is progress *as measured by checks*.
+- **The field already judges behaviour, not code.** HumanEval scores programs by passing tests (pass@k), not by similarity to a reference [@chen2021]; SWE-bench counts a patch if the repository's tests pass [@jimenez2024]. The progress above is progress *measured by checks*.
+- **Weak tests hide wrong code.** Adding more tests to HumanEval cut pass rates by 19 to 29% across 26 models [@liu2023]. The code did not change; the checking did.
+- **Security fails where nothing checks.** About 40% of Copilot programs in security-relevant scenarios had a known weakness [@pearce2022]. Assistant users wrote less secure code and felt *more* confident [@perry2023]. Models suggest non-existent packages (at least 5.2% for commercial models, 21.7% for open ones) that attackers can register [@spracklen2025].
+- **Speed and stability are mixed.** Copilot users were 55.8% faster on a controlled task [@peng2023]; experienced developers on mature projects were 19% slower while feeling faster [@becker2025]. DORA linked more AI adoption to 7.2% lower delivery stability, likely through larger changes [@dora2024]. Copy-pasted code is rising and refactoring falling [@gitclear2025].
+- **Checks can be generated.** Meta's TestGen-LLM extended test suites; 73% of its filtered proposals were accepted for production [@alshahwan2024].
 
-**Passing weak tests is not being right.** When Liu and colleagues added many more tests to HumanEval, a large share of programs that had "passed" turned out to be wrong; pass rates fell by 19 to 29% across 26 models [@liu2023]. Nothing about the code changed. What changed was how much of the behaviour was checked.
+**Reading.** Almost none of these failures is *the code being different from what a person would write*. They are unchecked behaviour, late feedback and accumulated mass. None was prevented by a person reading the diff.
 
-**Security failures live in behaviour nobody checked.** About 40% of the programs Copilot wrote in security-relevant scenarios contained a known weakness [@pearce2022]. In a controlled study, people with an AI assistant wrote less secure code than people without, and were *more* confident that it was secure [@perry2023]. Code-generating models also invent dependencies: across 16 models and 576,000 samples, at least 5.2% of the packages suggested by commercial models and 21.7% of those suggested by open models did not exist, and attackers can register them in their place [@spracklen2025].
+## 3. The picture: an attractor
 
-**Speed and stability are not yet won.** In a controlled task, developers with Copilot finished 55.8% faster [@peng2023]. In a randomized trial on large, mature open-source projects in early 2025, experienced developers were 19% *slower* with AI tools, while believing they had been faster [@becker2025]. The DORA 2024 report associated more AI adoption with slightly lower delivery throughput and a 7.2% drop in delivery stability, and pointed at larger changes as the likely cause [@dora2024]. GitClear's analysis of 211 million changed lines found copy-pasted code rising and refactoring falling, to the point where, in 2024, more lines were pasted than moved [@gitclear2025].
+Lorenz showed in 1963 that a simple deterministic weather model cannot be predicted for long [@lorenz1963]. The other half of his lesson matters more here: every unpredictable run lives on the *same shape*, the attractor, and the model's climate is stable [@strogatz2015] (Figure 1). Netflix's chaos engineering applies the same idea to software: inject failures on purpose, and judge the system only by whether a *steady state* holds [@basiri2016].
 
-**And the checks themselves can be generated.** Meta's TestGen-LLM used language models to extend existing unit tests, kept only the tests that built, passed reliably and raised coverage, and saw 73% of its proposals accepted by engineers for production [@alshahwan2024]. The machine can build its own attractor, if someone tells it what must hold.
+![**Figure 1.** The Lorenz system, run twice from starting points $10^{-8}$ apart. Top: the paths part after about $t \approx 18$. Bottom: both trace the same butterfly, with the same long-run average (23.6 and 23.4). Unpredictable path, predictable place. Computed by [sim.py](sim.py).](figures/fig01.svg){fig-alt="Two panels. Top, a line chart of x against time from 0 to 40 for two runs, navy and amber. The lines overlap exactly until a dashed line at time about 18 labelled paths part, then oscillate independently between minus 18 and plus 18. Bottom, the x–z projection of both runs after time 20: two overlapping butterfly-shaped spirals, navy and amber, filling the same two-lobed shape. A note at the bottom left reads average height z: 23.6 and 23.4."}
 
-Put together, these results say something precise. The problems are real, but almost none of them is *the code being different from what a human would have written*. They are behaviour nobody checked (insecure patterns, missed edge cases, invented packages), feedback that came too late (large changes, slow review), and mass that nobody removed (duplicated code). Each is a failure of the attractor, not a failure to control the path. And none of them was prevented by having a person read the diff.
+For generated code, the picture gives three zones:
 
-## 3. A picture borrowed from chaos theory
+| Zone | What it is | Examples |
+|---|---|---|
+| **1. Held** | Behaviour the checks verify; pulled back on every change. The attractor. | Tests, types, contracts, scanners, budgets |
+| **2. Free, harmless** | What nobody can observe from outside. | Names, structure, order of lines, which equivalent algorithm |
+| **3. Free, not yet harmless** | Observable behaviour no check holds yet. It drifts with the code. | Security properties, latency, edge cases, what users rely on |
 
-In the early 1960s, Edward Lorenz restarted a simple weather model from numbers rounded to three decimals and watched the new forecast drift away from the old one until they had nothing in common. In 1963 he published the three-variable version that made the effect famous [@lorenz1963]. The lesson people remember is that the weather cannot be predicted for long. The lesson that matters here is the other half: all those unpredictable runs live on the *same shape*, the attractor, and the climate of the model, its averages and ranges, is perfectly stable [@strogatz2015]. Figure 1 shows both halves.
+: **Table 1.** Three zones of freedom in generated code. {tbl-colwidths="[24,42,34]"}
 
-![**Figure 1.** The Lorenz system, run twice from starting points $10^{-8}$ apart. Top: the two runs are identical until about $t \approx 18$, then have nothing in common. Bottom: after they part, both trace the same butterfly, and their long-run averages agree (mean height 23.6 and 23.4). The path is unpredictable; the place is not. Computed by [sim.py](sim.py).](figures/fig01.svg){fig-alt="Two panels. Top, a line chart of x against time from 0 to 40 for two runs, navy and amber. The lines overlap exactly until a dashed line at time about 18 labelled paths part, then oscillate independently between minus 18 and plus 18. Bottom, the x–z projection of both runs after time 20: two overlapping butterfly-shaped spirals, navy and amber, filling the same two-lobed shape. A note at the bottom left reads average height z: 23.6 and 23.4."}
-
-Software engineers have used this idea before. Netflix's *chaos engineering* injects failures into production on purpose, and judges the system not by what happens inside it but by whether a *steady state*, the rate at which customers can watch, holds [@basiri2016]. Nobody at Netflix tries to predict which server will fail. They make sure the steady state survives whichever one does, and they do it with automation, not by watching servers.
-
-Applied to generated code, the picture has three zones (Figure 4):
-
-- **Zone 1, held.** Behaviour the checks verify: tests, types, contracts, scanners, budgets. Every time the agent changes something, the checks pull it back. This is the attractor.
-- **Zone 2, free and harmless.** Everything nobody can observe from outside: names, structure, the order of lines, which of five equivalent algorithms was chosen this time. Two programs that differ only here are, for every user, the same program.
-- **Zone 3, free and not yet harmless.** Behaviour someone *can* observe, and may rely on, that no check holds yet: a security property, a latency, an edge case, an undocumented habit of an API. It drifts with the code.
-
-The provocation follows directly. Effort spent controlling zone 2 buys almost no stability, because nothing anyone sees lives there. Effort spent moving zone 3 into zone 1 buys almost all of it. And both kinds of work, holding zone 1 and shrinking zone 3, are work that machines can do, on every change, faster than any reviewer.
+Controlling zone 2 buys almost no stability. Moving zone 3 into zone 1 buys almost all of it. Both are work machines can do on every change, faster than any reviewer.
 
 ::: {.callout-note collapse="true" appearance="simple"}
-## For readers who like equations: the model in two lines
+## For readers who like equations
 
-Write the code as a state $x$ in a very large space, and the behaviour as a much smaller observation of it, $y = \phi(x)$. Many programs share the same behaviour, so most directions of $x$ change nothing in $y$: that is zone 2, the null space of $\phi$. The checks hold some directions of $y$ (zone 1) and leave others free (zone 3). If the agent, as a generator, pushes behaviour away from the promise at a rate $\lambda$, and each check-and-fix cycle of length $\Delta t$ removes a share $\kappa$ of the error it sees, the checked behaviour stays put when
+Code is a state $x$; behaviour is a smaller observation $y = \phi(x)$. Most directions of $x$ change nothing in $y$ (zone 2, the null space of $\phi$). If the agent pushes behaviour away at rate $\lambda$, and each check-and-fix cycle of length $\Delta t$ removes a share $\kappa$ of the error, checked behaviour holds when
 
 $$
--\frac{\ln(1-\kappa)}{\Delta t} \;>\; \lambda .
+-\frac{\ln(1-\kappa)}{\Delta t} \;>\; \lambda ,
 $$
 
-In words: the loop must pull back faster than the generator pushes away, but only in the directions it checks. This is the condition under which two chaotic systems stay synchronised when one is fed part of the other's state [@pecora1990], with the specification playing the leading system. Everything else may stay chaotic. Note what the condition asks for: a high $\kappa$ and a short $\Delta t$. A human reviewer is slow, and reads only some directions. An automated check in the agent's session is fast, and reads the same directions every time.
+the synchronisation condition for chaotic systems [@pecora1990]. It rewards a high $\kappa$ and a short $\Delta t$: an automated check in the agent's session, not a slow human reading.
 :::
 
 ## 4. A toy experiment
 
-To see the picture work, I simulated it. It is a toy, labelled as one. The "code" is 300 numbers. The "agent" is a random recurrent network chosen to be chaotic on purpose [@sompolinsky1988], so that the code wanders unpredictably. The "behaviour" is 30 numbers computed from the code. The "tests" check some of those 30 numbers and, after every step, fix 80% of whatever error they see. Nothing else is controlled: the tests touch one direction of the code in ten.
+A chaotic toy agent [@sompolinsky1988] writes "code" of 300 numbers; "behaviour" is 30 numbers computed from it; "tests" check some of the 30 and fix 80% of the error after each step. Nothing else is controlled.
 
-**Two runs, almost identical at the start.** In Figure 2, two runs start from code that differs by one part in a hundred million. The code soon becomes as different as two unrelated programs. The tested behaviour also moves a little, but stays in a band about a hundred times narrower. In a second pair where a third of the behaviour is left untested, that untested part follows the code, not the tests: it drifts as far as the code does.
+- **Two runs started $10^{-8}$ apart** end with unrelated code, while tested behaviour stays in a band about a hundred times narrower; untested behaviour drifts with the code (Figure 2).
+- **Coverage, not determinism.** With full coverage, behaviour error falls to 2.7% of the untested level, while the code of different runs stays 66 to 99% as different as unrelated programs (Figure 3a).
+- **The loop matters, the chaos does not.** Across seven levels of chaos, error depends only on how firmly the loop corrects (Figure 3b).
 
-![**Figure 2.** Two runs of the chaotic toy agent, same specification, starting $10^{-8}$ apart (log scale). Navy: the distance between the two programs grows exponentially and saturates at the size of the code. Green: the distance between their tested behaviour stays about a hundred times smaller. Amber, from a run where 10 of the 30 behaviour numbers are untested: those drift with the code. Computed by [sim.py](sim.py).](figures/fig02.svg){fig-alt="Log-scale line chart of distance between two runs against time from 0 to 250. A navy line, code, rises from 1e-8 roughly exponentially, annotated grows like e to the 0.12 t, and flattens near 10 after time 140, labelled as far apart as two unrelated programs. An amber line, behaviour no test checks, rises alongside it and flattens near 2. A green line, behaviour the tests check, rises from below 1e-9 and flattens near 0.1, labelled held within a narrow band."}
+![**Figure 2.** Two runs of the toy agent, same specification, starting $10^{-8}$ apart (log scale). Code (navy) parts completely; tested behaviour (green) stays about a hundred times closer; untested behaviour (amber) drifts with the code. Computed by [sim.py](sim.py).](figures/fig02.svg){fig-alt="Log-scale line chart of distance between two runs against time from 0 to 250. A navy line, code, rises from 1e-8 roughly exponentially, annotated grows like e to the 0.12 t, and flattens near 10 after time 140, labelled as far apart as two unrelated programs. An amber line, behaviour no test checks, rises alongside it and flattens near 2. A green line, behaviour the tests check, rises from below 1e-9 and flattens near 0.1, labelled held within a narrow band."}
 
-**Coverage and speed, not determinism.** Figure 3a repeats the experiment ten times at each level of test coverage. Without tests, behaviour is far from the specification. With half of it covered, the error is still 78% of that. With full coverage, it falls to 2.7%, while the code of different runs stays between 66% and 99% as different as unrelated programs. Figure 3b varies how chaotic the agent is and how firmly the loop corrects. The seven curves for seven levels of chaos lie on top of each other: in this toy, how wild the agent is barely matters; how fast and how firmly the checks pull back is what matters.
+![**Figure 3.** (a) Behaviour error (navy) falls only as test coverage rises; the code of different runs (grey) stays far apart throughout. (b) Behaviour error against loop strength for seven levels of chaos: the curves overlap. Computed by [sim.py](sim.py).](figures/fig03.svg){fig-alt="Two stacked line charts. Top, panel a: x-axis share of observable behaviour that tests check, 0 to 100 percent. A grey line, how different the code is between runs, starts near 1.0 and settles around 0.7. A navy line, how far behaviour is from the spec, starts at 1.0, falls slowly to about 0.7 at 60 percent, then steeply to 0.03 at 100 percent. Bottom, panel b: x-axis strength of the loop kappa from 0.05 to 1.0; y-axis behaviour error relative to no tests. Seven overlapping lines for chaos gains g from 1.5 to 5 fall together from about 0.65 at kappa 0.05 to 0.3 at 0.2, 0.14 at 0.4, 0.03 at 0.8 and 0 at 1.0."}
 
-![**Figure 3.** (a) Ten independent runs per level of test coverage. Behaviour error (navy) falls only as coverage rises and reaches 2.7% of the untested error at full coverage; the code (grey) stays far apart throughout. (b) Behaviour error at full coverage against the strength of the loop, for seven levels of chaos in the agent: the curves overlap. Computed by [sim.py](sim.py).](figures/fig03.svg){fig-alt="Two stacked line charts. Top, panel a: x-axis share of observable behaviour that tests check, 0 to 100 percent. A grey line, how different the code is between runs, starts near 1.0 and settles around 0.7. A navy line, how far behaviour is from the spec, starts at 1.0, falls slowly to about 0.7 at 60 percent, then steeply to 0.03 at 100 percent. Bottom, panel b: x-axis strength of the loop kappa from 0.05 to 1.0; y-axis behaviour error relative to no tests. Seven overlapping lines for chaos gains g from 1.5 to 5 fall together from about 0.65 at kappa 0.05 to 0.3 at 0.2, 0.14 at 0.4, 0.03 at 0.8 and 0 at 1.0."}
-
-The toy proves nothing about real codebases. It shows that the picture is coherent: a chaotic generator and a stable behaviour can live together, and what separates them is coverage and speed of feedback, two things that automation provides and human reading does not. That matches what the studies in Section 2 found from the other side.
+A toy proves nothing about real codebases. It shows the picture is coherent, and that coverage and speed of feedback, which automation provides, decide the outcome.
 
 ## 5. Automate the zones, gate a sliver
 
-If stability comes from the attractor, the conclusion is not "read less carefully". It is that the work of holding behaviour should be done by machines, in all three zones, and that people should be taken out of the loop almost everywhere.
+![**Figure 4.** What to do with each zone. Zone 1: automate, strong and fast. Zone 2: leave to the machine. Zone 3: machines turn it into checks. People gate only the irreversible. Schematic, my own.](figures/fig04.svg){fig-alt="Three stacked cards, each with an arrow to a coloured box. Zone 1, green, Held: the behaviour the checks hold; pulled back by machines on every change, this is the attractor; box: Automate: strong and fast. Zone 2, navy, Free and harmless: what no one can observe; names, structure, order of lines, the exact code of this run; box: Let it go to the machine. Zone 3, amber, Free and not harmless: observable but not checked; security, latency, edge cases, what users came to rely on; box: Automate it as a check. At the bottom: Machines move zone 3 into zone 1. People gate only the irreversible."}
 
-![**Figure 4.** Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the checks hold, is the attractor: automate it, strong and fast. Zone 2, what no one can observe, is left to the machine. Zone 3, observable but unchecked, is turned into checks by machines. People gate only the irreversible. Schematic, my own.](figures/fig04.svg){fig-alt="Three stacked cards, each with an arrow to a coloured box. Zone 1, green, Held: the behaviour the checks hold; pulled back by machines on every change, this is the attractor; box: Automate: strong and fast. Zone 2, navy, Free and harmless: what no one can observe; names, structure, order of lines, the exact code of this run; box: Let it go to the machine. Zone 3, amber, Free and not harmless: observable but not checked; security, latency, edge cases, what users came to rely on; box: Automate it as a check. At the bottom: Machines move zone 3 into zone 1. People gate only the irreversible."}
-
-**Zone 1 is automated by definition.** Checks run in the agent's session after every change, not in a nightly pipeline and not in a reviewer's queue. The agent reads the failure and fixes it. Speed is the point: the same checks, run sooner, hold more.
-
-**Zone 2 is left to the machine.** Names, structure and the exact shape of the code are the agent's business. Where some structure does matter to someone (a size budget, an architectural boundary, a forbidden dependency), it is observable, so it becomes a check in zone 1. Where it matters to nobody, it is not a problem to solve.
-
-**Zone 3 is shrunk by machines too.** Finding unchecked behaviour is itself work that can be automated. Agents extend the test suite, filtered the way Meta filtered them [@alshahwan2024]. Mutation testing, which plants small bugs and checks whether the tests notice, measures how firmly the checks hold [@petrovic2018]. Property-based tests hold whole families of behaviour at once [@claessen2000]. *Regeneration drills*, borrowed from chaos engineering, regenerate a module from its promise and its checks and compare old and new versions on random inputs (differential testing [@mckeeman1998]); wherever they disagree, the machine has found a piece of zone 3 and can propose the missing check. Real use, the calls clients actually make and rely on, is turned into contract tests automatically, which is how a system keeps up with Hyrum's law: with enough users, every observable behaviour is depended on by somebody [@winters2020]. The daily audit of the whole codebase from [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd) belongs here too.
-
-**A sliver is gated by people.** What remains for a human decision is narrow: actions whose harm survives a revert. Deleting or migrating data, moving money, releasing to users, granting access, adding a new dependency to the supply chain. These are approved by a person, at the point of no return, with the evidence the machines gathered: a few questions, rarely asked. This is the rule of the earlier paper, *approve what you cannot undo; watch everything else*, and in a well-built system it is a small fraction of changes, not a step on every one.
+- **Zone 1, automated.** Checks run in the agent's session after every change; the agent reads failures and fixes them. Same checks, run sooner, hold more.
+- **Zone 2, left to the machine.** If some structure matters to someone (a size budget, a boundary, a forbidden dependency), it is observable and becomes a zone 1 check. Otherwise it is not a problem.
+- **Zone 3, shrunk by machines.**
+  - Agents extend the tests, filtered as Meta did: they must build, pass reliably and add coverage [@alshahwan2024].
+  - Mutation testing measures how firmly the checks hold [@petrovic2018]; property-based tests hold whole families of behaviour [@claessen2000].
+  - *Regeneration drills*: regenerate a module from its promise and checks, compare old and new on random inputs (differential testing [@mckeeman1998]); every disagreement is zone 3, and a missing check.
+  - Real usage becomes contract tests, to keep up with Hyrum's law: everything observable will be depended on [@winters2020].
+  - A daily audit of the whole codebase, as in [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd).
+- **A sliver, gated by people.** Only actions whose harm survives a revert: deleting or migrating data, payments, releases, access grants, new dependencies. A person decides at the point of no return, with the evidence the machines gathered. *Approve what you cannot undo; watch everything else.*
 
 ## 6. People above the loop
 
-Taking people out of the loop is not taking them out of the system. This is the part most often misread, so I will be explicit: **the human is still there, not in the loop, but above it**, guiding and structuring the whole. What changes is the level at which people work, not how much their work matters.
+Out of the loop is not out of the system. **The human is still there, above the loop, guiding and structuring the whole.** The level of the work changes, not its importance.
 
-![**Figure 5.** Where people work when the code is generated. Above the loop, continuously: the promise, which checks must exist, budgets and metrics, architecture and boundaries, what to build and what to remove. In the loop, on every change: machines generate, check and fix. At the gate, rarely: people decide what cannot be undone. Metrics, drills and incidents flow back up. Schematic, my own.](figures/fig05.svg){fig-alt="Three stacked cards. Top, navy, above the loop, people, continuously: Guide and structure; the promise, which checks must exist, budgets and metrics, architecture and boundaries, what to build next, what to remove. A solid arrow down labelled sets the attractor, and a dashed arrow up labelled metrics, drills, incidents. Middle, green, the loop, machines, on every change: Generate, check, fix; agents write code and tests, checks run in the session, scanners and budgets, regeneration drills, daily audit; a curved arrow on its right shows the cycle. An amber arrow down labelled only what cannot be undone leads to the bottom card, the gate, people, rarely: Decide the irreversible; deleting data, payments, releases, new dependencies. At the bottom: People leave the loop, not the system: they move up a level."}
+![**Figure 5.** Where people work when the code is generated: above the loop, continuously; the loop itself is run by machines; people return at the gate only for what cannot be undone. Metrics, drills and incidents flow back up. Schematic, my own.](figures/fig05.svg){fig-alt="Three stacked cards. Top, navy, above the loop, people, continuously: Guide and structure; the promise, which checks must exist, budgets and metrics, architecture and boundaries, what to build next, what to remove. A solid arrow down labelled sets the attractor, and a dashed arrow up labelled metrics, drills, incidents. Middle, green, the loop, machines, on every change: Generate, check, fix; agents write code and tests, checks run in the session, scanners and budgets, regeneration drills, daily audit; a curved arrow on its right shows the cycle. An amber arrow down labelled only what cannot be undone leads to the bottom card, the gate, people, rarely: Decide the irreversible; deleting data, payments, releases, new dependencies. At the bottom: People leave the loop, not the system: they move up a level."}
 
-Above the loop, people do the work that only people can do, and that the earlier essays on this site kept arriving at:
+Above the loop, people:
 
-- **They own the promise.** Intent, written down and kept short, is the source; code is its output ([Intent Is the Source](../../posts/2026-10-21-intent-is-the-source/index.qmd)). Shared understanding comes from the promise, not from reading diffs ([Review the Intent, Not the Diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd)).
-- **They decide which checks must exist.** Not each test, which agents can write, but what must always hold: the properties, the boundaries, the budgets, the security rules. They read the *design* of the checks and their measured strength, not every new test case.
-- **They structure the system.** Architecture, module boundaries and what may depend on what are decisions about the shape of the attractor, and they become checks once decided.
-- **They read the instruments.** Escaped defects by zone, mutation scores, loop times, regeneration drills, incidents: the signals that say where the attractor is weak. They act on the system that produces code, not on individual changes, much as [Fast AI](../../posts/2026-10-11-fast-ai/index.qmd) argued that the slow, careful work should be done once, so that the fast path can run on its own.
-- **They choose what to build, and what to remove.** Making is cheap now; choosing is not. [The Joy of the Question](../../posts/2026-10-27-the-joy-of-the-question/index.qmd) argued that choosing problems and caring about them is what stays ours, and [Work Has Mass](../../posts/2026-10-24-work-has-mass/index.qmd) that everything made must be carried.
+- **Own the promise.** Intent is the source; code is its output ([Intent Is the Source](../../posts/2026-10-21-intent-is-the-source/index.qmd)). Understanding comes from the promise, not from diffs ([Review the Intent, Not the Diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd)).
+- **Decide which checks must exist.** Not each test, which agents write, but what must always hold: properties, boundaries, budgets, security rules.
+- **Structure the system.** Architecture and dependencies are the shape of the attractor; once decided, they become checks.
+- **Read the instruments.** Escaped defects, mutation scores, loop times, drills, incidents. They change the system that produces code, not individual changes, as [Fast AI](../../posts/2026-10-11-fast-ai/index.qmd) argued: slow, careful work done once, so the fast path runs on its own.
+- **Choose what to build and what to remove.** Making is cheap; choosing is not ([The Joy of the Question](../../posts/2026-10-27-the-joy-of-the-question/index.qmd), [Work Has Mass](../../posts/2026-10-24-work-has-mass/index.qmd)).
 
-This is not a smaller role. A person who reads a thousand lines a day guards a thousand lines. A person who decides that every endpoint must have an authorisation test, and makes it a check, guards every line every agent will ever write there.
+A person who reads a thousand lines a day guards a thousand lines. A person who makes "every endpoint has an authorisation test" a check guards every line every agent will ever write there.
 
 ## 7. What it means for a team
 
-Concretely, if the provocation is right, a team's job changes as follows. This is the part I most want argued with.
+**The team owns** the promise, the checks and the gates, not the text of the code. If it cannot regenerate a module from these, it does not really own it.
 
-**What the team owns.** Not the text of the code. The *promise*, the *checks* that hold it, and the *gates* where harm cannot be undone. Code is an output of these, like compiled binaries were an output of source code. A team that cannot regenerate a module from its promise and its checks does not really own it, however carefully it read the diff.
-
-**What to stop.**
-
-- Reading every generated diff as the default form of control. The diff is a path in zone 2.
-- Demanding reproducible generation. Pinned seeds and zero temperature make the path repeatable, not the behaviour correct, and serving infrastructure breaks them anyway [@he2025].
-- Style debates about generated code, unless something observable depends on the rule; then it is a check.
-- Asking "who wrote this line?" The useful question is "which check should have caught this, and why did it not exist?"
-
-**What to start.**
-
-- **Promise and required checks first.** Before an agent builds a feature, a person states what it must do and what must always hold. Agents write the tests; people review whether the required properties are the right ones.
-- **Checks in the session.** Every check that can run in the agent's session runs there, after every change.
-- **Machines that find zone 3.** Mutation testing, generated tests, regeneration drills, production use turned into contract tests, and a daily audit, all automated, all reporting upward.
-- **Budgets for mass.** Code size, duplication and coupling get budgets enforced as checks; the GitClear trend [@gitclear2025] is what happens without them.
-- **A short list of gates.** Written down, small, and reviewed: the actions that need a person.
-
-**Roles.** Each service or module has an owner of its *attractor*: accountable for the promise, the required checks and the gates, rather than for the code. Security and platform engineers own the shared checks every agent session runs (Section 8). Nobody is accountable for reading every line, because nobody can be.
-
-**Metrics.** Lines reviewed and pull requests approved stop being signs of care. What a team tracks instead:
-
-| Metric | What it tells you |
+| Stop | Start |
 |---|---|
-| Escaped defects, classified by zone | Whether failures come from unchecked behaviour (zone 3) or from weak checks (zone 1) |
-| Mutation score of the checks | How firmly the attractor holds |
-| Time from change to check result | How fast the loop pulls back |
-| Behaviour agreement between regenerations | How much of zone 3 is left |
-| Share of changes that needed a human gate | Whether the gate is still a sliver |
-| Size, duplication and coupling trends | Whether the code is gaining mass |
+| Reading every generated diff as the default control | Promise and required checks before the agent builds |
+| Demanding reproducible generation [@he2025] | All checks inside the agent's session |
+| Style debates nobody depends on | Machines that find zone 3: mutation tests, drills, usage-based contracts, daily audit |
+| Asking "who wrote this line?" | Asking "which check was missing?" |
+| Counting lines reviewed | Budgets for size, duplication and coupling [@gitclear2025] |
+| | A short, written list of gates |
 
-: **Table 1.** What a team measures when it holds behaviour rather than code. {tbl-colwidths="[40,60]"}
+: **Table 2.** What changes for a team. {tbl-colwidths="[45,55]"}
 
-**A useful test of the whole idea:** if you deleted a module today and regenerated it from its promise and its checks, would you ship the result without reading it? If not, the reason you would hesitate is the list of things your checks do not yet hold. That list is the team's real backlog, and most of it can be given to machines.
+**Roles.** Each module has an owner of its attractor: the promise, the required checks, the gates. Security and platform engineers own the shared checks every agent session runs. Nobody is accountable for reading every line.
+
+**Metrics.**
+
+- Escaped defects, classified by zone (unchecked behaviour, or weak checks).
+- Mutation score: how firmly the checks hold.
+- Time from change to check result: how fast the loop pulls back.
+- Behaviour agreement between regenerations: how much of zone 3 is left.
+- Share of changes that needed a human gate: is it still a sliver?
+- Size, duplication and coupling trends: is the code gaining mass?
+
+**One test of the whole idea.** Delete a module and regenerate it from its promise and checks. Would you ship it unread? If not, your reasons are the checks you are missing, and that list is the team's real backlog.
 
 ## 8. Security and the rest, in a nutshell
 
-The first question I am always asked is: *and security?* Security is not an exception to the provocation. It is the most important part of zone 3, and Section 2 shows what happens when it is left there. The answer is the same as for everything else: automate it into zone 1, sandbox the agent, and put a person at a gate only where harm cannot be undone. Table 2 gives the short version, with who acts.
+Security is not an exception. It is the most important part of zone 3, and it is held the same way.
 
 | Concern | How it is held | Who acts |
 |---|---|---|
-| Injection, unsafe APIs, known weaknesses [@pearce2022] | Static analysis and security linters in every agent session; security tests per entry point; known-bad patterns as failing checks | Machines |
-| Secrets | Secret scanning before anything leaves the session; credentials never in the agent's reach | Machines |
-| Dependencies and supply chain [@spracklen2025] | Allowlist of packages and registries; lockfiles; provenance checks | Machines; a person approves a *new* dependency |
-| Access control and privacy | Authorisation tests for every endpoint; data-flow checks on personal data; policy as code | Machines; people set the policy |
-| The agent itself | Sandboxed sessions; never private data, untrusted input and a way out at once (the Rule of Two in [The Context Is the Wire](../../posts/2026-11-01-the-context-is-the-wire/index.qmd)) | Machines enforce; people set the rule |
-| Irreversible actions | Migrations that drop data, payments, deletions, releases (see [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd)) | A person, at the gate |
-| Performance and cost | Budgets on latency, memory and cost per request, checked like tests | Machines; people set budgets |
-| Maintainability | Budgets on size, duplication and coupling; architecture rules as tests | Machines; people set the structure |
-| Accessibility, licences, compliance | Automated accessibility checks, licence scanning, compliance rules as code | Machines; people sample where automation is weak |
-| What cannot be checked: taste, fairness, product sense | Judgement on the promise and the product | People, above the loop |
+| Injection, unsafe APIs, known weaknesses [@pearce2022] | Static analysis and security linters in every session; security tests per entry point | Machines |
+| Secrets | Secret scanning before anything leaves the session; no credentials in the agent's reach | Machines |
+| Supply chain [@spracklen2025] | Package and registry allowlists, lockfiles, provenance checks | Machines; a person approves a *new* dependency |
+| Access control, privacy | Authorisation tests per endpoint; data-flow checks; policy as code | Machines; people set the policy |
+| The agent itself | Sandboxed sessions; never private data, untrusted input and a way out at once ([The Context Is the Wire](../../posts/2026-11-01-the-context-is-the-wire/index.qmd)) | Machines enforce; people set the rule |
+| Irreversible actions | Data deletion, payments, releases | A person, at the gate |
+| Performance, cost | Latency, memory and cost budgets, checked like tests | Machines; people set budgets |
+| Maintainability | Size, duplication and coupling budgets; architecture rules as tests | Machines; people set the structure |
+| Accessibility, licences, compliance | Automated checks and scanners; rules as code | Machines; people sample where automation is weak |
+| Taste, fairness, product sense | Judgement on the promise and the product | People, above the loop |
 
-: **Table 2.** Security and other concerns: almost all held by machines, a few gated, and the rest decided above the loop. {tbl-colwidths="[28,46,26]"}
+: **Table 3.** Security and other concerns: almost all held by machines, a few gated, the rest decided above the loop. {tbl-colwidths="[28,46,26]"}
 
-Two things in the table matter more than any row. First, the "Who acts" column is almost entirely *machines*, with people setting the rules and approving a handful of irreversible steps. Second, none of these rows depends on someone reading the code: human review missed these failures before AI too, and Perry and colleagues found that people working with an assistant became more confident, not more careful [@perry2023]. A rule turned into a check protects every future change; a careful reading protects one.
+None of these depends on someone reading code; human review missed them before AI too, and assistant users grew more confident, not more careful [@perry2023]. A rule turned into a check protects every future change; a careful reading protects one.
 
-## 9. Predictions, and what would change my mind
+## 9. Predictions
 
-A provocation is only useful if it can lose. Each prediction names the result that would refute it.
+Each one names what would refute it.
 
-- **P1. Regeneration.** Regenerate a well-tested feature twenty times. The code will differ widely; behaviour will agree on the checks and disagree, outside them, in proportion to what is unchecked. *Refuted if* similarity of the code predicts correct behaviour better than coverage and mutation score do.
-- **P2. Where failures come from.** Defects that reach users from AI-written code will be mostly zone 3 (unchecked behaviour) or weak zone 1 (checks that do not hold), not "strange-looking code". *Refuted if* code that reviewers flag as unusual predicts escaped defects better than gaps in the checks.
-- **P3. Automation beats reading.** The same effort spent on automated checks, mutation testing and regeneration drills will prevent more escaped defects than spent on reading diffs. *Refuted if* line-by-line review prevents at least as many, at comparable cost.
-- **P4. Fast loops win.** The same checks, run inside the agent's session instead of later in CI, will reduce defects and rework. *Refuted if* timing makes no measurable difference.
-- **P5. Teams above the loop.** Teams that gate only irreversible actions, move people above the loop and track the metrics in Table 1 will deliver at least as fast with no more incidents than teams that review every diff. *Refuted if*, in a stepped-wedge trial like the one proposed in [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), they have more incidents or slower recovery.
+- **P1. Regeneration.** Regenerated code differs widely; behaviour agrees on the checks and diverges elsewhere in proportion to what is unchecked. *Refuted if* code similarity predicts correct behaviour better than coverage and mutation score.
+- **P2. Failures.** Escaped defects in AI-written code come mostly from zone 3 or weak checks, not from "strange-looking code". *Refuted if* reviewers' sense of unusual code predicts them better.
+- **P3. Automation beats reading.** Effort on automated checks, mutation testing and drills prevents more escaped defects than the same effort on reading diffs. *Refuted if* reading prevents at least as many.
+- **P4. Fast loops.** The same checks run in the agent's session reduce defects and rework compared with later CI. *Refuted if* timing makes no difference.
+- **P5. Teams.** Teams that gate only the irreversible and work above the loop deliver at least as fast with no more incidents. *Refuted if*, in a stepped-wedge trial as in [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), they have more incidents or slower recovery.
 
-## 10. Objections, and why they do not overturn the provocation
+## 10. Objections, briefly
 
-**"Taking people out of the loop is reckless."** It would be, if they left the system. They do not; they move above it (Section 6), and they keep the gate for everything that cannot be undone. The reckless choice is the current one: a slow, partial, tiring check on every change, which the evidence shows does not catch insecure code reliably [@perry2023], placed exactly where it adds the most delay.
-
-**"This is randomness, not chaos."** Language model sampling is random; Lorenz's chaos is deterministic. The difference does not help the objection. The argument needs only that small differences in input grow into large differences in code, and that the code stays bounded. Generated code has both, at any temperature [@ouyang2023; @he2025]. I used a deterministic chaotic agent in the toy to make the stronger point: even perfect determinism would not give back the control people want.
-
-**"Untested behaviour is exactly where the danger is."** Yes. That is the thesis, not an objection to it. Reading diffs does not find zone 3 reliably either: it is behaviour, and it shows up when the code runs, not when it is read. Machines that run the code differently (regeneration drills, differential tests, production traffic turned into checks) find it; a check holds it.
-
-**"With enough users, everything observable is depended on."** Hyrum's law [@winters2020] makes zone 3 grow as a system ages, so the provocation asks for more checks over time. That is a cost, but it is the honest cost of owning a system with users, it applies to hand-written code too, and it is exactly the kind of cost automation pays well.
-
-**"People still have to read the code."** Sometimes: in an incident, in a security audit, in a domain with no good checks yet. Reading is still allowed. What the provocation drops is reading *as the default form of control*, applied to every change. Where people must read, the structure they read is observable to them, so it gets a budget and a check like anything else.
-
-**"Different implementations share the same blind spots."** They do: independently written versions of a program tend to fail on the same hard inputs [@knight1986], and twenty regenerations from one model are less independent still. The provocation does not claim regeneration gives redundancy. It claims that the *differences* between regenerations are mostly harmless, and that the shared blind spots are, again, unchecked behaviour.
-
-**"The checks can be wrong."** A strong loop around a wrong test holds the wrong behaviour very stably; an attractor is not a truth. This is why people belong above the loop, deciding what must hold and reading how well it holds, rather than in it, where a wrong expectation is buried under thousands of lines.
-
-**"The evidence is mixed."** It is: AI tools made developers faster in one study and slower in another [@peng2023; @becker2025], and DORA saw stability fall as adoption rose [@dora2024]. I read the mixed results as support. They are what one would expect from teams that adopted a chaotic generator but kept the old control: larger changes, slower feedback, more mass, and people at the wrong level. The provocation predicts that teams who automate the loop and move above it will see the gains without the instability. P5 is the test.
-
-**"It is a toy."** The simulation is. The thesis does not rest on it; it rests on Sections 2, 5, 6 and 8, and it will stand or fall on P1 to P5.
+- **"Taking people out of the loop is reckless."** They leave the loop, not the system, and keep the gate for the irreversible. The reckless default is a slow, partial check on every change that does not reliably catch insecure code [@perry2023].
+- **"This is randomness, not chaos."** The argument only needs small input differences to grow and the code to stay bounded; generated code does both at any temperature [@ouyang2023; @he2025]. The toy is deterministic on purpose: even perfect determinism would not restore control.
+- **"Untested behaviour is the danger."** Yes; that is the thesis. It shows up when code runs, not when it is read, so machines that run code differently find it, and a check holds it.
+- **"Everything observable becomes depended on."** Hyrum's law grows zone 3 over time [@winters2020]. That cost exists for hand-written code too, and automation pays it best.
+- **"People must still read code."** Sometimes: incidents, audits, domains without checks. Reading stays allowed; it stops being the default control.
+- **"Regenerations share blind spots."** They do [@knight1986]. The claim is not redundancy, but that their *differences* are mostly harmless.
+- **"Checks can be wrong."** An attractor is not a truth. That is why people belong above the loop, deciding what must hold, not inside it.
+- **"The evidence is mixed."** As expected from teams that adopted a chaotic generator but kept the old control [@peng2023; @becker2025; @dora2024]. P5 is the test.
 
 ## 11. Conclusion
 
-The last year proved that machines can write working code. It has not yet changed where we stand while they do it. We still stand at the output, reading, as if the code were the thing to control.
+The last year proved machines can write working code. It has not yet changed where people stand while they do: at the output, reading.
 
-Lorenz did not show that the weather cannot be known. He showed that the weather and the climate are different questions, and that the second can be answered when the first cannot. AI-generated code is weather. The behaviour a team promised is climate. People do not need to forecast every gust; they need to decide what climate they want, build the instruments that keep it, and step in only where a storm would do harm that cannot be undone.
+Generated code is weather; the promised behaviour is climate. People do not need to forecast every gust. They decide the climate, build the instruments that keep it, and step in only where harm cannot be undone.
 
-So the provocation, once more, and on purpose: **automate the loop, gate a sliver, and move people above it.** Let the code be chaotic. Most of the chaos was never where the risk was, and the people were never meant to be inside it.
+**Automate the loop, gate a sliver, and move people above it.** Let the code be chaotic: most of the chaos was never where the risk was.
 
 ::: {.read-next}
 **Read next** · [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd)
