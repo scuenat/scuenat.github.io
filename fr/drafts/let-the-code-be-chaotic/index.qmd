@@ -3,7 +3,7 @@ title: "Laissez le code être chaotique"
 subtitle: "Un article de position provocateur : l'IA écrit désormais du code qui résout de vrais problèmes, et nous le contrôlons encore comme s'il avait été écrit à la main. Automatisez la boucle, gardez une mince barrière, et placez les humains au-dessus"
 description: "Un article de position provocateur : le code généré par l'IA est chaotique, presque sans danger. Automatisez les vérifications et placez les humains au-dessus de la boucle."
 date: 2026-11-11   # date de rédaction ; promote-draft.py fixe la date de publication
-draft-version: 4   # +1 à chaque révision publiée dans les brouillons
+draft-version: 5   # +1 à chaque révision publiée dans les brouillons
 draft-revised: 2026-11-11
 citation: true
 toc-depth: 2
@@ -15,10 +15,10 @@ image: ../../../drafts/let-the-code-be-chaotic/figures/fig01.png
 ---
 
 ::: {.callout-warning appearance="simple"}
-**Article de position, novembre 2026. Provocateur à dessein.** La thèse est énoncée plus nettement que les preuves ne le permettent encore, pour ouvrir un débat. Ce n'est pas une mise en garde contre le codage par IA ; c'est une remise en cause de la façon dont nous l'utilisons. Il prolonge [Arrêtez de relire les pull requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd) et [Relire l'intention, pas le diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd). Les figures 1 à 3 viennent des simulations de [sim.py](../../../drafts/let-the-code-be-chaotic/sim.py) (nombres dans [results.json](../../../drafts/let-the-code-be-chaotic/results.json)) ; les figures 4 et 5 sont des schémas de moi. Les figures sont en anglais. *Traduit automatiquement de l'anglais ; quelques erreurs sont possibles. [Version originale](../../../drafts/let-the-code-be-chaotic/index.qmd).*
+**Article de position, novembre 2026. Provocateur à dessein.** La thèse est énoncée plus nettement que les preuves ne le permettent encore, pour ouvrir un débat. Ce n'est pas une mise en garde contre le codage par IA ; c'est une remise en cause de la façon dont nous l'utilisons. Il vise les logiciels produits et les plateformes ; les logiciels critiques pour la sûreté, dont la certification exige une relecture humaine, sont hors de son champ. Il prolonge [Arrêtez de relire les pull requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd) et [Relire l'intention, pas le diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd). Les figures 1 à 3 viennent des simulations de [sim.py](../../../drafts/let-the-code-be-chaotic/sim.py) (nombres dans [results.json](../../../drafts/let-the-code-be-chaotic/results.json)) ; les figures 4 et 5 sont des schémas de moi. Les figures sont en anglais. *Traduit automatiquement de l'anglais ; quelques erreurs sont possibles. [Version originale](../../../drafts/let-the-code-be-chaotic/index.qmd).*
 :::
 
-**Résumé.** Les agents d'IA résolvent désormais la plupart des tickets réels du banc d'essai de référence, et écrivent une large part du nouveau code dans de grandes entreprises. Pourtant, le contrôle par défaut n'a pas changé : une personne lit chaque modification. Je soutiens que cela place les humains au mauvais endroit. Le code généré est chaotique : de petites différences de prompt ou de contexte donnent des programmes très différents. C'est le plus souvent sans conséquence. La stabilité vient d'un *attracteur*, des vérifications qui ramènent le comportement à la promesse après chaque modification, pas d'une trajectoire prévisible. Les machines devraient faire tourner cette boucle partout. Les humains ne gardent que l'irréversible, et pour le reste se placent au-dessus de la boucle : ils fixent la promesse, les vérifications exigées, la structure et la direction.
+**Résumé.** Les agents d'IA résolvent désormais la plupart des tickets réels du banc d'essai de référence, et écrivent une large part du nouveau code dans de grandes entreprises. Pourtant, le contrôle par défaut n'a pas changé : une personne lit chaque modification. Je soutiens que cela place les humains au mauvais endroit. Le code généré est chaotique : de petites différences de prompt ou de contexte donnent des programmes très différents. C'est le plus souvent sans conséquence. La stabilité vient d'un *attracteur*, des vérifications qui ramènent le comportement à la promesse après chaque modification, pas d'une trajectoire prévisible. Les machines devraient faire tourner cette boucle partout, à une condition : les vérifications sont protégées des agents qu'elles vérifient. Les humains ne gardent que l'irréversible, et pour le reste se placent au-dessus de la boucle : ils fixent la promesse, possèdent les vérifications, structurent le système et choisissent la direction.
 
 ::: {.callout-tip appearance="simple" icon="false"}
 ## Thèses
@@ -27,7 +27,7 @@ image: ../../../drafts/let-the-code-be-chaotic/figures/fig01.png
 2. **Stabilité.** Elle vient de vérifications rapides qui ramènent le comportement à la promesse (un attracteur), ni d'une génération déterministe ni d'une lecture attentive.
 3. **Trois zones, toutes automatisées.** Les machines tiennent ce qui est vérifié, ignorent ce que personne ne peut observer, et transforment ce qui est observable mais non vérifié en vérifications.
 4. **Une mince barrière.** Les humains n'approuvent que l'irréversible : supprimer des données, déplacer de l'argent, mettre en production, ajouter une dépendance.
-5. **Les humains au-dessus de la boucle.** Ni dedans, ni absents : ils guident et structurent l'ensemble. Le niveau de leur travail change, pas son importance.
+5. **Les humains au-dessus de la boucle.** Ni dedans, ni absents : ils possèdent les vérifications, guident et structurent l'ensemble. Les agents peuvent proposer de modifier les vérifications ; seuls les humains l'acceptent. Le niveau du travail change, pas son importance.
 6. **La sécurité aussi.** Elle se tient de la même façon : vérifications automatisées, bacs à sable, et une barrière au point de non-retour.
 :::
 
@@ -57,7 +57,7 @@ L'objection habituelle tient en un mot : *chaos*. Le code généré n'est pas re
 - **Vitesse et stabilité sont contrastées.** Les utilisateurs de Copilot ont été 55,8 % plus rapides sur une tâche contrôlée [@peng2023] ; des développeurs expérimentés sur des projets matures ont été 19 % plus lents tout en se croyant plus rapides [@becker2025]. DORA a associé une adoption plus large de l'IA à une stabilité des livraisons inférieure de 7,2 %, probablement à cause de modifications plus grosses [@dora2024]. Le code copié-collé augmente et le remaniement recule [@gitclear2025].
 - **Les vérifications peuvent être générées.** TestGen-LLM, chez Meta, a étendu des suites de tests ; 73 % de ses propositions filtrées ont été acceptées pour la production [@alshahwan2024].
 
-**Lecture.** Presque aucun de ces échecs n'est *le fait que le code diffère de ce qu'une personne aurait écrit*. Ce sont du comportement non vérifié, une rétroaction tardive et une masse accumulée. Aucun n'a été évité parce qu'une personne lisait le diff.
+**Lecture.** Aucune de ces études ne classe les échecs comme le fait cet article ; ce qui suit est donc mon interprétation. La plupart des échecs qu'elles rapportent ne sont pas *le fait que le code diffère de ce qu'une personne aurait écrit* : ce sont du comportement non vérifié, une rétroaction tardive et une masse accumulée. Et aucune de ces études n'a montré que lire le diff les évitait ; l'une a montré que les personnes aidées d'un assistant devenaient plus confiantes, pas plus prudentes [@perry2023].
 
 ## 3. L'image : un attracteur
 
@@ -89,19 +89,15 @@ $$
 la condition de synchronisation des systèmes chaotiques [@pecora1990]. Elle récompense un $\kappa$ élevé et un $\Delta t$ court : une vérification automatique dans la session de l'agent, pas une lecture humaine lente.
 :::
 
-## 4. Une expérience jouet
+## 4. Une illustration jouet
 
-Un agent jouet chaotique [@sompolinsky1988] écrit un « code » de 300 nombres ; le « comportement » est fait de 30 nombres calculés à partir de lui ; des « tests » vérifient une partie des 30 et corrigent 80 % de l'erreur après chaque étape. Rien d'autre n'est contrôlé.
-
-- **Deux exécutions parties à $10^{-8}$ l'une de l'autre** finissent avec des codes sans rapport, tandis que le comportement testé reste dans une bande environ cent fois plus étroite ; le comportement non testé dérive avec le code (figure 2).
-- **La couverture, pas le déterminisme.** À couverture complète, l'erreur de comportement tombe à 2,7 % du niveau sans tests, tandis que les codes des différentes exécutions restent entre 66 et 99 % aussi différents que des programmes sans rapport (figure 3a).
-- **La boucle compte, pas le chaos.** Sur sept niveaux de chaos, l'erreur ne dépend que de la fermeté de la correction (figure 3b).
+Une illustration, pas une preuve : un agent jouet chaotique [@sompolinsky1988] écrit un « code » de 300 nombres, le « comportement » est fait de 30 nombres calculés à partir de lui, et des « tests » vérifient une partie des 30 et corrigent 80 % de l'erreur après chaque étape. Deux exécutions parties à $10^{-8}$ l'une de l'autre finissent avec des codes sans rapport, tandis que le comportement testé reste environ cent fois plus proche et que le comportement non testé dérive avec le code (figure 2). À couverture complète, l'erreur de comportement tombe à 2,7 % du niveau sans tests alors que les codes restent éloignés, et sur sept niveaux de chaos l'erreur ne dépend que de la fermeté de la correction (figure 3).
 
 ![**Figure 2.** Deux exécutions de l'agent jouet, même spécification, parties à $10^{-8}$ l'une de l'autre (échelle logarithmique). Le code (bleu marine) se sépare complètement ; le comportement testé (vert) reste environ cent fois plus proche ; le comportement non testé (ambre) dérive avec le code. Calculé par [sim.py](../../../drafts/let-the-code-be-chaotic/sim.py).](../../../drafts/let-the-code-be-chaotic/figures/fig02.svg){fig-alt="Courbes en échelle logarithmique de la distance entre deux exécutions en fonction du temps, de 0 à 250. Une courbe bleu marine, le code, monte depuis 1e-8 de façon à peu près exponentielle, annotée « grows like e^0.12 t », et se stabilise vers 10 après le temps 140, marquée « as far apart as two unrelated programs ». Une courbe ambre, le comportement qu'aucun test ne vérifie, monte avec elle et se stabilise vers 2. Une courbe verte, le comportement que les tests vérifient, monte depuis moins de 1e-9 et se stabilise vers 0,1, marquée « held within a narrow band »."}
 
 ![**Figure 3.** (a) L'erreur de comportement (bleu marine) ne baisse qu'à mesure que la couverture augmente ; les codes des différentes exécutions (gris) restent éloignés tout du long. (b) Erreur de comportement en fonction de la force de la boucle, pour sept niveaux de chaos : les courbes se superposent. Calculé par [sim.py](../../../drafts/let-the-code-be-chaotic/sim.py).](../../../drafts/let-the-code-be-chaotic/figures/fig03.svg){fig-alt="Deux graphiques empilés. En haut, panneau a : en abscisse, « share of the observable behaviour that tests check », de 0 à 100 %. Une courbe grise, « how different the code is between runs », part de près de 1,0 et se stabilise autour de 0,7. Une courbe bleu marine, « how far behaviour is from the spec », part de 1,0, baisse lentement jusqu'à environ 0,7 à 60 %, puis fortement jusqu'à 0,03 à 100 %. En bas, panneau b : en abscisse, la force de la boucle kappa de 0,05 à 1,0 ; en ordonnée, l'erreur de comportement relative à l'absence de tests. Sept courbes superposées, pour des gains g de 1,5 à 5, descendent ensemble d'environ 0,65 à kappa 0,05 à 0,3 à 0,2, 0,14 à 0,4, 0,03 à 0,8 et 0 à 1,0."}
 
-Un jouet ne prouve rien sur de vraies bases de code. Il montre que l'image est cohérente, et que la couverture et la vitesse de rétroaction, que l'automatisation fournit, décident du résultat.
+Le jouet a été construit pour montrer cette image ; il confirme seulement qu'elle est cohérente. L'affirmation sur de vraies équipes repose sur la section 2 et sur les prédictions de la section 9.
 
 ## 5. Automatiser les zones, garder une mince barrière
 
@@ -115,18 +111,19 @@ Un jouet ne prouve rien sur de vraies bases de code. Il montre que l'image est c
   - *Exercices de régénération* : régénérer un module à partir de sa promesse et de ses vérifications, comparer l'ancienne et la nouvelle version sur des entrées aléatoires (test différentiel [@mckeeman1998]) ; chaque désaccord est un morceau de zone 3, et une vérification manquante.
   - L'usage réel devient des tests de contrat, pour suivre la loi de Hyrum : tout ce qui est observable finira par être utilisé [@winters2020].
   - Un audit quotidien de l'ensemble du code, comme dans [Arrêtez de relire les pull requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd).
+- **Protéger l'attracteur.** Un attracteur fait de tests a une faiblesse : le générateur peut l'attaquer. On a vu des modèles de pointe modifier des tests ou le code de notation pour réussir [@metr2025], et quand une tâche et ses tests se contredisent, les agents modifient souvent les tests plutôt que d'échouer ; restreindre leur accès aux fichiers de test réduit fortement ce comportement [@zhong2025]. Les vérifications vivent donc hors de portée de l'agent : en lecture seule dans la session, possédées au-dessus de la boucle. Les agents peuvent *proposer* des vérifications nouvelles ou modifiées ; un changement qui ajoute une vérification est fusionné selon une règle, un changement qui en affaiblit ou en supprime une va à une personne.
 - **Une mince tranche, gardée par des humains.** Seulement les actions dont le dommage survit à un retour arrière : supprimer ou migrer des données, paiements, mises en production, octroi d'accès, nouvelles dépendances. Une personne décide au point de non-retour, avec les éléments que les machines ont rassemblés. *Approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.*
 
 ## 6. Les humains au-dessus de la boucle
 
 Hors de la boucle ne veut pas dire hors du système. **L'humain est toujours là, au-dessus de la boucle, à guider et à structurer l'ensemble.** Le niveau du travail change, pas son importance.
 
-![**Figure 5.** Où travaillent les humains quand le code est généré : au-dessus de la boucle, en continu ; la boucle elle-même tourne avec des machines ; les humains n'y reviennent, à la barrière, que pour l'irréversible. Indicateurs, exercices et incidents remontent. Schéma, de moi.](../../../drafts/let-the-code-be-chaotic/figures/fig05.svg){fig-alt="Trois cartes empilées. En haut, bleu marine, « Above the loop · people, continuously » : « Guide and structure » ; la promesse, les vérifications qui doivent exister, budgets et indicateurs, architecture et frontières, quoi construire ensuite, quoi retirer. Une flèche pleine vers le bas marquée « sets the attractor », et une flèche pointillée vers le haut marquée « metrics, drills, incidents ». Au milieu, verte, « The loop · machines, on every change » : « Generate, check, fix » ; les agents écrivent le code et les tests, les vérifications tournent dans la session, scanners et budgets, exercices de régénération, audit quotidien ; une flèche courbe à droite indique le cycle. Une flèche ambre vers le bas marquée « only what cannot be undone » mène à la carte du bas, « The gate · people, rarely » : « Decide the irreversible » ; suppression de données, paiements, mises en production, nouvelles dépendances. En bas : « People leave the loop, not the system: they move up a level. »"}
+![**Figure 5.** Où travaillent les humains quand le code est généré : au-dessus de la boucle, en continu ; la boucle elle-même tourne avec des machines ; les humains n'y reviennent, à la barrière, que pour l'irréversible. Indicateurs, exercices et incidents remontent. Schéma, de moi.](../../../drafts/let-the-code-be-chaotic/figures/fig05.svg){fig-alt="Trois cartes empilées. En haut, bleu marine, « Above the loop · people, continuously » : « Guide and structure » ; la promesse, posséder les vérifications, budgets et indicateurs, architecture et frontières, quoi construire ensuite, quoi retirer. Une flèche pleine vers le bas marquée « sets the attractor », et une flèche pointillée vers le haut marquée « metrics, drills, incidents ». Au milieu, verte, « The loop · machines, on every change » : « Generate, check, fix » ; les agents écrivent le code et les tests, les vérifications tournent dans la session, scanners et budgets, exercices de régénération, audit quotidien ; une flèche courbe à droite indique le cycle. Une flèche ambre vers le bas marquée « only what cannot be undone » mène à la carte du bas, « The gate · people, rarely » : « Decide the irreversible » ; suppression de données, paiements, mises en production, nouvelles dépendances. En bas : « People leave the loop, not the system: they move up a level. »"}
 
 Au-dessus de la boucle, les humains :
 
 - **Possèdent la promesse.** L'intention est la source ; le code en est le produit ([L'intention est la source](../../posts/2026-10-21-intent-is-the-source/index.qmd)). La compréhension vient de la promesse, pas des diffs ([Relire l'intention, pas le diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd)).
-- **Décident des vérifications qui doivent exister.** Pas de chaque test, que les agents écrivent, mais de ce qui doit toujours tenir : propriétés, frontières, budgets, règles de sécurité.
+- **Possèdent les vérifications.** Pas chaque test, que les agents écrivent, mais ce qui doit toujours tenir : propriétés, frontières, budgets, règles de sécurité. Ils acceptent ou refusent tout changement qui affaiblirait une vérification.
 - **Structurent le système.** L'architecture et les dépendances sont la forme de l'attracteur ; une fois décidées, elles deviennent des vérifications.
 - **Lisent les instruments.** Défauts échappés, scores de mutation, durée des boucles, exercices, incidents. Ils modifient le système qui produit le code, pas chaque modification, comme le soutenait [Fast AI](../../posts/2026-10-11-fast-ai/index.qmd) : le travail lent et soigné fait une fois, pour que le chemin rapide tourne seul.
 - **Choisissent quoi construire et quoi retirer.** Fabriquer ne coûte plus grand-chose ; choisir, si ([La joie de la question](../../posts/2026-10-27-the-joy-of-the-question/index.qmd), [Le travail a une masse](../../posts/2026-10-24-work-has-mass/index.qmd)).
@@ -161,6 +158,14 @@ Une personne qui lit mille lignes par jour protège mille lignes. Une personne q
 
 **Un test de toute l'idée.** Supprimez un module et régénérez-le à partir de sa promesse et de ses vérifications. Le livreriez-vous sans le lire ? Sinon, vos raisons sont les vérifications qui vous manquent, et cette liste est le vrai carnet de travail de l'équipe.
 
+**Y arriver.** Construire l'attracteur demande un effort, et aucune équipe ne devrait abandonner la relecture du jour au lendemain. Une séquence qui garde le risque borné :
+
+1. **Choisir un module** bien testé. Mesurer son score de mutation, rendre ses vérifications inaccessibles en écriture aux agents et les lancer dans la session.
+2. **Écrire sa liste de barrières** : les quelques actions qui ne peuvent pas être défaites.
+3. **Faire des exercices de régénération** et ajouter une vérification pour chaque désaccord trouvé.
+4. **Réduire la relecture par étapes** (chaque modification, puis un échantillon, puis seulement la barrière) tant que les défauts échappés et le temps de rétablissement tiennent. S'ils ne tiennent pas, les vérifications manquantes montrent où.
+5. **Recommencer** module par module. La part des modifications qui demande une personne est l'indicateur de progrès.
+
 ## 8. La sécurité et le reste, en bref
 
 La sécurité n'est pas une exception. C'est la part la plus importante de la zone 3, et elle se tient de la même façon.
@@ -172,6 +177,7 @@ La sécurité n'est pas une exception. C'est la part la plus importante de la zo
 | Chaîne d'approvisionnement [@spracklen2025] | Listes autorisées de paquets et de registres, fichiers de verrouillage, contrôle de provenance | Les machines ; une personne approuve une *nouvelle* dépendance |
 | Contrôle d'accès, vie privée | Tests d'autorisation par point d'accès ; contrôle des flux de données ; règles sous forme de code | Les machines ; les humains fixent les règles |
 | L'agent lui-même | Sessions en bac à sable ; jamais à la fois des données privées, une entrée non fiable et un moyen de sortir ([Le contexte est le fil](../../posts/2026-11-01-the-context-is-the-wire/index.qmd)) | Les machines appliquent ; les humains fixent la règle |
+| Contournement des vérifications [@metr2025; @zhong2025] | Vérifications en lecture seule pour les agents ; affaiblir ou supprimer une vérification demande une personne | Les machines appliquent ; les humains approuvent |
 | Actions irréversibles | Suppression de données, paiements, mises en production | Une personne, à la barrière |
 | Performance, coût | Budgets de latence, de mémoire et de coût, vérifiés comme des tests | Les machines ; les humains fixent les budgets |
 | Maintenabilité | Budgets de taille, de duplication et de couplage ; règles d'architecture sous forme de tests | Les machines ; les humains fixent la structure |
@@ -182,9 +188,9 @@ La sécurité n'est pas une exception. C'est la part la plus importante de la zo
 
 Rien de tout cela ne dépend de quelqu'un qui lirait le code ; la relecture humaine manquait déjà ces failles avant l'IA, et les utilisateurs d'assistants devenaient plus confiants, pas plus prudents [@perry2023]. Une règle transformée en vérification protège chaque modification future ; une lecture attentive en protège une.
 
-## 9. Prédictions
+## 9. Prédictions et protocole de test
 
-Chacune nomme ce qui la réfuterait.
+Chaque prédiction nomme ce qui la réfuterait.
 
 - **P1. Régénération.** Le code régénéré varie beaucoup ; le comportement concorde sur les vérifications et diverge ailleurs en proportion de ce qui n'est pas vérifié. *Réfutée si* la ressemblance des codes prédit mieux le bon comportement que la couverture et le score de mutation.
 - **P2. Échecs.** Les défauts échappés du code écrit par l'IA viennent surtout de la zone 3 ou de vérifications faibles, pas d'un « code à l'allure étrange ». *Réfutée si* l'impression de code inhabituel des relecteurs les prédit mieux.
@@ -192,10 +198,15 @@ Chacune nomme ce qui la réfuterait.
 - **P4. Boucles rapides.** Les mêmes vérifications lancées dans la session de l'agent réduisent les défauts et les reprises par rapport à une intégration continue plus tardive. *Réfutée si* le moment ne fait aucune différence.
 - **P5. Équipes.** Les équipes qui ne gardent que l'irréversible et travaillent au-dessus de la boucle livrent au moins aussi vite, sans plus d'incidents. *Réfutée si*, dans un essai en escalier comme dans [Arrêtez de relire les pull requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), elles ont plus d'incidents ou se rétablissent plus lentement.
 
+**Protocole.** Pour P1, P3 et P4, une étude de régénération : prendre des modules bien testés, régénérer chacun vingt fois dans chaque condition (relecture ou non, vérifications dans la session ou en intégration continue), et comparer trois distances : entre les programmes, sur les vérifications, et sur des entrées aléatoires par test différentiel [@mckeeman1998]. Pour P2 et P5, un essai en escalier : les équipes adoptent la règle une par une dans un ordre aléatoire, et les défauts échappés sont classés par zone à partir des rapports d'incident, pas d'avis sur le code.
+
 ## 10. Objections, en bref
 
 - **« Sortir les humains de la boucle est imprudent. »** Ils quittent la boucle, pas le système, et gardent la barrière pour l'irréversible. L'imprudence, c'est la norme actuelle : un contrôle lent et partiel à chaque modification, qui n'attrape pas de façon fiable le code non sécurisé [@perry2023].
 - **« C'est du hasard, pas du chaos. »** L'argument n'a besoin que de petites différences d'entrée qui grandissent et d'un code qui reste borné ; le code généré fait les deux à toute température [@ouyang2023; @he2025]. Le jouet est déterministe à dessein : même un déterminisme parfait ne rendrait pas le contrôle.
+- **« Les agents vont contourner les vérifications. »** Ils le font quand ils le peuvent [@metr2025; @zhong2025]. C'est pourquoi les vérifications sont hors de leur portée et tout affaiblissement d'une vérification est une décision humaine. Lire les diffs est une défense plus faible : un test modifié pour passer se manque facilement dans une grosse modification.
+- **« Certains comportements ne se vérifient pas. »** C'est vrai : pour beaucoup de comportements, il n'existe pas d'oracle bon marché qui dise quelle est la bonne réponse [@barr2015]. Des oracles partiels aident (propriétés, relations métamorphiques, tests différentiels par rapport à la version précédente). Ce qui reste invérifiable demeure au-dessus de la boucle, comme une décision sur la promesse, ou passe par un chemin plus lent avec une personne, jusqu'à ce qu'une vérification puisse être écrite. La thèse porte sur la norme, pas sur chaque ligne.
+- **« Les logiciels réglementés exigent une relecture. »** Certains, oui : les logiciels embarqués certifiés selon DO-178C, par exemple, exigent des revues du code [@rtca2011]. C'est hors du champ de l'article, à dessein. Même là, des vérifications automatiques peuvent fournir une grande part des éléments de preuve ; la liste des barrières est simplement plus longue.
 - **« Le comportement non testé est le danger. »** Oui ; c'est la thèse. Il se manifeste quand le code s'exécute, pas quand on le lit : des machines qui exécutent le code autrement le trouvent, et une vérification le tient.
 - **« Tout ce qui est observable devient une dépendance. »** La loi de Hyrum fait grandir la zone 3 avec le temps [@winters2020]. Ce coût existe aussi pour le code écrit à la main, et l'automatisation le paie le mieux.
 - **« Il faut bien lire le code. »** Parfois : incidents, audits, domaines sans vérifications. Lire reste permis ; ce n'est plus le contrôle par défaut.
