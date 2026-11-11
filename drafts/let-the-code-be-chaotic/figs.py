@@ -227,12 +227,12 @@ def fig_sweeps(res):
 
 # ---------- Figure 4: three kinds of freedom ----------
 ZONES = [
-    ("Held", "The behaviour the tests check", GREEN,
-     "Pulled back on every loop.\nThis is the attractor.", "Keep it\nstrong and fast"),
+    ("Held", "The behaviour the checks hold", GREEN,
+     "Pulled back by machines on every\nchange. This is the attractor.", "Automate:\nstrong and fast"),
     ("Free, and harmless", "What no one can observe", NAVY,
-     "Names, structure, order of lines,\nthe exact code of this run.", "Let it go"),
+     "Names, structure, order of lines,\nthe exact code of this run.", "Let it go\nto the machine"),
     ("Free, and not harmless", "Observable, but not checked", WARM,
-     "Security, latency, edge cases,\nwhat users came to rely on.", "Make it a test,\nor a gate"),
+     "Security, latency, edge cases,\nwhat users came to rely on.", "Automate it\nas a check"),
 ]
 
 
@@ -251,9 +251,44 @@ def fig_zones():
         ax.text(1.0, y + 0.45, ex, fontsize=7.8, color=INK, va="bottom", linespacing=1.45, zorder=8)
         arrow(ax, (8.2, y + h / 2), (9.2, y + h / 2), color=col, lw=1.6, head=9)
         card(ax, 9.35, y + h / 2 - 1.0, 3.1, 2.0, fix, accent=col, fill=col, fs=9.4, bar=False)
-    pill(ax, 6.4, 0.75, "The work moves from zone 3 into zone 1. Zone 2 can stay chaotic.",
+    pill(ax, 6.4, 0.75, "Machines move zone 3 into zone 1. People gate only the irreversible.",
          fs=7.8, color=INK)
     fig.savefig(OUT + "fig04.png", dpi=400); fig.savefig(OUT + "fig04.svg"); plt.close(fig)
+
+
+# ---------- Figure 5: where the people go ----------
+def fig_levels():
+    fig, ax = canvas(6.4, 8.1, 12.8, 16.2)
+    heading(ax, 0.3, 15.95, "Out of the loop, not out of the system",
+            "Where people work when the code is generated")
+    # above the loop
+    card(ax, 0.6, 10.9, 11.6, 3.6, "Guide and structure", accent=NAVY,
+         eyebrow="Above the loop · people, continuously",
+         sub="the promise · which checks must exist · budgets and metrics\n"
+             "architecture and boundaries · what to build next · what to remove",
+         fs=11.5, subfs=8.4)
+    arrow(ax, (4.4, 10.75), (4.4, 8.75), color=NAVY, lw=1.6)
+    ax.text(4.25, 9.75, "sets the attractor", fontsize=7.6, color=NAVY, ha="right", va="center")
+    arrow(ax, (8.4, 8.75), (8.4, 10.75), color=MUTED, lw=1.4, ls="--")
+    ax.text(8.55, 9.75, "metrics, drills,\nincidents", fontsize=7.6, color=MUTED, ha="left",
+            va="center", linespacing=1.2)
+    # the loop
+    card(ax, 0.6, 5.0, 11.6, 3.6, "Generate, check, fix", accent=GREEN,
+         eyebrow="The loop · machines, on every change",
+         sub="agents write code and tests · checks run in the session\n"
+             "scanners and budgets · regeneration drills · daily audit",
+         fs=11.5, subfs=8.4)
+    ax.add_patch(FancyArrowPatch((11.3, 7.9), (11.3, 5.7), connectionstyle="arc3,rad=-0.9",
+                                 arrowstyle="-|>,head_length=0.5,head_width=0.28", mutation_scale=9,
+                                 color=GREEN, lw=1.3, zorder=8))
+    arrow(ax, (6.4, 4.85), (6.4, 3.65), color=WARM, lw=1.6)
+    ax.text(6.6, 4.25, "only what cannot be undone", fontsize=7.6, color=WARM, ha="left", va="center")
+    # the gate
+    card(ax, 1.4, 1.6, 10.0, 1.95, "Decide the irreversible", accent=WARM,
+         eyebrow="The gate · people, rarely",
+         sub="deleting data · payments · releases · new dependencies", fs=10.5, subfs=8)
+    pill(ax, 6.4, 0.6, "People leave the loop, not the system: they move up a level.", fs=7.8, color=INK)
+    fig.savefig(OUT + "fig05.png", dpi=400); fig.savefig(OUT + "fig05.svg"); plt.close(fig)
 
 
 if __name__ == "__main__":
@@ -262,5 +297,6 @@ if __name__ == "__main__":
     res["twins"] = fig_twins()
     fig_sweeps(res)
     fig_zones()
+    fig_levels()
     json.dump(res, open("results.json", "w"), indent=2)
     print(json.dumps(res["twins"], indent=1))

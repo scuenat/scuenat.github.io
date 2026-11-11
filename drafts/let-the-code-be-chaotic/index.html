@@ -8,7 +8,7 @@
 
 <meta name="author" content="Stéphane Cuenat">
 <meta name="dcterms.date" content="2026-11-11">
-<meta name="description" content="A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Teams should hold behaviour with tests and gates, not control the code.">
+<meta name="description" content="A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop.">
 
 <title>Let the Code Be Chaotic – AI, Honestly</title>
 <style>
@@ -177,13 +177,13 @@ window.Quarto = {
 </script>
 
 <meta property="og:title" content="Let the Code Be Chaotic – AI, Honestly">
-<meta property="og:description" content="A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Teams should hold behaviour with tests and gates, not control the code.">
+<meta property="og:description" content="A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop.">
 <meta property="og:image" content="https://scuenat.github.io/drafts/let-the-code-be-chaotic/figures/fig01.png">
 <meta property="og:site_name" content="AI, Honestly">
 <meta property="og:image:height" content="3110">
 <meta property="og:image:width" content="2284">
 <meta name="twitter:title" content="Let the Code Be Chaotic – AI, Honestly">
-<meta name="twitter:description" content="A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Teams should hold behaviour with tests and gates, not control the code.">
+<meta name="twitter:description" content="A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop.">
 <meta name="twitter:image" content="https://scuenat.github.io/drafts/let-the-code-be-chaotic/figures/fig01.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="citation_title" content="Let the Code Be Chaotic">
@@ -217,6 +217,10 @@ window.Quarto = {
 <meta name="citation_reference" content="citation_title=Automated unit test improvement using large language models at Meta; citation_author=Nadia Alshahwan; citation_author=Jubin Chheda; citation_author=Anastasia Finegenova; citation_author=Beliz Gokkaya; citation_author=Mark Harman; citation_author=Inna Harper; citation_author=Alexandru Marginean; citation_author=Shubho Sengupta; citation_author=Eddy Wang; citation_publication_date=2024; citation_cover_date=2024; citation_year=2024; citation_fulltext_html_url=https://arxiv.org/abs/2402.09171; citation_conference_title=Companion proceedings of the 32nd ACM international conference on the foundations of software engineering (FSE);">
 <meta name="citation_reference" content="citation_title=Chaos engineering; citation_author=Ali Basiri; citation_author=Niosha Behnam; citation_author=Ruud Rooij; citation_author=Lorin Hochstein; citation_author=Luke Kosewski; citation_author=Justin Reynolds; citation_author=Casey Rosenthal; citation_publication_date=2016; citation_cover_date=2016; citation_year=2016; citation_issue=3; citation_doi=10.1109/MS.2016.60; citation_volume=33; citation_firstpage=35; citation_lastpage=41; citation_journal_title=IEEE Software;">
 <meta name="citation_reference" content="citation_title=State of mutation testing at Google; citation_author=Goran Petrović; citation_author=Marko Ivanković; citation_publication_date=2018; citation_cover_date=2018; citation_year=2018; citation_doi=10.1145/3183519.3183521; citation_firstpage=163; citation_lastpage=171; citation_conference_title=Proceedings of the 40th international conference on software engineering: Software engineering in practice (ICSE-SEIP);">
+<meta name="citation_reference" content="citation_title=Introducing SWE-bench Verified; citation_author=OpenAI; citation_publication_date=2024-08; citation_cover_date=2024-08; citation_year=2024; citation_fulltext_html_url=https://openai.com/index/introducing-swe-bench-verified/;">
+<meta name="citation_reference" content="citation_title=Introducing Claude Opus 4.5; citation_author=Anthropic; citation_publication_date=2025-11; citation_cover_date=2025-11; citation_year=2025; citation_fulltext_html_url=https://www.anthropic.com/news/claude-opus-4-5;">
+<meta name="citation_reference" content="citation_title=Q3 2024 earnings call: Remarks from our CEO; citation_author=Sundar Pichai; citation_publication_date=2024-10; citation_cover_date=2024-10; citation_year=2024; citation_fulltext_html_url=https://blog.google/inside-google/message-ceo/alphabet-earnings-q3-2024/; citation_publisher=Alphabet / Google blog;">
+<meta name="citation_reference" content="citation_title=2025 developer survey: AI; citation_author=Stack Overflow; citation_publication_date=2025; citation_cover_date=2025; citation_year=2025; citation_fulltext_html_url=https://survey.stackoverflow.co/2025/ai;">
 </head>
 
 <body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
@@ -467,15 +471,17 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#introduction-the-provocation" id="toc-introduction-the-provocation" class="nav-link active" data-scroll-target="#introduction-the-provocation">1. Introduction: the provocation</a></li>
-  <li><a href="#what-the-last-five-years-have-shown" id="toc-what-the-last-five-years-have-shown" class="nav-link" data-scroll-target="#what-the-last-five-years-have-shown">2. What the last five years have shown</a></li>
+  <li><a href="#introduction-a-remarkable-year-and-a-habit-that-did-not-change" id="toc-introduction-a-remarkable-year-and-a-habit-that-did-not-change" class="nav-link active" data-scroll-target="#introduction-a-remarkable-year-and-a-habit-that-did-not-change">1. Introduction: a remarkable year, and a habit that did not change</a></li>
+  <li><a href="#what-the-research-shows" id="toc-what-the-research-shows" class="nav-link" data-scroll-target="#what-the-research-shows">2. What the research shows</a></li>
   <li><a href="#a-picture-borrowed-from-chaos-theory" id="toc-a-picture-borrowed-from-chaos-theory" class="nav-link" data-scroll-target="#a-picture-borrowed-from-chaos-theory">3. A picture borrowed from chaos theory</a></li>
   <li><a href="#a-toy-experiment" id="toc-a-toy-experiment" class="nav-link" data-scroll-target="#a-toy-experiment">4. A toy experiment</a></li>
-  <li><a href="#what-it-means-for-a-team" id="toc-what-it-means-for-a-team" class="nav-link" data-scroll-target="#what-it-means-for-a-team">5. What it means for a team</a></li>
-  <li><a href="#security-and-the-rest-in-a-nutshell" id="toc-security-and-the-rest-in-a-nutshell" class="nav-link" data-scroll-target="#security-and-the-rest-in-a-nutshell">6. Security and the rest, in a nutshell</a></li>
-  <li><a href="#predictions-and-what-would-change-my-mind" id="toc-predictions-and-what-would-change-my-mind" class="nav-link" data-scroll-target="#predictions-and-what-would-change-my-mind">7. Predictions, and what would change my mind</a></li>
-  <li><a href="#objections-and-why-they-do-not-overturn-the-provocation" id="toc-objections-and-why-they-do-not-overturn-the-provocation" class="nav-link" data-scroll-target="#objections-and-why-they-do-not-overturn-the-provocation">8. Objections, and why they do not overturn the provocation</a></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">9. Conclusion</a></li>
+  <li><a href="#automate-the-zones-gate-a-sliver" id="toc-automate-the-zones-gate-a-sliver" class="nav-link" data-scroll-target="#automate-the-zones-gate-a-sliver">5. Automate the zones, gate a sliver</a></li>
+  <li><a href="#people-above-the-loop" id="toc-people-above-the-loop" class="nav-link" data-scroll-target="#people-above-the-loop">6. People above the loop</a></li>
+  <li><a href="#what-it-means-for-a-team" id="toc-what-it-means-for-a-team" class="nav-link" data-scroll-target="#what-it-means-for-a-team">7. What it means for a team</a></li>
+  <li><a href="#security-and-the-rest-in-a-nutshell" id="toc-security-and-the-rest-in-a-nutshell" class="nav-link" data-scroll-target="#security-and-the-rest-in-a-nutshell">8. Security and the rest, in a nutshell</a></li>
+  <li><a href="#predictions-and-what-would-change-my-mind" id="toc-predictions-and-what-would-change-my-mind" class="nav-link" data-scroll-target="#predictions-and-what-would-change-my-mind">9. Predictions, and what would change my mind</a></li>
+  <li><a href="#objections-and-why-they-do-not-overturn-the-provocation" id="toc-objections-and-why-they-do-not-overturn-the-provocation" class="nav-link" data-scroll-target="#objections-and-why-they-do-not-overturn-the-provocation">10. Objections, and why they do not overturn the provocation</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">11. Conclusion</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 </nav>
@@ -487,7 +493,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Let the Code Be Chaotic</h1>
-<p class="subtitle lead">A provocative position paper: the code an AI writes will never be the same twice. Stop trying to control it. Hold the behaviour, and let go of the rest</p>
+<p class="subtitle lead">A provocative position paper: AI now writes code that solves real problems. We still treat it like code written by hand. Automate the loop, gate a sliver, and move people above it</p>
   <div class="quarto-categories">
     <div class="quarto-category">paper</div>
     <div class="quarto-category">position</div>
@@ -499,7 +505,7 @@ window.Quarto = {
 
 <div>
   <div class="description">
-    A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Teams should hold behaviour with tests and gates, not control the code.
+    A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop.
   </div>
 </div>
 
@@ -529,7 +535,7 @@ window.Quarto = {
 
 
 <div class="draft-banner">
-<p><strong>Draft v2, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
+<p><strong>Draft v3, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
 </div>
 <div class="callout callout-style-simple callout-warning">
 <div class="callout-body d-flex">
@@ -537,11 +543,11 @@ window.Quarto = {
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p><strong>Position paper, November 2026. Provocative by intention.</strong> This paper takes a stance on purpose and states it more sharply than the evidence can yet prove: <em>stop trying to control the code your AI writes.</em> It is written to start an argument, not to close one. It borrows one idea from chaos theory, gathers what the last five years of research on AI coding have shown, says what the stance would mean for a team on Monday morning, and ends with tests that anyone can run against it. It continues <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>. Figures 1 to 3 come from small simulations in <a href="sim.py">sim.py</a>, drawn by <a href="figs.py">figs.py</a>, with all numbers in <a href="results.json">results.json</a>. Figure 4 is a schematic of my own.</p>
+<p><strong>Position paper, November 2026. Provocative by intention.</strong> This paper takes a stance on purpose and states it more sharply than the evidence can yet prove. It is not a warning against AI coding. It is a challenge to how we use it: we built machines that write working code, and then put a person at their output to read every line, as if nothing had changed. The paper borrows one idea from chaos theory, gathers what research since 2021 has shown, says where people should stand instead and what that means for a team, and ends with tests anyone can run against it. It continues <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a> and <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a>. Figures 1 to 3 come from small simulations in <a href="sim.py">sim.py</a>, drawn by <a href="figs.py">figs.py</a>, with all numbers in <a href="results.json">results.json</a>. Figures 4 and 5 are schematics of my own.</p>
 </div>
 </div>
 </div>
-<p><strong>Abstract.</strong> Ask an AI agent for the same feature twice and you get two different programs. Teams often react by trying to take control back: fixed seeds, line-by-line review of every diff, style rules, the demand that generation be reproducible. I argue that this reaction is aimed at the wrong target. Chaos theory has a name for systems whose path is unpredictable but whose behaviour is stable: systems with an <em>attractor</em>. AI-generated code is such a system when, and only when, the team has built the attractor: tests, checks and gates that pull the behaviour back to what was promised, every time the agent changes something. The paper splits the freedom of generated code into three zones: behaviour the checks hold, details nobody can observe, and behaviour that people can observe but nothing checks. The first is the team’s real product. The second can be left to the machine. The third is where almost every documented failure of AI coding sits, from insecure code to hallucinated packages. The provocation, stated plainly: <strong>hold the behaviour, let go of the code.</strong> I describe what this changes in a team’s roles, rituals and metrics, how security and the other “-ilities” fit, and five predictions that would show me wrong.</p>
+<p><strong>Abstract.</strong> In little more than a year, AI agents went from fixing a third of a benchmark of real GitHub issues to fixing four in five, and AI now writes a large share of new code at some of the largest software companies. Yet most teams still control this code the way they controlled hand-written code: a person reads every change. I argue that this is the wrong place for people. AI-generated code is chaotic, in the precise sense that small differences in prompt or context lead to very different programs, and that is mostly harmless. What makes a system stable is not a predictable path but an <em>attractor</em>: checks that pull behaviour back to the promise after every change. The paper splits the freedom of generated code into three zones: behaviour the checks hold, details nobody can observe, and behaviour people can observe that nothing checks yet. Machines should run the loop in all three: generate, check, fix, and turn what is unchecked into checks. People gate only the thin slice of actions that cannot be undone. Everywhere else they leave the loop, not the system: they move above it, where they set the promise, decide which checks must exist, structure the architecture and choose what to build. The provocation, stated plainly: <strong>automate the loop, gate a sliver, and move people above it.</strong></p>
 <div class="callout callout-style-simple callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -553,33 +559,35 @@ window.Quarto = {
 </div>
 <div class="callout-body-container callout-body">
 <ol type="1">
-<li><strong>The provocation.</strong> Stop trying to control the code an AI writes. Its unpredictability is real, and mostly harmless.</li>
-<li><strong>Where stability comes from.</strong> Not from deterministic generation or careful reading, but from fast checks that pull behaviour back to the promise: an attractor.</li>
-<li><strong>Three zones.</strong> Behaviour that checks hold; details nobody can observe; behaviour people can observe that nothing checks. Only the third is dangerous.</li>
-<li><strong>The evidence.</strong> The documented failures of AI coding since 2021 sit almost entirely in the third zone, not in the code being different.</li>
-<li><strong>For a team.</strong> Own the promise, not the text: write and review the checks, put a person only where harm cannot be undone, and measure how well the checks hold, not how many lines were read.</li>
-<li><strong>Security is not an exception.</strong> It is the most important part of the third zone, and it moves into the first through checks, sandboxes and gates.</li>
+<li><strong>The provocation.</strong> AI coding has outgrown the way we control it. Stop reading every line an AI writes; the code’s unpredictability is real and mostly harmless.</li>
+<li><strong>Where stability comes from.</strong> Not from a deterministic generator or careful reading, but from fast checks that pull behaviour back to the promise: an attractor.</li>
+<li><strong>Three zones, all automated.</strong> Machines hold the checked behaviour, ignore what nobody can observe, and keep turning what is observable but unchecked into checks.</li>
+<li><strong>A sliver of human gates.</strong> People approve only what cannot be undone: deleting data, moving money, releasing, adding a dependency.</li>
+<li><strong>People above the loop.</strong> Not in it, not gone from it: they set the promise, the checks that must exist, the structure and the direction. The level of their work changes, not its importance.</li>
+<li><strong>Security included.</strong> Security is the most important part of the unchecked zone, and it is held the same way: by automated checks, sandboxes, and a gate at the point of no return.</li>
 </ol>
 </div>
 </div>
-<section id="introduction-the-provocation" class="level2">
-<h2 class="anchored" data-anchor-id="introduction-the-provocation">1. Introduction: the provocation</h2>
-<p>This paper is provocative by intention. I hold a view that most engineering teams would reject today, and I state it as sharply as I can so that it can be argued with:</p>
+<section id="introduction-a-remarkable-year-and-a-habit-that-did-not-change" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-a-remarkable-year-and-a-habit-that-did-not-change">1. Introduction: a remarkable year, and a habit that did not change</h2>
+<p>The last year in AI coding was remarkable, and it is worth saying so plainly before challenging anything.</p>
+<p>In August 2024, the best model on SWE-bench Verified, a set of 500 real GitHub issues checked by human engineers, resolved 33.2% of them <span class="citation" data-cites="openai2024">(<a href="#ref-openai2024" role="doc-biblioref">OpenAI 2024</a>)</span>. In November 2025, a model resolved 80.9% <span class="citation" data-cites="anthropic2025">(<a href="#ref-anthropic2025" role="doc-biblioref">Anthropic 2025</a>)</span>. Agents no longer complete a line; they read a repository, plan a change across files, run the tests, read the failures and try again. At Google, more than a quarter of all new code was already generated by AI at the end of 2024 <span class="citation" data-cites="pichai2024">(<a href="#ref-pichai2024" role="doc-biblioref">Pichai 2024</a>)</span>. In the 2025 Stack Overflow survey, 84% of developers said they use or plan to use AI tools <span class="citation" data-cites="stackoverflow2025">(<a href="#ref-stackoverflow2025" role="doc-biblioref">Stack Overflow 2025</a>)</span>. Whatever one thinks of the hype, the machine that writes code has arrived, and it is good at it.</p>
+<p>Now the provocation. Read the rest of Google’s sentence: the code is generated by AI, <em>“then reviewed and accepted by engineers”</em> <span class="citation" data-cites="pichai2024">(<a href="#ref-pichai2024" role="doc-biblioref">Pichai 2024</a>)</span>. That is the industry’s default today. We built a generator that writes in minutes what took a team days, and then placed a person at its output to read every line, exactly where they stood in 2015. The same survey found that more developers distrust the accuracy of AI tools (46%) than trust it (33%) <span class="citation" data-cites="stackoverflow2025">(<a href="#ref-stackoverflow2025" role="doc-biblioref">Stack Overflow 2025</a>)</span>, and the usual answer to distrust is more reading.</p>
+<p>I think this is the wrong answer, and this paper is written to say so as sharply as I can:</p>
 <blockquote class="blockquote">
-<p><strong>Stop trying to control the code your AI writes. Control what it does.</strong></p>
+<p><strong>Stop reading every line your AI writes. Automate the loop, gate a sliver, and move people above it.</strong></p>
 </blockquote>
-<p>Since 2023, more and more code is written by machines. The machines are not repeatable. The same request returns different programs; a sentence changed in the prompt, a different file opened in the context, and the agent takes another road and keeps building on it. This is measured, not anecdotal. Sending the same coding task to ChatGPT several times often returns programs that behave differently on the tests, and setting the temperature to zero reduces this without removing it <span class="citation" data-cites="ouyang2023">(<a href="#ref-ouyang2023" role="doc-biblioref">Ouyang et al. 2023</a>)</span>. Even “deterministic” settings are not deterministic in practice: the output of a served model can depend on how many other requests happen to share its batch on the server <span class="citation" data-cites="he2025">(<a href="#ref-he2025" role="doc-biblioref">He and Thinking Machines Lab 2025</a>)</span>.</p>
-<p>For anyone trained to treat code as the thing a team owns and understands line by line, this feels like losing hold of the system. The natural response is to take hold again: review every diff, pin every seed, enforce every convention, ask the agent to explain each line. In <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a> I argued, with a cost model, that per-change approval no longer pays for itself. The objection I heard most was a single word: <em>chaos</em>. This paper takes the word literally.</p>
+<p>The objection I heard most to <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>, which made the economic case, was a single word: <em>chaos</em>. Generated code is not repeatable. The same request returns different programs, and even with the temperature at zero, sending the same coding task to ChatGPT several times often returns programs that behave differently on the tests <span class="citation" data-cites="ouyang2023">(<a href="#ref-ouyang2023" role="doc-biblioref">Ouyang et al. 2023</a>)</span>. “Deterministic” settings are not deterministic in practice either: the output of a served model can depend on how many other requests happen to share its batch on the server <span class="citation" data-cites="he2025">(<a href="#ref-he2025" role="doc-biblioref">He and Thinking Machines Lab 2025</a>)</span>. This paper takes the word <em>chaos</em> literally, and argues that it is the best news in the story, not the worst.</p>
 </section>
-<section id="what-the-last-five-years-have-shown" class="level2">
-<h2 class="anchored" data-anchor-id="what-the-last-five-years-have-shown">2. What the last five years have shown</h2>
-<p>The research on AI coding since 2021 is large, and much of it is sobering. Read with one question in mind, <em>where do things go wrong?</em>, it tells a consistent story.</p>
-<p><strong>The field already measures behaviour, not code.</strong> When OpenAI introduced Codex and the HumanEval benchmark, it judged generated programs by whether they pass unit tests (<em>pass@k</em>), not by how close they are to a reference solution, because textual similarity says little about correctness <span class="citation" data-cites="chen2021">(<a href="#ref-chen2021" role="doc-biblioref"><span class="nocase">Chen et al.</span> 2021</a>)</span>. SWE-bench, the benchmark that most agent progress since 2024 is reported against, does the same with real GitHub issues: a patch counts if the repository’s tests pass after it is applied, whatever the code looks like <span class="citation" data-cites="jimenez2024">(<a href="#ref-jimenez2024" role="doc-biblioref">Jimenez et al. 2024</a>)</span>. The research community quietly accepted, years ago, that two very different programs can both be right.</p>
-<p><strong>Passing weak tests is not being right.</strong> When Liu and colleagues added many more tests to HumanEval, a large share of programs that had “passed” turned out to be wrong: pass rates fell by up to 19 to 29% across 26 models <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span>. Nothing about the code changed. What changed was how much of the behaviour was checked.</p>
-<p><strong>Security failures live in behaviour nobody checked.</strong> About 40% of the programs Copilot wrote in security-relevant scenarios contained a known weakness <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span>. In a controlled study, people with an AI assistant wrote less secure code than people without, and were <em>more</em> confident that it was secure <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>. Code-generating models also invent dependencies: across 16 models and 576,000 samples, at least 5.2% of the packages suggested by commercial models and 21.7% of those suggested by open models did not exist, which attackers can register in their place <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span>.</p>
+<section id="what-the-research-shows" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-research-shows">2. What the research shows</h2>
+<p>The research on AI coding since 2021 is large, and some of it is sobering. Read with one question in mind, <em>where do things go wrong?</em>, it tells a consistent story.</p>
+<p><strong>The field already measures behaviour, not code.</strong> When OpenAI introduced Codex and the HumanEval benchmark, it judged generated programs by whether they pass unit tests (<em>pass@k</em>), not by how close they are to a reference solution, because textual similarity says little about correctness <span class="citation" data-cites="chen2021">(<a href="#ref-chen2021" role="doc-biblioref"><span class="nocase">Chen et al.</span> 2021</a>)</span>. SWE-bench does the same with real issues: a patch counts if the repository’s tests pass after it is applied, whatever the code looks like <span class="citation" data-cites="jimenez2024">(<a href="#ref-jimenez2024" role="doc-biblioref">Jimenez et al. 2024</a>)</span>. The research community accepted years ago that two very different programs can both be right. The remarkable progress in the previous section is progress <em>as measured by checks</em>.</p>
+<p><strong>Passing weak tests is not being right.</strong> When Liu and colleagues added many more tests to HumanEval, a large share of programs that had “passed” turned out to be wrong; pass rates fell by 19 to 29% across 26 models <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span>. Nothing about the code changed. What changed was how much of the behaviour was checked.</p>
+<p><strong>Security failures live in behaviour nobody checked.</strong> About 40% of the programs Copilot wrote in security-relevant scenarios contained a known weakness <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span>. In a controlled study, people with an AI assistant wrote less secure code than people without, and were <em>more</em> confident that it was secure <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>. Code-generating models also invent dependencies: across 16 models and 576,000 samples, at least 5.2% of the packages suggested by commercial models and 21.7% of those suggested by open models did not exist, and attackers can register them in their place <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span>.</p>
 <p><strong>Speed and stability are not yet won.</strong> In a controlled task, developers with Copilot finished 55.8% faster <span class="citation" data-cites="peng2023">(<a href="#ref-peng2023" role="doc-biblioref">Peng et al. 2023</a>)</span>. In a randomized trial on large, mature open-source projects in early 2025, experienced developers were 19% <em>slower</em> with AI tools, while believing they had been faster <span class="citation" data-cites="becker2025">(<a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>. The DORA 2024 report associated more AI adoption with slightly lower delivery throughput and a 7.2% drop in delivery stability, and pointed at larger changes as the likely cause <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span>. GitClear’s analysis of 211 million changed lines found copy-pasted code rising and refactoring falling, to the point where, in 2024, more lines were pasted than moved <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span>.</p>
-<p><strong>And the checks themselves can be generated.</strong> Meta’s TestGen-LLM used language models to extend existing unit tests, kept only the tests that built, passed reliably and raised coverage, and saw 73% of its proposals accepted by engineers for production <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>.</p>
-<p>Put together, these results say something precise. The problems are real, but almost none of them is <em>the code being different from what a human would have written</em>. They are behaviour nobody checked (insecure patterns, missed edge cases, invented packages), feedback that came too late (large changes, slow review), and mass that nobody removed (duplicated code). Each of these is a failure of the attractor, not of control over the path.</p>
+<p><strong>And the checks themselves can be generated.</strong> Meta’s TestGen-LLM used language models to extend existing unit tests, kept only the tests that built, passed reliably and raised coverage, and saw 73% of its proposals accepted by engineers for production <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>. The machine can build its own attractor, if someone tells it what must hold.</p>
+<p>Put together, these results say something precise. The problems are real, but almost none of them is <em>the code being different from what a human would have written</em>. They are behaviour nobody checked (insecure patterns, missed edge cases, invented packages), feedback that came too late (large changes, slow review), and mass that nobody removed (duplicated code). Each is a failure of the attractor, not a failure to control the path. And none of them was prevented by having a person read the diff.</p>
 </section>
 <section id="a-picture-borrowed-from-chaos-theory" class="level2">
 <h2 class="anchored" data-anchor-id="a-picture-borrowed-from-chaos-theory">3. A picture borrowed from chaos theory</h2>
@@ -590,14 +598,14 @@ window.Quarto = {
 <figcaption><strong>Figure 1.</strong> The Lorenz system, run twice from starting points <span class="math inline">10^{-8}</span> apart. Top: the two runs are identical until about <span class="math inline">t \approx 18</span>, then have nothing in common. Bottom: after they part, both trace the same butterfly, and their long-run averages agree (mean height 23.6 and 23.4). The path is unpredictable; the place is not. Computed by <a href="sim.py">sim.py</a>.</figcaption>
 </figure>
 </div>
-<p>Software engineers have used this idea before. Netflix’s <em>chaos engineering</em> injects failures into production on purpose, and judges the system not by what happens inside it but by whether a <em>steady state</em>, the rate at which customers can watch, holds <span class="citation" data-cites="basiri2016">(<a href="#ref-basiri2016" role="doc-biblioref">Basiri et al. 2016</a>)</span>. Nobody at Netflix tries to predict which server will fail. They make sure the steady state survives whichever one does.</p>
-<p>Applied to generated code, the picture has three zones (Figure 4 below):</p>
+<p>Software engineers have used this idea before. Netflix’s <em>chaos engineering</em> injects failures into production on purpose, and judges the system not by what happens inside it but by whether a <em>steady state</em>, the rate at which customers can watch, holds <span class="citation" data-cites="basiri2016">(<a href="#ref-basiri2016" role="doc-biblioref">Basiri et al. 2016</a>)</span>. Nobody at Netflix tries to predict which server will fail. They make sure the steady state survives whichever one does, and they do it with automation, not by watching servers.</p>
+<p>Applied to generated code, the picture has three zones (Figure 4):</p>
 <ul>
 <li><strong>Zone 1, held.</strong> Behaviour the checks verify: tests, types, contracts, scanners, budgets. Every time the agent changes something, the checks pull it back. This is the attractor.</li>
 <li><strong>Zone 2, free and harmless.</strong> Everything nobody can observe from outside: names, structure, the order of lines, which of five equivalent algorithms was chosen this time. Two programs that differ only here are, for every user, the same program.</li>
-<li><strong>Zone 3, free and dangerous.</strong> Behaviour someone <em>can</em> observe, and may rely on, that no check holds: a security property, a latency, an edge case, an undocumented habit of an API. It drifts with the code, invisibly to the tests and visibly to users.</li>
+<li><strong>Zone 3, free and not yet harmless.</strong> Behaviour someone <em>can</em> observe, and may rely on, that no check holds yet: a security property, a latency, an edge case, an undocumented habit of an API. It drifts with the code.</li>
 </ul>
-<p>The provocation follows directly. Effort spent controlling zone 2 buys almost no stability, because nothing anyone sees lives there. Effort spent moving zone 3 into zone 1 buys almost all of it.</p>
+<p>The provocation follows directly. Effort spent controlling zone 2 buys almost no stability, because nothing anyone sees lives there. Effort spent moving zone 3 into zone 1 buys almost all of it. And both kinds of work, holding zone 1 and shrinking zone 3, are work that machines can do, on every change, faster than any reviewer.</p>
 <div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -614,7 +622,7 @@ window.Quarto = {
 <p><span class="math display">
 -\frac{\ln(1-\kappa)}{\Delta t} \;&gt;\; \lambda .
 </span></p>
-<p>In words: the loop must pull back faster than the generator pushes away, but only in the directions it checks. This is the condition under which two chaotic systems stay synchronised when one is fed part of the other’s state <span class="citation" data-cites="pecora1990">(<a href="#ref-pecora1990" role="doc-biblioref">Pecora and Carroll 1990</a>)</span>, with the specification playing the leading system. Everything else may stay chaotic.</p>
+<p>In words: the loop must pull back faster than the generator pushes away, but only in the directions it checks. This is the condition under which two chaotic systems stay synchronised when one is fed part of the other’s state <span class="citation" data-cites="pecora1990">(<a href="#ref-pecora1990" role="doc-biblioref">Pecora and Carroll 1990</a>)</span>, with the specification playing the leading system. Everything else may stay chaotic. Note what the condition asks for: a high <span class="math inline">\kappa</span> and a short <span class="math inline">\Delta t</span>. A human reviewer is slow, and reads only some directions. An automated check in the agent’s session is fast, and reads the same directions every time.</p>
 </div>
 </div>
 </div>
@@ -636,35 +644,61 @@ window.Quarto = {
 <figcaption><strong>Figure 3.</strong> (a) Ten independent runs per level of test coverage. Behaviour error (navy) falls only as coverage rises and reaches 2.7% of the untested error at full coverage; the code (grey) stays far apart throughout. (b) Behaviour error at full coverage against the strength of the loop, for seven levels of chaos in the agent: the curves overlap. Computed by <a href="sim.py">sim.py</a>.</figcaption>
 </figure>
 </div>
-<p>The toy proves nothing about real codebases. It shows that the picture is coherent: a chaotic generator and a stable behaviour can live together, and what separates them is coverage and speed of feedback. That matches what the studies in Section 2 found from the other side.</p>
+<p>The toy proves nothing about real codebases. It shows that the picture is coherent: a chaotic generator and a stable behaviour can live together, and what separates them is coverage and speed of feedback, two things that automation provides and human reading does not. That matches what the studies in Section 2 found from the other side.</p>
 </section>
-<section id="what-it-means-for-a-team" class="level2">
-<h2 class="anchored" data-anchor-id="what-it-means-for-a-team">5. What it means for a team</h2>
-<p>If the provocation is right, a team’s job changes in concrete ways. This is the part I most want argued with.</p>
+<section id="automate-the-zones-gate-a-sliver" class="level2">
+<h2 class="anchored" data-anchor-id="automate-the-zones-gate-a-sliver">5. Automate the zones, gate a sliver</h2>
+<p>If stability comes from the attractor, the conclusion is not “read less carefully”. It is that the work of holding behaviour should be done by machines, in all three zones, and that people should be taken out of the loop almost everywhere.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the checks hold, is the attractor: keep it strong and fast. Zone 2, what no one can observe, can be left to the machine. Zone 3, observable but unchecked, is where the danger is: make it a check, or put it behind a gate. Schematic, my own."><img src="figures/fig04.svg" class="img-fluid figure-img" alt="Three stacked cards, each with an arrow to a coloured box. Zone 1, green, Held: the behaviour the tests check; pulled back on every loop, this is the attractor; box: keep it strong and fast. Zone 2, navy, Free and harmless: what no one can observe; names, structure, order of lines, the exact code of this run; box: let it go. Zone 3, amber, Free and not harmless: observable but not checked; security, latency, edge cases, what users came to rely on; box: make it a test, or a gate. At the bottom: the work moves from zone 3 into zone 1; zone 2 can stay chaotic."></a></p>
-<figcaption><strong>Figure 4.</strong> Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the checks hold, is the attractor: keep it strong and fast. Zone 2, what no one can observe, can be left to the machine. Zone 3, observable but unchecked, is where the danger is: make it a check, or put it behind a gate. Schematic, my own.</figcaption>
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the checks hold, is the attractor: automate it, strong and fast. Zone 2, what no one can observe, is left to the machine. Zone 3, observable but unchecked, is turned into checks by machines. People gate only the irreversible. Schematic, my own."><img src="figures/fig04.svg" class="img-fluid figure-img" alt="Three stacked cards, each with an arrow to a coloured box. Zone 1, green, Held: the behaviour the checks hold; pulled back by machines on every change, this is the attractor; box: Automate: strong and fast. Zone 2, navy, Free and harmless: what no one can observe; names, structure, order of lines, the exact code of this run; box: Let it go to the machine. Zone 3, amber, Free and not harmless: observable but not checked; security, latency, edge cases, what users came to rely on; box: Automate it as a check. At the bottom: Machines move zone 3 into zone 1. People gate only the irreversible."></a></p>
+<figcaption><strong>Figure 4.</strong> Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the checks hold, is the attractor: automate it, strong and fast. Zone 2, what no one can observe, is left to the machine. Zone 3, observable but unchecked, is turned into checks by machines. People gate only the irreversible. Schematic, my own.</figcaption>
 </figure>
 </div>
-<p><strong>What the team owns.</strong> Not the text of the code. The team owns three things: the <em>promise</em> (the intent, written down, as argued in <a href="../../posts/2026-10-21-intent-is-the-source/index.html">Intent Is the Source</a>), the <em>checks</em> that hold the promise, and the <em>gates</em> where a person must decide because harm cannot be undone. Code is an output of these, like compiled binaries were an output of source code. A team that cannot regenerate a module from its promise and its checks does not really own it, however carefully it read the diff.</p>
+<p><strong>Zone 1 is automated by definition.</strong> Checks run in the agent’s session after every change, not in a nightly pipeline and not in a reviewer’s queue. The agent reads the failure and fixes it. Speed is the point: the same checks, run sooner, hold more.</p>
+<p><strong>Zone 2 is left to the machine.</strong> Names, structure and the exact shape of the code are the agent’s business. Where some structure does matter to someone (a size budget, an architectural boundary, a forbidden dependency), it is observable, so it becomes a check in zone 1. Where it matters to nobody, it is not a problem to solve.</p>
+<p><strong>Zone 3 is shrunk by machines too.</strong> Finding unchecked behaviour is itself work that can be automated. Agents extend the test suite, filtered the way Meta filtered them <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>. Mutation testing, which plants small bugs and checks whether the tests notice, measures how firmly the checks hold <span class="citation" data-cites="petrovic2018">(<a href="#ref-petrovic2018" role="doc-biblioref">Petrović and Ivanković 2018</a>)</span>. Property-based tests hold whole families of behaviour at once <span class="citation" data-cites="claessen2000">(<a href="#ref-claessen2000" role="doc-biblioref">Claessen and Hughes 2000</a>)</span>. <em>Regeneration drills</em>, borrowed from chaos engineering, regenerate a module from its promise and its checks and compare old and new versions on random inputs (differential testing <span class="citation" data-cites="mckeeman1998">(<a href="#ref-mckeeman1998" role="doc-biblioref">McKeeman 1998</a>)</span>); wherever they disagree, the machine has found a piece of zone 3 and can propose the missing check. Real use, the calls clients actually make and rely on, is turned into contract tests automatically, which is how a system keeps up with Hyrum’s law: with enough users, every observable behaviour is depended on by somebody <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span>. The daily audit of the whole codebase from <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a> belongs here too.</p>
+<p><strong>A sliver is gated by people.</strong> What remains for a human decision is narrow: actions whose harm survives a revert. Deleting or migrating data, moving money, releasing to users, granting access, adding a new dependency to the supply chain. These are approved by a person, at the point of no return, with the evidence the machines gathered: a few questions, rarely asked. This is the rule of the earlier paper, <em>approve what you cannot undo; watch everything else</em>, and in a well-built system it is a small fraction of changes, not a step on every one.</p>
+</section>
+<section id="people-above-the-loop" class="level2">
+<h2 class="anchored" data-anchor-id="people-above-the-loop">6. People above the loop</h2>
+<p>Taking people out of the loop is not taking them out of the system. This is the part most often misread, so I will be explicit: <strong>the human is still there, not in the loop, but above it</strong>, guiding and structuring the whole. What changes is the level at which people work, not how much their work matters.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig05.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Where people work when the code is generated. Above the loop, continuously: the promise, which checks must exist, budgets and metrics, architecture and boundaries, what to build and what to remove. In the loop, on every change: machines generate, check and fix. At the gate, rarely: people decide what cannot be undone. Metrics, drills and incidents flow back up. Schematic, my own."><img src="figures/fig05.svg" class="img-fluid figure-img" alt="Three stacked cards. Top, navy, above the loop, people, continuously: Guide and structure; the promise, which checks must exist, budgets and metrics, architecture and boundaries, what to build next, what to remove. A solid arrow down labelled sets the attractor, and a dashed arrow up labelled metrics, drills, incidents. Middle, green, the loop, machines, on every change: Generate, check, fix; agents write code and tests, checks run in the session, scanners and budgets, regeneration drills, daily audit; a curved arrow on its right shows the cycle. An amber arrow down labelled only what cannot be undone leads to the bottom card, the gate, people, rarely: Decide the irreversible; deleting data, payments, releases, new dependencies. At the bottom: People leave the loop, not the system: they move up a level."></a></p>
+<figcaption><strong>Figure 5.</strong> Where people work when the code is generated. Above the loop, continuously: the promise, which checks must exist, budgets and metrics, architecture and boundaries, what to build and what to remove. In the loop, on every change: machines generate, check and fix. At the gate, rarely: people decide what cannot be undone. Metrics, drills and incidents flow back up. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p>Above the loop, people do the work that only people can do, and that the earlier essays on this site kept arriving at:</p>
+<ul>
+<li><strong>They own the promise.</strong> Intent, written down and kept short, is the source; code is its output (<a href="../../posts/2026-10-21-intent-is-the-source/index.html">Intent Is the Source</a>). Shared understanding comes from the promise, not from reading diffs (<a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a>).</li>
+<li><strong>They decide which checks must exist.</strong> Not each test, which agents can write, but what must always hold: the properties, the boundaries, the budgets, the security rules. They read the <em>design</em> of the checks and their measured strength, not every new test case.</li>
+<li><strong>They structure the system.</strong> Architecture, module boundaries and what may depend on what are decisions about the shape of the attractor, and they become checks once decided.</li>
+<li><strong>They read the instruments.</strong> Escaped defects by zone, mutation scores, loop times, regeneration drills, incidents: the signals that say where the attractor is weak. They act on the system that produces code, not on individual changes, much as <a href="../../posts/2026-10-11-fast-ai/index.html">Fast AI</a> argued that the slow, careful work should be done once, so that the fast path can run on its own.</li>
+<li><strong>They choose what to build, and what to remove.</strong> Making is cheap now; choosing is not. <a href="../../posts/2026-10-27-the-joy-of-the-question/index.html">The Joy of the Question</a> argued that choosing problems and caring about them is what stays ours, and <a href="../../posts/2026-10-24-work-has-mass/index.html">Work Has Mass</a> that everything made must be carried.</li>
+</ul>
+<p>This is not a smaller role. A person who reads a thousand lines a day guards a thousand lines. A person who decides that every endpoint must have an authorisation test, and makes it a check, guards every line every agent will ever write there.</p>
+</section>
+<section id="what-it-means-for-a-team" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-means-for-a-team">7. What it means for a team</h2>
+<p>Concretely, if the provocation is right, a team’s job changes as follows. This is the part I most want argued with.</p>
+<p><strong>What the team owns.</strong> Not the text of the code. The <em>promise</em>, the <em>checks</em> that hold it, and the <em>gates</em> where harm cannot be undone. Code is an output of these, like compiled binaries were an output of source code. A team that cannot regenerate a module from its promise and its checks does not really own it, however carefully it read the diff.</p>
 <p><strong>What to stop.</strong></p>
 <ul>
-<li>Reading every generated diff to “understand the system”. The diff is a path in zone 2. Understanding belongs to the promise and the checks (see <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a>).</li>
+<li>Reading every generated diff as the default form of control. The diff is a path in zone 2.</li>
 <li>Demanding reproducible generation. Pinned seeds and zero temperature make the path repeatable, not the behaviour correct, and serving infrastructure breaks them anyway <span class="citation" data-cites="he2025">(<a href="#ref-he2025" role="doc-biblioref">He and Thinking Machines Lab 2025</a>)</span>.</li>
-<li>Style debates about generated code, unless something observable depends on the rule. Then it is a check, not a preference.</li>
-<li>Asking “who wrote this line?” The useful question is “which check should have caught this, and why did it not?”</li>
+<li>Style debates about generated code, unless something observable depends on the rule; then it is a check.</li>
+<li>Asking “who wrote this line?” The useful question is “which check should have caught this, and why did it not exist?”</li>
 </ul>
 <p><strong>What to start.</strong></p>
 <ul>
-<li><strong>Checks first.</strong> Before an agent writes a feature, someone writes, or asks the agent to write and then reviews, the checks that define it. Review effort moves from code to tests, where a person can judge whether the promise is right.</li>
-<li><strong>Measure the attractor.</strong> Coverage is a weak proxy; mutation testing, which plants small bugs and checks whether the tests notice, measures how firmly the checks hold <span class="citation" data-cites="petrovic2018">(<a href="#ref-petrovic2018" role="doc-biblioref">Petrović and Ivanković 2018</a>)</span>. Property-based tests hold whole families of behaviour at once <span class="citation" data-cites="claessen2000">(<a href="#ref-claessen2000" role="doc-biblioref">Claessen and Hughes 2000</a>)</span>. Generated tests are fine if they are filtered the way Meta filtered them: they must build, pass reliably and add coverage <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>.</li>
-<li><strong>Make the loop fast.</strong> The same checks, run inside the agent’s session after every change, hold far more than the same checks run in a nightly pipeline. Speed of feedback is a stability property, not a convenience.</li>
-<li><strong>Regeneration drills.</strong> Borrowing from chaos engineering: from time to time, regenerate a module from its promise and its checks, and compare the old and new versions on random inputs (differential testing <span class="citation" data-cites="mckeeman1998">(<a href="#ref-mckeeman1998" role="doc-biblioref">McKeeman 1998</a>)</span>). Where they disagree, you have found zone 3. This is the cheapest way I know to find what nobody checks.</li>
-<li><strong>Turn real use into checks.</strong> What users and client services actually call, and actually rely on, becomes contract tests. This is how a team keeps up with the fact that people come to depend on every observable behaviour <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span>.</li>
-<li><strong>Budget the mass.</strong> Code size, duplication and coupling are observable to whoever must run and maintain the system, so they get budgets and checks too. The GitClear data on duplication <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span> is a zone 3 failure, and <a href="../../posts/2026-10-24-work-has-mass/index.html">Work Has Mass</a> explains why it matters.</li>
+<li><strong>Promise and required checks first.</strong> Before an agent builds a feature, a person states what it must do and what must always hold. Agents write the tests; people review whether the required properties are the right ones.</li>
+<li><strong>Checks in the session.</strong> Every check that can run in the agent’s session runs there, after every change.</li>
+<li><strong>Machines that find zone 3.</strong> Mutation testing, generated tests, regeneration drills, production use turned into contract tests, and a daily audit, all automated, all reporting upward.</li>
+<li><strong>Budgets for mass.</strong> Code size, duplication and coupling get budgets enforced as checks; the GitClear trend <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span> is what happens without them.</li>
+<li><strong>A short list of gates.</strong> Written down, small, and reviewed: the actions that need a person.</li>
 </ul>
-<p><strong>Roles.</strong> Each service or module has an owner of its <em>attractor</em>: the person accountable for the promise, the checks and the gates, rather than for the code. Reviewers review intent and checks. Security and platform engineers own the shared checks every agent session runs (Section 6). Nobody is accountable for reading every line, because nobody can be.</p>
+<p><strong>Roles.</strong> Each service or module has an owner of its <em>attractor</em>: accountable for the promise, the required checks and the gates, rather than for the code. Security and platform engineers own the shared checks every agent session runs (Section 8). Nobody is accountable for reading every line, because nobody can be.</p>
 <p><strong>Metrics.</strong> Lines reviewed and pull requests approved stop being signs of care. What a team tracks instead:</p>
 <table class="caption-top table">
 <caption><strong>Table 1.</strong> What a team measures when it holds behaviour rather than code.</caption>
@@ -696,99 +730,117 @@ window.Quarto = {
 <td>How much of zone 3 is left</td>
 </tr>
 <tr class="odd">
+<td>Share of changes that needed a human gate</td>
+<td>Whether the gate is still a sliver</td>
+</tr>
+<tr class="even">
 <td>Size, duplication and coupling trends</td>
 <td>Whether the code is gaining mass</td>
 </tr>
 </tbody>
 </table>
-<p><strong>A useful test of the whole idea:</strong> if you deleted a module today and regenerated it from its promise and its checks, would you ship the result without reading it? If not, the reason you would hesitate is the list of things your checks do not hold. That list is the team’s real backlog.</p>
+<p><strong>A useful test of the whole idea:</strong> if you deleted a module today and regenerated it from its promise and its checks, would you ship the result without reading it? If not, the reason you would hesitate is the list of things your checks do not yet hold. That list is the team’s real backlog, and most of it can be given to machines.</p>
 </section>
 <section id="security-and-the-rest-in-a-nutshell" class="level2">
-<h2 class="anchored" data-anchor-id="security-and-the-rest-in-a-nutshell">6. Security and the rest, in a nutshell</h2>
-<p>The first question I am always asked is: <em>and security?</em> Security is not an exception to the provocation. It is the most important part of zone 3, and the documented AI coding failures in Section 2 show what happens when it is left there. The answer is the same as for everything else: move it into zone 1 with checks, and put a person at a gate only where harm cannot be undone. Table 2 gives the short version.</p>
+<h2 class="anchored" data-anchor-id="security-and-the-rest-in-a-nutshell">8. Security and the rest, in a nutshell</h2>
+<p>The first question I am always asked is: <em>and security?</em> Security is not an exception to the provocation. It is the most important part of zone 3, and Section 2 shows what happens when it is left there. The answer is the same as for everything else: automate it into zone 1, sandbox the agent, and put a person at a gate only where harm cannot be undone. Table 2 gives the short version, with who acts.</p>
 <table class="caption-top table">
-<caption><strong>Table 2.</strong> Security and other concerns, each moved from zone 3 into zone 1, or placed behind a gate.</caption>
+<caption><strong>Table 2.</strong> Security and other concerns: almost all held by machines, a few gated, and the rest decided above the loop.</caption>
 <colgroup>
-<col style="width: 34%">
-<col style="width: 66%">
+<col style="width: 28%">
+<col style="width: 46%">
+<col style="width: 26%">
 </colgroup>
 <thead>
 <tr class="header">
 <th>Concern</th>
-<th>How it is held, without reading every line</th>
+<th>How it is held</th>
+<th>Who acts</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>Injection, unsafe APIs, known weaknesses <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span></td>
 <td>Static analysis and security linters in every agent session; security tests per entry point; known-bad patterns as failing checks</td>
+<td>Machines</td>
 </tr>
 <tr class="even">
 <td>Secrets</td>
 <td>Secret scanning before anything leaves the session; credentials never in the agent’s reach</td>
+<td>Machines</td>
 </tr>
 <tr class="odd">
 <td>Dependencies and supply chain <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span></td>
-<td>Allowlist of packages and registries; lockfiles; provenance checks; new dependencies behind a gate</td>
+<td>Allowlist of packages and registries; lockfiles; provenance checks</td>
+<td>Machines; a person approves a <em>new</em> dependency</td>
 </tr>
 <tr class="even">
 <td>Access control and privacy</td>
 <td>Authorisation tests for every endpoint; data-flow checks on personal data; policy as code</td>
+<td>Machines; people set the policy</td>
 </tr>
 <tr class="odd">
 <td>The agent itself</td>
 <td>Sandboxed sessions; never private data, untrusted input and a way out at once (the Rule of Two in <a href="../../posts/2026-11-01-the-context-is-the-wire/index.html">The Context Is the Wire</a>)</td>
+<td>Machines enforce; people set the rule</td>
 </tr>
 <tr class="even">
 <td>Irreversible actions</td>
-<td>A thin human gate at the point of no return: migrations that drop data, payments, deletions, releases (see <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>)</td>
+<td>Migrations that drop data, payments, deletions, releases (see <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>)</td>
+<td>A person, at the gate</td>
 </tr>
 <tr class="odd">
 <td>Performance and cost</td>
 <td>Budgets on latency, memory and cost per request, checked like tests</td>
+<td>Machines; people set budgets</td>
 </tr>
 <tr class="even">
 <td>Maintainability</td>
 <td>Budgets on size, duplication and coupling; architecture rules as tests</td>
+<td>Machines; people set the structure</td>
 </tr>
 <tr class="odd">
 <td>Accessibility, licences, compliance</td>
-<td>Automated accessibility checks, licence scanning, compliance rules as code; sampling by a person where automation is weak</td>
+<td>Automated accessibility checks, licence scanning, compliance rules as code</td>
+<td>Machines; people sample where automation is weak</td>
 </tr>
 <tr class="even">
 <td>What cannot be checked: taste, fairness, product sense</td>
-<td>Human judgement at the level of the promise, not the diff</td>
+<td>Judgement on the promise and the product</td>
+<td>People, above the loop</td>
 </tr>
 </tbody>
 </table>
-<p>Two things in the table matter more than the rows. First, every row is something a team should do <em>whether or not</em> it reads the code: human review missed these failures before AI too, and Perry and colleagues found that people working with an assistant became more confident, not more careful <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>. Second, the last row is real. Some properties cannot be checked by a machine. The provocation does not ask anyone to stop judging them; it asks that the judgement be made where it has leverage, on the promise and at the gate, not spread thin across thousands of generated lines.</p>
+<p>Two things in the table matter more than any row. First, the “Who acts” column is almost entirely <em>machines</em>, with people setting the rules and approving a handful of irreversible steps. Second, none of these rows depends on someone reading the code: human review missed these failures before AI too, and Perry and colleagues found that people working with an assistant became more confident, not more careful <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>. A rule turned into a check protects every future change; a careful reading protects one.</p>
 </section>
 <section id="predictions-and-what-would-change-my-mind" class="level2">
-<h2 class="anchored" data-anchor-id="predictions-and-what-would-change-my-mind">7. Predictions, and what would change my mind</h2>
+<h2 class="anchored" data-anchor-id="predictions-and-what-would-change-my-mind">9. Predictions, and what would change my mind</h2>
 <p>A provocation is only useful if it can lose. Each prediction names the result that would refute it.</p>
 <ul>
 <li><strong>P1. Regeneration.</strong> Regenerate a well-tested feature twenty times. The code will differ widely; behaviour will agree on the checks and disagree, outside them, in proportion to what is unchecked. <em>Refuted if</em> similarity of the code predicts correct behaviour better than coverage and mutation score do.</li>
 <li><strong>P2. Where failures come from.</strong> Defects that reach users from AI-written code will be mostly zone 3 (unchecked behaviour) or weak zone 1 (checks that do not hold), not “strange-looking code”. <em>Refuted if</em> code that reviewers flag as unusual predicts escaped defects better than gaps in the checks.</li>
-<li><strong>P3. Determinism buys little.</strong> Making generation reproducible will reduce escaped defects far less than the same effort spent on checks. <em>Refuted if</em> it reduces them at least as much, for comparable cost.</li>
+<li><strong>P3. Automation beats reading.</strong> The same effort spent on automated checks, mutation testing and regeneration drills will prevent more escaped defects than spent on reading diffs. <em>Refuted if</em> line-by-line review prevents at least as many, at comparable cost.</li>
 <li><strong>P4. Fast loops win.</strong> The same checks, run inside the agent’s session instead of later in CI, will reduce defects and rework. <em>Refuted if</em> timing makes no measurable difference.</li>
-<li><strong>P5. Teams.</strong> Teams that move review effort from diffs to checks, and track the metrics in Table 1, will deliver at least as fast with no more incidents than teams that review every diff. <em>Refuted if</em>, in a stepped-wedge trial like the one proposed in <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>, they have more incidents or slower recovery.</li>
+<li><strong>P5. Teams above the loop.</strong> Teams that gate only irreversible actions, move people above the loop and track the metrics in Table 1 will deliver at least as fast with no more incidents than teams that review every diff. <em>Refuted if</em>, in a stepped-wedge trial like the one proposed in <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>, they have more incidents or slower recovery.</li>
 </ul>
 </section>
 <section id="objections-and-why-they-do-not-overturn-the-provocation" class="level2">
-<h2 class="anchored" data-anchor-id="objections-and-why-they-do-not-overturn-the-provocation">8. Objections, and why they do not overturn the provocation</h2>
+<h2 class="anchored" data-anchor-id="objections-and-why-they-do-not-overturn-the-provocation">10. Objections, and why they do not overturn the provocation</h2>
+<p><strong>“Taking people out of the loop is reckless.”</strong> It would be, if they left the system. They do not; they move above it (Section 6), and they keep the gate for everything that cannot be undone. The reckless choice is the current one: a slow, partial, tiring check on every change, which the evidence shows does not catch insecure code reliably <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>, placed exactly where it adds the most delay.</p>
 <p><strong>“This is randomness, not chaos.”</strong> Language model sampling is random; Lorenz’s chaos is deterministic. The difference does not help the objection. The argument needs only that small differences in input grow into large differences in code, and that the code stays bounded. Generated code has both, at any temperature <span class="citation" data-cites="ouyang2023 he2025">(<a href="#ref-ouyang2023" role="doc-biblioref">Ouyang et al. 2023</a>; <a href="#ref-he2025" role="doc-biblioref">He and Thinking Machines Lab 2025</a>)</span>. I used a deterministic chaotic agent in the toy to make the stronger point: even perfect determinism would not give back the control people want.</p>
-<p><strong>“Untested behaviour is exactly where the danger is.”</strong> Yes. That is the thesis, not an objection to it. Reading diffs does not find zone 3 reliably either: it is behaviour, and it shows up when the code runs, not when it is read. The way to find it is to run the code differently (regeneration drills, differential tests, production traffic turned into checks), and the way to hold it is a check.</p>
-<p><strong>“With enough users, everything observable is depended on.”</strong> Hyrum’s law <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span> makes zone 3 grow over time, so the provocation asks for more checks as a system ages. That is a cost, but it is the honest cost of owning a system with users, and it applies to hand-written code too. Line-by-line control does not tell you what users depend on; observing them does.</p>
-<p><strong>“People still have to read the code.”</strong> Sometimes, today: in an incident, in a security audit, in a domain with no good checks. Reading is still allowed. What the provocation drops is reading <em>as the default form of control</em>, applied to every change. Where people must read, the structure they read is observable to them, so it becomes a zone 1 property with its own budget.</p>
+<p><strong>“Untested behaviour is exactly where the danger is.”</strong> Yes. That is the thesis, not an objection to it. Reading diffs does not find zone 3 reliably either: it is behaviour, and it shows up when the code runs, not when it is read. Machines that run the code differently (regeneration drills, differential tests, production traffic turned into checks) find it; a check holds it.</p>
+<p><strong>“With enough users, everything observable is depended on.”</strong> Hyrum’s law <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span> makes zone 3 grow as a system ages, so the provocation asks for more checks over time. That is a cost, but it is the honest cost of owning a system with users, it applies to hand-written code too, and it is exactly the kind of cost automation pays well.</p>
+<p><strong>“People still have to read the code.”</strong> Sometimes: in an incident, in a security audit, in a domain with no good checks yet. Reading is still allowed. What the provocation drops is reading <em>as the default form of control</em>, applied to every change. Where people must read, the structure they read is observable to them, so it gets a budget and a check like anything else.</p>
 <p><strong>“Different implementations share the same blind spots.”</strong> They do: independently written versions of a program tend to fail on the same hard inputs <span class="citation" data-cites="knight1986">(<a href="#ref-knight1986" role="doc-biblioref">Knight and Leveson 1986</a>)</span>, and twenty regenerations from one model are less independent still. The provocation does not claim regeneration gives redundancy. It claims that the <em>differences</em> between regenerations are mostly harmless, and that the shared blind spots are, again, unchecked behaviour.</p>
-<p><strong>“The checks can be wrong.”</strong> A strong loop around a wrong test holds the wrong behaviour very stably; an attractor is not a truth. This is why human attention should move to the promise and the checks, where a wrong expectation can be seen, rather than to the code, where it is buried.</p>
-<p><strong>“The evidence is mixed.”</strong> It is: AI tools made developers faster in one study and slower in another <span class="citation" data-cites="peng2023 becker2025">(<a href="#ref-peng2023" role="doc-biblioref">Peng et al. 2023</a>; <a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>, and DORA saw stability fall as adoption rose <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span>. I read the mixed results as support. They are what one would expect from teams that adopted a chaotic generator without building the attractor: larger changes, slower feedback, more mass. The provocation predicts that teams who build it will see the gains without the instability. P5 is the test.</p>
-<p><strong>“It is a toy.”</strong> The simulation is. The thesis does not rest on it; it rests on Sections 2, 5 and 6, and it will stand or fall on P1 to P5.</p>
+<p><strong>“The checks can be wrong.”</strong> A strong loop around a wrong test holds the wrong behaviour very stably; an attractor is not a truth. This is why people belong above the loop, deciding what must hold and reading how well it holds, rather than in it, where a wrong expectation is buried under thousands of lines.</p>
+<p><strong>“The evidence is mixed.”</strong> It is: AI tools made developers faster in one study and slower in another <span class="citation" data-cites="peng2023 becker2025">(<a href="#ref-peng2023" role="doc-biblioref">Peng et al. 2023</a>; <a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>, and DORA saw stability fall as adoption rose <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span>. I read the mixed results as support. They are what one would expect from teams that adopted a chaotic generator but kept the old control: larger changes, slower feedback, more mass, and people at the wrong level. The provocation predicts that teams who automate the loop and move above it will see the gains without the instability. P5 is the test.</p>
+<p><strong>“It is a toy.”</strong> The simulation is. The thesis does not rest on it; it rests on Sections 2, 5, 6 and 8, and it will stand or fall on P1 to P5.</p>
 </section>
 <section id="conclusion" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion">9. Conclusion</h2>
-<p>Lorenz did not show that the weather cannot be known. He showed that the weather and the climate are different questions, and that the second can be answered when the first cannot. AI-generated code is weather. The behaviour a team promised is climate. Trying to predict and control every line an agent writes is forecasting gusts.</p>
-<p>So the provocation, once more, and on purpose: <strong>stop trying to control the code your AI writes.</strong> Own the promise, build the checks that hold it, put a person where harm cannot be undone, and let the rest be chaotic. Most of the chaos was never where the risk was.</p>
+<h2 class="anchored" data-anchor-id="conclusion">11. Conclusion</h2>
+<p>The last year proved that machines can write working code. It has not yet changed where we stand while they do it. We still stand at the output, reading, as if the code were the thing to control.</p>
+<p>Lorenz did not show that the weather cannot be known. He showed that the weather and the climate are different questions, and that the second can be answered when the first cannot. AI-generated code is weather. The behaviour a team promised is climate. People do not need to forecast every gust; they need to decide what climate they want, build the instruments that keep it, and step in only where a storm would do harm that cannot be undone.</p>
+<p>So the provocation, once more, and on purpose: <strong>automate the loop, gate a sliver, and move people above it.</strong> Let the code be chaotic. Most of the chaos was never where the risk was, and the people were never meant to be inside it.</p>
 <div class="read-next">
 <p><strong>Read next</strong> · <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a> The economic side of the same argument: approve what you cannot undo, watch everything else.</p>
 </div>
@@ -801,6 +853,9 @@ window.Quarto = {
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-alshahwan2024" class="csl-entry" role="listitem">
 Alshahwan, Nadia, Jubin Chheda, Anastasia Finegenova, et al. 2024. <span>“Automated Unit Test Improvement Using Large Language Models at <span>Meta</span>.”</span> <em>Companion Proceedings of the 32nd ACM International Conference on the Foundations of Software Engineering (FSE)</em>. <a href="https://arxiv.org/abs/2402.09171">https://arxiv.org/abs/2402.09171</a>.
+</div>
+<div id="ref-anthropic2025" class="csl-entry" role="listitem">
+Anthropic. 2025. <em>Introducing <span>Claude Opus 4.5</span></em>. <a href="https://www.anthropic.com/news/claude-opus-4-5">https://www.anthropic.com/news/claude-opus-4-5</a>.
 </div>
 <div id="ref-basiri2016" class="csl-entry" role="listitem">
 Basiri, Ali, Niosha Behnam, Ruud de Rooij, et al. 2016. <span>“Chaos Engineering.”</span> <em>IEEE Software</em> 33 (3): 35–41. <a href="https://doi.org/10.1109/MS.2016.60">https://doi.org/10.1109/MS.2016.60</a>.
@@ -838,6 +893,9 @@ Lorenz, Edward N. 1963. <span>“Deterministic Nonperiodic Flow.”</span> <em>J
 <div id="ref-mckeeman1998" class="csl-entry" role="listitem">
 McKeeman, William M. 1998. <span>“Differential Testing for Software.”</span> <em>Digital Technical Journal</em> 10 (1): 100–107.
 </div>
+<div id="ref-openai2024" class="csl-entry" role="listitem">
+OpenAI. 2024. <em>Introducing <span class="nocase">SWE-bench Verified</span></em>. <a href="https://openai.com/index/introducing-swe-bench-verified/">https://openai.com/index/introducing-swe-bench-verified/</a>.
+</div>
 <div id="ref-ouyang2023" class="csl-entry" role="listitem">
 Ouyang, Shuyin, Jie M. Zhang, Mark Harman, and Meng Wang. 2023. <em><span>LLM</span> Is Like a Box of Chocolates: The Non-Determinism of <span>ChatGPT</span> in Code Generation</em>. <a href="https://arxiv.org/abs/2308.02828">https://arxiv.org/abs/2308.02828</a>.
 </div>
@@ -856,11 +914,17 @@ Perry, Neil, Megha Srivastava, Deepak Kumar, and Dan Boneh. 2023. <span>“Do Us
 <div id="ref-petrovic2018" class="csl-entry" role="listitem">
 Petrović, Goran, and Marko Ivanković. 2018. <span>“State of Mutation Testing at <span>Google</span>.”</span> <em>Proceedings of the 40th International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)</em>, 163–71. <a href="https://doi.org/10.1145/3183519.3183521">https://doi.org/10.1145/3183519.3183521</a>.
 </div>
+<div id="ref-pichai2024" class="csl-entry" role="listitem">
+Pichai, Sundar. 2024. <em>Q3 2024 Earnings Call: Remarks from Our <span>CEO</span></em>. Alphabet / Google blog. <a href="https://blog.google/inside-google/message-ceo/alphabet-earnings-q3-2024/">https://blog.google/inside-google/message-ceo/alphabet-earnings-q3-2024/</a>.
+</div>
 <div id="ref-sompolinsky1988" class="csl-entry" role="listitem">
 Sompolinsky, Haim, Andrea Crisanti, and Hans-Jürgen Sommers. 1988. <span>“Chaos in Random Neural Networks.”</span> <em>Physical Review Letters</em> 61 (3): 259–62. <a href="https://doi.org/10.1103/PhysRevLett.61.259">https://doi.org/10.1103/PhysRevLett.61.259</a>.
 </div>
 <div id="ref-spracklen2025" class="csl-entry" role="listitem">
 Spracklen, Joseph, Raveen Wijewickrama, A. H. M. Nazmus Sakib, Anindya Maiti, Bimal Viswanath, and Murtuza Jadliwala. 2025. <span>“We Have a Package for You! A Comprehensive Analysis of Package Hallucinations by Code Generating <span>LLMs</span>.”</span> <em>34th USENIX Security Symposium</em>. <a href="https://arxiv.org/abs/2406.10279">https://arxiv.org/abs/2406.10279</a>.
+</div>
+<div id="ref-stackoverflow2025" class="csl-entry" role="listitem">
+Stack Overflow. 2025. <em>2025 Developer Survey: <span>AI</span></em>. <a href="https://survey.stackoverflow.co/2025/ai">https://survey.stackoverflow.co/2025/ai</a>.
 </div>
 <div id="ref-strogatz2015" class="csl-entry" role="listitem">
 Strogatz, Steven H. 2015. <em>Nonlinear Dynamics and Chaos: With Applications to Physics, Biology, Chemistry, and Engineering</em>. 2nd ed. Westview Press.
