@@ -264,7 +264,7 @@ def fig_levels():
     # above the loop
     card(ax, 0.6, 10.9, 11.6, 3.6, "Guide and structure", accent=NAVY,
          eyebrow="Above the loop · people, continuously",
-         sub="the promise · which checks must exist · budgets and metrics\n"
+         sub="the promise · own the checks · budgets and metrics\n"
              "architecture and boundaries · what to build next · what to remove",
          fs=11.5, subfs=8.4)
     arrow(ax, (4.4, 10.75), (4.4, 8.75), color=NAVY, lw=1.6)
