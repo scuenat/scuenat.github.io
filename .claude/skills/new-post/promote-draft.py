@@ -5,7 +5,7 @@ Usage: python3 .claude/skills/new-post/promote-draft.py <name> [YYYY-MM-DD]
 
 Moves drafts/<name>/ to posts/<date>-<name>/ (and fr/drafts/<name>/ to fr/posts/<date>-<name>/
 when the French draft exists) with git mv, sets `date:` in both front matters to the
-publication date (default: today), and rewrites the links that change with the move:
+publication date (default: today), removes `draft-version:` and `draft-revised:`, and rewrites the links that change with the move:
 
 - links to published posts, `../../posts/<slug>/` from a draft, become `../<slug>/`;
 - the French draft's links to the English draft's files, `../../../drafts/<name>/`,
@@ -44,6 +44,7 @@ for src, dst in moves:
     qmd = dst / "index.qmd"
     text = qmd.read_text(encoding="utf-8")
     text = re.sub(r"(?m)^date:.*$", f"date: {date}", text, count=1)
+    text = re.sub(r"(?m)^draft-(version|revised):.*\n", "", text)    # drafts only
     text = re.sub(r"(?<!\.\./)\.\./\.\./posts/", "../", text)          # draft -> sibling post
     text = text.replace(f"../../../drafts/{name}/", f"../../../posts/{new}/")  # fr -> en files
     qmd.write_text(text, encoding="utf-8")

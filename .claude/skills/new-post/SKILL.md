@@ -44,6 +44,14 @@ Every new post starts as a **draft**, published on `main` but only in the review
 | French | `fr/drafts/<name>/` | `fr/posts/YYYY-MM-DD-<name>/` |
 | Listed on | https://scuenat.github.io/drafts/ (and `/fr/drafts/`) only | home page, archive, RSS feed, search, sitemap |
 
+- **Version.** Every draft carries two extra front matter fields, right after `date:`, in both languages:
+
+  ```yaml
+  draft-version: 1        # +1 on every revision pushed to the drafts area (1, 2, 3 ...)
+  draft-revised: YYYY-MM-DD   # the day of that revision
+  ```
+
+  The banner shows "Draft v<N>, not yet published. Revised <date>." and the drafts list shows "Draft v<N> · <date>". Raise the version, and set the date, on every push that changes the text, in English and French together (the French version always has the same number as the English one it translates). A push that changes only the site's machinery, not the text, keeps the number. `promote-draft.py` removes both fields when the draft is published.
 - `<name>` is a short slug from the title (lowercase, hyphens), with **no date**: the date is added on promotion, so the draft's URL stays the same while it is revised.
 - `drafts/_metadata.yml` (and `fr/drafts/_metadata.yml`) give drafts the posts' author and license, plus `search: false` and `draft-preview: true`. `draft-banner.lua` then adds a "Draft, not yet published" banner and a `noindex` tag; `sitemap-lastmod.py` drops drafts from the sitemap; the home, archive and feed listings only read `posts/`. Do not add `draft: true` (the site's `draft-mode: gone` would remove the page altogether).
 - **Links from a draft** to published posts go through the root: `../../posts/<slug>/index.qmd` (French draft: `../../posts/<slug>/` for French posts, `../../../posts/<slug>/` for English ones). The French draft points at the English draft's files with `../../../drafts/<name>/<file>`. The promotion script rewrites all of these.
@@ -127,11 +135,11 @@ Commit only sources (never `_site/` or `_preview/`), and push straight to `main`
 git checkout main 2>/dev/null || git checkout -B main origin/main
 git pull --rebase origin main
 git add drafts/<name> fr/drafts/<name>
-git commit -m "Draft: <Title> (<kind>, English and French)"
+git commit -m "Draft v1: <Title> (<kind>, English and French)"
 git push -u origin main
 ```
 
-Each revision goes the same way (`git commit -m "Draft: <Title>, revised (<what changed>)"`), followed by a new review PDF. Drafts are not announced: no newsletter, no series page, no `updates:` entries.
+Each revision goes the same way: raise `draft-version` by one and set `draft-revised` to today in both languages, then `git commit -m "Draft v<N>: <Title> (<what changed>)"`, followed by a new review PDF. Drafts are not announced: no newsletter, no series page, no `updates:` entries.
 
 **7b. Promote it**, only when the user says the draft is approved (for example "publish it", "promote it", "approved"):
 

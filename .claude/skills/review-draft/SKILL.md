@@ -44,6 +44,7 @@ Fix what you find in the post, in `figs.py` or in `pdf.js`, then rerun step 1.
    - kind, title, topic tile(s) and word count of the body;
    - the thesis or main point in two or three sentences;
    - the few points that need the author's judgement, such as unverified sources, strong wording, or a place where a personal example would help;
+   - the draft's version (v<N>) and what changed since the previous one;
    - the draft's address, https://scuenat.github.io/drafts/<name>/ (French: /fr/drafts/<name>/), and the list of all drafts, https://scuenat.github.io/drafts/, once it has been pushed (new-post step 7a);
    - the question: what to change, or approve to publish it on the home page.
 
@@ -52,5 +53,5 @@ Do not paste the text into the chat as well: the PDF is the review copy.
 ## 4. Revise in the drafts area, promote only on approval
 
 - New posts are drafts under `drafts/<name>/` and `fr/drafts/<name>/` (see **new-post**, step 2). They are pushed to `main` from the first version on (new-post step 7a): pushing a draft publishes it only at https://scuenat.github.io/drafts/<name>/, listed on https://scuenat.github.io/drafts/, with a "Draft" banner and `noindex`, and nowhere else on the site.
-- Apply every change the user asks for in the draft, push it to `main` again, then run steps 1 to 3 and send the new PDF. Each revision goes through the same loop. Never commit `_preview/` or `_site/`.
+- Apply every change the user asks for in the draft, raise `draft-version` by one and set `draft-revised` to today (English and French alike; see **new-post**, step 2), push it to `main` again, then run steps 1 to 3 and send the new PDF. Each revision goes through the same loop. Never commit `_preview/` or `_site/`.
 - Only when the user approves, promote the draft with `promote-draft.py` (new-post step 7b): that is the step that puts it on the home page, the archive and the feed. Send the French version for review the same way, unless the user said the English approval covers it.

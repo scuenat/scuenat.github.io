@@ -17,7 +17,7 @@ const real = items.filter(it => !it.placeholder);
 <div class="thumbnail"><a href="<%- item.path %>" class="no-external"><img src="<%- item.image %>" class="thumbnail-image" alt="" loading="lazy"></a></div>
 <% } %>
 <div class="body">
-<% if (kind) { %><div class="listing-kind"><span class="kind-badge kind-<%= kind %>"><%= labels[kind] %></span></div><% } %>
+<div class="listing-kind"><% if (kind) { %><span class="kind-badge kind-<%= kind %>"><%= labels[kind] %></span><% } %><% if (item["draft-version"]) { %> <span class="draft-version"><%= params.draft || "Draft" %> v<%= item["draft-version"] %><% if (item["draft-revised"]) { %> · <%= item["draft-revised"] %><% } %></span><% } %></div>
 <h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external"><%= item.title %></a></h3>
 <% if (item.subtitle) { %><div class="listing-subtitle"><a href="<%- item.path %>" class="no-external"><%= item.subtitle %></a></div><% } %>
 <% if (item.categories) { %>
