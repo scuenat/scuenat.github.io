@@ -1,11 +1,11 @@
 ---
 name: write-overview
-description: Shape and write an overview for this site (kind overview, teal OVERVIEW badge, PANORAMA in French) — a map of a research area built from many openly accessible sources, showing the main lines of work, how they relate, what is established and what is still open. Use when the user asks for an overview, a survey, a state of the art, a panorama or "what is known about X", or after new-post chose "Overview". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation and publishing to main.
+description: Shape and write an overview for this site (kind overview, teal OVERVIEW badge, PANORAMA in French) — a map of a research area built from many openly accessible sources, showing the main lines of work, how they relate, what is established and what is still open. Use when the user asks for an overview, a survey, a state of the art, a panorama or "what is known about X", or after new-post chose "Overview". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation, the drafts area and publishing.
 ---
 
 # Write an overview
 
-**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Overview", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Overview (Recommended) / Analysis / Essay / Position paper). If the answer is not Overview, switch to **write-analysis**, **write-essay**, **write-note** or **write-position-paper**. Then follow **new-post** for files, front matter (`kind: overview`, first category `overview`), translation, verification and publishing to `main`.
+**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Overview", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Overview (Recommended) / Analysis / Essay / Position paper). If the answer is not Overview, switch to **write-analysis**, **write-essay**, **write-note** or **write-position-paper**. Then follow **new-post** for files, front matter (`kind: overview`, first category `overview`), translation, verification, the drafts area (`drafts/<name>/`, reviewed at /drafts/) and publishing.
 
 ## What makes it an overview
 

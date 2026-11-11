@@ -1,6 +1,6 @@
 ---
 name: review-draft
-description: Show the user the complete draft of a post exactly as it will render on the site, before anything is published, without being asked. Renders the page with the site's own theme and sends it here as ONE PDF document at phone width, with the full text, every figure, equations, tables and references. Use automatically whenever a post or its French translation is drafted or revised (new-post, write-essay, write-analysis, write-note, write-position-paper, translate-fr), and whenever the user asks to see, read, review or preview a draft.
+description: Show the user the complete draft of a post exactly as it will render on the site, while it is still a draft in the review area (/drafts/) and before it is promoted to the home page, without being asked. Renders the page with the site's own theme and sends it here as ONE PDF document at phone width, with the full text, every figure, equations, tables and references. Use automatically whenever a post or its French translation is drafted or revised (new-post, write-essay, write-analysis, write-note, write-position-paper, translate-fr), and whenever the user asks to see, read, review or preview a draft.
 ---
 
 # Review a draft
@@ -15,8 +15,9 @@ What not to send:
 ## 1. Render and print
 
 ```bash
-.claude/skills/review-draft/preview.sh posts/<YYYY-MM-DD-slug> [path/to/quarto] [width]
-# French: .claude/skills/review-draft/preview.sh fr/posts/<YYYY-MM-DD-slug> [path/to/quarto]
+.claude/skills/review-draft/preview.sh drafts/<name> [path/to/quarto] [width]
+# French: .claude/skills/review-draft/preview.sh fr/drafts/<name> [path/to/quarto]
+# A published post under revision: posts/<YYYY-MM-DD-slug> or fr/posts/<YYYY-MM-DD-slug>
 ```
 
 - The script renders only this page inside the site project, so it gets the real theme, navbar, badges, callouts, citations and footer.
@@ -43,12 +44,13 @@ Fix what you find in the post, in `figs.py` or in `pdf.js`, then rerun step 1.
    - kind, title, topic tile(s) and word count of the body;
    - the thesis or main point in two or three sentences;
    - the few points that need the author's judgement, such as unverified sources, strong wording, or a place where a personal example would help;
-   - the question: what to change, or approve to publish.
+   - the draft's address, https://scuenat.github.io/drafts/<name>/ (French: /fr/drafts/<name>/), and the list of all drafts, https://scuenat.github.io/drafts/, once it has been pushed (new-post step 7a);
+   - the question: what to change, or approve to publish it on the home page.
 
 Do not paste the text into the chat as well: the PDF is the review copy.
 
-## 4. Revise, then publish only on approval
+## 4. Revise in the drafts area, promote only on approval
 
-- Apply every change the user asks for, then run steps 1 to 3 again and send the new PDF. Each revision goes through the same loop.
-- Keep the draft safe on a branch `draft/<slug>`: commit the sources, push that branch, and never commit `_preview/` or `_site/`. Pushing to `main` publishes, so never push the draft there before the user approves.
-- After approval, continue with **new-post** step 5 (French) and step 7 (publish). Send the French version the same way, unless the user said the English approval covers it.
+- New posts are drafts under `drafts/<name>/` and `fr/drafts/<name>/` (see **new-post**, step 2). They are pushed to `main` from the first version on (new-post step 7a): pushing a draft publishes it only at https://scuenat.github.io/drafts/<name>/, listed on https://scuenat.github.io/drafts/, with a "Draft" banner and `noindex`, and nowhere else on the site.
+- Apply every change the user asks for in the draft, push it to `main` again, then run steps 1 to 3 and send the new PDF. Each revision goes through the same loop. Never commit `_preview/` or `_site/`.
+- Only when the user approves, promote the draft with `promote-draft.py` (new-post step 7b): that is the step that puts it on the home page, the archive and the feed. Send the French version for review the same way, unless the user said the English approval covers it.

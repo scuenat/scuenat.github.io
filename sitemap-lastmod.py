@@ -2,7 +2,7 @@
 
 Quarto stamps every sitemap entry with the file time of the build, so after a fresh
 checkout every page looks changed on every deploy and search engines learn to ignore
-the dates. This replaces each <lastmod> with the date of the last commit that touched
+the dates. It also drops the review-only drafts (/drafts/). This replaces each <lastmod> with the date of the last commit that touched
 the page's source (a post's whole folder, so figures count), and writes URLs in the
 directory form (/posts/x/) used by the canonical and hreflang links.
 """
@@ -40,5 +40,7 @@ def fix(match):
 
 if os.path.exists(SITEMAP):
     xml = open(SITEMAP, encoding="utf-8").read()
+    # Drafts (/drafts/, /fr/drafts/) are for review only: keep them out of the sitemap.
+    xml = re.sub(r"\s*<url>\s*<loc>[^<]*/drafts/[^<]*</loc>.*?</url>", "", xml, flags=re.S)
     xml = re.sub(r"<loc>([^<]*)</loc>\s*<lastmod>([^<]*)</lastmod>", fix, xml)
     open(SITEMAP, "w", encoding="utf-8").write(xml)

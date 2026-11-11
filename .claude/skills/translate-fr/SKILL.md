@@ -7,6 +7,8 @@ description: Translate English posts of this Quarto site into French under fr/, 
 
 English is the source language. Each translation lives at the same path under `fr/` (for example `posts/2026-10-27-slug/index.qmd` → `fr/posts/2026-10-27-slug/index.qmd`). `lang-links.lua` pairs the two pages automatically: hreflang tags, the FR/EN switch and `translationOfWork`. The French listings (`fr/index.qmd`, `fr/archive.qmd`) pick up new files on their own.
 
+**Drafts.** A new post is translated while it is still a draft: `drafts/<name>/index.qmd` → `fr/drafts/<name>/index.qmd` (see **new-post**, step 2). Everything below applies with `drafts/<name>` in place of `posts/<slug>`: the front matter points at `../../../drafts/<name>/figures/fig01.png` and `../../../drafts/<name>/references.bib`, the post's own files at `../../../drafts/<name>/<file>`, the original at `../../../drafts/<name>/index.qmd`, French posts at `../../posts/<slug>/index.qmd` and English-only posts at `../../../posts/<slug>/index.qmd` (en anglais). `fr/drafts/_metadata.yml` sets the author, license and draft settings. `promote-draft.py` rewrites all these paths when the draft is published, so do not fix them by hand.
+
 ## 1. Find what is missing or stale
 
 ```bash
@@ -16,7 +18,7 @@ for d in posts/*/; do s=${d#posts/}; [ -f "fr/posts/${s}index.qmd" ] || echo "mi
 for f in fr/posts/*/index.qmd; do en=${f#fr/}; [ "$(git log -1 --format=%ct -- "$en")" -gt "$(git log -1 --format=%ct -- "$f")" ] && echo "stale: $en"; done
 ```
 
-Skip drafts (`draft: true`). For a stale translation, run `git log -p` on the English file since the French one last changed, and carry over only those edits.
+Skip pages with `draft: true`; drafts under `drafts/` are translated under `fr/drafts/` as described above. For a stale translation, run `git log -p` on the English file since the French one last changed, and carry over only those edits.
 
 Before writing, read one existing translation next to its original (for example `fr/posts/2026-10-24-work-has-mass/index.qmd`) to match the tone.
 
@@ -82,7 +84,7 @@ Before writing, read one existing translation next to its original (for example 
 
 ## 5. Verify, then publish
 
-Before publishing, send the French version as one rendered PDF with the **review-draft** skill (`preview.sh fr/posts/<slug>`), unless the user approved the English version and said that covers the translation.
+Before publishing, send the French version as one rendered PDF with the **review-draft** skill (`preview.sh fr/drafts/<name>` for a draft, `preview.sh fr/posts/<slug>` for a published post), unless the user approved the English version and said that covers the translation.
 
 Render the whole site; it must finish with no warnings:
 

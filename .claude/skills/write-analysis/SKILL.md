@@ -1,11 +1,11 @@
 ---
 name: write-analysis
-description: Shape and write an analysis for this site (kind analysis, blue ANALYSIS badge) — a close reading of a paper, post or system, or a working paper that tests an idea with a model, data or simulation. Use when the user asks for an analysis or a working paper (for a position paper use write-position-paper), or after new-post chose "Analysis". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation and publishing to main.
+description: Shape and write an analysis for this site (kind analysis, blue ANALYSIS badge) — a close reading of a paper, post or system, or a working paper that tests an idea with a model, data or simulation. Use when the user asks for an analysis or a working paper (for a position paper use write-position-paper), or after new-post chose "Analysis". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation, the drafts area and publishing.
 ---
 
 # Write an analysis
 
-**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Analysis", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Analysis (Recommended) / Essay / Note / Position paper). If the answer is not Analysis, switch to **write-essay**, **write-note**, **write-position-paper** or **write-overview**. Then follow **new-post** for files, front matter (`kind: analysis`), translation, verification and publishing to `main`.
+**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Analysis", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Analysis (Recommended) / Essay / Note / Position paper). If the answer is not Analysis, switch to **write-essay**, **write-note**, **write-position-paper** or **write-overview**. Then follow **new-post** for files, front matter (`kind: analysis`), translation, verification, the drafts area (`drafts/<name>/`, reviewed at /drafts/) and publishing.
 
 ## Two flavours
 

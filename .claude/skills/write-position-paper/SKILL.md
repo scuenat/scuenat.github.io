@@ -1,11 +1,11 @@
 ---
 name: write-position-paper
-description: Shape and write a position paper for this site (kind position, plum POSITION PAPER badge) — a deliberately provocative claim in the form of a short scientific paper, stated precisely (often formally), defended with arguments, a model or a simulation, and with predictions that could prove it wrong. Use when the user asks for a position paper, a provocative paper or a thesis to defend, or after new-post chose "Position paper". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation and publishing to main.
+description: Shape and write a position paper for this site (kind position, plum POSITION PAPER badge) — a deliberately provocative claim in the form of a short scientific paper, stated precisely (often formally), defended with arguments, a model or a simulation, and with predictions that could prove it wrong. Use when the user asks for a position paper, a provocative paper or a thesis to defend, or after new-post chose "Position paper". Starts by confirming the kind (essay, analysis, note, position paper or overview) and defers to new-post for files, front matter, translation, the drafts area and publishing.
 ---
 
 # Write a position paper
 
-**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Position paper", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Position paper (Recommended) / Essay / Analysis / Note). If the answer is not Position paper, switch to **write-essay**, **write-analysis**, **write-note** or **write-overview**. Then follow **new-post** for files, translation, verification and publishing to `main`.
+**First, confirm the kind.** If this skill was not reached through **new-post** after the user chose "Position paper", ask with AskUserQuestion: "Which kind of post should this be: an essay, an analysis, a note, a position paper or an overview?" (options Position paper (Recommended) / Essay / Analysis / Note). If the answer is not Position paper, switch to **write-essay**, **write-analysis**, **write-note** or **write-overview**. Then follow **new-post** for files, translation, verification, the drafts area (`drafts/<name>/`, reviewed at /drafts/) and publishing.
 
 ## What makes it a position paper
 

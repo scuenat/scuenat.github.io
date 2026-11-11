@@ -1,6 +1,6 @@
 ---
 name: new-post
-description: Create and publish a new post on this Quarto site (AI, Honestly). Always asks first whether the post is an essay, an analysis, a note, a position paper or an overview, then follows the matching skill (write-essay, write-analysis, write-note, write-position-paper, write-overview) and the shared steps here, and publishes directly to main. Use whenever the user asks to write, draft, create or publish a new post, article, essay, analysis, paper or note for the site.
+description: Create and publish a new post on this Quarto site (AI, Honestly). Always asks first whether the post is an essay, an analysis, a note, a position paper or an overview, then follows the matching skill (write-essay, write-analysis, write-note, write-position-paper, write-overview) and the shared steps here. Every new post is first published to main as a draft in the review area (/drafts/), revised there, and promoted to the home page only on the user's approval. Use whenever the user asks to write, draft, create or publish a new post, article, essay, analysis, paper or note for the site.
 ---
 
 # Create a new post
@@ -34,9 +34,20 @@ In the same call, if they are not already clear, also ask for the topic tile(s) 
 
 Then load and follow the matching skill: **write-essay**, **write-analysis**, **write-note**, **write-position-paper** or **write-overview**. It gives the structure; the steps below are shared.
 
-## 2. Files
+## 2. Files: start in the drafts area
 
-- Folder: `posts/YYYY-MM-DD-slug/` with today's date and a short slug from the title (lowercase, hyphens).
+Every new post starts as a **draft**, published on `main` but only in the review area, and becomes a post when the user approves it (step 7).
+
+| | Draft (review) | Post (published) |
+|---|---|---|
+| English | `drafts/<name>/` | `posts/YYYY-MM-DD-<name>/` |
+| French | `fr/drafts/<name>/` | `fr/posts/YYYY-MM-DD-<name>/` |
+| Listed on | https://scuenat.github.io/drafts/ (and `/fr/drafts/`) only | home page, archive, RSS feed, search, sitemap |
+
+- `<name>` is a short slug from the title (lowercase, hyphens), with **no date**: the date is added on promotion, so the draft's URL stays the same while it is revised.
+- `drafts/_metadata.yml` (and `fr/drafts/_metadata.yml`) give drafts the posts' author and license, plus `search: false` and `draft-preview: true`. `draft-banner.lua` then adds a "Draft, not yet published" banner and a `noindex` tag; `sitemap-lastmod.py` drops drafts from the sitemap; the home, archive and feed listings only read `posts/`. Do not add `draft: true` (the site's `draft-mode: gone` would remove the page altogether).
+- **Links from a draft** to published posts go through the root: `../../posts/<slug>/index.qmd` (French draft: `../../posts/<slug>/` for French posts, `../../../posts/<slug>/` for English ones). The French draft points at the English draft's files with `../../../drafts/<name>/<file>`. The promotion script rewrites all of these.
+- Do **not** add the draft to series pages (`agentic-coding.qmd`), `about.qmd` or other posts' read-next boxes yet: those links go in at promotion.
 - `index.qmd`, plus `figs.py` and `figures/` when there are figures (copy the palette and helpers from the newest post's `figs.py`; write each figure as SVG for the page and 400 dpi PNG for the share image).
 - Read the newest post of the same kind first and match its tone and structure:
   `grep -l '^kind: <kind>' posts/*/index.qmd | tail -1`
@@ -48,7 +59,7 @@ Then load and follow the matching skill: **write-essay**, **write-analysis**, **
 title: "Title in Title Case"
 subtitle: "One line that says what the post claims"
 description: "Under ~155 characters where possible: the Google snippet and the listing summary."
-date: YYYY-MM-DD
+date: YYYY-MM-DD   # the drafting date; promote-draft.py sets the publication date
 citation: true
 toc-depth: 2
 categories: [<kind>, ai, ...]   # first category = the kind (essay | analysis | note | overview); working papers: paper; position papers: paper, position
@@ -93,27 +104,52 @@ updates:
 
 If the user agreed, follow the **translate-fr** skill for the new post (it carries `kind:` over unchanged; the French badge labels come from `fr/index.qmd` and `fr/archive.qmd`).
 
-## 6. Verify
+## 6. Verify and review
 
 ```bash
 quarto render 2>&1 | grep -iE "warn|error"   # must print nothing
-grep -o 'kind-badge kind-[a-z]*' _site/index.html | head -3   # the new post's badge is first
+grep -c '<name>' _site/index.html _site/archive.html _site/index.xml _site/search.json _site/sitemap.xml   # all 0 while it is a draft
+grep -o 'href="[^"]*<name>[^"]*"' _site/drafts/index.html   # listed on the drafts page
 ```
 
-If Quarto is missing, download `https://github.com/quarto-dev/quarto-cli/releases/download/v1.6.42/quarto-1.6.42-linux-amd64.tar.gz` into the scratchpad and run `quarto-1.6.42/bin/quarto`. Also check the post page for unresolved citations (`grep -c '?@' _site/posts/<slug>/index.html` → 0) and that every figure file exists.
+If Quarto is missing, download `https://github.com/quarto-dev/quarto-cli/releases/download/v1.6.42/quarto-1.6.42-linux-amd64.tar.gz` into the scratchpad and run `quarto-1.6.42/bin/quarto`. Also check the page for unresolved citations (`grep -c '?@' _site/drafts/<name>/index.html` → 0) and that every figure file exists.
 
-Before publishing, follow the **review-draft** skill without being asked: send the full draft here as one PDF of the page exactly as the site will render it, with every figure, and wait for their approval. Repeat after every revision. Skip it only if the user asked to publish without review. Until approval, keep the draft on a `draft/<slug>` branch, never on `main`.
+Then follow the **review-draft** skill without being asked: send the full draft here as one PDF of the page exactly as the site will render it, with every figure, and give the draft's URL, `https://scuenat.github.io/drafts/<name>/`. Repeat after every revision. Skip the review only if the user asked to publish without it.
 
-## 7. Publish directly to main
+## 7. Publish: the draft first, then the post
 
-Commit only sources (never `_site/`), then push straight to `main`; no branch, no pull request:
+Commit only sources (never `_site/` or `_preview/`), and push straight to `main`; no pull request. If the session started on a detached HEAD or another branch, carry the commit onto `main` (`git checkout -B main origin/main && git cherry-pick <sha>`). Retry a push that fails on a network error up to 4 times (2 s, 4 s, 8 s, 16 s). Pushing to `main` publishes through `.github/workflows/publish.yml`; after it succeeds, check the follow-up "pages build and deployment" run, and re-run it once if it fails on an upload error such as ECONNRESET.
+
+**7a. Publish the draft** as soon as the first version renders cleanly, so the user can read it at https://scuenat.github.io/drafts/<name>/ and on the list at https://scuenat.github.io/drafts/:
 
 ```bash
 git checkout main 2>/dev/null || git checkout -B main origin/main
 git pull --rebase origin main
-git add posts/<slug> fr/posts/<slug> <any page you touched>
+git add drafts/<name> fr/drafts/<name>
+git commit -m "Draft: <Title> (<kind>, English and French)"
+git push -u origin main
+```
+
+Each revision goes the same way (`git commit -m "Draft: <Title>, revised (<what changed>)"`), followed by a new review PDF. Drafts are not announced: no newsletter, no series page, no `updates:` entries.
+
+**7b. Promote it**, only when the user says the draft is approved (for example "publish it", "promote it", "approved"):
+
+```bash
+python3 .claude/skills/new-post/promote-draft.py <name> [YYYY-MM-DD]   # default date: today
+```
+
+The script moves `drafts/<name>/` to `posts/<date>-<name>/` and `fr/drafts/<name>/` to `fr/posts/<date>-<name>/` with `git mv`, sets `date:` to the publication date, rewrites the links listed in step 2, and points any page that linked the draft at the new folder. Then:
+
+- add the post where it belongs: series page (`agentic-coding.qmd` and `fr/agentic-coding.qmd`), the `::: {.series-note}`, read-next boxes of earlier posts if the series calls for it;
+- render and check that the post now appears first on the home strip, in the archive and in the feed (`grep -o 'kind-badge kind-[a-z]*' _site/index.html | head -3`), that `_site/drafts/` no longer lists it, and that `grep -rn 'drafts/<name>' --include=*.qmd .` prints nothing;
+- commit and push:
+
+```bash
+git add -A drafts fr/drafts posts/<date>-<name> fr/posts/<date>-<name> <series or other pages you touched>
 git commit -m "New <kind>: <Title> (English and French)"
 git push -u origin main
 ```
 
-If the session started on a detached HEAD or another branch, carry the commit onto `main` (`git checkout -B main origin/main && git cherry-pick <sha>`). Retry a push that fails on a network error up to 4 times (2 s, 4 s, 8 s, 16 s). Pushing to `main` publishes through `.github/workflows/publish.yml`; after it succeeds, check the follow-up "pages build and deployment" run, and re-run it once if it fails on an upload error such as ECONNRESET.
+The old draft URL stops working after promotion; that is expected, since drafts are never linked from outside the review area.
+
+A post that is already published is revised in place under `posts/` (see "Revising a published post"), not moved back to the drafts.

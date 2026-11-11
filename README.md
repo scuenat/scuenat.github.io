@@ -23,7 +23,7 @@ After that, every `git push` publishes automatically (`.github/workflows/publish
 ## Writing
 
 - Preview: `quarto preview`
-- New post: ask Claude Code to use the `new-post` skill (`.claude/skills/new-post/SKILL.md`). It asks whether the post is an essay, an analysis, a note, a position paper or an overview, follows `write-essay`, `write-analysis`, `write-note`, `write-position-paper` or `write-overview` for the shape, and publishes straight to `main`. By hand: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
+- New post: ask Claude Code to use the `new-post` skill (`.claude/skills/new-post/SKILL.md`). It asks whether the post is an essay, an analysis, a note, a position paper or an overview, follows `write-essay`, `write-analysis`, `write-note`, `write-position-paper` or `write-overview` for the shape, and publishes it to `main` as a draft first: drafts live in `drafts/<name>/` (French: `fr/drafts/<name>/`), are listed only at https://scuenat.github.io/drafts/ with a "Draft" banner and `noindex`, and stay out of the home page, archive, feed, search and sitemap. When a draft is approved, `.claude/skills/new-post/promote-draft.py <name>` moves it to `posts/<date>-<name>/`. By hand: create `posts/YYYY-MM-DD-slug/index.qmd` (copy an existing one)
 - Every post needs `kind:` (`essay`, `analysis`, `note`, `position` or `overview`): it sets the coloured badge on its card in the home strip, the theme tiles and the archive (`latest-strip.ejs`, `topic-tiles.ejs`, `archive-list.ejs`; French labels in `fr/index.qmd` and `fr/archive.qmd`). Working papers use `kind: analysis`; position papers `kind: position`
 - Paper: publish it as a post (category `paper`, `citation: true`) and put the PDF next to `index.qmd` with a download link (see `posts/2026-09-29-show-what-changed`)
 - Every post needs an `image:` (listing thumbnail and LinkedIn preview); the site default is `social-card.jpg`
@@ -37,7 +37,8 @@ Handled by the build, nothing to do per post:
 
 - `seo.lua`: a canonical URL on every page and schema.org JSON-LD (`BlogPosting`, or `ScholarlyArticle` for posts in the `paper`/`article` category; `WebSite` on the home pages; `ProfilePage` on About)
 - `lang-links.lua`: hreflang links between English and French
-- `sitemap-lastmod.py` (post-render): sitemap dates from the last commit touching each page, URLs in directory form (`/posts/x/`), like the canonical links
+- `sitemap-lastmod.py` (post-render): sitemap dates from the last commit touching each page, URLs in directory form (`/posts/x/`), like the canonical links; drafts are left out
+- `draft-banner.lua`: "Draft" banner and `noindex` on pages under `drafts/` and `fr/drafts/` (front matter `draft-preview: true`, set in their `_metadata.yml`)
 - Google Scholar tags (`google-scholar: true`) on English papers only, so each paper is indexed once
 
 Once, by hand: verify the site in [Google Search Console](https://search.google.com/search-console) (URL-prefix property `https://scuenat.github.io/`) and submit `sitemap.xml`; optionally the same in Bing Webmaster Tools.
