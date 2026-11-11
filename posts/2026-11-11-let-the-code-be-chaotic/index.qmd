@@ -1,0 +1,176 @@
+---
+title: "Let the Code Be Chaotic"
+subtitle: "A provocative position paper: the code an AI writes is chaotic, and the system can still be stable. Hold the attractor, let go of the path"
+description: "A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Stability comes from what tests hold, not from controlling the code."
+date: 2026-11-11
+citation: true
+google-scholar: true
+toc-depth: 2
+bibliography: references.bib
+categories: [paper, position, ai, agents, programming, mathematics]
+kind: position   # card marker: essay | analysis | note | position | overview
+topics: [agentic-coding]   # home-page theme tiles (index.qmd)
+image: figures/fig01.png
+resources:
+  - sim.py
+  - figs.py
+  - results.json
+  - figures/*.png
+---
+
+::: {.callout-warning appearance="simple"}
+**Position paper, November 2026. A provocative paper, on purpose.** A short paper with a thesis, a minimal model, two simulations and predictions that could prove it wrong. It continues [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd), which met one objection, *this would end in chaos*, with an economic answer. Here I take the word *chaos* literally and give a physical one. Figures 1 to 3 come from the toy models in [sim.py](sim.py), drawn by [figs.py](figs.py), with all numbers in [results.json](results.json). Figure 4 is a schematic of my own.
+:::
+
+**Abstract.** When an AI writes code, the code is not the same twice. A slightly different prompt, context or seed gives a different program, and the difference grows with each step of the agent. This looks like a loss of control, and many teams respond by trying to get it back: fixed seeds, reviewed diffs, rules about how the code must look. I argue that this response mistakes where stability comes from. Chaos theory has a precise name for systems whose paths are unpredictable but whose long-run behaviour is not: *dissipative systems with an attractor*. I model generated code as a state $x$ in a large space, behaviour as a small observation $y = \phi(x)$ of it, and the test loop as a force that pulls the checked part of $y$ back toward the spec. The model splits the freedom of generated code into three zones: what the tests hold, what no one can observe, and what can be observed but is not checked. In a chaotic toy generator, two runs that start $10^{-8}$ apart end up with unrelated code, while their tested behaviour stays within 3% of the spec. The rule that follows: **hold the attractor, let go of the path.** We can give up the exact code, its reproducibility and the line-by-line reading of it, and lose little, *if* everything that matters has been moved into the zone the loop holds. I state the condition, five predictions and a protocol to test them.
+
+::: {.callout-tip appearance="simple" icon="false"}
+## Claims
+
+1. **The thesis.** Generated code is chaotic, and mostly that is fine: an unpredictable path is not an unpredictable system.
+2. **Where the chaos lives.** In the directions no one observes, and in the observable behaviour no one checks. Only the second is dangerous.
+3. **Stability comes from dissipation, not determinism.** A loop that pulls tested behaviour back faster than the generator pushes it away creates an attractor, however chaotic the generator is.
+4. **What we can let go.** The exact code, its reproducibility, and reading it line by line. Holding them costs a lot and buys little stability.
+5. **What we cannot.** Behaviour that people can observe but no test checks. It drifts with the code. Make it a test, or put it behind a gate.
+6. **The test.** Regenerate the same feature many times: the code should differ widely, and the behaviour should differ only where coverage is missing. If code similarity predicts correct behaviour better than coverage does, the thesis is wrong.
+:::
+
+## 1. Introduction
+
+In [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd) I proposed that most changes should merge without a person approving them. The objection came at once, and it is still the one I hear most: *this would end in chaos*. That paper answered with costs. This one answers with the word itself.
+
+The objection rests on something real. Ask an agent for the same feature twice and you get two different programs. The names differ, the structure differs, sometimes the algorithm differs. Change one sentence in the prompt and the difference grows as the agent builds on its own earlier choices. Empirical work has measured this even for single requests: the same coding task sent to the same model several times often returns code that behaves differently on the tests, and setting the temperature to zero reduces this but does not remove it [@ouyang2023]. For anyone trained to treat code as the thing we own and understand line by line, this feels like losing hold of the system.
+
+Physics met the same feeling sixty years ago. In the early 1960s Edward Lorenz restarted a simple, fully deterministic weather model from numbers rounded to three decimals, and watched the new forecast drift away from the old one until they had nothing in common. In 1963 he showed the same behaviour in a three-variable model of convection [@lorenz1963]. What made the discovery profound was not only the unpredictability. It was that the unpredictable runs all lived on the same shape, the attractor, and that everything we would want to know about the climate of the model, its averages, its ranges, its regimes, was perfectly stable.
+
+My claim is that AI-generated code is, in this sense, a weather system with a climate. Its path is chaotic. Whether its behaviour is stable depends on whether we built an attractor. Letting go of the path costs little; failing to build the attractor costs everything. Much of what looks like chaos in agentic coding is an illusion produced by watching the wrong variable.
+
+## 2. Background
+
+**Chaos.** A system is chaotic when nearby states separate exponentially fast, at a rate called the largest Lyapunov exponent $\lambda$, while the motion stays bounded [@strogatz2015]. Lorenz's system has $\lambda \approx 0.9$: an initial difference is multiplied by about $e$ every unit of time, so any error in the starting point eventually swamps the forecast [@lorenz1963]. Chaos is not noise. It is deterministic, and it is everywhere: in weather, in fluids, in heartbeats, and, as Sompolinsky, Crisanti and Sommers showed, in large random networks of neurons as soon as their connections are strong enough [@sompolinsky1988].
+
+**Dissipation and attractors.** What keeps chaos bounded is dissipation. In Lorenz's system, any small volume of starting states shrinks at a fixed rate, $\sigma + 1 + \beta \approx 13.7$ per unit time, even while it is stretched in one direction. Stretched in one direction, squeezed much harder in the others, the volume collapses onto a thin set, the attractor. On it, individual paths are unpredictable, but the long-run statistics are not [@strogatz2015].
+
+**Control and synchronisation.** Two results from 1990 show how little it takes to hold chaos. Ott, Grebogi and Yorke showed that small, well-timed nudges, applied only along the unstable directions, can stabilise a chaotic system without fighting the rest of its motion [@ott1990]. Pecora and Carroll showed that two chaotic systems can be made to follow each other exactly by feeding one of them part of the other's state: the shared part synchronises, the rest is free to wander [@pecora1990]. In both, control is partial and targeted. Nobody tries to make the system predictable everywhere.
+
+**Order from below.** Haken's *slaving principle* says the same from the other side: in many complex systems, a few slow, macroscopic variables, the order parameters, set the behaviour, while the many fast microscopic ones adapt to them [@haken1983]. And Ashby's law of requisite variety, the founding rule of cybernetics, says a regulator must have as much variety as the disturbances it must absorb [@ashby1956]. The law is often quoted as a reason for control everywhere. Read carefully, it is about the *regulated* variables only. Variety elsewhere need not be matched.
+
+**Software.** Software engineering has its own versions of these facts. Lehman observed that a program in use keeps changing and grows more complex unless work is done against it [@lehman1980]: software is dissipative only if we make it so. Hyrum's law warns that, with enough users, every observable behaviour of a system will be depended on by somebody, whatever the contract says [@winters2020]. And N-version programming taught a lesson in the other direction: different implementations of one spec are less independent than they look, because they fail on the same hard inputs [@knight1986].
+
+On this site, [Intent Is the Source](../2026-10-21-intent-is-the-source/index.qmd) called the agent a *stochastic compiler*, correct only up to its checks, and [Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd) argued that shared understanding should come from the intent, not from reading diffs. What I add here is a picture of why this works when it works: a dynamical model of where generated code's freedom goes, and a rule for what to hold.
+
+![**Figure 1.** The Lorenz system, integrated twice from starting points $10^{-8}$ apart. Top: the paths are identical until about $t \approx 18$, then have nothing in common (fitted Lyapunov exponent 0.84, close to the textbook value of about 0.9). Bottom: after they part, both runs trace the same butterfly, and their long-run averages agree (mean height 23.6 and 23.4). The path is unpredictable; the place is not. Computed by [sim.py](sim.py).](figures/fig01.svg){fig-alt="Two panels. Top, a line chart of x against time from 0 to 40 for two runs, navy and amber. The lines overlap exactly until a dashed line at time about 18 labelled paths part, then oscillate independently between minus 18 and plus 18. Bottom, the x–z projection of both runs after time 20: two overlapping butterfly-shaped spirals, navy and amber, filling the same two-lobed shape. A note at the bottom left reads average height z: 23.6 and 23.4."}
+
+## 3. A minimal model
+
+Take a feature that an agent implements.
+
+- $x \in \mathbb{R}^n$ is the **code**: every choice the agent makes, from names and structure to algorithm. $n$ is large.
+- $y = \phi(x) \in \mathbb{R}^m$ is the **behaviour**: everything anyone could observe from outside, by calling the code, measuring it or depending on it. $m$ is much smaller than $n$: many programs behave the same.
+- $y^\ast$ is the **spec**: the behaviour we want.
+- The **generator** $F$ maps the code to its next version as the agent works, $x_{t+1} = F(x_t)$. I assume it is chaotic: $\lambda > 0$.
+- The **tests** check $K$ of the $m$ behaviour directions. Call the checked part $y_T$ and the unchecked part $y_U$. After each generation step, the **loop** (run the tests, fix what fails) removes a share $\kappa$ of the tested error: $e_T \leftarrow (1-\kappa)\, e_T$, where $e_T = y_T - y_T^\ast$.
+
+This splits the freedom of the code into three zones:
+
+$$
+\mathbb{R}^n = \underbrace{\mathcal{T}}_{\text{zone 1}} \oplus \underbrace{\ker \phi}_{\text{zone 2}} \oplus \underbrace{\mathcal{U}}_{\text{zone 3}} .
+$$ {#eq-zones}
+
+Zone 1, $\mathcal{T}$, is the behaviour the tests check: it is *held*. Zone 2, $\ker \phi$, is the part of the code that changes nothing anyone can see: two programs that differ only there are, from outside, the same program. Zone 3, $\mathcal{U}$, is behaviour that someone could observe, and might rely on, but that no test checks.
+
+**The condition.** Over one cycle of length $\Delta t$, the generator can stretch a small tested error by at most $e^{\lambda_T \Delta t}$, where $\lambda_T$ is the fastest rate at which it pushes the tested directions apart; the loop then shrinks it by $1 - \kappa$. The tested behaviour is held if the product is below one:
+
+$$
+\kappa_{\text{eff}} \;=\; -\frac{\ln(1-\kappa)}{\Delta t} \;>\; \lambda_T .
+$$ {#eq-condition}
+
+In words: *the loop must pull back faster than the generator pushes away, but only along the directions it holds.* This is the transversal stability condition of synchronised chaos [@pecora1990], with the spec in the role of the driving system. It says nothing about $\ker \phi$ or $\mathcal{U}$. The system as a whole can stay chaotic, with $\lambda > 0$, while zone 1 contracts, exactly as Lorenz's flow stretches along one direction and contracts along the others.
+
+**The illusion.** If we measure the distance between two runs in code, $\lVert x - x' \rVert$, we see chaos: it grows like $e^{\lambda t}$ until it reaches the size of the code itself. If we measure it in held behaviour, $\lVert y_T - y_T' \rVert$, we see a narrow band. Both are true. Which one we call *the system* decides whether we see chaos or order. Most of the apparent chaos of generated code is the first measurement taken where the second was meant, which is the *wrong level* of [It Must Be Simpler Than This](../2026-11-08-it-must-be-simpler-than-this/index.qmd).
+
+**The danger.** Zone 3 is not held, so its behaviour drifts with the code. It is invisible to the tests and visible to users. Every incident that "the tests did not catch" is, in this model, a move in zone 3.
+
+**The cost.** What the loop must specify grows with $K$, the dimensions of behaviour it holds, not with $n$, the dimensions of the code. Line-by-line review and fixed seeds try to hold all $n$. Tests try to hold $K$. When $n \gg m \geq K$, the difference is the whole argument.
+
+## 4. A chaotic generator, held by tests
+
+To see the model work, I simulate it. It is a toy, labelled as one: linear behaviour, smooth tests, a generator chosen to be chaotic on purpose.
+
+**Set-up.** The code is a vector of $n = 300$ numbers. The generator is a random recurrent network in its chaotic regime [@sompolinsky1988], $x \leftarrow x + \Delta t\,(-x + J \tanh(g x))$ with random weights $J$, gain $g = 3$ and $\Delta t = 0.1$. Behaviour is a fixed random projection to $m = 30$ numbers, and the spec is a random target. The tests check $K$ of the 30 behaviour directions, and after each step the loop removes $\kappa = 0.8$ of the tested error. Nothing else is controlled: the loop touches 30 of the 300 directions of the code, one in ten.
+
+**Twin runs.** Figure 2 starts two runs from code that differs by $10^{-8}$. The code separates like $e^{0.12\,t}$ (the system stays chaotic, with the loop on) until the two programs are as far apart as two unrelated ones. The tested behaviour of the two runs separates too, a little, but stays in a band about a hundred times narrower, around 0.1 on a scale where unconstrained behaviour wanders by 5. In a second pair of runs where only 20 of the 30 behaviour directions are tested, the untested ones (zone 3) follow the code, not the tests: they part as completely as the code does.
+
+![**Figure 2.** Two runs of the chaotic toy generator, same spec, starting $10^{-8}$ apart, on a log scale. Navy: the distance between the two programs grows exponentially and saturates at the size of the code. Green: the distance between their tested behaviour stays about a hundred times smaller, in a band set by the loop. Amber, from a run where 10 of the 30 behaviour directions are untested: those directions drift with the code. Computed by [sim.py](sim.py).](figures/fig02.svg){fig-alt="Log-scale line chart of distance between two runs against time from 0 to 250. A navy line, code, rises from 1e-8 roughly exponentially, annotated grows like e to the 0.12 t, and flattens near 10 after time 140, labelled as far apart as two unrelated programs. An amber line, behaviour no test checks, rises alongside it and flattens near 2. A green line, behaviour the tests check, rises from below 1e-9 and flattens near 0.1, labelled held within a narrow band."}
+
+**Coverage.** Figure 3a runs ten independent generations for each level of coverage, from no tests to all 30 behaviour directions tested, and measures two things: how far behaviour is from the spec, and how different the code is between runs. Without tests, behaviour is 5.1 away from the spec on average. With half the behaviour covered, it is still at 78% of that. With 90% covered, 30%. With full coverage, 2.7%. Meanwhile the code stays between 66% and 99% as different between runs as two unrelated programs, at every level of coverage. Behaviour converges only as fast as the tests cover it, and it does so without the code converging at all.
+
+**The loop against the chaos.** Figure 3b varies the two forces of @eq-condition: the strength of the loop $\kappa$, and the chaos of the generator through its gain $g$, from 1.5 to 5. The error is set almost entirely by the loop: about 65% of the free error at $\kappa = 0.05$, 30% at $0.2$, 14% at $0.4$, under 3% at $0.8$. The seven curves for seven levels of chaos lie on top of each other. In this toy, how wild the generator is barely matters. How fast and how firmly the loop pulls back is what matters.
+
+![**Figure 3.** (a) Ten independent runs per level of test coverage. Behaviour error (navy) falls only as coverage rises, and reaches 2.7% of the untested error at full coverage; the code (grey) stays 66% to 99% as different between runs as unrelated programs throughout. (b) Behaviour error at full coverage against the strength of the loop, for seven levels of chaos in the generator: the curves overlap. Computed by [sim.py](sim.py).](figures/fig03.svg){fig-alt="Two stacked line charts. Top, panel a: x-axis share of observable behaviour that tests check, 0 to 100 percent. A grey line, how different the code is between runs, starts near 1.0 and settles around 0.7. A navy line, how far behaviour is from the spec, starts at 1.0, falls slowly to about 0.7 at 60 percent, then steeply to 0.03 at 100 percent. Bottom, panel b: x-axis strength of the loop kappa from 0.05 to 1.0; y-axis behaviour error relative to no tests. Seven overlapping lines for chaos gains g from 1.5 to 5 fall together from about 0.65 at kappa 0.05 to 0.3 at 0.2, 0.14 at 0.4, 0.03 at 0.8 and 0 at 1.0."}
+
+What the simulation shows, and what it does not: it shows that the three-zone picture is coherent, that a chaotic generator and a stable behaviour can coexist, and that coverage and loop strength, not generator determinism, set the result. It does not show that real agents, real tests or real codebases behave like a linear projection of a random network. That is what Section 6 is for.
+
+## 5. The rule in practice
+
+The model gives one rule, **hold the attractor, let go of the path**, and Figure 4 turns it into three instructions, one per zone.
+
+![**Figure 4.** Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the tests check, is the attractor: keep the loop strong and fast. Zone 2, what no one can observe, can be left chaotic. Zone 3, observable but unchecked, is where the danger is: make it a test, or put it behind a gate. Schematic, my own.](figures/fig04.svg){fig-alt="Three stacked cards, each with an arrow to a coloured box. Zone 1, green, Held: the behaviour the tests check; pulled back on every loop, this is the attractor; box: keep it strong and fast. Zone 2, navy, Free and harmless: what no one can observe; names, structure, order of lines, the exact code of this run; box: let it go. Zone 3, amber, Free and not harmless: observable but not checked; latency, security, edge cases, what users came to rely on; box: make it a test, or a gate. At the bottom: the work moves from zone 3 into zone 1; zone 2 can stay chaotic."}
+
+**Zone 1: make the attractor strong and fast.** @eq-condition rewards two things: coverage of what matters, and a short loop. A test suite that runs in the agent's session, after every change, has a high $\kappa_{\text{eff}}$. A nightly suite has a low one. The same tests, run sooner, hold more. Investment that makes tests faster and failures clearer is investment in stability.
+
+**Zone 2: let it go.** This is where most of the code's apparent chaos lives, and it costs nothing to leave alone. Concretely, I would let go of three habits:
+
+- *Reproducibility of the code.* Fixed seeds and zero temperature make the path repeatable. They do not make behaviour more correct, and they give a false sense of control: a deterministic chaotic system is still unpredictable after a small change to its input, as Lorenz showed. What should be reproducible is the behaviour, and the tests already say whether it is.
+- *Reading the diff to understand the system.* The diff is a trajectory in zone 2. Understanding belongs to the intent and the checks, as [Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd) argued.
+- *Style as a form of control.* If a style rule matters, it is because something observable depends on it: readability for an agent, a size budget, a security property. Then it is a check, and it moves to zone 1. If nothing depends on it, it can go.
+
+**Zone 3: move it, or gate it.** Everything users can see and no test holds is drifting with the code. The work of a team in an agentic world is to find it and move it into zone 1: property-based tests that hold a whole family of behaviours at once [@claessen2000], contract tests taken from what clients actually call, budgets on latency and memory, security checks. What cannot be made a test, because its harm is immediate and cannot be undone, goes behind the thin gate of [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd): *approve what you cannot undo.* The gate is the one place where we still hold the path, because there the path itself is the harm.
+
+This is what "letting go without losing much" means, made precise. We let go of zone 2, which is most of the code. We lose almost nothing, because nothing observable lives there. And the *much* we might lose is exactly zone 3, which the rule tells us to shrink.
+
+## 6. Predictions and a test protocol
+
+Each prediction names a measurement and the result that would refute the thesis.
+
+- **P1. Regeneration.** Regenerate the same well-tested feature many times from the same intent. The code will differ widely between runs (large structural distance), while behaviour on the test suite agrees. Behaviour on inputs outside the suite will disagree in proportion to the untested surface. *Refuted if* code similarity between runs predicts agreement on out-of-suite behaviour better than test coverage does.
+- **P2. Where defects escape.** Defects that reach users from agent-written code will concentrate in zone 3, behaviour that is observable but unchecked, not in code that looks strange. *Refuted if* escaped defects are as frequent where coverage is strong as where it is weak, or if "unusual-looking" code predicts them better than coverage.
+- **P3. Determinism buys little.** Making generation deterministic (fixed seeds, temperature zero, pinned prompts) will reduce escaped defects much less than the same effort spent on coverage or loop speed. *Refuted if* determinism reduces escaped defects at least as much, at comparable cost.
+- **P4. Loop speed.** For the same tests, running them inside the agent's session rather than later in CI will reduce behaviour drift between regenerations, as @eq-condition predicts. *Refuted if* the timing of the same checks makes no measurable difference.
+- **P5. Hyrum's drift.** Regeneration will be riskier for old, widely used modules than for young ones at the same coverage, because users have come to rely on behaviour in zone 3 [@winters2020]. Turning observed production use into tests will remove the gap. *Refuted if* old and young modules are equally safe to regenerate at equal coverage, which would mean zone 3 matters less than I claim, or if the gap persists after the tests are added, which would mean the zone picture is wrong.
+
+**Protocol.** For P1, P3 and P4, a regeneration study: take a set of modules with good tests, regenerate each one twenty times under each condition (deterministic or not, in-session tests or not), and compare three distances: structural distance between the programs, agreement on the suite, and agreement on random inputs by differential testing [@mckeeman1998]. For P2 and P5, the stepped-wedge design of the review paper: teams adopt the three-zone rule one at a time in random order, and escaped defects are classified by zone from incident reports, not from opinions about the code.
+
+## 7. Objections and limitations
+
+**"This is randomness, not chaos."** Sampling from a language model is stochastic; chaos is deterministic. The distinction matters less than it seems. The argument needs two properties: small differences in input grow into large differences in code, and the code stays bounded. Generated code has both, at any temperature [@ouyang2023]. I used a deterministic chaotic generator on purpose, to show that even a fully deterministic generator would not give us back the control we want. Determinism is not predictability.
+
+**Hyrum's law.** With enough users, all observable behaviour is depended on [@winters2020]. Then zone 3 grows with time, and the rule asks for a lot of tests. I agree, and I take it as the strongest objection. It does not save line-by-line control, though: reading the diff does not tell you what users depend on either. What helps is observing real use and turning it into checks, which moves behaviour from zone 3 into zone 1.
+
+**Zone 2 is not free for people.** If humans must read and maintain the code, its structure is observable to them, and chaos there has a cost. True, and that cost is real today. But then the property that matters (size, coupling, readability by whoever maintains it) can be measured and held like any other behaviour. And code has mass, as [Work Has Mass](../2026-10-24-work-has-mass/index.qmd) put it: a generator left free in zone 2 may grow the code without limit, which Lehman would have predicted [@lehman1980]. Then size belongs in zone 1, with a budget.
+
+**Different code is not independent code.** Twenty regenerations of a feature look like twenty versions, but they come from one generator and share its blind spots, as N-version programming found for teams of people [@knight1986]. The thesis does not claim that regeneration gives redundancy. It claims that the differences between regenerations are mostly harmless, which is a different statement.
+
+**The attractor is only as good as the spec.** A strong loop around a wrong test holds the wrong behaviour very stably. Chaos theory does not help here: an attractor is not a truth. This is why [Intent Is the Source](../2026-10-21-intent-is-the-source/index.qmd) put the intent and the checks, not the code, at the centre of the work.
+
+**The toy is a toy.** Behaviour in real software is not a linear projection; tests are pass or fail, not smooth pulls; agents do not apply a fixed share of a correction. The simulation shows the picture is coherent and gives orders of magnitude for a made-up system. It is not evidence about real codebases. That has to come from P1 to P5.
+
+## 8. Conclusion
+
+Lorenz's lesson was not that the weather cannot be known. It was that the weather and the climate are different questions, and that the second can be answered when the first cannot. Generated code is weather. The behaviour we promised is climate. We do not need to predict the next line an agent writes, any more than a meteorologist needs to predict a single gust. We need to know which shape the system lives on, and to hold that shape firmly.
+
+Much of what looks like chaos in agentic coding is the illusion of watching the code instead of the behaviour. The part that is not an illusion is zone 3, and the work is there. Hold the attractor, let go of the path.
+
+::: {.read-next}
+**Read next** · [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd)
+The economic side of the same argument: approve what you cannot undo, watch everything else.
+:::
+
+::: {.small}
+*The views in this paper are my own and do not describe any product or plan of my employer.*
+:::
+
+## References
+
+::: {#refs}
+:::
