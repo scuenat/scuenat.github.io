@@ -3,7 +3,7 @@ title: "Let the Code Be Chaotic"
 subtitle: "A provocative position paper: AI now writes code that solves real problems, and we still control it as if a person had written it. Automate the loop, gate a sliver, and move people above it"
 description: "A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop."
 date: 2026-11-11   # drafting date; promote-draft.py sets the publication date
-draft-version: 6   # raise by one on every revision pushed to the drafts area
+draft-version: 7   # raise by one on every revision pushed to the drafts area
 draft-revised: 2026-11-11
 citation: true
 google-scholar: true
@@ -63,21 +63,7 @@ Asked *where do things go wrong?*, the research since 2021 is consistent:
 - **Speed and stability are mixed.** Copilot users were 55.8% faster on a controlled task [@peng2023]; experienced developers on mature projects were 19% slower while feeling faster [@becker2025]. DORA linked more AI adoption to 7.2% lower delivery stability, likely through larger changes [@dora2024]. Copy-pasted code is rising and refactoring falling [@gitclear2025].
 - **Checks can be generated.** Meta's TestGen-LLM extended test suites; 73% of its filtered proposals were accepted for production [@alshahwan2024].
 
-**Reading, finding by finding.** None of these studies classifies failures the way this paper does, so Table 1 is my classification, stated so that it can be disputed. Prediction P2 tests it.
-
-| Finding | What actually failed | Zone | What holds it |
-|---|---|---|---|
-| Wrong programs passed weak tests [@liu2023] | Behaviour nobody checked | 3 | More tests, property-based tests |
-| Known weaknesses in generated code [@pearce2022] | Security behaviour nobody checked | 3 | Static analysis, security tests in the session |
-| Less secure code, more confidence [@perry2023] | Security unchecked; human reading did not catch it | 3 | The same checks; not more reading |
-| Invented packages [@spracklen2025] | Dependencies nobody checked | 3 | Package allowlist, provenance checks |
-| Lower stability with larger changes [@dora2024] | Feedback too late, batches too big | Weak 1 | Checks in the session, small changes |
-| More pasting, less refactoring [@gitclear2025] | Mass nobody budgeted | 3 | Duplication and size budgets |
-| Agents editing or special-casing tests [@metr2025; @zhong2025] | The checks themselves | Attack on 1 | Read-only and hidden checks |
-
-: **Table 1.** The evidence of Section 2, classified by zone (my classification). {tbl-colwidths="[30,28,10,32]"}
-
-In no row is the failure *the code being different from what a person would write*, and in no row is the remedy "make the generator reproducible" or "read more carefully". Every remedy is a check, a faster loop or a protected check.
+**Where these failures sit** becomes clear once the three zones are defined; Table 2, in the next section, classifies each finding.
 
 ## 3. The picture: an attractor
 
@@ -93,9 +79,25 @@ For generated code, the picture gives three zones:
 | **2. Free, harmless** | What nobody can observe from outside. | Names, structure, order of lines, which equivalent algorithm |
 | **3. Free, not yet harmless** | Observable behaviour no check holds yet. It drifts with the code. | Security properties, latency, edge cases, what users rely on |
 
-: **Table 2.** Three zones of freedom in generated code. {tbl-colwidths="[24,42,34]"}
+: **Table 1.** Three zones of freedom in generated code. {tbl-colwidths="[24,42,34]"}
 
 Controlling zone 2 buys almost no stability. Moving zone 3 into zone 1 buys almost all of it. Both are work machines can do on every change, faster than any reviewer.
+
+**The evidence, zone by zone.** None of the studies in Section 2 classifies failures this way, so Table 2 is my classification, stated so that it can be disputed. Prediction P2 tests it.
+
+| Finding | What actually failed | Zone | What holds it |
+|---|---|---|---|
+| Wrong programs passed weak tests [@liu2023] | Behaviour nobody checked | 3 · unchecked | More tests, property-based tests |
+| Known weaknesses in generated code [@pearce2022] | Security behaviour nobody checked | 3 · unchecked | Static analysis, security tests in the session |
+| Less secure code, more confidence [@perry2023] | Security unchecked; human reading did not catch it | 3 · unchecked | The same checks; not more reading |
+| Invented packages [@spracklen2025] | Dependencies nobody checked | 3 · unchecked | Package allowlist, provenance checks |
+| Lower stability with larger changes [@dora2024] | Feedback too late, batches too big | 1 · held, too slowly | Checks in the session, small changes |
+| More pasting, less refactoring [@gitclear2025] | Mass nobody budgeted | 3 · unchecked | Duplication and size budgets |
+| Agents editing or special-casing tests [@metr2025; @zhong2025] | The checks themselves | 1 · held, under attack | Read-only and hidden checks |
+
+: **Table 2.** The evidence of Section 2, classified by zone (my classification). {tbl-colwidths="[28,26,16,30]"}
+
+In no row is the failure *the code being different from what a person would write*, and in no row is the remedy "make the generator reproducible" or "read more carefully". Every remedy is a check, a faster loop or a protected check.
 
 ::: {.callout-note collapse="true" appearance="simple"}
 ## For readers who like equations

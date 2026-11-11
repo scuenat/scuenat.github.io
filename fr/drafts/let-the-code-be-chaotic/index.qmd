@@ -3,7 +3,7 @@ title: "Laissez le code être chaotique"
 subtitle: "Un article de position provocateur : l'IA écrit désormais du code qui résout de vrais problèmes, et nous le contrôlons encore comme s'il avait été écrit à la main. Automatisez la boucle, gardez une mince barrière, et placez les humains au-dessus"
 description: "Un article de position provocateur : le code généré par l'IA est chaotique, presque sans danger. Automatisez les vérifications et placez les humains au-dessus de la boucle."
 date: 2026-11-11   # date de rédaction ; promote-draft.py fixe la date de publication
-draft-version: 6   # +1 à chaque révision publiée dans les brouillons
+draft-version: 7   # +1 à chaque révision publiée dans les brouillons
 draft-revised: 2026-11-11
 citation: true
 toc-depth: 2
@@ -57,21 +57,7 @@ L'objection habituelle tient en un mot : *chaos*. Le code généré n'est pas re
 - **Vitesse et stabilité sont contrastées.** Les utilisateurs de Copilot ont été 55,8 % plus rapides sur une tâche contrôlée [@peng2023] ; des développeurs expérimentés sur des projets matures ont été 19 % plus lents tout en se croyant plus rapides [@becker2025]. DORA a associé une adoption plus large de l'IA à une stabilité des livraisons inférieure de 7,2 %, probablement à cause de modifications plus grosses [@dora2024]. Le code copié-collé augmente et le remaniement recule [@gitclear2025].
 - **Les vérifications peuvent être générées.** TestGen-LLM, chez Meta, a étendu des suites de tests ; 73 % de ses propositions filtrées ont été acceptées pour la production [@alshahwan2024].
 
-**Lecture, constat par constat.** Aucune de ces études ne classe les échecs comme le fait cet article ; le tableau 1 est donc ma classification, énoncée pour pouvoir être contestée. La prédiction P2 la met à l'épreuve.
-
-| Constat | Ce qui a vraiment échoué | Zone | Ce qui le tient |
-|---|---|---|---|
-| Des programmes faux passaient des tests faibles [@liu2023] | Du comportement que personne ne vérifiait | 3 | Plus de tests, tests de propriétés |
-| Des faiblesses connues dans le code généré [@pearce2022] | Du comportement de sécurité que personne ne vérifiait | 3 | Analyse statique, tests de sécurité dans la session |
-| Code moins sûr, plus de confiance [@perry2023] | Sécurité non vérifiée ; la lecture humaine ne l'a pas vu | 3 | Les mêmes vérifications ; pas plus de lecture |
-| Paquets inventés [@spracklen2025] | Des dépendances que personne ne vérifiait | 3 | Liste autorisée de paquets, contrôle de provenance |
-| Moins de stabilité avec de plus grosses modifications [@dora2024] | Rétroaction trop tardive, lots trop gros | 1 faible | Vérifications dans la session, petites modifications |
-| Plus de copier-coller, moins de remaniement [@gitclear2025] | Une masse que personne ne budgétait | 3 | Budgets de duplication et de taille |
-| Des agents qui modifient ou contournent les tests [@metr2025; @zhong2025] | Les vérifications elles-mêmes | Attaque de 1 | Vérifications en lecture seule et cachées |
-
-: **Tableau 1.** Les faits de la section 2, classés par zone (ma classification). {tbl-colwidths="[30,28,10,32]"}
-
-Dans aucune ligne l'échec n'est *le fait que le code diffère de ce qu'une personne aurait écrit*, et dans aucune le remède n'est « rendre le générateur reproductible » ou « lire plus attentivement ». Chaque remède est une vérification, une boucle plus rapide ou une vérification protégée.
+**Où se situent ces échecs** apparaît une fois les trois zones définies ; le tableau 2, dans la section suivante, classe chaque constat.
 
 ## 3. L'image : un attracteur
 
@@ -87,9 +73,25 @@ Pour le code généré, l'image donne trois zones :
 | **2. Libre, sans danger** | Ce que personne ne peut observer de l'extérieur. | Noms, structure, ordre des lignes, choix entre algorithmes équivalents |
 | **3. Libre, pas encore sans danger** | Le comportement observable qu'aucune vérification ne tient encore. Il dérive avec le code. | Propriétés de sécurité, latence, cas limites, ce sur quoi comptent les utilisateurs |
 
-: **Tableau 2.** Trois zones de liberté dans le code généré. {tbl-colwidths="[24,42,34]"}
+: **Tableau 1.** Trois zones de liberté dans le code généré. {tbl-colwidths="[24,42,34]"}
 
 Contrôler la zone 2 n'achète presque aucune stabilité. Faire passer la zone 3 dans la zone 1 en achète presque toute. Les deux sont des travaux que les machines peuvent faire à chaque modification, plus vite que n'importe quel relecteur.
+
+**Les faits, zone par zone.** Aucune des études de la section 2 ne classe les échecs ainsi ; le tableau 2 est donc ma classification, énoncée pour pouvoir être contestée. La prédiction P2 la met à l'épreuve.
+
+| Constat | Ce qui a vraiment échoué | Zone | Ce qui le tient |
+|---|---|---|---|
+| Des programmes faux passaient des tests faibles [@liu2023] | Du comportement que personne ne vérifiait | 3 · non vérifiée | Plus de tests, tests de propriétés |
+| Des faiblesses connues dans le code généré [@pearce2022] | Du comportement de sécurité que personne ne vérifiait | 3 · non vérifiée | Analyse statique, tests de sécurité dans la session |
+| Code moins sûr, plus de confiance [@perry2023] | Sécurité non vérifiée ; la lecture humaine ne l'a pas vu | 3 · non vérifiée | Les mêmes vérifications ; pas plus de lecture |
+| Paquets inventés [@spracklen2025] | Des dépendances que personne ne vérifiait | 3 · non vérifiée | Liste autorisée de paquets, contrôle de provenance |
+| Moins de stabilité avec de plus grosses modifications [@dora2024] | Rétroaction trop tardive, lots trop gros | 1 · tenue, trop lentement | Vérifications dans la session, petites modifications |
+| Plus de copier-coller, moins de remaniement [@gitclear2025] | Une masse que personne ne budgétait | 3 · non vérifiée | Budgets de duplication et de taille |
+| Des agents qui modifient ou contournent les tests [@metr2025; @zhong2025] | Les vérifications elles-mêmes | 1 · tenue, attaquée | Vérifications en lecture seule et cachées |
+
+: **Tableau 2.** Les faits de la section 2, classés par zone (ma classification). {tbl-colwidths="[28,26,16,30]"}
+
+Dans aucune ligne l'échec n'est *le fait que le code diffère de ce qu'une personne aurait écrit*, et dans aucune le remède n'est « rendre le générateur reproductible » ou « lire plus attentivement ». Chaque remède est une vérification, une boucle plus rapide ou une vérification protégée.
 
 ::: {.callout-note collapse="true" appearance="simple"}
 ## Pour qui aime les équations
