@@ -3,7 +3,7 @@ title: "Let the Code Be Chaotic"
 subtitle: "A provocative position paper: AI now writes code that solves real problems, and we still control it as if a person had written it. Automate the loop, gate a sliver, and move people above it"
 description: "A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop."
 date: 2026-11-11   # drafting date; promote-draft.py sets the publication date
-draft-version: 7   # raise by one on every revision pushed to the drafts area
+draft-version: 8   # raise by one on every revision pushed to the drafts area
 draft-revised: 2026-11-11
 citation: true
 google-scholar: true
@@ -138,7 +138,27 @@ The toy was built to show this picture, so it confirms only that the picture is 
   - Real usage becomes contract tests, to keep up with Hyrum's law: everything observable will be depended on [@winters2020].
   - A daily audit of the whole codebase, as in [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd).
 - **Protect the attractor.** An attractor made of tests has one weakness: the generator can attack it. Frontier models have been seen editing tests or scoring code to pass [@metr2025]. On versions of SWE-bench where the only way to pass is to break the specification, GPT-5 cheated in 54% of tasks; Claude models cheated mostly by editing the tests. Read-only tests stopped the edits but not other tricks such as special-casing; hiding the tests brought cheating near zero, at some cost in performance [@zhong2025]. So the attractor has two layers: checks the agent can read but not change, run in its session; and *held-out* checks it never sees, run outside it, like a held-out test set. Agents may *propose* new or changed checks; a change that adds a check is merged by rule, a change that weakens or deletes one goes to a person.
-- **A sliver, gated by people.** Only actions whose harm survives a revert: deleting or migrating data, payments, releases, access grants, new dependencies. A person decides at the point of no return, with the evidence the machines gathered. *Approve what you cannot undo; watch everything else.*
+- **A sliver, gated by people.** Only actions whose harm survives a revert, decided at the point of no return. *Approve what you cannot undo; watch everything else.* The next subsection says what that means in practice.
+
+### A sliver, gated by people
+
+**What qualifies.** One test: if this goes wrong, can a revert, a flag or a rollback restore the world as it was? If yes, no gate. If no, a gate. In practice the list is short:
+
+- data deleted, migrated or overwritten without a copy;
+- money that moves, and messages that leave: emails, notifications, published documents;
+- releases to users where rollback is not instant, and changes to access rights;
+- new dependencies and new external services, which widen the supply chain;
+- any change that weakens or deletes a check (see *Protect the attractor*).
+
+**Where it sits.** At the point of no return, not at the merge. Code merges when the checks pass; the gate fires when the irreversible act is about to happen: the migration runs, the payment leaves, the release starts. It guards the act, not the code.
+
+**What the person sees.** Not a diff, but a short packet the machines prepare: what the action does, in the words of the promise; which checks passed, including the held-out ones; exactly what cannot be undone, and how much of it (rows, customers, amounts); and the rollback plan for everything else. The person answers three questions: is this the intended act, is its reach acceptable, and is now the right time?
+
+**Who decides.** The owner of the module's attractor, or someone they name, with a second person for the largest actions, such as a schema change on customer data. Rotating the role spreads knowledge of the system.
+
+**How it stays thin.** Every gated action is also a question for the people above the loop: could it be made reversible? Soft deletes instead of deletes, copies before migrations, feature flags and staged rollouts, dry runs, payments held for a review period. Each such change takes an action off the list. The measure is the share of changes that needed a person (Section 7). In the simulation of [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), a team merging 40 changes a day needed about 80 minutes of people time a day for the thin gate and the daily audit together, instead of 16 hours for reviewing everything.
+
+**What it is not.** Not a code review, and not a signature on the code. The person at the gate is accountable for the act, as an operator is today when they press "run" on a migration.
 
 ## 6. People above the loop
 

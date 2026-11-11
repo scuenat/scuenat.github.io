@@ -3,7 +3,7 @@ title: "Laissez le code être chaotique"
 subtitle: "Un article de position provocateur : l'IA écrit désormais du code qui résout de vrais problèmes, et nous le contrôlons encore comme s'il avait été écrit à la main. Automatisez la boucle, gardez une mince barrière, et placez les humains au-dessus"
 description: "Un article de position provocateur : le code généré par l'IA est chaotique, presque sans danger. Automatisez les vérifications et placez les humains au-dessus de la boucle."
 date: 2026-11-11   # date de rédaction ; promote-draft.py fixe la date de publication
-draft-version: 7   # +1 à chaque révision publiée dans les brouillons
+draft-version: 8   # +1 à chaque révision publiée dans les brouillons
 draft-revised: 2026-11-11
 citation: true
 toc-depth: 2
@@ -132,7 +132,27 @@ Le jouet a été construit pour montrer cette image ; il confirme seulement qu'e
   - L'usage réel devient des tests de contrat, pour suivre la loi de Hyrum : tout ce qui est observable finira par être utilisé [@winters2020].
   - Un audit quotidien de l'ensemble du code, comme dans [Arrêtez de relire les pull requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd).
 - **Protéger l'attracteur.** Un attracteur fait de tests a une faiblesse : le générateur peut l'attaquer. On a vu des modèles de pointe modifier des tests ou le code de notation pour réussir [@metr2025]. Sur des versions de SWE-bench où la seule façon de réussir est de violer la spécification, GPT-5 a triché dans 54 % des tâches ; les modèles Claude trichaient surtout en modifiant les tests. Des tests en lecture seule ont arrêté les modifications, mais pas d'autres astuces comme le traitement au cas par cas ; cacher les tests a ramené la triche près de zéro, au prix d'une certaine perte de performance [@zhong2025]. L'attracteur a donc deux couches : des vérifications que l'agent peut lire mais pas modifier, lancées dans sa session ; et des vérifications *réservées* qu'il ne voit jamais, lancées en dehors, comme un jeu de test réservé. Les agents peuvent *proposer* des vérifications nouvelles ou modifiées ; un changement qui ajoute une vérification est fusionné selon une règle, un changement qui en affaiblit ou en supprime une va à une personne.
-- **Une mince tranche, gardée par des humains.** Seulement les actions dont le dommage survit à un retour arrière : supprimer ou migrer des données, paiements, mises en production, octroi d'accès, nouvelles dépendances. Une personne décide au point de non-retour, avec les éléments que les machines ont rassemblés. *Approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.*
+- **Une mince tranche, gardée par des humains.** Seulement les actions dont le dommage survit à un retour arrière, décidées au point de non-retour. *Approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.* La sous-section suivante dit ce que cela signifie en pratique.
+
+### Une mince tranche, gardée par des humains
+
+**Ce qui est concerné.** Un seul test : si cela tourne mal, un retour arrière, un drapeau ou un rollback peuvent-ils remettre le monde dans son état antérieur ? Si oui, pas de barrière. Sinon, une barrière. En pratique, la liste est courte :
+
+- des données supprimées, migrées ou écrasées sans copie ;
+- de l'argent qui bouge, et des messages qui partent : courriels, notifications, documents publiés ;
+- des mises en production dont le retour arrière n'est pas immédiat, et des changements de droits d'accès ;
+- de nouvelles dépendances et de nouveaux services externes, qui élargissent la chaîne d'approvisionnement ;
+- tout changement qui affaiblit ou supprime une vérification (voir *Protéger l'attracteur*).
+
+**Où elle se place.** Au point de non-retour, pas à la fusion. Le code est fusionné quand les vérifications passent ; la barrière se déclenche au moment où l'acte irréversible va avoir lieu : la migration s'exécute, le paiement part, la mise en production commence. Elle garde l'acte, pas le code.
+
+**Ce que la personne voit.** Pas un diff, mais un court dossier préparé par les machines : ce que fait l'action, dans les mots de la promesse ; quelles vérifications ont réussi, y compris les vérifications réservées ; ce qui ne peut pas être défait, exactement, et dans quelle quantité (lignes, clients, montants) ; et le plan de retour arrière pour tout le reste. La personne répond à trois questions : est-ce bien l'acte voulu, sa portée est-elle acceptable, est-ce le bon moment ?
+
+**Qui décide.** Le responsable de l'attracteur du module, ou une personne qu'il désigne, avec une deuxième personne pour les actions les plus lourdes, comme un changement de schéma sur des données clients. Faire tourner ce rôle diffuse la connaissance du système.
+
+**Comment elle reste mince.** Chaque action gardée est aussi une question pour les humains au-dessus de la boucle : pourrait-elle devenir réversible ? Des suppressions logiques plutôt que des suppressions, des copies avant les migrations, des drapeaux de fonctionnalité et des déploiements progressifs, des essais à blanc, des paiements retenus pendant un délai de vérification. Chacun de ces changements retire une action de la liste. La mesure est la part des modifications qui ont demandé une personne (section 7). Dans la simulation d'[Arrêtez de relire les pull requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), une équipe qui fusionnait 40 modifications par jour avait besoin d'environ 80 minutes de temps humain par jour pour la barrière légère et l'audit quotidien réunis, au lieu de 16 heures pour tout relire.
+
+**Ce qu'elle n'est pas.** Ni une revue de code, ni une signature sur le code. La personne à la barrière répond de l'acte, comme un opérateur aujourd'hui quand il lance une migration.
 
 ## 6. Les humains au-dessus de la boucle
 
