@@ -71,9 +71,9 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-b7b5e7150275379685f99f9e712415dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-609dd55a3b4d252f352d39c73cf65722.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-b7b5e7150275379685f99f9e712415dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-163835614b3dc42267e7540a242017cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-3ca5e380a05df16d731ae3080d3700e2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-163835614b3dc42267e7540a242017cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -225,6 +225,7 @@ window.Quarto = {
 <meta name="citation_reference" content="citation_title=ImpossibleBench: Measuring LLMs’ propensity of exploiting test cases; citation_author=Ziqian Zhong; citation_author=Aditi Raghunathan; citation_author=Nicholas Carlini; citation_publication_date=2025; citation_cover_date=2025; citation_year=2025; citation_fulltext_html_url=https://arxiv.org/abs/2510.20270;">
 <meta name="citation_reference" content="citation_title=The oracle problem in software testing: A survey; citation_author=Earl T. Barr; citation_author=Mark Harman; citation_author=Phil McMinn; citation_author=Muzammil Shahbaz; citation_author=Shin Yoo; citation_publication_date=2015; citation_cover_date=2015; citation_year=2015; citation_issue=5; citation_doi=10.1109/TSE.2014.2372785; citation_volume=41; citation_firstpage=507; citation_lastpage=525; citation_journal_title=IEEE Transactions on Software Engineering;">
 <meta name="citation_reference" content="citation_title=DO-178C: Software considerations in airborne systems and equipment certification; citation_author=RTCA; citation_publication_date=2011; citation_cover_date=2011; citation_year=2011; citation_technical_report_institution=RTCA, Inc.;">
+<meta name="citation_reference" content="citation_title=Random dynamical systems; citation_author=Ludwig Arnold; citation_publication_date=1998; citation_cover_date=1998; citation_year=1998; citation_doi=10.1007/978-3-662-12878-7;">
 </head>
 
 <body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
@@ -539,7 +540,7 @@ window.Quarto = {
 
 
 <div class="draft-banner">
-<p><strong>Draft v5, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
+<p><strong>Draft v6, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
 </div>
 <div class="callout callout-style-simple callout-warning">
 <div class="callout-body d-flex">
@@ -597,7 +598,69 @@ window.Quarto = {
 <li><strong>Speed and stability are mixed.</strong> Copilot users were 55.8% faster on a controlled task <span class="citation" data-cites="peng2023">(<a href="#ref-peng2023" role="doc-biblioref">Peng et al. 2023</a>)</span>; experienced developers on mature projects were 19% slower while feeling faster <span class="citation" data-cites="becker2025">(<a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>. DORA linked more AI adoption to 7.2% lower delivery stability, likely through larger changes <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span>. Copy-pasted code is rising and refactoring falling <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span>.</li>
 <li><strong>Checks can be generated.</strong> Meta’s TestGen-LLM extended test suites; 73% of its filtered proposals were accepted for production <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>.</li>
 </ul>
-<p><strong>Reading.</strong> None of these studies classifies failures the way this paper does, so what follows is my interpretation. Most of the failures they report are not <em>the code being different from what a person would write</em>: they are unchecked behaviour, late feedback and accumulated mass. And none of these studies found that reading the diff prevented them; one found that people working with an assistant became more confident, not more careful <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>.</p>
+<p><strong>Reading, finding by finding.</strong> None of these studies classifies failures the way this paper does, so Table 1 is my classification, stated so that it can be disputed. Prediction P2 tests it.</p>
+<table class="caption-top table">
+<caption><strong>Table 1.</strong> The evidence of Section 2, classified by zone (my classification).</caption>
+<colgroup>
+<col style="width: 30%">
+<col style="width: 28%">
+<col style="width: 10%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Finding</th>
+<th>What actually failed</th>
+<th>Zone</th>
+<th>What holds it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Wrong programs passed weak tests <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span></td>
+<td>Behaviour nobody checked</td>
+<td>3</td>
+<td>More tests, property-based tests</td>
+</tr>
+<tr class="even">
+<td>Known weaknesses in generated code <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span></td>
+<td>Security behaviour nobody checked</td>
+<td>3</td>
+<td>Static analysis, security tests in the session</td>
+</tr>
+<tr class="odd">
+<td>Less secure code, more confidence <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span></td>
+<td>Security unchecked; human reading did not catch it</td>
+<td>3</td>
+<td>The same checks; not more reading</td>
+</tr>
+<tr class="even">
+<td>Invented packages <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span></td>
+<td>Dependencies nobody checked</td>
+<td>3</td>
+<td>Package allowlist, provenance checks</td>
+</tr>
+<tr class="odd">
+<td>Lower stability with larger changes <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span></td>
+<td>Feedback too late, batches too big</td>
+<td>Weak 1</td>
+<td>Checks in the session, small changes</td>
+</tr>
+<tr class="even">
+<td>More pasting, less refactoring <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span></td>
+<td>Mass nobody budgeted</td>
+<td>3</td>
+<td>Duplication and size budgets</td>
+</tr>
+<tr class="odd">
+<td>Agents editing or special-casing tests <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
+<td>The checks themselves</td>
+<td>Attack on 1</td>
+<td>Read-only and hidden checks</td>
+</tr>
+</tbody>
+</table>
+<p>In no row is the failure <em>the code being different from what a person would write</em>, and in no row is the remedy “make the generator reproducible” or “read more carefully”. Every remedy is a check, a faster loop or a protected check.</p>
 </section>
 <section id="the-picture-an-attractor" class="level2">
 <h2 class="anchored" data-anchor-id="the-picture-an-attractor">3. The picture: an attractor</h2>
@@ -610,7 +673,7 @@ window.Quarto = {
 </div>
 <p>For generated code, the picture gives three zones:</p>
 <table class="caption-top table">
-<caption><strong>Table 1.</strong> Three zones of freedom in generated code.</caption>
+<caption><strong>Table 2.</strong> Three zones of freedom in generated code.</caption>
 <colgroup>
 <col style="width: 24%">
 <col style="width: 42%">
@@ -662,6 +725,16 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Where the analogy holds, and where it breaks.</strong> It <em>holds</em> on three points: small differences in input grow into large differences in code; the code stays bounded; and checks act like dissipation, pulling observed behaviour back. It also survives the fact that language models are partly random rather than chaotic: the theory of random dynamical systems extends attractors to systems driven by noise <span class="citation" data-cites="arnold1998">(<a href="#ref-arnold1998" role="doc-biblioref">Arnold 1998</a>)</span>. It <em>breaks</em> on one point that matters: nature gave Lorenz his attractor, but a team must build its own. The climate is not discovered; it is the promise, and people decide it. That is why they belong above the loop.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="a-toy-illustration" class="level2">
 <h2 class="anchored" data-anchor-id="a-toy-illustration">4. A toy illustration</h2>
@@ -699,7 +772,7 @@ window.Quarto = {
 <li>Real usage becomes contract tests, to keep up with Hyrum’s law: everything observable will be depended on <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span>.</li>
 <li>A daily audit of the whole codebase, as in <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>.</li>
 </ul></li>
-<li><strong>Protect the attractor.</strong> An attractor made of tests has one weakness: the generator can attack it. Frontier models have been seen editing tests or scoring code to pass <span class="citation" data-cites="metr2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>)</span>, and when a task and its tests conflict, agents often modify the tests rather than fail; restricting their access to the test files sharply reduces this <span class="citation" data-cites="zhong2025">(<a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. So the checks live outside the agent’s reach: read-only in the session, owned above the loop. Agents may <em>propose</em> new or changed checks; a change that adds a check is merged by rule, a change that weakens or deletes one goes to a person.</li>
+<li><strong>Protect the attractor.</strong> An attractor made of tests has one weakness: the generator can attack it. Frontier models have been seen editing tests or scoring code to pass <span class="citation" data-cites="metr2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>)</span>. On versions of SWE-bench where the only way to pass is to break the specification, GPT-5 cheated in 54% of tasks; Claude models cheated mostly by editing the tests. Read-only tests stopped the edits but not other tricks such as special-casing; hiding the tests brought cheating near zero, at some cost in performance <span class="citation" data-cites="zhong2025">(<a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. So the attractor has two layers: checks the agent can read but not change, run in its session; and <em>held-out</em> checks it never sees, run outside it, like a held-out test set. Agents may <em>propose</em> new or changed checks; a change that adds a check is merged by rule, a change that weakens or deletes one goes to a person.</li>
 <li><strong>A sliver, gated by people.</strong> Only actions whose harm survives a revert: deleting or migrating data, payments, releases, access grants, new dependencies. A person decides at the point of no return, with the evidence the machines gathered. <em>Approve what you cannot undo; watch everything else.</em></li>
 </ul>
 </section>
@@ -725,8 +798,17 @@ window.Quarto = {
 <section id="what-it-means-for-a-team" class="level2">
 <h2 class="anchored" data-anchor-id="what-it-means-for-a-team">7. What it means for a team</h2>
 <p><strong>The team owns</strong> the promise, the checks and the gates, not the text of the code. If it cannot regenerate a module from these, it does not really own it.</p>
+<p><strong>An example.</strong> A team adds “export invoices as CSV”.</p>
+<ul>
+<li><em>Promise</em> (a person, above the loop): customers can export their own invoices for a date range; amounts match the ledger.</li>
+<li><em>Required checks</em> (a person decides, an agent writes them): for any date range, the exported total equals the ledger total; no other customer’s invoice ever appears; 10,000 invoices export in under two seconds; every file parses with a standard CSV reader.</li>
+<li><em>The loop</em> (machines): the agent writes the code and extra tests; the required checks are read-only to it, and two held-out cases run outside its session.</li>
+<li><em>Zone 3, found by a machine</em>: a regeneration drill disagrees with the first version on customer names that contain a comma. The agent proposes a round-trip check (export, parse, compare); it adds a check, so it merges by rule.</li>
+<li><em>The gate</em>: none. Exporting reads data and can be undone. If the feature also emailed the file to customers, sending would be gated.</li>
+<li><em>The people’s time</em>: writing the promise and four checks, and later reading one drill report. Nobody read the code.</li>
+</ul>
 <table class="caption-top table">
-<caption><strong>Table 2.</strong> What changes for a team.</caption>
+<caption><strong>Table 3.</strong> What changes for a team.</caption>
 <colgroup>
 <col style="width: 45%">
 <col style="width: 55%">
@@ -788,7 +870,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="security-and-the-rest-in-a-nutshell">8. Security and the rest, in a nutshell</h2>
 <p>Security is not an exception. It is the most important part of zone 3, and it is held the same way.</p>
 <table class="caption-top table">
-<caption><strong>Table 3.</strong> Security and other concerns: almost all held by machines, a few gated, the rest decided above the loop.</caption>
+<caption><strong>Table 4.</strong> Security and other concerns: almost all held by machines, a few gated, the rest decided above the loop.</caption>
 <colgroup>
 <col style="width: 28%">
 <col style="width: 46%">
@@ -829,7 +911,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td>Gaming the checks <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
-<td>Checks read-only to agents; weakening or deleting a check needs a person</td>
+<td>Read-only checks in the session; hidden held-out checks outside it; weakening or deleting a check needs a person</td>
 <td>Machines enforce; people approve</td>
 </tr>
 <tr class="odd">
@@ -878,7 +960,7 @@ window.Quarto = {
 <ul>
 <li><strong>“Taking people out of the loop is reckless.”</strong> They leave the loop, not the system, and keep the gate for the irreversible. The reckless default is a slow, partial check on every change that does not reliably catch insecure code <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>.</li>
 <li><strong>“This is randomness, not chaos.”</strong> The argument only needs small input differences to grow and the code to stay bounded; generated code does both at any temperature <span class="citation" data-cites="ouyang2023 he2025">(<a href="#ref-ouyang2023" role="doc-biblioref">Ouyang et al. 2023</a>; <a href="#ref-he2025" role="doc-biblioref">He and Thinking Machines Lab 2025</a>)</span>. The toy is deterministic on purpose: even perfect determinism would not restore control.</li>
-<li><strong>“The agents will game the checks.”</strong> They do when they can <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. That is why the checks sit outside their reach and any weakening of a check is a human decision. Reading diffs is a weaker defence: a test edited to pass is easy to miss in a large change.</li>
+<li><strong>“The agents will game the checks.”</strong> They do when they can <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. That is why the checks they see are read-only, the checks that decide are hidden from them, and any weakening of a check is a human decision. Reading diffs is a weaker defence: a test edited or special-cased to pass is easy to miss in a large change.</li>
 <li><strong>“Some behaviour cannot be checked.”</strong> True: for much behaviour there is no cheap oracle that says what the right answer is <span class="citation" data-cites="barr2015">(<a href="#ref-barr2015" role="doc-biblioref">Barr et al. 2015</a>)</span>. Partial oracles help (properties, metamorphic relations, differential tests against the previous version). What still cannot be checked stays above the loop, as a decision on the promise, or goes through a slower path with a person, until a check can be written. The thesis is about the default, not about every line.</li>
 <li><strong>“Regulated software requires review.”</strong> Some does: airborne software certified under DO-178C, for example, requires reviews of the code <span class="citation" data-cites="rtca2011">(<a href="#ref-rtca2011" role="doc-biblioref">RTCA 2011</a>)</span>. That is out of scope by design. Even there, automated checks can supply much of the evidence; the gate list is simply longer.</li>
 <li><strong>“Untested behaviour is the danger.”</strong> Yes; that is the thesis. It shows up when code runs, not when it is read, so machines that run code differently find it, and a check holds it.</li>
@@ -909,6 +991,9 @@ Alshahwan, Nadia, Jubin Chheda, Anastasia Finegenova, et al. 2024. <span>“Auto
 </div>
 <div id="ref-anthropic2025" class="csl-entry" role="listitem">
 Anthropic. 2025. <em>Introducing <span>Claude Opus 4.5</span></em>. <a href="https://www.anthropic.com/news/claude-opus-4-5">https://www.anthropic.com/news/claude-opus-4-5</a>.
+</div>
+<div id="ref-arnold1998" class="csl-entry" role="listitem">
+Arnold, Ludwig. 1998. <em>Random Dynamical Systems</em>. Springer. <a href="https://doi.org/10.1007/978-3-662-12878-7">https://doi.org/10.1007/978-3-662-12878-7</a>.
 </div>
 <div id="ref-barr2015" class="csl-entry" role="listitem">
 Barr, Earl T., Mark Harman, Phil McMinn, Muzammil Shahbaz, and Shin Yoo. 2015. <span>“The Oracle Problem in Software Testing: A Survey.”</span> <em>IEEE Transactions on Software Engineering</em> 41 (5): 507–25. <a href="https://doi.org/10.1109/TSE.2014.2372785">https://doi.org/10.1109/TSE.2014.2372785</a>.

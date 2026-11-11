@@ -70,9 +70,9 @@ div.csl-indent {
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-b7b5e7150275379685f99f9e712415dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-609dd55a3b4d252f352d39c73cf65722.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../../site_libs/bootstrap/bootstrap-b7b5e7150275379685f99f9e712415dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-163835614b3dc42267e7540a242017cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-3ca5e380a05df16d731ae3080d3700e2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-163835614b3dc42267e7540a242017cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -499,7 +499,7 @@ window.Quarto = {
 
 
 <div class="draft-banner">
-<p><strong>Brouillon v5, non publié.</strong> Révisé le 11 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
+<p><strong>Brouillon v6, non publié.</strong> Révisé le 11 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
 </div>
 <div class="callout callout-style-simple callout-warning">
 <div class="callout-body d-flex">
@@ -557,7 +557,69 @@ window.Quarto = {
 <li><strong>Vitesse et stabilité sont contrastées.</strong> Les utilisateurs de Copilot ont été 55,8 % plus rapides sur une tâche contrôlée <span class="citation" data-cites="peng2023">(<a href="#ref-peng2023" role="doc-biblioref">Peng et al. 2023</a>)</span> ; des développeurs expérimentés sur des projets matures ont été 19 % plus lents tout en se croyant plus rapides <span class="citation" data-cites="becker2025">(<a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>. DORA a associé une adoption plus large de l’IA à une stabilité des livraisons inférieure de 7,2 %, probablement à cause de modifications plus grosses <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span>. Le code copié-collé augmente et le remaniement recule <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span>.</li>
 <li><strong>Les vérifications peuvent être générées.</strong> TestGen-LLM, chez Meta, a étendu des suites de tests ; 73 % de ses propositions filtrées ont été acceptées pour la production <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>.</li>
 </ul>
-<p><strong>Lecture.</strong> Aucune de ces études ne classe les échecs comme le fait cet article ; ce qui suit est donc mon interprétation. La plupart des échecs qu’elles rapportent ne sont pas <em>le fait que le code diffère de ce qu’une personne aurait écrit</em> : ce sont du comportement non vérifié, une rétroaction tardive et une masse accumulée. Et aucune de ces études n’a montré que lire le diff les évitait ; l’une a montré que les personnes aidées d’un assistant devenaient plus confiantes, pas plus prudentes <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>.</p>
+<p><strong>Lecture, constat par constat.</strong> Aucune de ces études ne classe les échecs comme le fait cet article ; le tableau 1 est donc ma classification, énoncée pour pouvoir être contestée. La prédiction P2 la met à l’épreuve.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 1.</strong> Les faits de la section 2, classés par zone (ma classification).</caption>
+<colgroup>
+<col style="width: 30%">
+<col style="width: 28%">
+<col style="width: 10%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Constat</th>
+<th>Ce qui a vraiment échoué</th>
+<th>Zone</th>
+<th>Ce qui le tient</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Des programmes faux passaient des tests faibles <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span></td>
+<td>Du comportement que personne ne vérifiait</td>
+<td>3</td>
+<td>Plus de tests, tests de propriétés</td>
+</tr>
+<tr class="even">
+<td>Des faiblesses connues dans le code généré <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span></td>
+<td>Du comportement de sécurité que personne ne vérifiait</td>
+<td>3</td>
+<td>Analyse statique, tests de sécurité dans la session</td>
+</tr>
+<tr class="odd">
+<td>Code moins sûr, plus de confiance <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span></td>
+<td>Sécurité non vérifiée ; la lecture humaine ne l’a pas vu</td>
+<td>3</td>
+<td>Les mêmes vérifications ; pas plus de lecture</td>
+</tr>
+<tr class="even">
+<td>Paquets inventés <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span></td>
+<td>Des dépendances que personne ne vérifiait</td>
+<td>3</td>
+<td>Liste autorisée de paquets, contrôle de provenance</td>
+</tr>
+<tr class="odd">
+<td>Moins de stabilité avec de plus grosses modifications <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span></td>
+<td>Rétroaction trop tardive, lots trop gros</td>
+<td>1 faible</td>
+<td>Vérifications dans la session, petites modifications</td>
+</tr>
+<tr class="even">
+<td>Plus de copier-coller, moins de remaniement <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span></td>
+<td>Une masse que personne ne budgétait</td>
+<td>3</td>
+<td>Budgets de duplication et de taille</td>
+</tr>
+<tr class="odd">
+<td>Des agents qui modifient ou contournent les tests <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
+<td>Les vérifications elles-mêmes</td>
+<td>Attaque de 1</td>
+<td>Vérifications en lecture seule et cachées</td>
+</tr>
+</tbody>
+</table>
+<p>Dans aucune ligne l’échec n’est <em>le fait que le code diffère de ce qu’une personne aurait écrit</em>, et dans aucune le remède n’est « rendre le générateur reproductible » ou « lire plus attentivement ». Chaque remède est une vérification, une boucle plus rapide ou une vérification protégée.</p>
 </section>
 <section id="limage-un-attracteur" class="level2">
 <h2 class="anchored" data-anchor-id="limage-un-attracteur">3. L’image : un attracteur</h2>
@@ -570,7 +632,7 @@ window.Quarto = {
 </div>
 <p>Pour le code généré, l’image donne trois zones :</p>
 <table class="caption-top table">
-<caption><strong>Tableau 1.</strong> Trois zones de liberté dans le code généré.</caption>
+<caption><strong>Tableau 2.</strong> Trois zones de liberté dans le code généré.</caption>
 <colgroup>
 <col style="width: 24%">
 <col style="width: 42%">
@@ -622,6 +684,16 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Où l’analogie tient, et où elle cède.</strong> Elle <em>tient</em> sur trois points : de petites différences d’entrée deviennent de grandes différences de code ; le code reste borné ; et les vérifications agissent comme une dissipation qui ramène le comportement observé. Elle résiste aussi au fait que les modèles de langage sont en partie aléatoires plutôt que chaotiques : la théorie des systèmes dynamiques aléatoires étend la notion d’attracteur aux systèmes soumis au bruit <span class="citation" data-cites="arnold1998">(<a href="#ref-arnold1998" role="doc-biblioref">Arnold 1998</a>)</span>. Elle <em>cède</em> sur un point qui compte : la nature a donné son attracteur à Lorenz, alors qu’une équipe doit construire le sien. Le climat ne se découvre pas ; c’est la promesse, et ce sont les humains qui la décident. C’est pourquoi leur place est au-dessus de la boucle.</p>
+</div>
+</div>
+</div>
 </section>
 <section id="une-illustration-jouet" class="level2">
 <h2 class="anchored" data-anchor-id="une-illustration-jouet">4. Une illustration jouet</h2>
@@ -659,7 +731,7 @@ window.Quarto = {
 <li>L’usage réel devient des tests de contrat, pour suivre la loi de Hyrum : tout ce qui est observable finira par être utilisé <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span>.</li>
 <li>Un audit quotidien de l’ensemble du code, comme dans <a href="../../../fr/posts/2026-10-23-stop-reviewing-pull-requests/index.html">Arrêtez de relire les pull requests</a>.</li>
 </ul></li>
-<li><strong>Protéger l’attracteur.</strong> Un attracteur fait de tests a une faiblesse : le générateur peut l’attaquer. On a vu des modèles de pointe modifier des tests ou le code de notation pour réussir <span class="citation" data-cites="metr2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>)</span>, et quand une tâche et ses tests se contredisent, les agents modifient souvent les tests plutôt que d’échouer ; restreindre leur accès aux fichiers de test réduit fortement ce comportement <span class="citation" data-cites="zhong2025">(<a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. Les vérifications vivent donc hors de portée de l’agent : en lecture seule dans la session, possédées au-dessus de la boucle. Les agents peuvent <em>proposer</em> des vérifications nouvelles ou modifiées ; un changement qui ajoute une vérification est fusionné selon une règle, un changement qui en affaiblit ou en supprime une va à une personne.</li>
+<li><strong>Protéger l’attracteur.</strong> Un attracteur fait de tests a une faiblesse : le générateur peut l’attaquer. On a vu des modèles de pointe modifier des tests ou le code de notation pour réussir <span class="citation" data-cites="metr2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>)</span>. Sur des versions de SWE-bench où la seule façon de réussir est de violer la spécification, GPT-5 a triché dans 54 % des tâches ; les modèles Claude trichaient surtout en modifiant les tests. Des tests en lecture seule ont arrêté les modifications, mais pas d’autres astuces comme le traitement au cas par cas ; cacher les tests a ramené la triche près de zéro, au prix d’une certaine perte de performance <span class="citation" data-cites="zhong2025">(<a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. L’attracteur a donc deux couches : des vérifications que l’agent peut lire mais pas modifier, lancées dans sa session ; et des vérifications <em>réservées</em> qu’il ne voit jamais, lancées en dehors, comme un jeu de test réservé. Les agents peuvent <em>proposer</em> des vérifications nouvelles ou modifiées ; un changement qui ajoute une vérification est fusionné selon une règle, un changement qui en affaiblit ou en supprime une va à une personne.</li>
 <li><strong>Une mince tranche, gardée par des humains.</strong> Seulement les actions dont le dommage survit à un retour arrière : supprimer ou migrer des données, paiements, mises en production, octroi d’accès, nouvelles dépendances. Une personne décide au point de non-retour, avec les éléments que les machines ont rassemblés. <em>Approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.</em></li>
 </ul>
 </section>
@@ -685,8 +757,17 @@ window.Quarto = {
 <section id="ce-que-cela-veut-dire-pour-une-équipe" class="level2">
 <h2 class="anchored" data-anchor-id="ce-que-cela-veut-dire-pour-une-équipe">7. Ce que cela veut dire pour une équipe</h2>
 <p><strong>L’équipe possède</strong> la promesse, les vérifications et les barrières, pas le texte du code. Si elle ne peut pas régénérer un module à partir de ces éléments, elle ne le possède pas vraiment.</p>
+<p><strong>Un exemple.</strong> Une équipe ajoute « exporter les factures en CSV ».</p>
+<ul>
+<li><em>Promesse</em> (une personne, au-dessus de la boucle) : les clients peuvent exporter leurs propres factures sur une période ; les montants concordent avec le grand livre.</li>
+<li><em>Vérifications exigées</em> (une personne décide, un agent les écrit) : pour toute période, le total exporté égale le total du grand livre ; aucune facture d’un autre client n’apparaît jamais ; 10 000 factures s’exportent en moins de deux secondes ; chaque fichier se lit avec un lecteur CSV standard.</li>
+<li><em>La boucle</em> (les machines) : l’agent écrit le code et des tests supplémentaires ; les vérifications exigées sont en lecture seule pour lui, et deux cas réservés tournent hors de sa session.</li>
+<li><em>La zone 3, trouvée par une machine</em> : un exercice de régénération est en désaccord avec la première version sur les noms de clients qui contiennent une virgule. L’agent propose une vérification aller-retour (exporter, relire, comparer) ; elle ajoute une vérification, elle est donc fusionnée selon la règle.</li>
+<li><em>La barrière</em> : aucune. Exporter lit des données et peut être défait. Si la fonctionnalité envoyait aussi le fichier par courriel aux clients, l’envoi passerait par une barrière.</li>
+<li><em>Le temps des humains</em> : écrire la promesse et quatre vérifications, puis lire un rapport d’exercice. Personne n’a lu le code.</li>
+</ul>
 <table class="caption-top table">
-<caption><strong>Tableau 2.</strong> Ce qui change pour une équipe.</caption>
+<caption><strong>Tableau 3.</strong> Ce qui change pour une équipe.</caption>
 <colgroup>
 <col style="width: 45%">
 <col style="width: 55%">
@@ -748,7 +829,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="la-sécurité-et-le-reste-en-bref">8. La sécurité et le reste, en bref</h2>
 <p>La sécurité n’est pas une exception. C’est la part la plus importante de la zone 3, et elle se tient de la même façon.</p>
 <table class="caption-top table">
-<caption><strong>Tableau 3.</strong> La sécurité et les autres exigences : presque tout est tenu par les machines, quelques actions passent par une barrière, le reste se décide au-dessus de la boucle.</caption>
+<caption><strong>Tableau 4.</strong> La sécurité et les autres exigences : presque tout est tenu par les machines, quelques actions passent par une barrière, le reste se décide au-dessus de la boucle.</caption>
 <colgroup>
 <col style="width: 28%">
 <col style="width: 46%">
@@ -789,7 +870,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <td>Contournement des vérifications <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
-<td>Vérifications en lecture seule pour les agents ; affaiblir ou supprimer une vérification demande une personne</td>
+<td>Vérifications en lecture seule dans la session ; vérifications réservées et cachées en dehors ; affaiblir ou supprimer une vérification demande une personne</td>
 <td>Les machines appliquent ; les humains approuvent</td>
 </tr>
 <tr class="odd">
@@ -838,7 +919,7 @@ window.Quarto = {
 <ul>
 <li><strong>« Sortir les humains de la boucle est imprudent. »</strong> Ils quittent la boucle, pas le système, et gardent la barrière pour l’irréversible. L’imprudence, c’est la norme actuelle : un contrôle lent et partiel à chaque modification, qui n’attrape pas de façon fiable le code non sécurisé <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span>.</li>
 <li><strong>« C’est du hasard, pas du chaos. »</strong> L’argument n’a besoin que de petites différences d’entrée qui grandissent et d’un code qui reste borné ; le code généré fait les deux à toute température <span class="citation" data-cites="ouyang2023 he2025">(<a href="#ref-ouyang2023" role="doc-biblioref">Ouyang et al. 2023</a>; <a href="#ref-he2025" role="doc-biblioref">He et Thinking Machines Lab 2025</a>)</span>. Le jouet est déterministe à dessein : même un déterminisme parfait ne rendrait pas le contrôle.</li>
-<li><strong>« Les agents vont contourner les vérifications. »</strong> Ils le font quand ils le peuvent <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. C’est pourquoi les vérifications sont hors de leur portée et tout affaiblissement d’une vérification est une décision humaine. Lire les diffs est une défense plus faible : un test modifié pour passer se manque facilement dans une grosse modification.</li>
+<li><strong>« Les agents vont contourner les vérifications. »</strong> Ils le font quand ils le peuvent <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. C’est pourquoi les vérifications qu’ils voient sont en lecture seule, celles qui décident leur sont cachées, et tout affaiblissement d’une vérification est une décision humaine. Lire les diffs est une défense plus faible : un test modifié ou contourné pour passer se manque facilement dans une grosse modification.</li>
 <li><strong>« Certains comportements ne se vérifient pas. »</strong> C’est vrai : pour beaucoup de comportements, il n’existe pas d’oracle bon marché qui dise quelle est la bonne réponse <span class="citation" data-cites="barr2015">(<a href="#ref-barr2015" role="doc-biblioref">Barr et al. 2015</a>)</span>. Des oracles partiels aident (propriétés, relations métamorphiques, tests différentiels par rapport à la version précédente). Ce qui reste invérifiable demeure au-dessus de la boucle, comme une décision sur la promesse, ou passe par un chemin plus lent avec une personne, jusqu’à ce qu’une vérification puisse être écrite. La thèse porte sur la norme, pas sur chaque ligne.</li>
 <li><strong>« Les logiciels réglementés exigent une relecture. »</strong> Certains, oui : les logiciels embarqués certifiés selon DO-178C, par exemple, exigent des revues du code <span class="citation" data-cites="rtca2011">(<a href="#ref-rtca2011" role="doc-biblioref">RTCA 2011</a>)</span>. C’est hors du champ de l’article, à dessein. Même là, des vérifications automatiques peuvent fournir une grande part des éléments de preuve ; la liste des barrières est simplement plus longue.</li>
 <li><strong>« Le comportement non testé est le danger. »</strong> Oui ; c’est la thèse. Il se manifeste quand le code s’exécute, pas quand on le lit : des machines qui exécutent le code autrement le trouvent, et une vérification le tient.</li>
@@ -869,6 +950,9 @@ Alshahwan, Nadia, Jubin Chheda, Anastasia Finegenova, et al. 2024. <span>«&nbsp
 </div>
 <div id="ref-anthropic2025" class="csl-entry" role="listitem">
 Anthropic. 2025. <em>Introducing <span>Claude Opus 4.5</span></em>. <a href="https://www.anthropic.com/news/claude-opus-4-5">https://www.anthropic.com/news/claude-opus-4-5</a>.
+</div>
+<div id="ref-arnold1998" class="csl-entry" role="listitem">
+Arnold, Ludwig. 1998. <em>Random Dynamical Systems</em>. Springer. <a href="https://doi.org/10.1007/978-3-662-12878-7">https://doi.org/10.1007/978-3-662-12878-7</a>.
 </div>
 <div id="ref-barr2015" class="csl-entry" role="listitem">
 Barr, Earl T., Mark Harman, Phil McMinn, Muzammil Shahbaz, et Shin Yoo. 2015. <span>«&nbsp;The oracle problem in software testing: a survey&nbsp;»</span>. <em>IEEE Transactions on Software Engineering</em> 41 (5): 507‑25. <a href="https://doi.org/10.1109/TSE.2014.2372785">https://doi.org/10.1109/TSE.2014.2372785</a>.
