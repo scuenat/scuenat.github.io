@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="dcterms.date" content="2026-11-11">
+<meta name="description" content="A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Stability comes from what tests hold, not from controlling the code.">
+
+<title>Let the Code Be Chaotic – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-c8b8ceedad013c85258ac115b0fac031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-570fffb2a16957715d6a1457a72cee5d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-c8b8ceedad013c85258ac115b0fac031.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/drafts/let-the-code-be-chaotic/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/drafts/let-the-code-be-chaotic/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/drafts/let-the-code-be-chaotic/">
+<meta name="alt-lang-url" content="/fr/drafts/let-the-code-be-chaotic/">
+<link rel="canonical" href="https://scuenat.github.io/drafts/let-the-code-be-chaotic/">
+<meta name="robots" content="noindex, nofollow">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Let the Code Be Chaotic – AI, Honestly">
+<meta property="og:description" content="A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Stability comes from what tests hold, not from controlling the code.">
+<meta property="og:image" content="https://scuenat.github.io/drafts/let-the-code-be-chaotic/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="3110">
+<meta property="og:image:width" content="2284">
+<meta name="twitter:title" content="Let the Code Be Chaotic – AI, Honestly">
+<meta name="twitter:description" content="A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Stability comes from what tests hold, not from controlling the code.">
+<meta name="twitter:image" content="https://scuenat.github.io/drafts/let-the-code-be-chaotic/figures/fig01.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="citation_title" content="Let the Code Be Chaotic">
+<meta name="citation_author" content="Stéphane Cuenat">
+<meta name="citation_publication_date" content="2026-11-11">
+<meta name="citation_cover_date" content="2026-11-11">
+<meta name="citation_year" content="2026">
+<meta name="citation_online_date" content="2026-11-11">
+<meta name="citation_fulltext_html_url" content="https://scuenat.github.io/drafts/let-the-code-be-chaotic/">
+<meta name="citation_language" content="en">
+<meta name="citation_reference" content="citation_title=Deterministic nonperiodic flow; citation_author=Edward N. Lorenz; citation_publication_date=1963; citation_cover_date=1963; citation_year=1963; citation_issue=2; citation_doi=10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2; citation_volume=20; citation_firstpage=130; citation_lastpage=141; citation_journal_title=Journal of the Atmospheric Sciences;">
+<meta name="citation_reference" content="citation_title=Nonlinear dynamics and chaos: With applications to physics, biology, chemistry, and engineering; citation_author=Steven H. Strogatz; citation_publication_date=2015; citation_cover_date=2015; citation_year=2015;">
+<meta name="citation_reference" content="citation_title=Controlling chaos; citation_author=Edward Ott; citation_author=Celso Grebogi; citation_author=James A. Yorke; citation_publication_date=1990; citation_cover_date=1990; citation_year=1990; citation_issue=11; citation_doi=10.1103/PhysRevLett.64.1196; citation_volume=64; citation_firstpage=1196; citation_lastpage=1199; citation_journal_title=Physical Review Letters;">
+<meta name="citation_reference" content="citation_title=Synchronization in chaotic systems; citation_author=Louis M. Pecora; citation_author=Thomas L. Carroll; citation_publication_date=1990; citation_cover_date=1990; citation_year=1990; citation_issue=8; citation_doi=10.1103/PhysRevLett.64.821; citation_volume=64; citation_firstpage=821; citation_lastpage=824; citation_journal_title=Physical Review Letters;">
+<meta name="citation_reference" content="citation_title=Chaos in random neural networks; citation_author=Haim Sompolinsky; citation_author=Andrea Crisanti; citation_author=Hans-Jürgen Sommers; citation_publication_date=1988; citation_cover_date=1988; citation_year=1988; citation_issue=3; citation_doi=10.1103/PhysRevLett.61.259; citation_volume=61; citation_firstpage=259; citation_lastpage=262; citation_journal_title=Physical Review Letters;">
+<meta name="citation_reference" content="citation_title=Synergetics: An introduction; citation_author=Hermann Haken; citation_publication_date=1983; citation_cover_date=1983; citation_year=1983;">
+<meta name="citation_reference" content="citation_title=An introduction to cybernetics; citation_author=W. Ross Ashby; citation_publication_date=1956; citation_cover_date=1956; citation_year=1956;">
+<meta name="citation_reference" content="citation_title=Programs, life cycles, and laws of software evolution; citation_author=Meir M. Lehman; citation_publication_date=1980; citation_cover_date=1980; citation_year=1980; citation_issue=9; citation_doi=10.1109/PROC.1980.11805; citation_volume=68; citation_firstpage=1060; citation_lastpage=1076; citation_journal_title=Proceedings of the IEEE;">
+<meta name="citation_reference" content="citation_title=Software engineering at google: Lessons learned from programming over time; citation_author=Titus Winters; citation_author=Tom Manshreck; citation_author=Hyrum Wright; citation_publication_date=2020; citation_cover_date=2020; citation_year=2020;">
+<meta name="citation_reference" content="citation_title=An experimental evaluation of the assumption of independence in multiversion programming; citation_author=John C. Knight; citation_author=Nancy G. Leveson; citation_publication_date=1986; citation_cover_date=1986; citation_year=1986; citation_issue=1; citation_doi=10.1109/TSE.1986.6312924; citation_volume=SE-12; citation_firstpage=96; citation_lastpage=109; citation_journal_title=IEEE Transactions on Software Engineering;">
+<meta name="citation_reference" content="citation_title=LLM is like a box of chocolates: The non-determinism of ChatGPT in code generation; citation_author=Shuyin Ouyang; citation_author=Jie M. Zhang; citation_author=Mark Harman; citation_author=Meng Wang; citation_publication_date=2023; citation_cover_date=2023; citation_year=2023; citation_fulltext_html_url=https://arxiv.org/abs/2308.02828;">
+<meta name="citation_reference" content="citation_title=Differential testing for software; citation_author=William M. McKeeman; citation_publication_date=1998; citation_cover_date=1998; citation_year=1998; citation_issue=1; citation_volume=10; citation_firstpage=100; citation_lastpage=107; citation_journal_title=Digital Technical Journal;">
+<meta name="citation_reference" content="citation_title=QuickCheck: A lightweight tool for random testing of Haskell programs; citation_author=Koen Claessen; citation_author=John Hughes; citation_publication_date=2000; citation_cover_date=2000; citation_year=2000; citation_doi=10.1145/351240.351266; citation_firstpage=268; citation_lastpage=279; citation_conference_title=Proceedings of the fifth ACM SIGPLAN international conference on functional programming (ICFP);">
+</head>
+
+<body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../agentic-coding.html"> 
+<span class="menu-text">Agentic Coding</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">1. Introduction</a></li>
+  <li><a href="#background" id="toc-background" class="nav-link" data-scroll-target="#background">2. Background</a></li>
+  <li><a href="#a-minimal-model" id="toc-a-minimal-model" class="nav-link" data-scroll-target="#a-minimal-model">3. A minimal model</a></li>
+  <li><a href="#a-chaotic-generator-held-by-tests" id="toc-a-chaotic-generator-held-by-tests" class="nav-link" data-scroll-target="#a-chaotic-generator-held-by-tests">4. A chaotic generator, held by tests</a></li>
+  <li><a href="#the-rule-in-practice" id="toc-the-rule-in-practice" class="nav-link" data-scroll-target="#the-rule-in-practice">5. The rule in practice</a></li>
+  <li><a href="#predictions-and-a-test-protocol" id="toc-predictions-and-a-test-protocol" class="nav-link" data-scroll-target="#predictions-and-a-test-protocol">6. Predictions and a test protocol</a></li>
+  <li><a href="#objections-and-limitations" id="toc-objections-and-limitations" class="nav-link" data-scroll-target="#objections-and-limitations">7. Objections and limitations</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">8. Conclusion</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Let the Code Be Chaotic</h1>
+<p class="subtitle lead">A provocative position paper: the code an AI writes is chaotic, and the system can still be stable. Hold the attractor, let go of the path</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">paper</div>
+    <div class="quarto-category">position</div>
+    <div class="quarto-category">ai</div>
+    <div class="quarto-category">agents</div>
+    <div class="quarto-category">programming</div>
+    <div class="quarto-category">mathematics</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A provocative position paper: AI-generated code is chaotic, mostly harmlessly so. Stability comes from what tests hold, not from controlling the code.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 11, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout-important draft-banner" data-appearance="simple">
+<p><strong>Draft, not yet published.</strong> This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
+</div>
+<div class="callout callout-style-simple callout-warning">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Position paper, November 2026. A provocative paper, on purpose.</strong> A short paper with a thesis, a minimal model, two simulations and predictions that could prove it wrong. It continues <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>, which met one objection, <em>this would end in chaos</em>, with an economic answer. Here I take the word <em>chaos</em> literally and give a physical one. Figures 1 to 3 come from the toy models in <a href="sim.py">sim.py</a>, drawn by <a href="figs.py">figs.py</a>, with all numbers in <a href="results.json">results.json</a>. Figure 4 is a schematic of my own.</p>
+</div>
+</div>
+</div>
+<p><strong>Abstract.</strong> When an AI writes code, the code is not the same twice. A slightly different prompt, context or seed gives a different program, and the difference grows with each step of the agent. This looks like a loss of control, and many teams respond by trying to get it back: fixed seeds, reviewed diffs, rules about how the code must look. I argue that this response mistakes where stability comes from. Chaos theory has a precise name for systems whose paths are unpredictable but whose long-run behaviour is not: <em>dissipative systems with an attractor</em>. I model generated code as a state <span class="math inline">x</span> in a large space, behaviour as a small observation <span class="math inline">y = \phi(x)</span> of it, and the test loop as a force that pulls the checked part of <span class="math inline">y</span> back toward the spec. The model splits the freedom of generated code into three zones: what the tests hold, what no one can observe, and what can be observed but is not checked. In a chaotic toy generator, two runs that start <span class="math inline">10^{-8}</span> apart end up with unrelated code, while their tested behaviour stays within 3% of the spec. The rule that follows: <strong>hold the attractor, let go of the path.</strong> We can give up the exact code, its reproducibility and the line-by-line reading of it, and lose little, <em>if</em> everything that matters has been moved into the zone the loop holds. I state the condition, five predictions and a protocol to test them.</p>
+<div class="callout callout-style-simple callout-tip no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Claims
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>The thesis.</strong> Generated code is chaotic, and mostly that is fine: an unpredictable path is not an unpredictable system.</li>
+<li><strong>Where the chaos lives.</strong> In the directions no one observes, and in the observable behaviour no one checks. Only the second is dangerous.</li>
+<li><strong>Stability comes from dissipation, not determinism.</strong> A loop that pulls tested behaviour back faster than the generator pushes it away creates an attractor, however chaotic the generator is.</li>
+<li><strong>What we can let go.</strong> The exact code, its reproducibility, and reading it line by line. Holding them costs a lot and buys little stability.</li>
+<li><strong>What we cannot.</strong> Behaviour that people can observe but no test checks. It drifts with the code. Make it a test, or put it behind a gate.</li>
+<li><strong>The test.</strong> Regenerate the same feature many times: the code should differ widely, and the behaviour should differ only where coverage is missing. If code similarity predicts correct behaviour better than coverage does, the thesis is wrong.</li>
+</ol>
+</div>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">1. Introduction</h2>
+<p>In <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a> I proposed that most changes should merge without a person approving them. The objection came at once, and it is still the one I hear most: <em>this would end in chaos</em>. That paper answered with costs. This one answers with the word itself.</p>
+<p>The objection rests on something real. Ask an agent for the same feature twice and you get two different programs. The names differ, the structure differs, sometimes the algorithm differs. Change one sentence in the prompt and the difference grows as the agent builds on its own earlier choices. Empirical work has measured this even for single requests: the same coding task sent to the same model several times often returns code that behaves differently on the tests, and setting the temperature to zero reduces this but does not remove it <span class="citation" data-cites="ouyang2023">(<a href="#ref-ouyang2023" role="doc-biblioref">Ouyang et al. 2023</a>)</span>. For anyone trained to treat code as the thing we own and understand line by line, this feels like losing hold of the system.</p>
+<p>Physics met the same feeling sixty years ago. In the early 1960s Edward Lorenz restarted a simple, fully deterministic weather model from numbers rounded to three decimals, and watched the new forecast drift away from the old one until they had nothing in common. In 1963 he showed the same behaviour in a three-variable model of convection <span class="citation" data-cites="lorenz1963">(<a href="#ref-lorenz1963" role="doc-biblioref">Lorenz 1963</a>)</span>. What made the discovery profound was not only the unpredictability. It was that the unpredictable runs all lived on the same shape, the attractor, and that everything we would want to know about the climate of the model, its averages, its ranges, its regimes, was perfectly stable.</p>
+<p>My claim is that AI-generated code is, in this sense, a weather system with a climate. Its path is chaotic. Whether its behaviour is stable depends on whether we built an attractor. Letting go of the path costs little; failing to build the attractor costs everything. Much of what looks like chaos in agentic coding is an illusion produced by watching the wrong variable.</p>
+</section>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">2. Background</h2>
+<p><strong>Chaos.</strong> A system is chaotic when nearby states separate exponentially fast, at a rate called the largest Lyapunov exponent <span class="math inline">\lambda</span>, while the motion stays bounded <span class="citation" data-cites="strogatz2015">(<a href="#ref-strogatz2015" role="doc-biblioref">Strogatz 2015</a>)</span>. Lorenz’s system has <span class="math inline">\lambda \approx 0.9</span>: an initial difference is multiplied by about <span class="math inline">e</span> every unit of time, so any error in the starting point eventually swamps the forecast <span class="citation" data-cites="lorenz1963">(<a href="#ref-lorenz1963" role="doc-biblioref">Lorenz 1963</a>)</span>. Chaos is not noise. It is deterministic, and it is everywhere: in weather, in fluids, in heartbeats, and, as Sompolinsky, Crisanti and Sommers showed, in large random networks of neurons as soon as their connections are strong enough <span class="citation" data-cites="sompolinsky1988">(<a href="#ref-sompolinsky1988" role="doc-biblioref">Sompolinsky et al. 1988</a>)</span>.</p>
+<p><strong>Dissipation and attractors.</strong> What keeps chaos bounded is dissipation. In Lorenz’s system, any small volume of starting states shrinks at a fixed rate, <span class="math inline">\sigma + 1 + \beta \approx 13.7</span> per unit time, even while it is stretched in one direction. Stretched in one direction, squeezed much harder in the others, the volume collapses onto a thin set, the attractor. On it, individual paths are unpredictable, but the long-run statistics are not <span class="citation" data-cites="strogatz2015">(<a href="#ref-strogatz2015" role="doc-biblioref">Strogatz 2015</a>)</span>.</p>
+<p><strong>Control and synchronisation.</strong> Two results from 1990 show how little it takes to hold chaos. Ott, Grebogi and Yorke showed that small, well-timed nudges, applied only along the unstable directions, can stabilise a chaotic system without fighting the rest of its motion <span class="citation" data-cites="ott1990">(<a href="#ref-ott1990" role="doc-biblioref">Ott et al. 1990</a>)</span>. Pecora and Carroll showed that two chaotic systems can be made to follow each other exactly by feeding one of them part of the other’s state: the shared part synchronises, the rest is free to wander <span class="citation" data-cites="pecora1990">(<a href="#ref-pecora1990" role="doc-biblioref">Pecora and Carroll 1990</a>)</span>. In both, control is partial and targeted. Nobody tries to make the system predictable everywhere.</p>
+<p><strong>Order from below.</strong> Haken’s <em>slaving principle</em> says the same from the other side: in many complex systems, a few slow, macroscopic variables, the order parameters, set the behaviour, while the many fast microscopic ones adapt to them <span class="citation" data-cites="haken1983">(<a href="#ref-haken1983" role="doc-biblioref">Haken 1983</a>)</span>. And Ashby’s law of requisite variety, the founding rule of cybernetics, says a regulator must have as much variety as the disturbances it must absorb <span class="citation" data-cites="ashby1956">(<a href="#ref-ashby1956" role="doc-biblioref">Ashby 1956</a>)</span>. The law is often quoted as a reason for control everywhere. Read carefully, it is about the <em>regulated</em> variables only. Variety elsewhere need not be matched.</p>
+<p><strong>Software.</strong> Software engineering has its own versions of these facts. Lehman observed that a program in use keeps changing and grows more complex unless work is done against it <span class="citation" data-cites="lehman1980">(<a href="#ref-lehman1980" role="doc-biblioref">Lehman 1980</a>)</span>: software is dissipative only if we make it so. Hyrum’s law warns that, with enough users, every observable behaviour of a system will be depended on by somebody, whatever the contract says <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span>. And N-version programming taught a lesson in the other direction: different implementations of one spec are less independent than they look, because they fail on the same hard inputs <span class="citation" data-cites="knight1986">(<a href="#ref-knight1986" role="doc-biblioref">Knight and Leveson 1986</a>)</span>.</p>
+<p>On this site, <a href="../../posts/2026-10-21-intent-is-the-source/index.html">Intent Is the Source</a> called the agent a <em>stochastic compiler</em>, correct only up to its checks, and <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a> argued that shared understanding should come from the intent, not from reading diffs. What I add here is a picture of why this works when it works: a dynamical model of where generated code’s freedom goes, and a rule for what to hold.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. The Lorenz system, integrated twice from starting points 10^{-8} apart. Top: the paths are identical until about t \approx 18, then have nothing in common (fitted Lyapunov exponent 0.84, close to the textbook value of about 0.9). Bottom: after they part, both runs trace the same butterfly, and their long-run averages agree (mean height 23.6 and 23.4). The path is unpredictable; the place is not. Computed by sim.py."><img src="figures/fig01.svg" class="img-fluid figure-img" alt="Two panels. Top, a line chart of x against time from 0 to 40 for two runs, navy and amber. The lines overlap exactly until a dashed line at time about 18 labelled paths part, then oscillate independently between minus 18 and plus 18. Bottom, the x–z projection of both runs after time 20: two overlapping butterfly-shaped spirals, navy and amber, filling the same two-lobed shape. A note at the bottom left reads average height z: 23.6 and 23.4."></a></p>
+<figcaption><strong>Figure 1.</strong> The Lorenz system, integrated twice from starting points <span class="math inline">10^{-8}</span> apart. Top: the paths are identical until about <span class="math inline">t \approx 18</span>, then have nothing in common (fitted Lyapunov exponent 0.84, close to the textbook value of about 0.9). Bottom: after they part, both runs trace the same butterfly, and their long-run averages agree (mean height 23.6 and 23.4). The path is unpredictable; the place is not. Computed by <a href="sim.py">sim.py</a>.</figcaption>
+</figure>
+</div>
+</section>
+<section id="a-minimal-model" class="level2">
+<h2 class="anchored" data-anchor-id="a-minimal-model">3. A minimal model</h2>
+<p>Take a feature that an agent implements.</p>
+<ul>
+<li><span class="math inline">x \in \mathbb{R}^n</span> is the <strong>code</strong>: every choice the agent makes, from names and structure to algorithm. <span class="math inline">n</span> is large.</li>
+<li><span class="math inline">y = \phi(x) \in \mathbb{R}^m</span> is the <strong>behaviour</strong>: everything anyone could observe from outside, by calling the code, measuring it or depending on it. <span class="math inline">m</span> is much smaller than <span class="math inline">n</span>: many programs behave the same.</li>
+<li><span class="math inline">y^\ast</span> is the <strong>spec</strong>: the behaviour we want.</li>
+<li>The <strong>generator</strong> <span class="math inline">F</span> maps the code to its next version as the agent works, <span class="math inline">x_{t+1} = F(x_t)</span>. I assume it is chaotic: <span class="math inline">\lambda &gt; 0</span>.</li>
+<li>The <strong>tests</strong> check <span class="math inline">K</span> of the <span class="math inline">m</span> behaviour directions. Call the checked part <span class="math inline">y_T</span> and the unchecked part <span class="math inline">y_U</span>. After each generation step, the <strong>loop</strong> (run the tests, fix what fails) removes a share <span class="math inline">\kappa</span> of the tested error: <span class="math inline">e_T \leftarrow (1-\kappa)\, e_T</span>, where <span class="math inline">e_T = y_T - y_T^\ast</span>.</li>
+</ul>
+<p>This splits the freedom of the code into three zones:</p>
+<p><span id="eq-zones"><span class="math display">
+\mathbb{R}^n = \underbrace{\mathcal{T}}_{\text{zone 1}} \oplus \underbrace{\ker \phi}_{\text{zone 2}} \oplus \underbrace{\mathcal{U}}_{\text{zone 3}} .
+\tag{1}</span></span></p>
+<p>Zone 1, <span class="math inline">\mathcal{T}</span>, is the behaviour the tests check: it is <em>held</em>. Zone 2, <span class="math inline">\ker \phi</span>, is the part of the code that changes nothing anyone can see: two programs that differ only there are, from outside, the same program. Zone 3, <span class="math inline">\mathcal{U}</span>, is behaviour that someone could observe, and might rely on, but that no test checks.</p>
+<p><strong>The condition.</strong> Over one cycle of length <span class="math inline">\Delta t</span>, the generator can stretch a small tested error by at most <span class="math inline">e^{\lambda_T \Delta t}</span>, where <span class="math inline">\lambda_T</span> is the fastest rate at which it pushes the tested directions apart; the loop then shrinks it by <span class="math inline">1 - \kappa</span>. The tested behaviour is held if the product is below one:</p>
+<p><span id="eq-condition"><span class="math display">
+\kappa_{\text{eff}} \;=\; -\frac{\ln(1-\kappa)}{\Delta t} \;&gt;\; \lambda_T .
+\tag{2}</span></span></p>
+<p>In words: <em>the loop must pull back faster than the generator pushes away, but only along the directions it holds.</em> This is the transversal stability condition of synchronised chaos <span class="citation" data-cites="pecora1990">(<a href="#ref-pecora1990" role="doc-biblioref">Pecora and Carroll 1990</a>)</span>, with the spec in the role of the driving system. It says nothing about <span class="math inline">\ker \phi</span> or <span class="math inline">\mathcal{U}</span>. The system as a whole can stay chaotic, with <span class="math inline">\lambda &gt; 0</span>, while zone 1 contracts, exactly as Lorenz’s flow stretches along one direction and contracts along the others.</p>
+<p><strong>The illusion.</strong> If we measure the distance between two runs in code, <span class="math inline">\lVert x - x' \rVert</span>, we see chaos: it grows like <span class="math inline">e^{\lambda t}</span> until it reaches the size of the code itself. If we measure it in held behaviour, <span class="math inline">\lVert y_T - y_T' \rVert</span>, we see a narrow band. Both are true. Which one we call <em>the system</em> decides whether we see chaos or order. Most of the apparent chaos of generated code is the first measurement taken where the second was meant, which is the <em>wrong level</em> of <a href="../../posts/2026-11-08-it-must-be-simpler-than-this/index.html">It Must Be Simpler Than This</a>.</p>
+<p><strong>The danger.</strong> Zone 3 is not held, so its behaviour drifts with the code. It is invisible to the tests and visible to users. Every incident that “the tests did not catch” is, in this model, a move in zone 3.</p>
+<p><strong>The cost.</strong> What the loop must specify grows with <span class="math inline">K</span>, the dimensions of behaviour it holds, not with <span class="math inline">n</span>, the dimensions of the code. Line-by-line review and fixed seeds try to hold all <span class="math inline">n</span>. Tests try to hold <span class="math inline">K</span>. When <span class="math inline">n \gg m \geq K</span>, the difference is the whole argument.</p>
+</section>
+<section id="a-chaotic-generator-held-by-tests" class="level2">
+<h2 class="anchored" data-anchor-id="a-chaotic-generator-held-by-tests">4. A chaotic generator, held by tests</h2>
+<p>To see the model work, I simulate it. It is a toy, labelled as one: linear behaviour, smooth tests, a generator chosen to be chaotic on purpose.</p>
+<p><strong>Set-up.</strong> The code is a vector of <span class="math inline">n = 300</span> numbers. The generator is a random recurrent network in its chaotic regime <span class="citation" data-cites="sompolinsky1988">(<a href="#ref-sompolinsky1988" role="doc-biblioref">Sompolinsky et al. 1988</a>)</span>, <span class="math inline">x \leftarrow x + \Delta t\,(-x + J \tanh(g x))</span> with random weights <span class="math inline">J</span>, gain <span class="math inline">g = 3</span> and <span class="math inline">\Delta t = 0.1</span>. Behaviour is a fixed random projection to <span class="math inline">m = 30</span> numbers, and the spec is a random target. The tests check <span class="math inline">K</span> of the 30 behaviour directions, and after each step the loop removes <span class="math inline">\kappa = 0.8</span> of the tested error. Nothing else is controlled: the loop touches 30 of the 300 directions of the code, one in ten.</p>
+<p><strong>Twin runs.</strong> Figure 2 starts two runs from code that differs by <span class="math inline">10^{-8}</span>. The code separates like <span class="math inline">e^{0.12\,t}</span> (the system stays chaotic, with the loop on) until the two programs are as far apart as two unrelated ones. The tested behaviour of the two runs separates too, a little, but stays in a band about a hundred times narrower, around 0.1 on a scale where unconstrained behaviour wanders by 5. In a second pair of runs where only 20 of the 30 behaviour directions are tested, the untested ones (zone 3) follow the code, not the tests: they part as completely as the code does.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Two runs of the chaotic toy generator, same spec, starting 10^{-8} apart, on a log scale. Navy: the distance between the two programs grows exponentially and saturates at the size of the code. Green: the distance between their tested behaviour stays about a hundred times smaller, in a band set by the loop. Amber, from a run where 10 of the 30 behaviour directions are untested: those directions drift with the code. Computed by sim.py."><img src="figures/fig02.svg" class="img-fluid figure-img" alt="Log-scale line chart of distance between two runs against time from 0 to 250. A navy line, code, rises from 1e-8 roughly exponentially, annotated grows like e to the 0.12 t, and flattens near 10 after time 140, labelled as far apart as two unrelated programs. An amber line, behaviour no test checks, rises alongside it and flattens near 2. A green line, behaviour the tests check, rises from below 1e-9 and flattens near 0.1, labelled held within a narrow band."></a></p>
+<figcaption><strong>Figure 2.</strong> Two runs of the chaotic toy generator, same spec, starting <span class="math inline">10^{-8}</span> apart, on a log scale. Navy: the distance between the two programs grows exponentially and saturates at the size of the code. Green: the distance between their tested behaviour stays about a hundred times smaller, in a band set by the loop. Amber, from a run where 10 of the 30 behaviour directions are untested: those directions drift with the code. Computed by <a href="sim.py">sim.py</a>.</figcaption>
+</figure>
+</div>
+<p><strong>Coverage.</strong> Figure 3a runs ten independent generations for each level of coverage, from no tests to all 30 behaviour directions tested, and measures two things: how far behaviour is from the spec, and how different the code is between runs. Without tests, behaviour is 5.1 away from the spec on average. With half the behaviour covered, it is still at 78% of that. With 90% covered, 30%. With full coverage, 2.7%. Meanwhile the code stays between 66% and 99% as different between runs as two unrelated programs, at every level of coverage. Behaviour converges only as fast as the tests cover it, and it does so without the code converging at all.</p>
+<p><strong>The loop against the chaos.</strong> Figure 3b varies the two forces of <a href="#eq-condition" class="quarto-xref">Equation&nbsp;2</a>: the strength of the loop <span class="math inline">\kappa</span>, and the chaos of the generator through its gain <span class="math inline">g</span>, from 1.5 to 5. The error is set almost entirely by the loop: about 65% of the free error at <span class="math inline">\kappa = 0.05</span>, 30% at <span class="math inline">0.2</span>, 14% at <span class="math inline">0.4</span>, under 3% at <span class="math inline">0.8</span>. The seven curves for seven levels of chaos lie on top of each other. In this toy, how wild the generator is barely matters. How fast and how firmly the loop pulls back is what matters.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. (a) Ten independent runs per level of test coverage. Behaviour error (navy) falls only as coverage rises, and reaches 2.7% of the untested error at full coverage; the code (grey) stays 66% to 99% as different between runs as unrelated programs throughout. (b) Behaviour error at full coverage against the strength of the loop, for seven levels of chaos in the generator: the curves overlap. Computed by sim.py."><img src="figures/fig03.svg" class="img-fluid figure-img" alt="Two stacked line charts. Top, panel a: x-axis share of observable behaviour that tests check, 0 to 100 percent. A grey line, how different the code is between runs, starts near 1.0 and settles around 0.7. A navy line, how far behaviour is from the spec, starts at 1.0, falls slowly to about 0.7 at 60 percent, then steeply to 0.03 at 100 percent. Bottom, panel b: x-axis strength of the loop kappa from 0.05 to 1.0; y-axis behaviour error relative to no tests. Seven overlapping lines for chaos gains g from 1.5 to 5 fall together from about 0.65 at kappa 0.05 to 0.3 at 0.2, 0.14 at 0.4, 0.03 at 0.8 and 0 at 1.0."></a></p>
+<figcaption><strong>Figure 3.</strong> (a) Ten independent runs per level of test coverage. Behaviour error (navy) falls only as coverage rises, and reaches 2.7% of the untested error at full coverage; the code (grey) stays 66% to 99% as different between runs as unrelated programs throughout. (b) Behaviour error at full coverage against the strength of the loop, for seven levels of chaos in the generator: the curves overlap. Computed by <a href="sim.py">sim.py</a>.</figcaption>
+</figure>
+</div>
+<p>What the simulation shows, and what it does not: it shows that the three-zone picture is coherent, that a chaotic generator and a stable behaviour can coexist, and that coverage and loop strength, not generator determinism, set the result. It does not show that real agents, real tests or real codebases behave like a linear projection of a random network. That is what Section 6 is for.</p>
+</section>
+<section id="the-rule-in-practice" class="level2">
+<h2 class="anchored" data-anchor-id="the-rule-in-practice">5. The rule in practice</h2>
+<p>The model gives one rule, <strong>hold the attractor, let go of the path</strong>, and Figure 4 turns it into three instructions, one per zone.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the tests check, is the attractor: keep the loop strong and fast. Zone 2, what no one can observe, can be left chaotic. Zone 3, observable but unchecked, is where the danger is: make it a test, or put it behind a gate. Schematic, my own."><img src="figures/fig04.svg" class="img-fluid figure-img" alt="Three stacked cards, each with an arrow to a coloured box. Zone 1, green, Held: the behaviour the tests check; pulled back on every loop, this is the attractor; box: keep it strong and fast. Zone 2, navy, Free and harmless: what no one can observe; names, structure, order of lines, the exact code of this run; box: let it go. Zone 3, amber, Free and not harmless: observable but not checked; latency, security, edge cases, what users came to rely on; box: make it a test, or a gate. At the bottom: the work moves from zone 3 into zone 1; zone 2 can stay chaotic."></a></p>
+<figcaption><strong>Figure 4.</strong> Three kinds of freedom in generated code, and what to do with each. Zone 1, the behaviour the tests check, is the attractor: keep the loop strong and fast. Zone 2, what no one can observe, can be left chaotic. Zone 3, observable but unchecked, is where the danger is: make it a test, or put it behind a gate. Schematic, my own.</figcaption>
+</figure>
+</div>
+<p><strong>Zone 1: make the attractor strong and fast.</strong> <a href="#eq-condition" class="quarto-xref">Equation&nbsp;2</a> rewards two things: coverage of what matters, and a short loop. A test suite that runs in the agent’s session, after every change, has a high <span class="math inline">\kappa_{\text{eff}}</span>. A nightly suite has a low one. The same tests, run sooner, hold more. Investment that makes tests faster and failures clearer is investment in stability.</p>
+<p><strong>Zone 2: let it go.</strong> This is where most of the code’s apparent chaos lives, and it costs nothing to leave alone. Concretely, I would let go of three habits:</p>
+<ul>
+<li><em>Reproducibility of the code.</em> Fixed seeds and zero temperature make the path repeatable. They do not make behaviour more correct, and they give a false sense of control: a deterministic chaotic system is still unpredictable after a small change to its input, as Lorenz showed. What should be reproducible is the behaviour, and the tests already say whether it is.</li>
+<li><em>Reading the diff to understand the system.</em> The diff is a trajectory in zone 2. Understanding belongs to the intent and the checks, as <a href="../../posts/2026-10-22-review-the-intent-not-the-diff/index.html">Review the Intent, Not the Diff</a> argued.</li>
+<li><em>Style as a form of control.</em> If a style rule matters, it is because something observable depends on it: readability for an agent, a size budget, a security property. Then it is a check, and it moves to zone 1. If nothing depends on it, it can go.</li>
+</ul>
+<p><strong>Zone 3: move it, or gate it.</strong> Everything users can see and no test holds is drifting with the code. The work of a team in an agentic world is to find it and move it into zone 1: property-based tests that hold a whole family of behaviours at once <span class="citation" data-cites="claessen2000">(<a href="#ref-claessen2000" role="doc-biblioref">Claessen and Hughes 2000</a>)</span>, contract tests taken from what clients actually call, budgets on latency and memory, security checks. What cannot be made a test, because its harm is immediate and cannot be undone, goes behind the thin gate of <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>: <em>approve what you cannot undo.</em> The gate is the one place where we still hold the path, because there the path itself is the harm.</p>
+<p>This is what “letting go without losing much” means, made precise. We let go of zone 2, which is most of the code. We lose almost nothing, because nothing observable lives there. And the <em>much</em> we might lose is exactly zone 3, which the rule tells us to shrink.</p>
+</section>
+<section id="predictions-and-a-test-protocol" class="level2">
+<h2 class="anchored" data-anchor-id="predictions-and-a-test-protocol">6. Predictions and a test protocol</h2>
+<p>Each prediction names a measurement and the result that would refute the thesis.</p>
+<ul>
+<li><strong>P1. Regeneration.</strong> Regenerate the same well-tested feature many times from the same intent. The code will differ widely between runs (large structural distance), while behaviour on the test suite agrees. Behaviour on inputs outside the suite will disagree in proportion to the untested surface. <em>Refuted if</em> code similarity between runs predicts agreement on out-of-suite behaviour better than test coverage does.</li>
+<li><strong>P2. Where defects escape.</strong> Defects that reach users from agent-written code will concentrate in zone 3, behaviour that is observable but unchecked, not in code that looks strange. <em>Refuted if</em> escaped defects are as frequent where coverage is strong as where it is weak, or if “unusual-looking” code predicts them better than coverage.</li>
+<li><strong>P3. Determinism buys little.</strong> Making generation deterministic (fixed seeds, temperature zero, pinned prompts) will reduce escaped defects much less than the same effort spent on coverage or loop speed. <em>Refuted if</em> determinism reduces escaped defects at least as much, at comparable cost.</li>
+<li><strong>P4. Loop speed.</strong> For the same tests, running them inside the agent’s session rather than later in CI will reduce behaviour drift between regenerations, as <a href="#eq-condition" class="quarto-xref">Equation&nbsp;2</a> predicts. <em>Refuted if</em> the timing of the same checks makes no measurable difference.</li>
+<li><strong>P5. Hyrum’s drift.</strong> Regeneration will be riskier for old, widely used modules than for young ones at the same coverage, because users have come to rely on behaviour in zone 3 <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span>. Turning observed production use into tests will remove the gap. <em>Refuted if</em> old and young modules are equally safe to regenerate at equal coverage, which would mean zone 3 matters less than I claim, or if the gap persists after the tests are added, which would mean the zone picture is wrong.</li>
+</ul>
+<p><strong>Protocol.</strong> For P1, P3 and P4, a regeneration study: take a set of modules with good tests, regenerate each one twenty times under each condition (deterministic or not, in-session tests or not), and compare three distances: structural distance between the programs, agreement on the suite, and agreement on random inputs by differential testing <span class="citation" data-cites="mckeeman1998">(<a href="#ref-mckeeman1998" role="doc-biblioref">McKeeman 1998</a>)</span>. For P2 and P5, the stepped-wedge design of the review paper: teams adopt the three-zone rule one at a time in random order, and escaped defects are classified by zone from incident reports, not from opinions about the code.</p>
+</section>
+<section id="objections-and-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="objections-and-limitations">7. Objections and limitations</h2>
+<p><strong>“This is randomness, not chaos.”</strong> Sampling from a language model is stochastic; chaos is deterministic. The distinction matters less than it seems. The argument needs two properties: small differences in input grow into large differences in code, and the code stays bounded. Generated code has both, at any temperature <span class="citation" data-cites="ouyang2023">(<a href="#ref-ouyang2023" role="doc-biblioref">Ouyang et al. 2023</a>)</span>. I used a deterministic chaotic generator on purpose, to show that even a fully deterministic generator would not give us back the control we want. Determinism is not predictability.</p>
+<p><strong>Hyrum’s law.</strong> With enough users, all observable behaviour is depended on <span class="citation" data-cites="winters2020">(<a href="#ref-winters2020" role="doc-biblioref">Winters et al. 2020</a>)</span>. Then zone 3 grows with time, and the rule asks for a lot of tests. I agree, and I take it as the strongest objection. It does not save line-by-line control, though: reading the diff does not tell you what users depend on either. What helps is observing real use and turning it into checks, which moves behaviour from zone 3 into zone 1.</p>
+<p><strong>Zone 2 is not free for people.</strong> If humans must read and maintain the code, its structure is observable to them, and chaos there has a cost. True, and that cost is real today. But then the property that matters (size, coupling, readability by whoever maintains it) can be measured and held like any other behaviour. And code has mass, as <a href="../../posts/2026-10-24-work-has-mass/index.html">Work Has Mass</a> put it: a generator left free in zone 2 may grow the code without limit, which Lehman would have predicted <span class="citation" data-cites="lehman1980">(<a href="#ref-lehman1980" role="doc-biblioref">Lehman 1980</a>)</span>. Then size belongs in zone 1, with a budget.</p>
+<p><strong>Different code is not independent code.</strong> Twenty regenerations of a feature look like twenty versions, but they come from one generator and share its blind spots, as N-version programming found for teams of people <span class="citation" data-cites="knight1986">(<a href="#ref-knight1986" role="doc-biblioref">Knight and Leveson 1986</a>)</span>. The thesis does not claim that regeneration gives redundancy. It claims that the differences between regenerations are mostly harmless, which is a different statement.</p>
+<p><strong>The attractor is only as good as the spec.</strong> A strong loop around a wrong test holds the wrong behaviour very stably. Chaos theory does not help here: an attractor is not a truth. This is why <a href="../../posts/2026-10-21-intent-is-the-source/index.html">Intent Is the Source</a> put the intent and the checks, not the code, at the centre of the work.</p>
+<p><strong>The toy is a toy.</strong> Behaviour in real software is not a linear projection; tests are pass or fail, not smooth pulls; agents do not apply a fixed share of a correction. The simulation shows the picture is coherent and gives orders of magnitude for a made-up system. It is not evidence about real codebases. That has to come from P1 to P5.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">8. Conclusion</h2>
+<p>Lorenz’s lesson was not that the weather cannot be known. It was that the weather and the climate are different questions, and that the second can be answered when the first cannot. Generated code is weather. The behaviour we promised is climate. We do not need to predict the next line an agent writes, any more than a meteorologist needs to predict a single gust. We need to know which shape the system lives on, and to hold that shape firmly.</p>
+<p>Much of what looks like chaos in agentic coding is the illusion of watching the code instead of the behaviour. The part that is not an illusion is zone 3, and the work is there. Hold the attractor, let go of the path.</p>
+<div class="read-next">
+<p><strong>Read next</strong> · <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a> The economic side of the same argument: approve what you cannot undo, watch everything else.</p>
+</div>
+<div class="small">
+<p><em>The views in this paper are my own and do not describe any product or plan of my employer.</em></p>
+</div>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-ashby1956" class="csl-entry" role="listitem">
+Ashby, W. Ross. 1956. <em>An Introduction to Cybernetics</em>. Chapman &amp; Hall.
+</div>
+<div id="ref-claessen2000" class="csl-entry" role="listitem">
+Claessen, Koen, and John Hughes. 2000. <span>“<span>QuickCheck</span>: A Lightweight Tool for Random Testing of <span>Haskell</span> Programs.”</span> <em>Proceedings of the Fifth ACM SIGPLAN International Conference on Functional Programming (ICFP)</em>, 268–79. <a href="https://doi.org/10.1145/351240.351266">https://doi.org/10.1145/351240.351266</a>.
+</div>
+<div id="ref-haken1983" class="csl-entry" role="listitem">
+Haken, Hermann. 1983. <em>Synergetics: An Introduction</em>. 3rd ed. Springer.
+</div>
+<div id="ref-knight1986" class="csl-entry" role="listitem">
+Knight, John C., and Nancy G. Leveson. 1986. <span>“An Experimental Evaluation of the Assumption of Independence in Multiversion Programming.”</span> <em>IEEE Transactions on Software Engineering</em> SE-12 (1): 96–109. <a href="https://doi.org/10.1109/TSE.1986.6312924">https://doi.org/10.1109/TSE.1986.6312924</a>.
+</div>
+<div id="ref-lehman1980" class="csl-entry" role="listitem">
+Lehman, Meir M. 1980. <span>“Programs, Life Cycles, and Laws of Software Evolution.”</span> <em>Proceedings of the IEEE</em> 68 (9): 1060–76. <a href="https://doi.org/10.1109/PROC.1980.11805">https://doi.org/10.1109/PROC.1980.11805</a>.
+</div>
+<div id="ref-lorenz1963" class="csl-entry" role="listitem">
+Lorenz, Edward N. 1963. <span>“Deterministic Nonperiodic Flow.”</span> <em>Journal of the Atmospheric Sciences</em> 20 (2): 130–41. <a href="https://doi.org/10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2">https://doi.org/10.1175/1520-0469(1963)020&lt;0130:DNF&gt;2.0.CO;2</a>.
+</div>
+<div id="ref-mckeeman1998" class="csl-entry" role="listitem">
+McKeeman, William M. 1998. <span>“Differential Testing for Software.”</span> <em>Digital Technical Journal</em> 10 (1): 100–107.
+</div>
+<div id="ref-ott1990" class="csl-entry" role="listitem">
+Ott, Edward, Celso Grebogi, and James A. Yorke. 1990. <span>“Controlling Chaos.”</span> <em>Physical Review Letters</em> 64 (11): 1196–99. <a href="https://doi.org/10.1103/PhysRevLett.64.1196">https://doi.org/10.1103/PhysRevLett.64.1196</a>.
+</div>
+<div id="ref-ouyang2023" class="csl-entry" role="listitem">
+Ouyang, Shuyin, Jie M. Zhang, Mark Harman, and Meng Wang. 2023. <em><span>LLM</span> Is Like a Box of Chocolates: The Non-Determinism of <span>ChatGPT</span> in Code Generation</em>. <a href="https://arxiv.org/abs/2308.02828">https://arxiv.org/abs/2308.02828</a>.
+</div>
+<div id="ref-pecora1990" class="csl-entry" role="listitem">
+Pecora, Louis M., and Thomas L. Carroll. 1990. <span>“Synchronization in Chaotic Systems.”</span> <em>Physical Review Letters</em> 64 (8): 821–24. <a href="https://doi.org/10.1103/PhysRevLett.64.821">https://doi.org/10.1103/PhysRevLett.64.821</a>.
+</div>
+<div id="ref-sompolinsky1988" class="csl-entry" role="listitem">
+Sompolinsky, Haim, Andrea Crisanti, and Hans-Jürgen Sommers. 1988. <span>“Chaos in Random Neural Networks.”</span> <em>Physical Review Letters</em> 61 (3): 259–62. <a href="https://doi.org/10.1103/PhysRevLett.61.259">https://doi.org/10.1103/PhysRevLett.61.259</a>.
+</div>
+<div id="ref-strogatz2015" class="csl-entry" role="listitem">
+Strogatz, Steven H. 2015. <em>Nonlinear Dynamics and Chaos: With Applications to Physics, Biology, Chemistry, and Engineering</em>. 2nd ed. Westview Press.
+</div>
+<div id="ref-winters2020" class="csl-entry" role="listitem">
+Winters, Titus, Tom Manshreck, and Hyrum Wright. 2020. <em>Software Engineering at Google: Lessons Learned from Programming over Time</em>. O’Reilly Media.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Let the {Code} {Be} {Chaotic}},
+  date = {2026-11-11},
+  url = {https://scuenat.github.io/drafts/let-the-code-be-chaotic/},
+  langid = {en}
+}
+</code></pre><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Let the Code Be Chaotic.”</span> November
+11. <a href="https://scuenat.github.io/drafts/let-the-code-be-chaotic/">https://scuenat.github.io/drafts/let-the-code-be-chaotic/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Toggle dark mode");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Toggle dark mode");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      const newWindowLabel = "(opens in a new tab)";
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            describeNewWindow(link);
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1]);
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
