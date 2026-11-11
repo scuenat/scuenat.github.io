@@ -499,7 +499,7 @@ window.Quarto = {
 
 
 <div class="draft-banner">
-<p><strong>Brouillon v6, non publié.</strong> Révisé le 11 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
+<p><strong>Brouillon v7, non publié.</strong> Révisé le 11 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
 </div>
 <div class="callout callout-style-simple callout-warning">
 <div class="callout-body d-flex">
@@ -557,69 +557,7 @@ window.Quarto = {
 <li><strong>Vitesse et stabilité sont contrastées.</strong> Les utilisateurs de Copilot ont été 55,8 % plus rapides sur une tâche contrôlée <span class="citation" data-cites="peng2023">(<a href="#ref-peng2023" role="doc-biblioref">Peng et al. 2023</a>)</span> ; des développeurs expérimentés sur des projets matures ont été 19 % plus lents tout en se croyant plus rapides <span class="citation" data-cites="becker2025">(<a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>. DORA a associé une adoption plus large de l’IA à une stabilité des livraisons inférieure de 7,2 %, probablement à cause de modifications plus grosses <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span>. Le code copié-collé augmente et le remaniement recule <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span>.</li>
 <li><strong>Les vérifications peuvent être générées.</strong> TestGen-LLM, chez Meta, a étendu des suites de tests ; 73 % de ses propositions filtrées ont été acceptées pour la production <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>.</li>
 </ul>
-<p><strong>Lecture, constat par constat.</strong> Aucune de ces études ne classe les échecs comme le fait cet article ; le tableau 1 est donc ma classification, énoncée pour pouvoir être contestée. La prédiction P2 la met à l’épreuve.</p>
-<table class="caption-top table">
-<caption><strong>Tableau 1.</strong> Les faits de la section 2, classés par zone (ma classification).</caption>
-<colgroup>
-<col style="width: 30%">
-<col style="width: 28%">
-<col style="width: 10%">
-<col style="width: 32%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Constat</th>
-<th>Ce qui a vraiment échoué</th>
-<th>Zone</th>
-<th>Ce qui le tient</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Des programmes faux passaient des tests faibles <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span></td>
-<td>Du comportement que personne ne vérifiait</td>
-<td>3</td>
-<td>Plus de tests, tests de propriétés</td>
-</tr>
-<tr class="even">
-<td>Des faiblesses connues dans le code généré <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span></td>
-<td>Du comportement de sécurité que personne ne vérifiait</td>
-<td>3</td>
-<td>Analyse statique, tests de sécurité dans la session</td>
-</tr>
-<tr class="odd">
-<td>Code moins sûr, plus de confiance <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span></td>
-<td>Sécurité non vérifiée ; la lecture humaine ne l’a pas vu</td>
-<td>3</td>
-<td>Les mêmes vérifications ; pas plus de lecture</td>
-</tr>
-<tr class="even">
-<td>Paquets inventés <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span></td>
-<td>Des dépendances que personne ne vérifiait</td>
-<td>3</td>
-<td>Liste autorisée de paquets, contrôle de provenance</td>
-</tr>
-<tr class="odd">
-<td>Moins de stabilité avec de plus grosses modifications <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span></td>
-<td>Rétroaction trop tardive, lots trop gros</td>
-<td>1 faible</td>
-<td>Vérifications dans la session, petites modifications</td>
-</tr>
-<tr class="even">
-<td>Plus de copier-coller, moins de remaniement <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span></td>
-<td>Une masse que personne ne budgétait</td>
-<td>3</td>
-<td>Budgets de duplication et de taille</td>
-</tr>
-<tr class="odd">
-<td>Des agents qui modifient ou contournent les tests <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
-<td>Les vérifications elles-mêmes</td>
-<td>Attaque de 1</td>
-<td>Vérifications en lecture seule et cachées</td>
-</tr>
-</tbody>
-</table>
-<p>Dans aucune ligne l’échec n’est <em>le fait que le code diffère de ce qu’une personne aurait écrit</em>, et dans aucune le remède n’est « rendre le générateur reproductible » ou « lire plus attentivement ». Chaque remède est une vérification, une boucle plus rapide ou une vérification protégée.</p>
+<p><strong>Où se situent ces échecs</strong> apparaît une fois les trois zones définies ; le tableau 2, dans la section suivante, classe chaque constat.</p>
 </section>
 <section id="limage-un-attracteur" class="level2">
 <h2 class="anchored" data-anchor-id="limage-un-attracteur">3. L’image : un attracteur</h2>
@@ -632,7 +570,7 @@ window.Quarto = {
 </div>
 <p>Pour le code généré, l’image donne trois zones :</p>
 <table class="caption-top table">
-<caption><strong>Tableau 2.</strong> Trois zones de liberté dans le code généré.</caption>
+<caption><strong>Tableau 1.</strong> Trois zones de liberté dans le code généré.</caption>
 <colgroup>
 <col style="width: 24%">
 <col style="width: 42%">
@@ -664,6 +602,69 @@ window.Quarto = {
 </tbody>
 </table>
 <p>Contrôler la zone 2 n’achète presque aucune stabilité. Faire passer la zone 3 dans la zone 1 en achète presque toute. Les deux sont des travaux que les machines peuvent faire à chaque modification, plus vite que n’importe quel relecteur.</p>
+<p><strong>Les faits, zone par zone.</strong> Aucune des études de la section 2 ne classe les échecs ainsi ; le tableau 2 est donc ma classification, énoncée pour pouvoir être contestée. La prédiction P2 la met à l’épreuve.</p>
+<table class="caption-top table">
+<caption><strong>Tableau 2.</strong> Les faits de la section 2, classés par zone (ma classification).</caption>
+<colgroup>
+<col style="width: 28%">
+<col style="width: 26%">
+<col style="width: 16%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Constat</th>
+<th>Ce qui a vraiment échoué</th>
+<th>Zone</th>
+<th>Ce qui le tient</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Des programmes faux passaient des tests faibles <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span></td>
+<td>Du comportement que personne ne vérifiait</td>
+<td>3 · non vérifiée</td>
+<td>Plus de tests, tests de propriétés</td>
+</tr>
+<tr class="even">
+<td>Des faiblesses connues dans le code généré <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span></td>
+<td>Du comportement de sécurité que personne ne vérifiait</td>
+<td>3 · non vérifiée</td>
+<td>Analyse statique, tests de sécurité dans la session</td>
+</tr>
+<tr class="odd">
+<td>Code moins sûr, plus de confiance <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span></td>
+<td>Sécurité non vérifiée ; la lecture humaine ne l’a pas vu</td>
+<td>3 · non vérifiée</td>
+<td>Les mêmes vérifications ; pas plus de lecture</td>
+</tr>
+<tr class="even">
+<td>Paquets inventés <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span></td>
+<td>Des dépendances que personne ne vérifiait</td>
+<td>3 · non vérifiée</td>
+<td>Liste autorisée de paquets, contrôle de provenance</td>
+</tr>
+<tr class="odd">
+<td>Moins de stabilité avec de plus grosses modifications <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span></td>
+<td>Rétroaction trop tardive, lots trop gros</td>
+<td>1 · tenue, trop lentement</td>
+<td>Vérifications dans la session, petites modifications</td>
+</tr>
+<tr class="even">
+<td>Plus de copier-coller, moins de remaniement <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span></td>
+<td>Une masse que personne ne budgétait</td>
+<td>3 · non vérifiée</td>
+<td>Budgets de duplication et de taille</td>
+</tr>
+<tr class="odd">
+<td>Des agents qui modifient ou contournent les tests <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
+<td>Les vérifications elles-mêmes</td>
+<td>1 · tenue, attaquée</td>
+<td>Vérifications en lecture seule et cachées</td>
+</tr>
+</tbody>
+</table>
+<p>Dans aucune ligne l’échec n’est <em>le fait que le code diffère de ce qu’une personne aurait écrit</em>, et dans aucune le remède n’est « rendre le générateur reproductible » ou « lire plus attentivement ». Chaque remède est une vérification, une boucle plus rapide ou une vérification protégée.</p>
 <div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">

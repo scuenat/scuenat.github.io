@@ -540,7 +540,7 @@ window.Quarto = {
 
 
 <div class="draft-banner">
-<p><strong>Draft v6, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
+<p><strong>Draft v7, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
 </div>
 <div class="callout callout-style-simple callout-warning">
 <div class="callout-body d-flex">
@@ -598,69 +598,7 @@ window.Quarto = {
 <li><strong>Speed and stability are mixed.</strong> Copilot users were 55.8% faster on a controlled task <span class="citation" data-cites="peng2023">(<a href="#ref-peng2023" role="doc-biblioref">Peng et al. 2023</a>)</span>; experienced developers on mature projects were 19% slower while feeling faster <span class="citation" data-cites="becker2025">(<a href="#ref-becker2025" role="doc-biblioref">Becker et al. 2025</a>)</span>. DORA linked more AI adoption to 7.2% lower delivery stability, likely through larger changes <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span>. Copy-pasted code is rising and refactoring falling <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span>.</li>
 <li><strong>Checks can be generated.</strong> Meta’s TestGen-LLM extended test suites; 73% of its filtered proposals were accepted for production <span class="citation" data-cites="alshahwan2024">(<a href="#ref-alshahwan2024" role="doc-biblioref">Alshahwan et al. 2024</a>)</span>.</li>
 </ul>
-<p><strong>Reading, finding by finding.</strong> None of these studies classifies failures the way this paper does, so Table 1 is my classification, stated so that it can be disputed. Prediction P2 tests it.</p>
-<table class="caption-top table">
-<caption><strong>Table 1.</strong> The evidence of Section 2, classified by zone (my classification).</caption>
-<colgroup>
-<col style="width: 30%">
-<col style="width: 28%">
-<col style="width: 10%">
-<col style="width: 32%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Finding</th>
-<th>What actually failed</th>
-<th>Zone</th>
-<th>What holds it</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Wrong programs passed weak tests <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span></td>
-<td>Behaviour nobody checked</td>
-<td>3</td>
-<td>More tests, property-based tests</td>
-</tr>
-<tr class="even">
-<td>Known weaknesses in generated code <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span></td>
-<td>Security behaviour nobody checked</td>
-<td>3</td>
-<td>Static analysis, security tests in the session</td>
-</tr>
-<tr class="odd">
-<td>Less secure code, more confidence <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span></td>
-<td>Security unchecked; human reading did not catch it</td>
-<td>3</td>
-<td>The same checks; not more reading</td>
-</tr>
-<tr class="even">
-<td>Invented packages <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span></td>
-<td>Dependencies nobody checked</td>
-<td>3</td>
-<td>Package allowlist, provenance checks</td>
-</tr>
-<tr class="odd">
-<td>Lower stability with larger changes <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span></td>
-<td>Feedback too late, batches too big</td>
-<td>Weak 1</td>
-<td>Checks in the session, small changes</td>
-</tr>
-<tr class="even">
-<td>More pasting, less refactoring <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span></td>
-<td>Mass nobody budgeted</td>
-<td>3</td>
-<td>Duplication and size budgets</td>
-</tr>
-<tr class="odd">
-<td>Agents editing or special-casing tests <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
-<td>The checks themselves</td>
-<td>Attack on 1</td>
-<td>Read-only and hidden checks</td>
-</tr>
-</tbody>
-</table>
-<p>In no row is the failure <em>the code being different from what a person would write</em>, and in no row is the remedy “make the generator reproducible” or “read more carefully”. Every remedy is a check, a faster loop or a protected check.</p>
+<p><strong>Where these failures sit</strong> becomes clear once the three zones are defined; Table 2, in the next section, classifies each finding.</p>
 </section>
 <section id="the-picture-an-attractor" class="level2">
 <h2 class="anchored" data-anchor-id="the-picture-an-attractor">3. The picture: an attractor</h2>
@@ -673,7 +611,7 @@ window.Quarto = {
 </div>
 <p>For generated code, the picture gives three zones:</p>
 <table class="caption-top table">
-<caption><strong>Table 2.</strong> Three zones of freedom in generated code.</caption>
+<caption><strong>Table 1.</strong> Three zones of freedom in generated code.</caption>
 <colgroup>
 <col style="width: 24%">
 <col style="width: 42%">
@@ -705,6 +643,69 @@ window.Quarto = {
 </tbody>
 </table>
 <p>Controlling zone 2 buys almost no stability. Moving zone 3 into zone 1 buys almost all of it. Both are work machines can do on every change, faster than any reviewer.</p>
+<p><strong>The evidence, zone by zone.</strong> None of the studies in Section 2 classifies failures this way, so Table 2 is my classification, stated so that it can be disputed. Prediction P2 tests it.</p>
+<table class="caption-top table">
+<caption><strong>Table 2.</strong> The evidence of Section 2, classified by zone (my classification).</caption>
+<colgroup>
+<col style="width: 28%">
+<col style="width: 26%">
+<col style="width: 16%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Finding</th>
+<th>What actually failed</th>
+<th>Zone</th>
+<th>What holds it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Wrong programs passed weak tests <span class="citation" data-cites="liu2023">(<a href="#ref-liu2023" role="doc-biblioref">Liu et al. 2023</a>)</span></td>
+<td>Behaviour nobody checked</td>
+<td>3 · unchecked</td>
+<td>More tests, property-based tests</td>
+</tr>
+<tr class="even">
+<td>Known weaknesses in generated code <span class="citation" data-cites="pearce2022">(<a href="#ref-pearce2022" role="doc-biblioref">Pearce et al. 2022</a>)</span></td>
+<td>Security behaviour nobody checked</td>
+<td>3 · unchecked</td>
+<td>Static analysis, security tests in the session</td>
+</tr>
+<tr class="odd">
+<td>Less secure code, more confidence <span class="citation" data-cites="perry2023">(<a href="#ref-perry2023" role="doc-biblioref">Perry et al. 2023</a>)</span></td>
+<td>Security unchecked; human reading did not catch it</td>
+<td>3 · unchecked</td>
+<td>The same checks; not more reading</td>
+</tr>
+<tr class="even">
+<td>Invented packages <span class="citation" data-cites="spracklen2025">(<a href="#ref-spracklen2025" role="doc-biblioref">Spracklen et al. 2025</a>)</span></td>
+<td>Dependencies nobody checked</td>
+<td>3 · unchecked</td>
+<td>Package allowlist, provenance checks</td>
+</tr>
+<tr class="odd">
+<td>Lower stability with larger changes <span class="citation" data-cites="dora2024">(<a href="#ref-dora2024" role="doc-biblioref">DORA 2024</a>)</span></td>
+<td>Feedback too late, batches too big</td>
+<td>1 · held, too slowly</td>
+<td>Checks in the session, small changes</td>
+</tr>
+<tr class="even">
+<td>More pasting, less refactoring <span class="citation" data-cites="gitclear2025">(<a href="#ref-gitclear2025" role="doc-biblioref">GitClear 2025</a>)</span></td>
+<td>Mass nobody budgeted</td>
+<td>3 · unchecked</td>
+<td>Duplication and size budgets</td>
+</tr>
+<tr class="odd">
+<td>Agents editing or special-casing tests <span class="citation" data-cites="metr2025 zhong2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>; <a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span></td>
+<td>The checks themselves</td>
+<td>1 · held, under attack</td>
+<td>Read-only and hidden checks</td>
+</tr>
+</tbody>
+</table>
+<p>In no row is the failure <em>the code being different from what a person would write</em>, and in no row is the remedy “make the generator reproducible” or “read more carefully”. Every remedy is a check, a faster loop or a protected check.</p>
 <div class="callout callout-style-simple callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
