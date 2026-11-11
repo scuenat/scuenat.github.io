@@ -24,7 +24,7 @@ function Pandoc(doc)
     and "**Brouillon, non publié.** Ce texte est en cours de relecture. Il n'est listé nulle part ailleurs sur le site et peut encore changer. [Tous les brouillons](/fr/drafts/)."
     or "**Draft, not yet published.** This piece is under review. It is not listed anywhere else on the site and may still change. [All drafts](/drafts/)."
   local banner = pandoc.Div(pandoc.read(text, "markdown").blocks,
-    pandoc.Attr("", { "callout-important", "draft-banner" }, { appearance = "simple" }))
+    pandoc.Attr("", { "draft-banner" }))
   table.insert(doc.blocks, 1, banner)
   return doc
 end

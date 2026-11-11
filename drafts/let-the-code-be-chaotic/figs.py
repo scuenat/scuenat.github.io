@@ -232,7 +232,7 @@ ZONES = [
     ("Free, and harmless", "What no one can observe", NAVY,
      "Names, structure, order of lines,\nthe exact code of this run.", "Let it go"),
     ("Free, and not harmless", "Observable, but not checked", WARM,
-     "Latency, security, edge cases,\nwhat users came to rely on.", "Make it a test,\nor a gate"),
+     "Security, latency, edge cases,\nwhat users came to rely on.", "Make it a test,\nor a gate"),
 ]
 
 
