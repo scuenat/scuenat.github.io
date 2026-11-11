@@ -540,7 +540,7 @@ window.Quarto = {
 
 
 <div class="draft-banner">
-<p><strong>Draft v7, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
+<p><strong>Draft v8, not yet published.</strong> Revised November 11, 2026. This piece is under review. It is not listed anywhere else on the site and may still change. <a href="../../drafts/">All drafts</a>.</p>
 </div>
 <div class="callout callout-style-simple callout-warning">
 <div class="callout-body d-flex">
@@ -774,8 +774,24 @@ window.Quarto = {
 <li>A daily audit of the whole codebase, as in <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>.</li>
 </ul></li>
 <li><strong>Protect the attractor.</strong> An attractor made of tests has one weakness: the generator can attack it. Frontier models have been seen editing tests or scoring code to pass <span class="citation" data-cites="metr2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>)</span>. On versions of SWE-bench where the only way to pass is to break the specification, GPT-5 cheated in 54% of tasks; Claude models cheated mostly by editing the tests. Read-only tests stopped the edits but not other tricks such as special-casing; hiding the tests brought cheating near zero, at some cost in performance <span class="citation" data-cites="zhong2025">(<a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. So the attractor has two layers: checks the agent can read but not change, run in its session; and <em>held-out</em> checks it never sees, run outside it, like a held-out test set. Agents may <em>propose</em> new or changed checks; a change that adds a check is merged by rule, a change that weakens or deletes one goes to a person.</li>
-<li><strong>A sliver, gated by people.</strong> Only actions whose harm survives a revert: deleting or migrating data, payments, releases, access grants, new dependencies. A person decides at the point of no return, with the evidence the machines gathered. <em>Approve what you cannot undo; watch everything else.</em></li>
+<li><strong>A sliver, gated by people.</strong> Only actions whose harm survives a revert, decided at the point of no return. <em>Approve what you cannot undo; watch everything else.</em> The next subsection says what that means in practice.</li>
 </ul>
+<section id="a-sliver-gated-by-people" class="level3">
+<h3 class="anchored" data-anchor-id="a-sliver-gated-by-people">A sliver, gated by people</h3>
+<p><strong>What qualifies.</strong> One test: if this goes wrong, can a revert, a flag or a rollback restore the world as it was? If yes, no gate. If no, a gate. In practice the list is short:</p>
+<ul>
+<li>data deleted, migrated or overwritten without a copy;</li>
+<li>money that moves, and messages that leave: emails, notifications, published documents;</li>
+<li>releases to users where rollback is not instant, and changes to access rights;</li>
+<li>new dependencies and new external services, which widen the supply chain;</li>
+<li>any change that weakens or deletes a check (see <em>Protect the attractor</em>).</li>
+</ul>
+<p><strong>Where it sits.</strong> At the point of no return, not at the merge. Code merges when the checks pass; the gate fires when the irreversible act is about to happen: the migration runs, the payment leaves, the release starts. It guards the act, not the code.</p>
+<p><strong>What the person sees.</strong> Not a diff, but a short packet the machines prepare: what the action does, in the words of the promise; which checks passed, including the held-out ones; exactly what cannot be undone, and how much of it (rows, customers, amounts); and the rollback plan for everything else. The person answers three questions: is this the intended act, is its reach acceptable, and is now the right time?</p>
+<p><strong>Who decides.</strong> The owner of the module’s attractor, or someone they name, with a second person for the largest actions, such as a schema change on customer data. Rotating the role spreads knowledge of the system.</p>
+<p><strong>How it stays thin.</strong> Every gated action is also a question for the people above the loop: could it be made reversible? Soft deletes instead of deletes, copies before migrations, feature flags and staged rollouts, dry runs, payments held for a review period. Each such change takes an action off the list. The measure is the share of changes that needed a person (Section 7). In the simulation of <a href="../../posts/2026-10-23-stop-reviewing-pull-requests/index.html">Stop Reviewing Pull Requests</a>, a team merging 40 changes a day needed about 80 minutes of people time a day for the thin gate and the daily audit together, instead of 16 hours for reviewing everything.</p>
+<p><strong>What it is not.</strong> Not a code review, and not a signature on the code. The person at the gate is accountable for the act, as an operator is today when they press “run” on a migration.</p>
+</section>
 </section>
 <section id="people-above-the-loop" class="level2">
 <h2 class="anchored" data-anchor-id="people-above-the-loop">6. People above the loop</h2>

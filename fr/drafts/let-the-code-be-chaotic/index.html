@@ -499,7 +499,7 @@ window.Quarto = {
 
 
 <div class="draft-banner">
-<p><strong>Brouillon v7, non publié.</strong> Révisé le 11 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
+<p><strong>Brouillon v8, non publié.</strong> Révisé le 11 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
 </div>
 <div class="callout callout-style-simple callout-warning">
 <div class="callout-body d-flex">
@@ -733,8 +733,24 @@ window.Quarto = {
 <li>Un audit quotidien de l’ensemble du code, comme dans <a href="../../../fr/posts/2026-10-23-stop-reviewing-pull-requests/index.html">Arrêtez de relire les pull requests</a>.</li>
 </ul></li>
 <li><strong>Protéger l’attracteur.</strong> Un attracteur fait de tests a une faiblesse : le générateur peut l’attaquer. On a vu des modèles de pointe modifier des tests ou le code de notation pour réussir <span class="citation" data-cites="metr2025">(<a href="#ref-metr2025" role="doc-biblioref">Von Arx et al. 2025</a>)</span>. Sur des versions de SWE-bench où la seule façon de réussir est de violer la spécification, GPT-5 a triché dans 54 % des tâches ; les modèles Claude trichaient surtout en modifiant les tests. Des tests en lecture seule ont arrêté les modifications, mais pas d’autres astuces comme le traitement au cas par cas ; cacher les tests a ramené la triche près de zéro, au prix d’une certaine perte de performance <span class="citation" data-cites="zhong2025">(<a href="#ref-zhong2025" role="doc-biblioref">Zhong et al. 2025</a>)</span>. L’attracteur a donc deux couches : des vérifications que l’agent peut lire mais pas modifier, lancées dans sa session ; et des vérifications <em>réservées</em> qu’il ne voit jamais, lancées en dehors, comme un jeu de test réservé. Les agents peuvent <em>proposer</em> des vérifications nouvelles ou modifiées ; un changement qui ajoute une vérification est fusionné selon une règle, un changement qui en affaiblit ou en supprime une va à une personne.</li>
-<li><strong>Une mince tranche, gardée par des humains.</strong> Seulement les actions dont le dommage survit à un retour arrière : supprimer ou migrer des données, paiements, mises en production, octroi d’accès, nouvelles dépendances. Une personne décide au point de non-retour, avec les éléments que les machines ont rassemblés. <em>Approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.</em></li>
+<li><strong>Une mince tranche, gardée par des humains.</strong> Seulement les actions dont le dommage survit à un retour arrière, décidées au point de non-retour. <em>Approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.</em> La sous-section suivante dit ce que cela signifie en pratique.</li>
 </ul>
+<section id="une-mince-tranche-gardée-par-des-humains" class="level3">
+<h3 class="anchored" data-anchor-id="une-mince-tranche-gardée-par-des-humains">Une mince tranche, gardée par des humains</h3>
+<p><strong>Ce qui est concerné.</strong> Un seul test : si cela tourne mal, un retour arrière, un drapeau ou un rollback peuvent-ils remettre le monde dans son état antérieur ? Si oui, pas de barrière. Sinon, une barrière. En pratique, la liste est courte :</p>
+<ul>
+<li>des données supprimées, migrées ou écrasées sans copie ;</li>
+<li>de l’argent qui bouge, et des messages qui partent : courriels, notifications, documents publiés ;</li>
+<li>des mises en production dont le retour arrière n’est pas immédiat, et des changements de droits d’accès ;</li>
+<li>de nouvelles dépendances et de nouveaux services externes, qui élargissent la chaîne d’approvisionnement ;</li>
+<li>tout changement qui affaiblit ou supprime une vérification (voir <em>Protéger l’attracteur</em>).</li>
+</ul>
+<p><strong>Où elle se place.</strong> Au point de non-retour, pas à la fusion. Le code est fusionné quand les vérifications passent ; la barrière se déclenche au moment où l’acte irréversible va avoir lieu : la migration s’exécute, le paiement part, la mise en production commence. Elle garde l’acte, pas le code.</p>
+<p><strong>Ce que la personne voit.</strong> Pas un diff, mais un court dossier préparé par les machines : ce que fait l’action, dans les mots de la promesse ; quelles vérifications ont réussi, y compris les vérifications réservées ; ce qui ne peut pas être défait, exactement, et dans quelle quantité (lignes, clients, montants) ; et le plan de retour arrière pour tout le reste. La personne répond à trois questions : est-ce bien l’acte voulu, sa portée est-elle acceptable, est-ce le bon moment ?</p>
+<p><strong>Qui décide.</strong> Le responsable de l’attracteur du module, ou une personne qu’il désigne, avec une deuxième personne pour les actions les plus lourdes, comme un changement de schéma sur des données clients. Faire tourner ce rôle diffuse la connaissance du système.</p>
+<p><strong>Comment elle reste mince.</strong> Chaque action gardée est aussi une question pour les humains au-dessus de la boucle : pourrait-elle devenir réversible ? Des suppressions logiques plutôt que des suppressions, des copies avant les migrations, des drapeaux de fonctionnalité et des déploiements progressifs, des essais à blanc, des paiements retenus pendant un délai de vérification. Chacun de ces changements retire une action de la liste. La mesure est la part des modifications qui ont demandé une personne (section 7). Dans la simulation d’<a href="../../../fr/posts/2026-10-23-stop-reviewing-pull-requests/index.html">Arrêtez de relire les pull requests</a>, une équipe qui fusionnait 40 modifications par jour avait besoin d’environ 80 minutes de temps humain par jour pour la barrière légère et l’audit quotidien réunis, au lieu de 16 heures pour tout relire.</p>
+<p><strong>Ce qu’elle n’est pas.</strong> Ni une revue de code, ni une signature sur le code. La personne à la barrière répond de l’acte, comme un opérateur aujourd’hui quand il lance une migration.</p>
+</section>
 </section>
 <section id="les-humains-au-dessus-de-la-boucle" class="level2">
 <h2 class="anchored" data-anchor-id="les-humains-au-dessus-de-la-boucle">6. Les humains au-dessus de la boucle</h2>
