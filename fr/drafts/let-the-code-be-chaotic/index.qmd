@@ -3,7 +3,7 @@ title: "Laissez le code être chaotique"
 subtitle: "Un article de position provocateur : l'IA écrit désormais du code qui résout de vrais problèmes, et nous le contrôlons encore comme s'il avait été écrit à la main. Automatisez la boucle, gardez une mince barrière, et placez les humains au-dessus"
 description: "Un article de position provocateur : le code généré par l'IA est chaotique, presque sans danger. Automatisez les vérifications et placez les humains au-dessus de la boucle."
 date: 2026-11-11   # date de rédaction ; promote-draft.py fixe la date de publication
-draft-version: 5   # +1 à chaque révision publiée dans les brouillons
+draft-version: 6   # +1 à chaque révision publiée dans les brouillons
 draft-revised: 2026-11-11
 citation: true
 toc-depth: 2
@@ -57,7 +57,21 @@ L'objection habituelle tient en un mot : *chaos*. Le code généré n'est pas re
 - **Vitesse et stabilité sont contrastées.** Les utilisateurs de Copilot ont été 55,8 % plus rapides sur une tâche contrôlée [@peng2023] ; des développeurs expérimentés sur des projets matures ont été 19 % plus lents tout en se croyant plus rapides [@becker2025]. DORA a associé une adoption plus large de l'IA à une stabilité des livraisons inférieure de 7,2 %, probablement à cause de modifications plus grosses [@dora2024]. Le code copié-collé augmente et le remaniement recule [@gitclear2025].
 - **Les vérifications peuvent être générées.** TestGen-LLM, chez Meta, a étendu des suites de tests ; 73 % de ses propositions filtrées ont été acceptées pour la production [@alshahwan2024].
 
-**Lecture.** Aucune de ces études ne classe les échecs comme le fait cet article ; ce qui suit est donc mon interprétation. La plupart des échecs qu'elles rapportent ne sont pas *le fait que le code diffère de ce qu'une personne aurait écrit* : ce sont du comportement non vérifié, une rétroaction tardive et une masse accumulée. Et aucune de ces études n'a montré que lire le diff les évitait ; l'une a montré que les personnes aidées d'un assistant devenaient plus confiantes, pas plus prudentes [@perry2023].
+**Lecture, constat par constat.** Aucune de ces études ne classe les échecs comme le fait cet article ; le tableau 1 est donc ma classification, énoncée pour pouvoir être contestée. La prédiction P2 la met à l'épreuve.
+
+| Constat | Ce qui a vraiment échoué | Zone | Ce qui le tient |
+|---|---|---|---|
+| Des programmes faux passaient des tests faibles [@liu2023] | Du comportement que personne ne vérifiait | 3 | Plus de tests, tests de propriétés |
+| Des faiblesses connues dans le code généré [@pearce2022] | Du comportement de sécurité que personne ne vérifiait | 3 | Analyse statique, tests de sécurité dans la session |
+| Code moins sûr, plus de confiance [@perry2023] | Sécurité non vérifiée ; la lecture humaine ne l'a pas vu | 3 | Les mêmes vérifications ; pas plus de lecture |
+| Paquets inventés [@spracklen2025] | Des dépendances que personne ne vérifiait | 3 | Liste autorisée de paquets, contrôle de provenance |
+| Moins de stabilité avec de plus grosses modifications [@dora2024] | Rétroaction trop tardive, lots trop gros | 1 faible | Vérifications dans la session, petites modifications |
+| Plus de copier-coller, moins de remaniement [@gitclear2025] | Une masse que personne ne budgétait | 3 | Budgets de duplication et de taille |
+| Des agents qui modifient ou contournent les tests [@metr2025; @zhong2025] | Les vérifications elles-mêmes | Attaque de 1 | Vérifications en lecture seule et cachées |
+
+: **Tableau 1.** Les faits de la section 2, classés par zone (ma classification). {tbl-colwidths="[30,28,10,32]"}
+
+Dans aucune ligne l'échec n'est *le fait que le code diffère de ce qu'une personne aurait écrit*, et dans aucune le remède n'est « rendre le générateur reproductible » ou « lire plus attentivement ». Chaque remède est une vérification, une boucle plus rapide ou une vérification protégée.
 
 ## 3. L'image : un attracteur
 
@@ -73,7 +87,7 @@ Pour le code généré, l'image donne trois zones :
 | **2. Libre, sans danger** | Ce que personne ne peut observer de l'extérieur. | Noms, structure, ordre des lignes, choix entre algorithmes équivalents |
 | **3. Libre, pas encore sans danger** | Le comportement observable qu'aucune vérification ne tient encore. Il dérive avec le code. | Propriétés de sécurité, latence, cas limites, ce sur quoi comptent les utilisateurs |
 
-: **Tableau 1.** Trois zones de liberté dans le code généré. {tbl-colwidths="[24,42,34]"}
+: **Tableau 2.** Trois zones de liberté dans le code généré. {tbl-colwidths="[24,42,34]"}
 
 Contrôler la zone 2 n'achète presque aucune stabilité. Faire passer la zone 3 dans la zone 1 en achète presque toute. Les deux sont des travaux que les machines peuvent faire à chaque modification, plus vite que n'importe quel relecteur.
 
@@ -87,6 +101,10 @@ $$
 $$
 
 la condition de synchronisation des systèmes chaotiques [@pecora1990]. Elle récompense un $\kappa$ élevé et un $\Delta t$ court : une vérification automatique dans la session de l'agent, pas une lecture humaine lente.
+:::
+
+::: {.callout-note appearance="simple"}
+**Où l'analogie tient, et où elle cède.** Elle *tient* sur trois points : de petites différences d'entrée deviennent de grandes différences de code ; le code reste borné ; et les vérifications agissent comme une dissipation qui ramène le comportement observé. Elle résiste aussi au fait que les modèles de langage sont en partie aléatoires plutôt que chaotiques : la théorie des systèmes dynamiques aléatoires étend la notion d'attracteur aux systèmes soumis au bruit [@arnold1998]. Elle *cède* sur un point qui compte : la nature a donné son attracteur à Lorenz, alors qu'une équipe doit construire le sien. Le climat ne se découvre pas ; c'est la promesse, et ce sont les humains qui la décident. C'est pourquoi leur place est au-dessus de la boucle.
 :::
 
 ## 4. Une illustration jouet
@@ -111,7 +129,7 @@ Le jouet a été construit pour montrer cette image ; il confirme seulement qu'e
   - *Exercices de régénération* : régénérer un module à partir de sa promesse et de ses vérifications, comparer l'ancienne et la nouvelle version sur des entrées aléatoires (test différentiel [@mckeeman1998]) ; chaque désaccord est un morceau de zone 3, et une vérification manquante.
   - L'usage réel devient des tests de contrat, pour suivre la loi de Hyrum : tout ce qui est observable finira par être utilisé [@winters2020].
   - Un audit quotidien de l'ensemble du code, comme dans [Arrêtez de relire les pull requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd).
-- **Protéger l'attracteur.** Un attracteur fait de tests a une faiblesse : le générateur peut l'attaquer. On a vu des modèles de pointe modifier des tests ou le code de notation pour réussir [@metr2025], et quand une tâche et ses tests se contredisent, les agents modifient souvent les tests plutôt que d'échouer ; restreindre leur accès aux fichiers de test réduit fortement ce comportement [@zhong2025]. Les vérifications vivent donc hors de portée de l'agent : en lecture seule dans la session, possédées au-dessus de la boucle. Les agents peuvent *proposer* des vérifications nouvelles ou modifiées ; un changement qui ajoute une vérification est fusionné selon une règle, un changement qui en affaiblit ou en supprime une va à une personne.
+- **Protéger l'attracteur.** Un attracteur fait de tests a une faiblesse : le générateur peut l'attaquer. On a vu des modèles de pointe modifier des tests ou le code de notation pour réussir [@metr2025]. Sur des versions de SWE-bench où la seule façon de réussir est de violer la spécification, GPT-5 a triché dans 54 % des tâches ; les modèles Claude trichaient surtout en modifiant les tests. Des tests en lecture seule ont arrêté les modifications, mais pas d'autres astuces comme le traitement au cas par cas ; cacher les tests a ramené la triche près de zéro, au prix d'une certaine perte de performance [@zhong2025]. L'attracteur a donc deux couches : des vérifications que l'agent peut lire mais pas modifier, lancées dans sa session ; et des vérifications *réservées* qu'il ne voit jamais, lancées en dehors, comme un jeu de test réservé. Les agents peuvent *proposer* des vérifications nouvelles ou modifiées ; un changement qui ajoute une vérification est fusionné selon une règle, un changement qui en affaiblit ou en supprime une va à une personne.
 - **Une mince tranche, gardée par des humains.** Seulement les actions dont le dommage survit à un retour arrière : supprimer ou migrer des données, paiements, mises en production, octroi d'accès, nouvelles dépendances. Une personne décide au point de non-retour, avec les éléments que les machines ont rassemblés. *Approuvez ce que vous ne pouvez pas défaire ; surveillez tout le reste.*
 
 ## 6. Les humains au-dessus de la boucle
@@ -134,6 +152,15 @@ Une personne qui lit mille lignes par jour protège mille lignes. Une personne q
 
 **L'équipe possède** la promesse, les vérifications et les barrières, pas le texte du code. Si elle ne peut pas régénérer un module à partir de ces éléments, elle ne le possède pas vraiment.
 
+**Un exemple.** Une équipe ajoute « exporter les factures en CSV ».
+
+- *Promesse* (une personne, au-dessus de la boucle) : les clients peuvent exporter leurs propres factures sur une période ; les montants concordent avec le grand livre.
+- *Vérifications exigées* (une personne décide, un agent les écrit) : pour toute période, le total exporté égale le total du grand livre ; aucune facture d'un autre client n'apparaît jamais ; 10 000 factures s'exportent en moins de deux secondes ; chaque fichier se lit avec un lecteur CSV standard.
+- *La boucle* (les machines) : l'agent écrit le code et des tests supplémentaires ; les vérifications exigées sont en lecture seule pour lui, et deux cas réservés tournent hors de sa session.
+- *La zone 3, trouvée par une machine* : un exercice de régénération est en désaccord avec la première version sur les noms de clients qui contiennent une virgule. L'agent propose une vérification aller-retour (exporter, relire, comparer) ; elle ajoute une vérification, elle est donc fusionnée selon la règle.
+- *La barrière* : aucune. Exporter lit des données et peut être défait. Si la fonctionnalité envoyait aussi le fichier par courriel aux clients, l'envoi passerait par une barrière.
+- *Le temps des humains* : écrire la promesse et quatre vérifications, puis lire un rapport d'exercice. Personne n'a lu le code.
+
 | Arrêter | Commencer |
 |---|---|
 | Lire chaque diff généré comme contrôle par défaut | La promesse et les vérifications exigées avant que l'agent construise |
@@ -143,7 +170,7 @@ Une personne qui lit mille lignes par jour protège mille lignes. Une personne q
 | Compter les lignes relues | Des budgets de taille, de duplication et de couplage [@gitclear2025] |
 | | Une courte liste écrite de barrières |
 
-: **Tableau 2.** Ce qui change pour une équipe. {tbl-colwidths="[45,55]"}
+: **Tableau 3.** Ce qui change pour une équipe. {tbl-colwidths="[45,55]"}
 
 **Les rôles.** Chaque module a un responsable de son attracteur : la promesse, les vérifications exigées, les barrières. Les ingénieurs sécurité et plateforme possèdent les vérifications partagées que toute session d'agent exécute. Personne ne répond de la lecture de chaque ligne.
 
@@ -177,14 +204,14 @@ La sécurité n'est pas une exception. C'est la part la plus importante de la zo
 | Chaîne d'approvisionnement [@spracklen2025] | Listes autorisées de paquets et de registres, fichiers de verrouillage, contrôle de provenance | Les machines ; une personne approuve une *nouvelle* dépendance |
 | Contrôle d'accès, vie privée | Tests d'autorisation par point d'accès ; contrôle des flux de données ; règles sous forme de code | Les machines ; les humains fixent les règles |
 | L'agent lui-même | Sessions en bac à sable ; jamais à la fois des données privées, une entrée non fiable et un moyen de sortir ([Le contexte est le fil](../../posts/2026-11-01-the-context-is-the-wire/index.qmd)) | Les machines appliquent ; les humains fixent la règle |
-| Contournement des vérifications [@metr2025; @zhong2025] | Vérifications en lecture seule pour les agents ; affaiblir ou supprimer une vérification demande une personne | Les machines appliquent ; les humains approuvent |
+| Contournement des vérifications [@metr2025; @zhong2025] | Vérifications en lecture seule dans la session ; vérifications réservées et cachées en dehors ; affaiblir ou supprimer une vérification demande une personne | Les machines appliquent ; les humains approuvent |
 | Actions irréversibles | Suppression de données, paiements, mises en production | Une personne, à la barrière |
 | Performance, coût | Budgets de latence, de mémoire et de coût, vérifiés comme des tests | Les machines ; les humains fixent les budgets |
 | Maintenabilité | Budgets de taille, de duplication et de couplage ; règles d'architecture sous forme de tests | Les machines ; les humains fixent la structure |
 | Accessibilité, licences, conformité | Contrôles et analyses automatiques ; règles sous forme de code | Les machines ; les humains échantillonnent là où l'automatisation est faible |
 | Goût, équité, sens du produit | Jugement sur la promesse et le produit | Les humains, au-dessus de la boucle |
 
-: **Tableau 3.** La sécurité et les autres exigences : presque tout est tenu par les machines, quelques actions passent par une barrière, le reste se décide au-dessus de la boucle. {tbl-colwidths="[28,46,26]"}
+: **Tableau 4.** La sécurité et les autres exigences : presque tout est tenu par les machines, quelques actions passent par une barrière, le reste se décide au-dessus de la boucle. {tbl-colwidths="[28,46,26]"}
 
 Rien de tout cela ne dépend de quelqu'un qui lirait le code ; la relecture humaine manquait déjà ces failles avant l'IA, et les utilisateurs d'assistants devenaient plus confiants, pas plus prudents [@perry2023]. Une règle transformée en vérification protège chaque modification future ; une lecture attentive en protège une.
 
@@ -204,7 +231,7 @@ Chaque prédiction nomme ce qui la réfuterait.
 
 - **« Sortir les humains de la boucle est imprudent. »** Ils quittent la boucle, pas le système, et gardent la barrière pour l'irréversible. L'imprudence, c'est la norme actuelle : un contrôle lent et partiel à chaque modification, qui n'attrape pas de façon fiable le code non sécurisé [@perry2023].
 - **« C'est du hasard, pas du chaos. »** L'argument n'a besoin que de petites différences d'entrée qui grandissent et d'un code qui reste borné ; le code généré fait les deux à toute température [@ouyang2023; @he2025]. Le jouet est déterministe à dessein : même un déterminisme parfait ne rendrait pas le contrôle.
-- **« Les agents vont contourner les vérifications. »** Ils le font quand ils le peuvent [@metr2025; @zhong2025]. C'est pourquoi les vérifications sont hors de leur portée et tout affaiblissement d'une vérification est une décision humaine. Lire les diffs est une défense plus faible : un test modifié pour passer se manque facilement dans une grosse modification.
+- **« Les agents vont contourner les vérifications. »** Ils le font quand ils le peuvent [@metr2025; @zhong2025]. C'est pourquoi les vérifications qu'ils voient sont en lecture seule, celles qui décident leur sont cachées, et tout affaiblissement d'une vérification est une décision humaine. Lire les diffs est une défense plus faible : un test modifié ou contourné pour passer se manque facilement dans une grosse modification.
 - **« Certains comportements ne se vérifient pas. »** C'est vrai : pour beaucoup de comportements, il n'existe pas d'oracle bon marché qui dise quelle est la bonne réponse [@barr2015]. Des oracles partiels aident (propriétés, relations métamorphiques, tests différentiels par rapport à la version précédente). Ce qui reste invérifiable demeure au-dessus de la boucle, comme une décision sur la promesse, ou passe par un chemin plus lent avec une personne, jusqu'à ce qu'une vérification puisse être écrite. La thèse porte sur la norme, pas sur chaque ligne.
 - **« Les logiciels réglementés exigent une relecture. »** Certains, oui : les logiciels embarqués certifiés selon DO-178C, par exemple, exigent des revues du code [@rtca2011]. C'est hors du champ de l'article, à dessein. Même là, des vérifications automatiques peuvent fournir une grande part des éléments de preuve ; la liste des barrières est simplement plus longue.
 - **« Le comportement non testé est le danger. »** Oui ; c'est la thèse. Il se manifeste quand le code s'exécute, pas quand on le lit : des machines qui exécutent le code autrement le trouvent, et une vérification le tient.
