@@ -2,9 +2,7 @@
 title: "Let the Code Be Chaotic"
 subtitle: "A provocative position paper: AI now writes code that solves real problems, and we still control it as if a person had written it. Automate the loop, gate a sliver, and move people above it"
 description: "A provocative position paper: AI-generated code is chaotic and mostly harmlessly so. Automate the checks, gate a sliver, and move people above the loop."
-date: 2026-11-11   # drafting date; promote-draft.py sets the publication date
-draft-version: 8   # raise by one on every revision pushed to the drafts area
-draft-revised: 2026-11-11
+date: 2026-11-11
 citation: true
 google-scholar: true
 toc-depth: 2
@@ -21,7 +19,7 @@ resources:
 ---
 
 ::: {.callout-warning appearance="simple"}
-**Position paper, November 2026. Provocative by intention.** The thesis is stated more sharply than the evidence can yet prove, to start an argument. It is not a warning against AI coding; it challenges how we use it. It is written for product and platform software; safety-critical software, where certification requires human review, is outside its scope. It follows [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd) and [Review the Intent, Not the Diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd). Figures 1 to 3 come from the simulations in [sim.py](sim.py) (numbers in [results.json](results.json)); Figures 4 and 5 are schematics of my own.
+**Position paper, November 2026. Provocative by intention.** The thesis is stated more sharply than the evidence can yet prove, to start an argument. It is not a warning against AI coding; it challenges how we use it. It is written for product and platform software; safety-critical software, where certification requires human review, is outside its scope. It follows [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd) and [Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd). Figures 1 to 3 come from the simulations in [sim.py](sim.py) (numbers in [results.json](results.json)); Figures 4 and 5 are schematics of my own.
 :::
 
 **Abstract.** AI agents now fix most real-world issues in the standard benchmark, and write a large share of new code at major companies. Yet the default control is unchanged: a person reads every change. I argue this puts people in the wrong place. Generated code is chaotic: small differences in prompt or context give very different programs. That is mostly harmless. Stability comes from an *attractor*, checks that pull behaviour back to the promise after every change, not from a predictable path. Machines should run that loop everywhere, with one condition: the checks are protected from the agents they check. People gate only what cannot be undone, and otherwise move above the loop: they set the promise, own the checks, structure the system and choose the direction.
@@ -136,7 +134,7 @@ The toy was built to show this picture, so it confirms only that the picture is 
   - Mutation testing measures how firmly the checks hold [@petrovic2018]; property-based tests hold whole families of behaviour [@claessen2000].
   - *Regeneration drills*: regenerate a module from its promise and checks, compare old and new on random inputs (differential testing [@mckeeman1998]); every disagreement is zone 3, and a missing check.
   - Real usage becomes contract tests, to keep up with Hyrum's law: everything observable will be depended on [@winters2020].
-  - A daily audit of the whole codebase, as in [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd).
+  - A daily audit of the whole codebase, as in [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd).
 - **Protect the attractor.** An attractor made of tests has one weakness: the generator can attack it. Frontier models have been seen editing tests or scoring code to pass [@metr2025]. On versions of SWE-bench where the only way to pass is to break the specification, GPT-5 cheated in 54% of tasks; Claude models cheated mostly by editing the tests. Read-only tests stopped the edits but not other tricks such as special-casing; hiding the tests brought cheating near zero, at some cost in performance [@zhong2025]. So the attractor has two layers: checks the agent can read but not change, run in its session; and *held-out* checks it never sees, run outside it, like a held-out test set. Agents may *propose* new or changed checks; a change that adds a check is merged by rule, a change that weakens or deletes one goes to a person.
 - **A sliver, gated by people.** Only actions whose harm survives a revert, decided at the point of no return. *Approve what you cannot undo; watch everything else.* The next subsection says what that means in practice.
 
@@ -156,7 +154,7 @@ The toy was built to show this picture, so it confirms only that the picture is 
 
 **Who decides.** The owner of the module's attractor, or someone they name, with a second person for the largest actions, such as a schema change on customer data. Rotating the role spreads knowledge of the system.
 
-**How it stays thin.** Every gated action is also a question for the people above the loop: could it be made reversible? Soft deletes instead of deletes, copies before migrations, feature flags and staged rollouts, dry runs, payments held for a review period. Each such change takes an action off the list. The measure is the share of changes that needed a person (Section 7). In the simulation of [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), a team merging 40 changes a day needed about 80 minutes of people time a day for the thin gate and the daily audit together, instead of 16 hours for reviewing everything.
+**How it stays thin.** Every gated action is also a question for the people above the loop: could it be made reversible? Soft deletes instead of deletes, copies before migrations, feature flags and staged rollouts, dry runs, payments held for a review period. Each such change takes an action off the list. The measure is the share of changes that needed a person (Section 7). In the simulation of [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd), a team merging 40 changes a day needed about 80 minutes of people time a day for the thin gate and the daily audit together, instead of 16 hours for reviewing everything.
 
 **What it is not.** Not a code review, and not a signature on the code. The person at the gate is accountable for the act, as an operator is today when they press "run" on a migration.
 
@@ -168,11 +166,11 @@ Out of the loop is not out of the system. **The human is still there, above the 
 
 Above the loop, people:
 
-- **Own the promise.** Intent is the source; code is its output ([Intent Is the Source](../../posts/2026-10-21-intent-is-the-source/index.qmd)). Understanding comes from the promise, not from diffs ([Review the Intent, Not the Diff](../../posts/2026-10-22-review-the-intent-not-the-diff/index.qmd)).
+- **Own the promise.** Intent is the source; code is its output ([Intent Is the Source](../2026-10-21-intent-is-the-source/index.qmd)). Understanding comes from the promise, not from diffs ([Review the Intent, Not the Diff](../2026-10-22-review-the-intent-not-the-diff/index.qmd)).
 - **Own the checks.** Not each test, which agents write, but what must always hold: properties, boundaries, budgets, security rules. They accept or refuse any change that would weaken a check.
 - **Structure the system.** Architecture and dependencies are the shape of the attractor; once decided, they become checks.
-- **Read the instruments.** Escaped defects, mutation scores, loop times, drills, incidents. They change the system that produces code, not individual changes, as [Fast AI](../../posts/2026-10-11-fast-ai/index.qmd) argued: slow, careful work done once, so the fast path runs on its own.
-- **Choose what to build and what to remove.** Making is cheap; choosing is not ([The Joy of the Question](../../posts/2026-10-27-the-joy-of-the-question/index.qmd), [Work Has Mass](../../posts/2026-10-24-work-has-mass/index.qmd)).
+- **Read the instruments.** Escaped defects, mutation scores, loop times, drills, incidents. They change the system that produces code, not individual changes, as [Fast AI](../2026-10-11-fast-ai/index.qmd) argued: slow, careful work done once, so the fast path runs on its own.
+- **Choose what to build and what to remove.** Making is cheap; choosing is not ([The Joy of the Question](../2026-10-27-the-joy-of-the-question/index.qmd), [Work Has Mass](../2026-10-24-work-has-mass/index.qmd)).
 
 A person who reads a thousand lines a day guards a thousand lines. A person who makes "every endpoint has an authorisation test" a check guards every line every agent will ever write there.
 
@@ -231,7 +229,7 @@ Security is not an exception. It is the most important part of zone 3, and it is
 | Secrets | Secret scanning before anything leaves the session; no credentials in the agent's reach | Machines |
 | Supply chain [@spracklen2025] | Package and registry allowlists, lockfiles, provenance checks | Machines; a person approves a *new* dependency |
 | Access control, privacy | Authorisation tests per endpoint; data-flow checks; policy as code | Machines; people set the policy |
-| The agent itself | Sandboxed sessions; never private data, untrusted input and a way out at once ([The Context Is the Wire](../../posts/2026-11-01-the-context-is-the-wire/index.qmd)) | Machines enforce; people set the rule |
+| The agent itself | Sandboxed sessions; never private data, untrusted input and a way out at once ([The Context Is the Wire](../2026-11-01-the-context-is-the-wire/index.qmd)) | Machines enforce; people set the rule |
 | Gaming the checks [@metr2025; @zhong2025] | Read-only checks in the session; hidden held-out checks outside it; weakening or deleting a check needs a person | Machines enforce; people approve |
 | Irreversible actions | Data deletion, payments, releases | A person, at the gate |
 | Performance, cost | Latency, memory and cost budgets, checked like tests | Machines; people set budgets |
@@ -251,7 +249,7 @@ Each prediction names what would refute it.
 - **P2. Failures.** Escaped defects in AI-written code come mostly from zone 3 or weak checks, not from "strange-looking code". *Refuted if* reviewers' sense of unusual code predicts them better.
 - **P3. Automation beats reading.** Effort on automated checks, mutation testing and drills prevents more escaped defects than the same effort on reading diffs. *Refuted if* reading prevents at least as many.
 - **P4. Fast loops.** The same checks run in the agent's session reduce defects and rework compared with later CI. *Refuted if* timing makes no difference.
-- **P5. Teams.** Teams that gate only the irreversible and work above the loop deliver at least as fast with no more incidents. *Refuted if*, in a stepped-wedge trial as in [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd), they have more incidents or slower recovery.
+- **P5. Teams.** Teams that gate only the irreversible and work above the loop deliver at least as fast with no more incidents. *Refuted if*, in a stepped-wedge trial as in [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd), they have more incidents or slower recovery.
 
 **Protocol.** For P1, P3 and P4, a regeneration study: take modules with good tests, regenerate each twenty times under each condition (review or not, checks in session or in CI), and compare three distances: between the programs, on the checks, and on random inputs by differential testing [@mckeeman1998]. For P2 and P5, a stepped-wedge trial: teams adopt the rule one at a time in random order, and escaped defects are classified by zone from incident reports, not from opinions about the code.
 
@@ -278,7 +276,7 @@ Generated code is weather; the promised behaviour is climate. People do not need
 **Automate the loop, gate a sliver, and move people above it.** Let the code be chaotic: most of the chaos was never where the risk was.
 
 ::: {.read-next}
-**Read next** · [Stop Reviewing Pull Requests](../../posts/2026-10-23-stop-reviewing-pull-requests/index.qmd)
+**Read next** · [Stop Reviewing Pull Requests](../2026-10-23-stop-reviewing-pull-requests/index.qmd)
 The economic side of the same argument: approve what you cannot undo, watch everything else.
 :::
 
