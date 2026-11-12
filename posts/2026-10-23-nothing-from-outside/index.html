@@ -52,9 +52,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-edc2a8886e142f2400ae533f0e923c90.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-7f6e842410335d55eb6056aff63e6abf.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-edc2a8886e142f2400ae533f0e923c90.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-337c3ec554b391680b0f1cd51ae481c7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-edf856e456f5cded4bdc0872e43005e8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-337c3ec554b391680b0f1cd51ae481c7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
 <link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
@@ -321,12 +321,8 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Essays</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../../agentic-coding.html"> 
-<span class="menu-text">Agentic Coding</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../../research.html"> 
-<span class="menu-text">Research</span></a>
+    <a class="nav-link" href="../../series.html"> 
+<span class="menu-text">Series</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../../about.html"> 
@@ -1149,8 +1145,11 @@ ul.task-list li input[type="checkbox"] {
     sw.setAttribute("lang", fr ? "en" : "fr");
     sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
   });
+  // A series page (it has the "All series" back link) lights up "Series" in the menu.
+  var inSeries = !!document.querySelector(".series-back");
+  if (inSeries) document.querySelectorAll('.navbar .nav-link[href$="series.html"]').forEach(function (a) { a.classList.add("active"); });
   if (!fr) return;
-  var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  var labels = { "Essays": ["Essais", "/fr/"], "Series": ["Séries", "/fr/series.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
   document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
     var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
     if (!m) return;
@@ -1158,7 +1157,7 @@ ul.task-list li input[type="checkbox"] {
     if (m[1]) {
       a.href = m[1];
       var here = location.pathname.replace(/index\.html$/, "");
-      a.classList.toggle("active", here === m[1]);
+      a.classList.toggle("active", here === m[1] || (inSeries && m[1] === "/fr/series.html"));
     }
   });
   document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
