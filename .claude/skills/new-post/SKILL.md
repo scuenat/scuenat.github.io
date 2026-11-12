@@ -95,7 +95,7 @@ resources:
 - Then `**In short.**` — one paragraph a busy reader can stop after.
 - Numbered `##` sections (`## 1. …`) for essays and notes; plain headings are fine for analyses.
 - Figures: `![**Figure N.** Caption. Schematic, my own.](figures/figNN.svg){fig-alt="…"}` — always a full `fig-alt`.
-- Series: link both ways ("A follow-up to …" / "Continued in …"); for a post in a series (today: Agentic Coding), add the `::: {.series-note}` line and add the post to the series page (`agentic-coding.qmd` and `fr/agentic-coding.qmd`) as a `::: {.series-step}` block (or `.series-step .is-followup` after the series) with its figure, as the existing steps show (see **site-design**). A new series gets its own page at the root and an entry in `contents:` of `series.qmd` and `fr/series.qmd`; ask the user before starting one.
+- Series: link both ways ("A follow-up to …" / "Continued in …"); for a post in a series (Agentic Coding, Fast and Local AI, Evenings with Physics; see `series.qmd`), add the `::: {.series-note}` line and add the post to the series page (`agentic-coding.qmd` and `fr/agentic-coding.qmd`) as a `::: {.series-step}` block (or `.series-step .is-followup` after the series) with its figure, as the existing steps show (see **site-design**). A new series gets its own page at the root and an entry in `contents:` of `series.qmd` and `fr/series.qmd`; ask the user before starting one.
 - End with `::: {.read-next}` when there is a natural next post, then the disclaimer in `::: {.small}`:
   `*The views in this <essay|analysis|note|paper|overview> are my own and do not describe any product or plan of my employer.*`
 - Never invent quotations, numbers or sources. Every external claim gets a link or a `[@key]` citation with a `references.bib`.
