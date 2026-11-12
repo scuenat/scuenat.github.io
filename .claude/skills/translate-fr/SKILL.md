@@ -83,7 +83,7 @@ Before writing, read one existing translation next to its original (for example 
 
 - `grep -rn "<slug>" fr/*.qmd fr/posts` finds French pages that link the English post with "(en anglais)". Point them at the new translation and drop the marker.
 - If the English post has a "Continued in" / "Read next" link to a post that now has a French version, check the French chain both ways.
-- If the English `about.qmd` or `agentic-coding.qmd` changed along with the post, apply the same change to their French versions.
+- If the English `about.qmd`, `series.qmd` or a series page such as `agentic-coding.qmd` changed along with the post, apply the same change to their French versions.
 
 ## 5. Verify, then publish
 

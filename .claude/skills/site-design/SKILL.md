@@ -93,6 +93,22 @@ one component.
 (`.topic-tile`, one tile per post, see `topic-tiles.ejs`), follow box, section labels
 (`h2.latest-heading`: small amber uppercase with a rule).
 
+**Series** (`series.qmd`, `series-cards.ejs`; a series page such as `agentic-coding.qmd`):
+the Series page lists one large card per series (`contents:` in order, root path `/x.qmd` in
+English; each series page sets `series-parts:`). A series page starts with
+`[← All series](series.qmd){.series-back}` (which also lights "Series" in the menu), the intro,
+then the `ol.series-strip` (numbered steps linking to `#step-N`), then one
+`::: {.series-step data-step="N"}` per part: a raw-HTML `a.series-step-media` with the post's
+`image:`, the `## N. … {#step-N}` heading, the post link, summary and takeaway. Follow-ups use
+`.series-step .is-followup` (smaller figure).
+
+**About** (`about.qmd`; Research was merged into it in November 2026, `research.qmd` only
+redirects to `about.html#research`): `title-block-style: none`, a `.profile` header (name,
+role, link pills, the TEDx photo), `ul.profile-facts` (four tiles, two by two), the bio, "This
+site" with `nav.ways-in`, `#kinds`, `#research` with the publications listing
+(`research/publications.ejs`: selected papers as `.pub-card`s, the full list in
+`details.pub-all`), and `#reuse` (linked from the footer). Keep these anchors.
+
 ## 4. Layout
 
 - Home (`index.qmd`, `fr/index.qmd`): `page-layout: article`; each section is wrapped in
@@ -100,6 +116,7 @@ one component.
   at 46rem. Order: hero, Latest writing (feature + 3 cards), Start here, Themes.
 - Archive: `page-layout: full` (Quarto renders `main.column-page`), recent changes, then the
   filter bar and grid.
+- Series and About pages: article width; their blocks (steps, profile, cards) stay inside the text column so left edges line up.
 - Posts keep the article layout with the TOC on the right: reading comes first.
 - Breakpoints: 576, 768, 992, 1200 px (Bootstrap). Phone side gutter at least 1rem, no
   horizontal scroll.

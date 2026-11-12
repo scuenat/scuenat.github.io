@@ -1,34 +1,48 @@
 <%
-// Research publications, grouped by kind. Data: research/publications.yml.
-// Labels come from template-params, so the English and French pages share this file.
+// Research publications on the About page (about.qmd, fr/about.qmd, section #research).
+// Data: research/publications.yml. "Selected" papers are cards; the full list, grouped by kind,
+// sits in a <details> below. Labels come from template-params (lang), so both languages share this file.
 const t = (typeof templateParams !== "undefined" && templateParams) || {};
 const fr = t.lang === "fr";
 const L = fr ? {
-  selected: "Sélection", thesis: "Thèse", journal: "Articles de revue", conference: "Conférences",
-  data: "Données", "in-progress": "En cours"
+  selected: "Sélection", all: "Toutes les publications", thesis: "Thèse", journal: "Articles de revue",
+  conference: "Conférences", data: "Données", "in-progress": "En cours"
 } : {
-  selected: "Selected", thesis: "Thesis", journal: "Journal articles", conference: "Conference papers",
-  data: "Data", "in-progress": "In progress"
+  selected: "Selected", all: "All publications", thesis: "Thesis", journal: "Journal articles",
+  conference: "Conference papers", data: "Data", "in-progress": "In progress"
 };
 const order = ["thesis", "journal", "conference", "data", "in-progress"];
 const byYear = (a, b) => (b.year || 0) - (a.year || 0);
 const sorted = [...items].sort(byYear);
-const groups = [["selected", sorted.filter(i => i.featured)]].concat(order.map(k => [k, sorted.filter(i => i.kind === k)]));
+const featured = sorted.filter(i => i.featured);
+const href = item => item.doi ? "https://doi.org/" + item.doi : (item.links && item.links.length ? item.links[0].url : null);
+const noteOf = item => fr ? (item.note_fr || item.note) : item.note;
+const authors = item => String(item.authors || "").split("Stéphane Cuenat");
 %>
-<% for (const [key, list] of groups) { if (!list.length) continue; %>
+<% if (featured.length) { %>
+<div class="pub-cards" id="pub-selected">
+<% for (const item of featured) { const h = href(item); %>
+<article class="pub-card">
+<p class="pub-card-meta"><span><%= L[item.kind] || "" %></span><span><%= item.year %></span></p>
+<h4 class="no-anchor pub-card-title"><% if (h) { %><a href="<%= h %>"><%= item.title %></a><% } else { %><%= item.title %><% } %></h4>
+<% if (item.venue) { %><p class="pub-card-venue"><%= item.venue %></p><% } %>
+<% if (noteOf(item)) { %><p class="pub-card-note"><%= noteOf(item) %></p><% } %>
+</article>
+<% } %>
+</div>
+<% } %>
+<details class="pub-all">
+<summary><%= L.all %> (<%= items.length %>)</summary>
+<% for (const key of order) { const list = sorted.filter(i => i.kind === key); if (!list.length) continue; %>
 <section class="pub-group pub-<%= key %>">
-<h2 class="pub-heading" id="pub-<%= key %>"><%= L[key] %></h2>
+<h3 class="pub-heading no-anchor" id="pub-<%= key %>"><%= L[key] %></h3>
 <ol class="pub-list">
-<% for (const item of list) {
-const href = item.doi ? "https://doi.org/" + item.doi : (item.links && item.links.length ? item.links[0].url : null);
-const note = fr ? (item.note_fr || item.note) : item.note;
-%>
+<% for (const item of list) { const h = href(item); const note = noteOf(item); const parts = authors(item); %>
 <li class="pub">
 <div class="pub-year"><%= item.year %></div>
 <div class="pub-body">
-<div class="pub-title"><% if (href) { %><a href="<%= href %>"><%= item.title %></a><% } else { %><%= item.title %><% } %></div>
+<div class="pub-title"><% if (h) { %><a href="<%= h %>"><%= item.title %></a><% } else { %><%= item.title %><% } %></div>
 <% if (item.title_en && !fr) { %><div class="pub-translation"><%= item.title_en %></div><% } %>
-<% const parts = String(item.authors || "").split("Stéphane Cuenat"); %>
 <div class="pub-authors"><% for (let i = 0; i < parts.length; i++) { %><% if (i > 0) { %><strong>Stéphane Cuenat</strong><% } %><%= parts[i] %><% } %></div>
 <% if (item.venue) { %><div class="pub-venue"><%= item.venue %></div><% } %>
 <% if (note) { %><p class="pub-note"><%= note %></p><% } %>
@@ -44,3 +58,4 @@ const note = fr ? (item.note_fr || item.note) : item.note;
 </ol>
 </section>
 <% } %>
+</details>

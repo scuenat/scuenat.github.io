@@ -24,10 +24,8 @@ website:
     left:
       - href: index.qmd
         text: Essays
-      - href: agentic-coding.qmd
-        text: Agentic Coding
-      - href: research.qmd
-        text: Research
+      - href: series.qmd
+        text: Series
       - href: about.qmd
         text: About
       - href: talks.qmd
@@ -85,8 +83,11 @@ format:
             sw.setAttribute("lang", fr ? "en" : "fr");
             sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
           });
+          // A series page (it has the "All series" back link) lights up "Series" in the menu.
+          var inSeries = !!document.querySelector(".series-back");
+          if (inSeries) document.querySelectorAll('.navbar .nav-link[href$="series.html"]').forEach(function (a) { a.classList.add("active"); });
           if (!fr) return;
-          var labels = { "Essays": ["Essais", "/fr/"], "Agentic Coding": ["Codage agentique", "/fr/agentic-coding.html"], "Research": ["Recherche", "/fr/research.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+          var labels = { "Essays": ["Essais", "/fr/"], "Series": ["Séries", "/fr/series.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
           document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
             var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
             if (!m) return;
@@ -94,7 +95,7 @@ format:
             if (m[1]) {
               a.href = m[1];
               var here = location.pathname.replace(/index\.html$/, "");
-              a.classList.toggle("active", here === m[1]);
+              a.classList.toggle("active", here === m[1] || (inSeries && m[1] === "/fr/series.html"));
             }
           });
           document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });

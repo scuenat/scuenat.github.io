@@ -140,7 +140,7 @@ main.content li,
 main.content blockquote { font-family: $headings-font-family; font-size: 1.12rem; }
 
 main.content h1, main.content h2, main.content h3 { font-weight: 600; letter-spacing: -.015em; text-wrap: balance; }
-main.content h1:not(.title):not(.hero-title),
+main.content h1:not(.title):not(.hero-title):not(.profile-name),
 main.content h2.latest-heading {
   margin-top: 3rem;
   font-family: $font-family-sans-serif;
@@ -425,10 +425,8 @@ main.content div.sourceCode, main.content pre:not(.sourceCode) {
 }
 
 // Research page: publications from research/publications.yml (research/publications.ejs)
-.pub-group { margin-top: 2.5rem; }
+.pub-group { margin-top: 1rem; }
 .pub-heading { margin-bottom: .75rem; }
-.pub-selected { padding: .25rem 1.25rem .5rem; border-left: 3px solid $amber; background: rgba($amber, .07);
-  border-radius: 0 $border-radius $border-radius 0; }
 .pub-list { list-style: none; padding: 0; margin: 0; }
 .pub { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: .9rem; padding: 1rem 0; border-top: 1px solid $rule; }
 .pub:first-child { border-top: none; }
@@ -503,7 +501,8 @@ main.content .series-note {
 
 // ---------- Home hero (banner) ----------
 // The banner carries the page title, so hide Quarto's own title block there.
-main:has(.hero) > header#title-block-header { display: none; }
+main:has(.hero) > header#title-block-header,
+main:has(.profile) > header#title-block-header { display: none; }
 #quarto-content:has(.hero),
 #quarto-content:has(.hero) > * { padding-top: 0; margin-top: 0; }
 
@@ -989,4 +988,194 @@ main.content p.post-card-foot {
 @media (max-width: 576px) {
   .post-filter-cat, .post-filter-cat select { width: 100%; }
   .post-filter-count { margin-left: 0; }
+}
+
+// ---------- Series (series.qmd, agentic-coding.qmd; site-design skill) ----------
+.post-card-kind.kind-series { color: $ink; }
+main.content p.series-cta { color: $ink; font-weight: 600; }
+.series-cards { margin-top: 1.5rem; }
+main.content p:has(> a.series-back) { margin: 0 0 1.25rem; }
+main.content a.series-back {
+  font-family: $font-family-sans-serif; font-size: .82rem; font-weight: 600; letter-spacing: .02em;
+  color: $muted; text-decoration: none;
+  &:hover, &:focus { color: $ink; }
+}
+// The five steps at a glance, under the intro
+ol.series-strip {
+  display: flex;
+  gap: 0;
+  margin: 2rem 0 1rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+  li { flex: 1; position: relative; text-align: center; margin: 0; }
+  li + li::before {   // the line joining the steps
+    content: ""; position: absolute; top: 1rem; right: 50%; width: 100%; height: 1px; background: $rule; z-index: 0;
+  }
+  a {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center; gap: .45rem;
+    font-family: $font-family-sans-serif; font-size: .8rem; font-weight: 500; line-height: 1.25;
+    color: $muted; text-decoration: none;
+  }
+  span {
+    display: grid; place-items: center;
+    width: 2rem; height: 2rem; border-radius: 50%;
+    border: 1px solid $rule; background: $body-bg;
+    font-weight: 700; font-size: .85rem; color: $ink;
+    transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+  }
+  a:hover, a:focus { color: $ink; }
+  a:hover span, a:focus span { border-color: $amber; background: $amber; color: #000; }
+  @media (max-width: 576px) { a { font-size: .7rem; } }
+}
+// One step: its figure on the left, the text on the right
+.series-step {
+  display: grid;
+  grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+  column-gap: 2rem;
+  align-items: start;
+  padding: 2rem 0;
+  border-top: 1px solid $rule;
+  > * { grid-column: 2; }
+  > .series-step-media { grid-column: 1; grid-row: 1 / span 8; }
+  > h2 { margin-top: 0; font-size: 1.45rem; }
+  > h3 { margin-top: 0; }
+  > p:last-child { margin-bottom: 0; }
+  &:hover .series-step-media { border-color: rgba($amber, .55); }
+  @media (max-width: 767.98px) {
+    grid-template-columns: minmax(0, 1fr);
+    > * , > .series-step-media { grid-column: 1; grid-row: auto; }
+    > .series-step-media { margin-bottom: 1rem; }
+  }
+}
+a.series-step-media {
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid $rule;
+  border-radius: calc(#{$border-radius} * 1.5);
+  background: #fff;
+  transition: border-color .2s ease;
+  img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 4%; }
+}
+// Follow-ups after the series: the same shape, smaller
+.series-step.is-followup {
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  padding: 1.5rem 0;
+  @media (max-width: 767.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+// ---------- About: profile header, facts, ways in (about.qmd; site-design skill) ----------
+.profile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: center;
+  margin: .5rem 0 1.75rem;
+  @media (max-width: 767.98px) { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+}
+main.content p.profile-kicker {
+  margin: 0 0 .5rem;
+  font-family: $font-family-sans-serif; font-size: .75rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: $muted;
+}
+main.content h1.profile-name {
+  margin: 0;
+  font-family: $font-family-sans-serif; font-size: clamp(2.2rem, 4.4vw, 2.9rem); font-weight: 700; line-height: 1.05; letter-spacing: -.03em;
+  color: $ink;
+  &::after { content: ""; display: block; width: 3.5rem; height: 3px; margin: 1rem 0 0; background: $amber; border-radius: 2px; }
+}
+main.content p.profile-role { margin: 1rem 0 0; font-family: $font-family-sans-serif; font-size: 1rem; line-height: 1.5; color: $muted; }
+main.content p.profile-links {
+  display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.25rem 0 0;
+  a {
+    padding: .35rem .9rem; border: 1px solid $rule; border-radius: 999px; background: $surface;
+    font-family: $font-family-sans-serif; font-size: .82rem; font-weight: 500; color: $ink; text-decoration: none;
+    transition: border-color .15s ease;
+    &:hover, &:focus { border-color: $amber; }
+  }
+}
+a.profile-photo {
+  display: block; margin: 0; text-decoration: none;
+  img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: 50% 35%;
+        border-radius: calc(#{$border-radius} * 1.5); border: 1px solid $rule; }
+  span { display: block; margin-top: .5rem; font-family: $font-family-sans-serif; font-size: .78rem; color: $muted; }
+  &:hover span { color: $ink; }
+}
+ul.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 0 0 2.5rem;
+  padding: 0;
+  list-style: none;
+  @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+  li { margin: 0; }
+  li, li > a {
+    display: flex; flex-direction: column; gap: .3rem;
+    font-family: $font-family-sans-serif;
+  }
+  li { padding: 1rem 1.1rem; border: 1px solid $rule; border-radius: $border-radius; background: $surface; }
+  li > a { color: inherit; text-decoration: none; }
+  li:has(> a):hover { border-color: rgba($amber, .7); }
+  strong { font-size: .95rem; font-weight: 700; color: $ink; line-height: 1.3; }
+  span { font-size: .84rem; line-height: 1.45; color: $muted; }
+}
+main.content ul.profile-facts li { font-size: inherit; }
+nav.ways-in {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 1.5rem 0;
+  @media (max-width: 767.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  a {
+    display: flex; flex-direction: column; gap: .25rem;
+    padding: .9rem 1rem; border: 1px solid $rule; border-radius: $border-radius; background: $surface;
+    font-family: $font-family-sans-serif; color: inherit; text-decoration: none;
+    transition: border-color .15s ease, transform .15s ease;
+    &:hover, &:focus { border-color: rgba($amber, .7); transform: translateY(-1px); }
+  }
+  strong { font-size: .92rem; color: $ink; }
+  span { font-size: .8rem; line-height: 1.4; color: $muted; }
+}
+
+// ---------- Publications (research/publications.ejs) ----------
+.pub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  gap: .75rem;
+  margin: 1.5rem 0 1.25rem;
+}
+.pub-card {
+  padding: 1.1rem 1.2rem 1.2rem;
+  border: 1px solid $rule;
+  border-radius: calc(#{$border-radius} * 1.5);
+  background: $surface;
+  transition: border-color .15s ease;
+  &:hover { border-color: rgba($amber, .7); }
+  p { margin: 0; }
+}
+main.content p.pub-card-meta {
+  display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .55rem;
+  font-family: $font-family-sans-serif; font-size: .7rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: $muted;
+}
+main.content h4.pub-card-title {
+  margin: 0 0 .5rem; font-family: $font-family-sans-serif; font-size: 1rem; font-weight: 700; line-height: 1.35; letter-spacing: -.005em;
+  a { color: $ink; text-decoration: none; }
+  a:hover, a:focus { color: $mark; }
+}
+main.content p.pub-card-venue { font-family: $font-family-sans-serif; font-size: .8rem; font-style: italic; line-height: 1.45; color: $muted; }
+main.content p.pub-card-note { margin-top: .6rem; font-size: .95rem; line-height: 1.5; }
+details.pub-all {
+  margin: 0 0 1.5rem;
+  > summary {
+    display: inline-block; cursor: pointer; list-style: none;
+    padding: .5rem 1.1rem; border: 1px solid $rule; border-radius: 999px; background: $surface;
+    font-family: $font-family-sans-serif; font-size: .88rem; font-weight: 600; color: $ink;
+    &::-webkit-details-marker { display: none; }
+    &::after { content: " ↓"; color: $muted; }
+    &:hover { border-color: $amber; }
+  }
+  &[open] > summary::after { content: " ↑"; }
+  h3.pub-heading { margin: 2rem 0 .5rem; font-size: 1.15rem; }
 }

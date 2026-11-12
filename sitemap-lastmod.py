@@ -42,5 +42,7 @@ if os.path.exists(SITEMAP):
     xml = open(SITEMAP, encoding="utf-8").read()
     # Drafts (/drafts/, /fr/drafts/) are for review only: keep them out of the sitemap.
     xml = re.sub(r"\s*<url>\s*<loc>[^<]*/drafts/[^<]*</loc>.*?</url>", "", xml, flags=re.S)
+    # research.html only redirects to about.html#research (merged in November 2026).
+    xml = re.sub(r"\s*<url>\s*<loc>[^<]*/research\.html</loc>.*?</url>", "", xml, flags=re.S)
     xml = re.sub(r"<loc>([^<]*)</loc>\s*<lastmod>([^<]*)</lastmod>", fix, xml)
     open(SITEMAP, "w", encoding="utf-8").write(xml)

@@ -1,0 +1,20 @@
+<%
+// Series page (series.qmd, fr/series.qmd): one large card per series, in the order of `contents:`.
+// Each series page sets `series-parts:` ("5 parts · 4 follow-ups"). Card styles: site-design skill.
+const p = (typeof templateParams !== "undefined" && templateParams) || {};
+const label = p.label || "Series";
+const cta = p.cta || "Read the series";
+%>
+<div class="post-latest series-cards">
+<% for (const item of items) { %>
+<article class="post-card is-feature" <%= metadataAttrs(item) %>>
+<% if (item.image) { %><div class="post-card-media"><img src="<%- item.image %>" alt="" onload="this.classList.toggle('is-tall', this.naturalHeight > this.naturalWidth * .8)"></div><% } %>
+<div class="post-card-body">
+<p class="post-card-meta"><span class="post-card-kind kind-series"><%= label %></span><% if (item['series-parts']) { %><span class="post-card-date"><%= item['series-parts'] %></span><% } %></p>
+<h3 class="no-anchor post-card-title"><a href="<%- item.path %>"><%= item.title %></a></h3>
+<% if (item.subtitle) { %><p class="post-card-summary"><%= item.subtitle %></p><% } %>
+<p class="post-card-foot series-cta"><%= cta %>&nbsp;→</p>
+</div>
+</article>
+<% } %>
+</div>

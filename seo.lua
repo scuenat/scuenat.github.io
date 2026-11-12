@@ -109,7 +109,7 @@ function Meta(meta)
       data[fr and "translationOfWork" or "workTranslation"] = { ["@id"] = SITE .. clean(other) }
     end
   elseif rel == "agentic-coding.qmd" or rel == "fr/agentic-coding.qmd"
-    or rel == "research.qmd" or rel == "fr/research.qmd" then
+    or rel == "series.qmd" or rel == "fr/series.qmd" then
     data = { ["@context"] = "https://schema.org", ["@type"] = "CollectionPage", name = title,
              description = description, url = url, inLanguage = lang, author = AUTHOR,
              isPartOf = { ["@type"] = "Blog", name = SITE_NAME, url = SITE } }
