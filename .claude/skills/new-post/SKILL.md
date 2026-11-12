@@ -73,7 +73,7 @@ citation: true
 toc-depth: 2
 categories: [<kind>, ai, ...]   # first category = the kind (essay | analysis | note | overview); working papers: paper; position papers: paper, position
 kind: <kind>   # card marker: essay | analysis | note | position | overview
-topics: [<tile-id>]   # home-page theme tiles (index.qmd); [] lands in "Also on the site"
+topics: [<tile-id>]   # ONE home-page theme tile (index.qmd); [] lands in "Also on the site"
 image: figures/fig01.png   # or ../../social-card.jpg when there is no figure
 resources:
   - figs.py
@@ -81,6 +81,7 @@ resources:
 ---
 ```
 
+- `topics:` names exactly one tile, the one that fits best. A post is listed in one tile only (`topic-tiles.ejs` keeps the first id), so a second id is ignored.
 - `kind:` is required: without it the card shows no badge. Only `essay`, `analysis`, `note`, `position` and `overview` are valid.
 - Categories are lowercase; reuse existing ones (`grep -h '^categories' posts/*/index.qmd | sort -u`).
 - Author, license and the "Questions or objections?" footer come from `posts/_metadata.yml` and `discuss.lua`; do not add them.
@@ -88,6 +89,7 @@ resources:
 ## 4. House style (all kinds)
 
 - Plain, short sentences, first person, no hype. Say what is claimed and what is not.
+- **Follow the write-plainly skill** for the wording, on every draft version: Stéphane's own voice (`.claude/skills/write-plainly/voice-sample.md`), everyday words, the plain sentence before any formula, and `python3 .claude/skills/write-plainly/readability.py <file>` before each review PDF.
 - Open with a `::: {.callout-note appearance="simple"}` that starts with the kind and month in bold (**Essay, November 2026.** / **Analysis, …** / **Note …** / **Position paper, …** / **Overview, …**), says what the post is and where figures come from.
 - Then `**In short.**` — one paragraph a busy reader can stop after.
 - Numbered `##` sections (`## 1. …`) for essays and notes; plain headings are fine for analyses.

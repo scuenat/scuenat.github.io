@@ -1,5 +1,6 @@
 <%
-// Home-page theme tiles. Each post names its tiles in `topics:` (a post may sit in several);
+// Home-page theme tiles. Each post names its tile in `topics:`. A post is shown in one tile only:
+// the first known id in its list wins, so it never appears twice on the home page;
 // the tiles themselves (title, thesis, optional link) come from template-params, so the
 // English and French home pages share this file. Posts with no known topic go in a last tile.
 const t = (typeof templateParams !== "undefined" && templateParams) || {};
@@ -7,7 +8,8 @@ const topics = t.topics || [];
 const known = new Set(topics.map(x => x.id));
 // The listing is sorted newest first (that order also feeds the RSS feed); tiles read oldest first.
 const posts = [...items].reverse();
-const tiles = topics.map(x => [x, posts.filter(i => (i.topics || []).includes(x.id))]);
+const home = i => (i.topics || []).find(id => known.has(id));
+const tiles = topics.map(x => [x, posts.filter(i => home(i) === x.id)]);
 // Card marker: each post's `kind` (essay | analysis | note | position | overview), labelled from template-params.
 const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note", position: "Position paper", overview: "Overview" }, t.kinds || {});
 const other = posts.filter(i => !(i.topics || []).some(id => known.has(id)));
