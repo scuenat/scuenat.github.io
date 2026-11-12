@@ -1,7 +1,8 @@
 <%
-// Home-page themes (index.qmd, fr/index.qmd): one row per theme, Netflix-style. On the left the
-// theme (title, thesis, link to its series); on the right its posts as small image cards, in reading
-// order (oldest first), in a row that scrolls sideways when it is longer than the screen.
+// Home-page themes (index.qmd, fr/index.qmd): one row per theme. On the left the theme (title,
+// thesis, links); on the right its first posts as small image cards, in reading order (oldest
+// first), and a "+N more" tile when there are more. Everything in a theme is on its own page,
+// themes/<id>.html (written by .claude/skills/site-design/make-theme-pages.py). No sideways scrolling.
 // Each post names its theme in `topics:` and appears in one theme only (the first known id).
 // Texts come from template-params, so both languages share this file. Styles: site-design skill.
 const t = (typeof templateParams !== "undefined" && templateParams) || {};
@@ -15,6 +16,9 @@ const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note
 const other = posts.filter(i => !(i.topics || []).some(id => known.has(id)));
 if (other.length && t.other) tiles.push([t.other, other]);
 const count = t.count || ["post", "posts"];
+const ui = Object.assign({ more: "more" }, t.ui || {});
+const SHOWN = 3;
+const page = topic => topic.id === "other" ? null : "themes/" + topic.id + ".html";
 %>
 <div class="theme-rows">
 <% for (const [topic, list] of tiles) { if (!list.length) continue; %>
@@ -22,16 +26,19 @@ const count = t.count || ["post", "posts"];
 <div class="theme-head">
 <h3 class="no-anchor theme-title"><% if (topic.link) { %><a href="<%- topic.link %>"><%= topic.title %></a><% } else { %><%= topic.title %><% } %></h3>
 <% if (topic.thesis) { %><p class="theme-thesis"><%= topic.thesis %></p><% } %>
-<p class="theme-meta"><%= list.length %> <%= list.length === 1 ? count[0] : count[1] %><% if (topic.link) { %> · <a href="<%- topic.link %>"><%= topic.linkText %>&nbsp;→</a><% } %></p>
+<p class="theme-meta"><% if (page(topic)) { %><a href="<%- page(topic) %>"><%= list.length %> <%= list.length === 1 ? count[0] : count[1] %></a><% } else { %><%= list.length %> <%= list.length === 1 ? count[0] : count[1] %><% } %><% if (topic.link) { %> · <a href="<%- topic.link %>"><%= topic.linkText %>&nbsp;→</a><% } %></p>
 </div>
 <ol class="theme-cards">
-<% list.forEach((item, n) => { const kind = labels[item.kind] ? item.kind : null; %>
+<% list.slice(0, SHOWN).forEach((item, n) => { const kind = labels[item.kind] ? item.kind : null; %>
 <li class="theme-card">
 <% if (item.image) { %><span class="theme-card-media"><img src="<%- item.image %>" alt="" loading="lazy" onload="this.classList.toggle('is-tall', this.naturalHeight > this.naturalWidth * .8)"></span><% } %>
 <% if (kind) { %><span class="post-card-kind kind-<%= kind %>"><%= labels[kind] %></span><% } %>
 <a class="theme-card-title" href="<%- item.path %>"><%= item.title %></a>
 </li>
 <% }); %>
+<% if (list.length > SHOWN && page(topic)) { %>
+<li class="theme-card theme-card-more"><a href="<%- page(topic) %>"><span class="more-count">+<%= list.length - SHOWN %></span><span class="more-label"><%= ui.more %>&nbsp;→</span></a></li>
+<% } %>
 </ol>
 </section>
 <% } %>

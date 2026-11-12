@@ -90,15 +90,21 @@ lists (the drafts list); the dot-and-text `.post-card-kind` is for anything with
 
 **Start here** (raw HTML in `index.qmd` / `fr/index.qmd`): `a.start-card` with a
 `.start-media` image (the post's `image:`, or the series page's), a `.post-card-kind` label,
-`.start-title` and `.start-why` (three lines). Five in one row on wide screens; under 1200 px
-the row scrolls sideways with scroll-snap, a part of the next card always visible. When you
-change a pick, change its image too, in both languages.
+`.start-title` and `.start-why`. Five in one row on wide screens; below 992 px a compact list
+(small picture left, text right), two columns then one. No sideways scrolling anywhere: the
+user found it awkward. When you change a pick, change its image too, in both languages.
 
 **Themes** (`topic-tiles.ejs`): one `.theme-row` per theme. Left: title (linked to its series
-when the theme has one: `link` / `linkText` in template-params), thesis, "N posts · Read the
-series in order →". Right: `ol.theme-cards`, the posts oldest first as small image cards
-(image, kind label, title), four visible on desktop and the rest scrolling sideways. A post
-sits in one theme only (`topics:` names one id).
+when the theme has one: `link` / `linkText` in template-params), thesis, and "N posts" linking
+to the theme page. Right: the first three posts in reading order as small image cards, and a
+"+N more" tile to the theme page when there are more. On phones the cards become a compact
+list. A post sits in one theme only (`topics:` names one id).
+
+**Theme pages** (`themes/<id>.qmd`, `fr/themes/<id>.qmd`): every post in the theme, oldest
+first, as archive cards without the filter bar (`archive-list.ejs` with `theme:` and
+`filters: false`). They are generated from the theme list in `index.qmd` / `fr/index.qmd`:
+after adding, renaming or re-describing a theme, run
+`python3 .claude/skills/site-design/make-theme-pages.py` and render. Never edit them by hand.
 
 **Other parts**: hero (`.hero`, keep it compact: about 3.5rem padding), follow box, section
 labels (`h2.latest-heading`: small uppercase with a rule).

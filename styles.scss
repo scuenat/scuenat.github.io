@@ -702,23 +702,15 @@ main.content .quarto-listing-default .listing-description p { font-size: 1.02rem
 }
 
 // Home page: "Start here", picks for a first visit (index.qmd). Five image cards in a row on
-// wide screens; below that, a row you swipe sideways (scroll-snap), Netflix-style.
+// wide screens; below that, a compact list with a small picture on the left (no sideways scrolling).
 .start-here {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1.25rem;
   margin: .75rem 0 3rem;
-  @media (max-width: 1199.98px) {
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(13.5rem, 40%);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    padding-bottom: .75rem;
-    scrollbar-width: thin;
-    > * { scroll-snap-align: start; }
-  }
-  @media (max-width: 575.98px) { grid-auto-columns: 72%; }
+  // Below 992px: a compact list, small picture on the left, two columns then one
+  @media (max-width: 991.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; }
+  @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
 }
 main.content a.start-card {
   position: relative;
@@ -743,6 +735,15 @@ main.content a.start-card {
   .start-title { font-family: $font-family-sans-serif; font-weight: 700; font-size: 1.02rem; line-height: 1.3; letter-spacing: -.01em; color: $ink; }
   .start-why { font-family: $headings-font-family; font-size: .92rem; line-height: 1.45; color: $muted;
                display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  @media (max-width: 991.98px) {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    column-gap: .9rem;
+    row-gap: .2rem;
+    align-content: start;
+    .start-media { grid-row: 1 / span 3; margin: 0; }
+    .start-why { -webkit-line-clamp: 2; font-size: .88rem; }
+  }
   &:hover, &:focus-visible {
     .start-media { border-color: rgba($amber, .6); box-shadow: 0 14px 30px -22px $shadow; }
     .start-media img { transform: scale(1.03); }
@@ -776,22 +777,18 @@ main.content p.theme-meta {
 }
 ol.theme-cards {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(10.5rem, calc((100% - 3rem) / 4));   // four visible, the rest scroll
+  grid-template-columns: repeat(4, minmax(0, 1fr));   // three posts and the "+N more" tile
   gap: 1rem;
   margin: 0;
-  padding: 0 0 .6rem;
+  padding: 0;
   list-style: none;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
-  @media (max-width: 575.98px) { grid-auto-columns: 42%; }   // a sliver of the next card shows that the row scrolls
+  // Phones: a compact list, small picture on the left
+  @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
 }
 li.theme-card {
   position: relative;
   display: flex; flex-direction: column; gap: .35rem;
   margin: 0; min-width: 0;
-  scroll-snap-align: start;
   .theme-card-media {
     display: block; aspect-ratio: 16 / 10; overflow: hidden; margin-bottom: .3rem;
     border: 1px solid $rule; border-radius: $border-radius; background: #fff;
@@ -799,6 +796,7 @@ li.theme-card {
     img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 5%;
           &.is-tall { object-fit: cover; object-position: center top; padding: 0; } }
   }
+  .theme-card-text { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
   .post-card-kind { font-family: $font-family-sans-serif; font-size: .64rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
   a.theme-card-title {
     font-family: $font-family-sans-serif; font-size: .9rem; font-weight: 600; line-height: 1.3;
@@ -807,7 +805,26 @@ li.theme-card {
   }
   &:hover .theme-card-media { border-color: rgba($amber, .6); }
   &:hover a.theme-card-title, a.theme-card-title:focus-visible { color: $mark; }
+  @media (max-width: 575.98px) {
+    display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); column-gap: .85rem; row-gap: .15rem; align-content: center;
+    .theme-card-media { grid-row: 1 / span 2; margin: 0; }
+  }
 }
+// The "+N more" tile: same frame as a picture, links to the theme page
+li.theme-card-more a {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+  aspect-ratio: 16 / 10;
+  border: 1px dashed $rule; border-radius: $border-radius; background: $surface-alt;
+  font-family: $font-family-sans-serif; color: $ink; text-decoration: none;
+  transition: border-color .2s ease, background-color .2s ease;
+  .more-count { font-size: 1.6rem; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+  .more-label { font-size: .8rem; font-weight: 600; color: $muted; }
+  &:hover, &:focus-visible { border-color: $amber; border-style: solid; .more-label { color: $mark; } }
+  @media (max-width: 575.98px) { aspect-ratio: auto; flex-direction: row; gap: .5rem; padding: .6rem 1rem; .more-count { font-size: 1.05rem; } }
+}
+@media (max-width: 575.98px) { li.theme-card.theme-card-more { display: block; } }
+main.content a.theme-back { font-family: $font-family-sans-serif; font-size: .82rem; font-weight: 600; color: $muted; text-decoration: none;
+  &:hover, &:focus { color: $ink; } }
 main.content li.theme-card { font-size: inherit; }
 
 // Home page: follow box after "Latest writing"
