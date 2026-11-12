@@ -84,14 +84,24 @@ components below, and keep the identity in section 1.
 `data-kind` / `data-cats`, and opens filtered on `archive.html#category=<name>`
 (URL-encoded or base64). Quarto's own category sidebar is off (`categories: false`).
 
-**Kind badge vs kind label**: the `.kind-badge` (neutral box, coloured left edge) is for text lists (Start here, theme
-tiles, drafts list); the dot-and-text `.post-card-kind` is for image cards. Do not mix them in
-one component.
+**Kind badge vs kind label**: the `.kind-badge` (neutral box, coloured left edge) is for text
+lists (the drafts list); the dot-and-text `.post-card-kind` is for anything with an image
+(cards, Start here, theme rows). Do not mix them in one component.
 
-**Other parts**: hero (`.hero`, keep it compact: about 3.5rem padding), Start here
-(`.start-card`, five in one row on desktop, three on tablet, one on phone), theme tiles
-(`.topic-tile`, one tile per post, see `topic-tiles.ejs`), follow box, section labels
-(`h2.latest-heading`: small amber uppercase with a rule).
+**Start here** (raw HTML in `index.qmd` / `fr/index.qmd`): `a.start-card` with a
+`.start-media` image (the post's `image:`, or the series page's), a `.post-card-kind` label,
+`.start-title` and `.start-why` (three lines). Five in one row on wide screens; under 1200 px
+the row scrolls sideways with scroll-snap, a part of the next card always visible. When you
+change a pick, change its image too, in both languages.
+
+**Themes** (`topic-tiles.ejs`): one `.theme-row` per theme. Left: title (linked to its series
+when the theme has one: `link` / `linkText` in template-params), thesis, "N posts · Read the
+series in order →". Right: `ol.theme-cards`, the posts oldest first as small image cards
+(image, kind label, title), four visible on desktop and the rest scrolling sideways. A post
+sits in one theme only (`topics:` names one id).
+
+**Other parts**: hero (`.hero`, keep it compact: about 3.5rem padding), follow box, section
+labels (`h2.latest-heading`: small uppercase with a rule).
 
 **Series** (`series.qmd`, `series-cards.ejs`; a series page such as `agentic-coding.qmd`):
 the Series page lists one large card per series (`contents:` in order, root path `/x.qmd` in

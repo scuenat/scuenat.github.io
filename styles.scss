@@ -701,32 +701,114 @@ main.content .quarto-listing-default .listing-description p { font-size: 1.02rem
   &.kind-series   { border-left-color: $muted; color: $muted; }
 }
 
-// Home page: "Start here", picks for a first visit (index.qmd)
+// Home page: "Start here", picks for a first visit (index.qmd). Five image cards in a row on
+// wide screens; below that, a row you swipe sideways (scroll-snap), Netflix-style.
 .start-here {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));   // one row of five on desktop
-  @media (max-width: 1199px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  gap: 1rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.25rem;
   margin: .75rem 0 3rem;
-  @media (max-width: 768px) { grid-template-columns: 1fr; }
+  @media (max-width: 1199.98px) {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(13.5rem, 40%);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: .75rem;
+    scrollbar-width: thin;
+    > * { scroll-snap-align: start; }
+  }
+  @media (max-width: 575.98px) { grid-auto-columns: 72%; }
 }
 main.content a.start-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: .5rem;
-  padding: 1.1rem 1.15rem 1.2rem;
-  border: 1px solid $rule;
-  border-radius: $border-radius;
-  background: $surface;
-  box-shadow: 0 1px 2px $shadow;
+  gap: .4rem;
+  min-width: 0;
   color: inherit;
   text-decoration: none;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-  &:hover, &:focus { transform: translateY(-2px); border-color: rgba($amber, .7); box-shadow: 0 1px 2px $shadow, 0 12px 28px -18px $shadow; }
-  .start-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.2rem; line-height: 1.25; }
-  .start-why { font-size: .93rem; line-height: 1.5; color: $muted; }
+  .start-media {
+    display: block; width: 100%; margin-bottom: .45rem;
+    aspect-ratio: 16 / 10; overflow: hidden;
+    border: 1px solid $rule; border-radius: calc(#{$border-radius} * 1.5); background: #fff;
+    transition: border-color .2s ease, box-shadow .2s ease;
+    img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 4%; transition: transform .35s ease;
+          &.is-tall { object-fit: cover; object-position: center top; padding: 0; } }
+  }
+  // the site banner used as the picture of the site's own essay fills its frame
+  .start-media img[src$="social-card.jpg"] { object-fit: cover; padding: 0; }
+  .post-card-kind { font-family: $font-family-sans-serif; font-size: .68rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+  .start-title { font-family: $font-family-sans-serif; font-weight: 700; font-size: 1.02rem; line-height: 1.3; letter-spacing: -.01em; color: $ink; }
+  .start-why { font-family: $headings-font-family; font-size: .92rem; line-height: 1.45; color: $muted;
+               display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  &:hover, &:focus-visible {
+    .start-media { border-color: rgba($amber, .6); box-shadow: 0 14px 30px -22px $shadow; }
+    .start-media img { transform: scale(1.03); }
+    .start-title { color: $mark; }
+  }
 }
+
+// Home page: themes as rows (topic-tiles.ejs). The theme on the left, its posts on the right as
+// small image cards in reading order; the row scrolls sideways when it is longer than the screen.
+.theme-rows { margin: 1rem 0 2.5rem; }
+.theme-row {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 2rem;
+  padding: 1.75rem 0;
+  border-top: 1px solid $rule;
+  &:first-child { border-top: none; padding-top: .5rem; }
+  @media (max-width: 767.98px) { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+}
+main.content h3.theme-title {
+  margin: 0 0 .45rem;
+  font-family: $font-family-sans-serif; font-size: 1.15rem; font-weight: 700; line-height: 1.25; letter-spacing: -.012em;
+  a { color: $ink; font-weight: inherit; text-decoration: none; }
+  a:hover, a:focus { color: $mark; }
+}
+main.content p.theme-thesis { margin: 0 0 .6rem; font-size: .95rem; line-height: 1.5; color: $muted; }
+main.content p.theme-meta {
+  margin: 0; font-family: $font-family-sans-serif; font-size: .78rem; font-weight: 500; color: $muted;
+  a { color: $ink; font-weight: 600; text-decoration: none; }
+  a:hover, a:focus { color: $mark; }
+}
+ol.theme-cards {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(10.5rem, calc((100% - 3rem) / 4));   // four visible, the rest scroll
+  gap: 1rem;
+  margin: 0;
+  padding: 0 0 .6rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  @media (max-width: 575.98px) { grid-auto-columns: 42%; }   // a sliver of the next card shows that the row scrolls
+}
+li.theme-card {
+  position: relative;
+  display: flex; flex-direction: column; gap: .35rem;
+  margin: 0; min-width: 0;
+  scroll-snap-align: start;
+  .theme-card-media {
+    display: block; aspect-ratio: 16 / 10; overflow: hidden; margin-bottom: .3rem;
+    border: 1px solid $rule; border-radius: $border-radius; background: #fff;
+    transition: border-color .2s ease;
+    img { display: block; width: 100%; height: 100%; object-fit: contain; padding: 5%;
+          &.is-tall { object-fit: cover; object-position: center top; padding: 0; } }
+  }
+  .post-card-kind { font-family: $font-family-sans-serif; font-size: .64rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+  a.theme-card-title {
+    font-family: $font-family-sans-serif; font-size: .9rem; font-weight: 600; line-height: 1.3;
+    color: $ink; text-decoration: none;
+    &::after { content: ""; position: absolute; inset: 0; }   // the whole card is the link
+  }
+  &:hover .theme-card-media { border-color: rgba($amber, .6); }
+  &:hover a.theme-card-title, a.theme-card-title:focus-visible { color: $mark; }
+}
+main.content li.theme-card { font-size: inherit; }
 
 // Home page: follow box after "Latest writing"
 .follow-box {
@@ -741,55 +823,6 @@ main.content a.start-card {
 }
 p.latest-kind, .quarto-post .listing-kind { margin: 0 0 .35rem; line-height: 1; }
 
-// ---------- Home theme tiles ----------
-.topic-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  gap: 1.25rem;
-  margin: 1rem 0 2.5rem;
-}
-.topic-tile {
-  position: relative;
-  overflow: hidden;
-  padding: 1.6rem 1.6rem 1.35rem;
-  border: 1px solid $rule;
-  border-radius: calc(#{$border-radius} * 1.5);
-  background: $surface;
-  box-shadow: 0 1px 2px $shadow, 0 10px 30px -22px $shadow;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 0;
-    background: none;
-  }
-  &:hover { transform: translateY(-2px); border-color: rgba($amber, .45); box-shadow: 0 1px 2px $shadow, 0 18px 40px -24px $shadow; }
-  h3.topic-title { margin: 0 0 .5rem; font-family: $headings-font-family; font-weight: 600; font-size: 1.4rem; line-height: 1.2; letter-spacing: -.015em; }
-  p.topic-thesis { margin: 0 0 1.1rem; font-family: $headings-font-family; font-style: italic; color: $muted; font-size: 1rem; line-height: 1.5; }
-  ol.topic-list {
-    margin: 0;
-    padding: .9rem 0 0 1.5rem;
-    border-top: 1px solid $rule;
-    li { margin: .45rem 0; padding-left: .2rem; line-height: 1.35; font-size: 1.02rem; }
-    li::marker { color: $muted; font-family: $font-family-sans-serif; font-size: .78rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-    a { text-decoration: none; font-weight: 500; }
-    a:hover, a:focus { text-decoration: underline; text-decoration-color: rgba($link-color, .4); text-underline-offset: .18em; }
-  }
-  h3.topic-title a { color: inherit; font-weight: inherit; text-decoration: none; }
-  h3.topic-title a:hover, h3.topic-title a:focus { text-decoration: underline; text-decoration-color: $amber; }
-  h3.topic-title .anchorjs-link { display: none; }
-  .topic-nowrap { white-space: nowrap; }
-  .topic-kind { margin-left: .45rem; vertical-align: .14em; }   // inline-block (kind-badge): the link underline skips it
-  p.topic-more {
-    margin: 1.1rem 0 0;
-    font-family: $font-family-sans-serif;
-    font-size: .88rem;
-    font-weight: 600;
-    a { text-decoration: none; color: $ink; }
-    a:hover, a:focus { text-decoration: underline; text-underline-offset: .2em; }
-  }
-}
 p:has(> a.all-essays) { margin: 1.5rem 0 3.5rem; }
 main.content a.all-essays {
   display: inline-block;

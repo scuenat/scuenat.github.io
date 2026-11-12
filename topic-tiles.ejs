@@ -1,35 +1,38 @@
 <%
-// Home-page theme tiles. Each post names its tile in `topics:`. A post is shown in one tile only:
-// the first known id in its list wins, so it never appears twice on the home page;
-// the tiles themselves (title, thesis, optional link) come from template-params, so the
-// English and French home pages share this file. Posts with no known topic go in a last tile.
+// Home-page themes (index.qmd, fr/index.qmd): one row per theme, Netflix-style. On the left the
+// theme (title, thesis, link to its series); on the right its posts as small image cards, in reading
+// order (oldest first), in a row that scrolls sideways when it is longer than the screen.
+// Each post names its theme in `topics:` and appears in one theme only (the first known id).
+// Texts come from template-params, so both languages share this file. Styles: site-design skill.
 const t = (typeof templateParams !== "undefined" && templateParams) || {};
 const topics = t.topics || [];
 const known = new Set(topics.map(x => x.id));
-// The listing is sorted newest first (that order also feeds the RSS feed); tiles read oldest first.
+// The listing is sorted newest first (that order also feeds the RSS feed); rows read oldest first.
 const posts = [...items].reverse();
 const home = i => (i.topics || []).find(id => known.has(id));
 const tiles = topics.map(x => [x, posts.filter(i => home(i) === x.id)]);
-// Card marker: each post's `kind` (essay | analysis | note | position | overview), labelled from template-params.
 const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note", position: "Position paper", overview: "Overview" }, t.kinds || {});
 const other = posts.filter(i => !(i.topics || []).some(id => known.has(id)));
 if (other.length && t.other) tiles.push([t.other, other]);
+const count = t.count || ["post", "posts"];
 %>
-<div class="topic-tiles">
+<div class="theme-rows">
 <% for (const [topic, list] of tiles) { if (!list.length) continue; %>
-<section class="topic-tile" id="topic-<%= topic.id %>">
-<h3 class="topic-title"><% if (topic.link) { %><a href="<%- topic.link %>"><%= topic.title %></a><% } else { %><%= topic.title %><% } %></h3>
-<% if (topic.thesis) { %><p class="topic-thesis"><%= topic.thesis %></p><% } %>
-<ol class="topic-list">
-<% for (const item of list) {
-const kind = labels[item.kind] ? item.kind : null;
-// The type label stays on the line of the title's last word, so it never wraps alone.
-const words = String(item.title).split(" "), last = words.pop();
-%>
-<li><a href="<%- item.path %>"><%= words.length ? words.join(" ") + " " : "" %><span class="topic-nowrap"><%= last %><% if (kind) { %><span class="topic-kind kind-badge kind-<%= kind %>"><%= labels[kind] %></span><% } %></span></a></li>
-<% } %>
+<section class="theme-row" id="topic-<%= topic.id %>">
+<div class="theme-head">
+<h3 class="no-anchor theme-title"><% if (topic.link) { %><a href="<%- topic.link %>"><%= topic.title %></a><% } else { %><%= topic.title %><% } %></h3>
+<% if (topic.thesis) { %><p class="theme-thesis"><%= topic.thesis %></p><% } %>
+<p class="theme-meta"><%= list.length %> <%= list.length === 1 ? count[0] : count[1] %><% if (topic.link) { %> · <a href="<%- topic.link %>"><%= topic.linkText %>&nbsp;→</a><% } %></p>
+</div>
+<ol class="theme-cards">
+<% list.forEach((item, n) => { const kind = labels[item.kind] ? item.kind : null; %>
+<li class="theme-card">
+<% if (item.image) { %><span class="theme-card-media"><img src="<%- item.image %>" alt="" loading="lazy" onload="this.classList.toggle('is-tall', this.naturalHeight > this.naturalWidth * .8)"></span><% } %>
+<% if (kind) { %><span class="post-card-kind kind-<%= kind %>"><%= labels[kind] %></span><% } %>
+<a class="theme-card-title" href="<%- item.path %>"><%= item.title %></a>
+</li>
+<% }); %>
 </ol>
-<% if (topic.link) { %><p class="topic-more"><a href="<%- topic.link %>"><%= topic.linkText %>&nbsp;→</a></p><% } %>
 </section>
 <% } %>
 </div>
