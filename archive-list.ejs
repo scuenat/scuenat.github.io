@@ -1,31 +1,81 @@
 <%
-// Archive cards: Quarto's default listing markup (so its styles and the category filter still apply),
-// with the post's `kind` (essay | analysis | note | position | overview) shown as a badge above the title.
-const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note", position: "Position paper", overview: "Overview" },
-  ((typeof templateParams !== "undefined" && templateParams) || {}).kinds || {});
-const b64 = s => btoa(unescape(encodeURIComponent(s)));
+// Archive (archive.qmd, fr/archive.qmd): a grid of image cards with a filter bar on top,
+// kind chips (All, Essay, Analysis, …) and an "All categories" menu. Filtering runs in the
+// small script below; a link to archive.html#category=<name> opens the list already filtered.
+// Card markup and styles: see the site-design skill (.post-card in styles.scss).
+const p = (typeof templateParams !== "undefined" && templateParams) || {};
+const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note", position: "Position paper", overview: "Overview" }, p.kinds || {});
+const t = Object.assign({ all: "All", allCategories: "All categories", posts: "posts", filter: "Filter the list" }, p.ui || {});
+const kinds = Object.keys(labels).filter(k => items.some(i => i.kind === k));
+const counts = {};
+items.forEach(i => (i.categories || []).forEach(c => counts[c] = (counts[c] || 0) + 1));
+const cats = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+const enc = s => encodeURIComponent(s);
 %>
-<div class="list quarto-listing-default">
-<% for (const item of items) { const kind = labels[item.kind] ? item.kind : null; %>
-<div class="quarto-post image-left" <%= metadataAttrs(item) %>>
-<% if (item.image) { %>
-<div class="thumbnail"><a href="<%- item.path %>" class="no-external"><img src="<%- item.image %>" class="thumbnail-image" alt="" loading="lazy"></a></div>
+<div class="post-filter" role="group" aria-label="<%= t.filter %>">
+<div class="post-filter-kinds">
+<button type="button" class="post-chip is-active" data-kind="" aria-pressed="true"><%= t.all %></button>
+<% for (const k of kinds) { %><button type="button" class="post-chip kind-<%= k %>" data-kind="<%= k %>" aria-pressed="false"><%= labels[k] %></button><% } %>
+</div>
+<label class="post-filter-cat"><span class="visually-hidden"><%= t.allCategories %></span>
+<select>
+<option value=""><%= t.allCategories %></option>
+<% for (const c of cats) { %><option value="<%= c %>"><%= c %> (<%= counts[c] %>)</option><% } %>
+</select>
+</label>
+<span class="post-filter-count" aria-live="polite"><span><%= items.length %></span> <%= t.posts %></span>
+</div>
+<div class="post-grid post-grid-3 post-archive">
+<% for (const item of items) { const kind = labels[item.kind] ? item.kind : null; const sum = item.subtitle || item.description; %>
+<article class="post-card" data-kind="<%= kind || '' %>" data-cats="<%= (item.categories || []).map(enc).join(' ') %>">
+<% if (item.image) { %><div class="post-card-media"><img src="<%- item.image %>" alt="" onload="this.classList.toggle('is-tall', this.naturalHeight > this.naturalWidth * .8)" loading="lazy"></div><% } %>
+<div class="post-card-body">
+<p class="post-card-meta"><% if (kind) { %><span class="post-card-kind kind-<%= kind %>"><%= labels[kind] %></span><% } %><span class="post-card-date"><%= item.date %></span></p>
+<h3 class="no-anchor post-card-title"><a href="<%- item.path %>"><%= item.title %></a></h3>
+<% if (sum) { %><p class="post-card-summary"><%= sum %></p><% } %>
+<% if (item['reading-time']) { %><p class="post-card-foot"><%= item['reading-time'] %></p><% } %>
+</div>
+</article>
 <% } %>
-<div class="body">
-<% if (kind) { %><div class="listing-kind"><span class="kind-badge kind-<%= kind %>"><%= labels[kind] %></span></div><% } %>
-<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external"><%= item.title %></a></h3>
-<% if (item.subtitle) { %><div class="listing-subtitle"><a href="<%- item.path %>" class="no-external"><%= item.subtitle %></a></div><% } %>
-<% if (item.categories) { %>
-<div class="listing-categories">
-<% for (const category of item.categories) { %><div class="listing-category" onclick="window.quartoListingCategory('<%= b64(category) %>'); return false;"><%= category %></div><% } %>
 </div>
-<% } %>
-<% if (item.description) { %><div class="delink listing-description"><a href="<%- item.path %>" class="no-external"><%= item.description %></a></div><% } %>
-</div>
-<div class="metadata"><a href="<%- item.path %>" class="no-external">
-<% if (item.date) { %><div class="listing-date"><%= item.date %></div><% } %>
-<% if (item['reading-time']) { %><div class="listing-reading-time"><%= item['reading-time'] %></div><% } %>
-</a></div>
-</div>
-<% } %>
-</div>
+<script>
+(function () {
+  var bar = document.currentScript.previousElementSibling.previousElementSibling;
+  var cards = [].slice.call(document.querySelectorAll(".post-archive .post-card"));
+  var chips = [].slice.call(bar.querySelectorAll(".post-chip"));
+  var select = bar.querySelector("select");
+  var count = bar.querySelector(".post-filter-count span");
+  var kind = "";
+  function apply() {
+    var cat = select.value, n = 0;
+    cards.forEach(function (c) {
+      var ok = (!kind || c.dataset.kind === kind) &&
+        (!cat || c.dataset.cats.split(" ").indexOf(encodeURIComponent(cat)) >= 0);
+      c.hidden = !ok; if (ok) n++;
+    });
+    count.textContent = n;
+  }
+  chips.forEach(function (b) {
+    b.addEventListener("click", function () {
+      kind = b.dataset.kind;
+      chips.forEach(function (x) { x.classList.toggle("is-active", x === b); x.setAttribute("aria-pressed", x === b); });
+      apply();
+    });
+  });
+  select.addEventListener("change", function () {
+    history.replaceState(null, "", select.value ? "#category=" + encodeURIComponent(select.value) : location.pathname);
+    apply();
+  });
+  // Category links from posts: #category=<name>, URL-encoded or base64 (Quarto's own format)
+  var m = location.hash.match(/^#category=(.+)$/);
+  if (m) {
+    var raw = m[1], names = [];
+    try { names.push(decodeURIComponent(raw)); } catch (e) {}
+    try { names.push(decodeURIComponent(escape(atob(decodeURIComponent(raw))))); } catch (e) {}
+    for (var i = 0; i < names.length; i++) {
+      if ([].some.call(select.options, function (o) { return o.value === names[i]; })) { select.value = names[i]; break; }
+    }
+  }
+  apply();
+})();
+</script>

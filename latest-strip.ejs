@@ -1,16 +1,27 @@
 <%
-// Home-page "Latest writing": compact rows (kind badge, title, one line of summary, date and reading time).
-// `kind` (essay | analysis | note | position | overview) comes from each post's front matter; labels from template-params.
-const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note", position: "Position paper", overview: "Overview" },
-  ((typeof templateParams !== "undefined" && templateParams) || {}).kinds || {});
+// Home-page "Latest writing" (index.qmd, fr/index.qmd): the newest post as a large feature
+// (image left, text right), then the next ones as a row of image cards.
+// Card markup and styles: see the site-design skill (.post-card in styles.scss).
+const p = (typeof templateParams !== "undefined" && templateParams) || {};
+const labels = Object.assign({ essay: "Essay", analysis: "Analysis", note: "Note", position: "Position paper", overview: "Overview" }, p.kinds || {});
+const card = (item, feature) => {
+  const kind = labels[item.kind] ? item.kind : null;
+  const sum = item.subtitle || item.description;
+  return { kind, sum, feature };
+};
 %>
-<ol class="latest-strip">
-<% for (const item of items) { const sum = item.subtitle || item.description; const kind = labels[item.kind] ? item.kind : null; %>
-<li <%= metadataAttrs(item) %>>
-<% if (kind) { %><p class="latest-kind"><span class="kind-badge kind-<%= kind %>"><%= labels[kind] %></span></p><% } %>
-<a class="latest-title" href="<%- item.path %>"><%= item.title %></a>
-<% if (sum) { %><p class="latest-summary"><%= sum %></p><% } %>
-<p class="latest-meta"><span class="listing-date"><%= item.date %></span><% if (item['reading-time']) { %> · <span class="listing-reading-time"><%= item['reading-time'] %></span><% } %></p>
-</li>
-<% } %>
-</ol>
+<div class="post-latest">
+<% items.forEach((item, i) => { const c = card(item, i === 0); %>
+<% if (i === 1) { %><div class="post-grid post-grid-3"><% } %>
+<article class="post-card<%= c.feature ? ' is-feature' : '' %>" <%= metadataAttrs(item) %>>
+<% if (item.image) { %><div class="post-card-media"><img src="<%- item.image %>" alt="" onload="this.classList.toggle('is-tall', this.naturalHeight > this.naturalWidth * .8)" loading="<%= c.feature ? 'eager' : 'lazy' %>"></div><% } %>
+<div class="post-card-body">
+<p class="post-card-meta"><% if (c.kind) { %><span class="post-card-kind kind-<%= c.kind %>"><%= labels[c.kind] %></span><% } %><span class="post-card-date"><%= item.date %></span></p>
+<h3 class="no-anchor post-card-title"><a href="<%- item.path %>"><%= item.title %></a></h3>
+<% if (c.sum) { %><p class="post-card-summary"><%= c.sum %></p><% } %>
+<% if (item['reading-time']) { %><p class="post-card-foot"><%= item['reading-time'] %></p><% } %>
+</div>
+</article>
+<% }); %>
+<% if (items.length > 1) { %></div><% } %>
+</div>

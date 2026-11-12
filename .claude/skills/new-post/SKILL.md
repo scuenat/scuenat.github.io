@@ -82,6 +82,7 @@ resources:
 ```
 
 - `topics:` names exactly one tile, the one that fits best. A post is listed in one tile only (`topic-tiles.ejs` keeps the first id), so a second id is ignored.
+- `image:` is the post's card on the home page and in the archive: pick the figure that explains the post in one look, and check its top half reads alone (tall figures are cropped to their top). See **site-design**.
 - `kind:` is required: without it the card shows no badge. Only `essay`, `analysis`, `note`, `position` and `overview` are valid.
 - Categories are lowercase; reuse existing ones (`grep -h '^categories' posts/*/index.qmd | sort -u`).
 - Author, license and the "Questions or objections?" footer come from `posts/_metadata.yml` and `discuss.lua`; do not add them.
