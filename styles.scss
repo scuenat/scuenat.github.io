@@ -41,11 +41,11 @@ main.content :is(h2, h3, h4)[id] { scroll-margin-top: 5rem; }
 .navbar {
   padding-top: .5rem;
   padding-bottom: .5rem;
-  background-color: rgba($navy, .94) !important;
+  background-color: $nav-bg !important;
   -webkit-backdrop-filter: saturate(160%) blur(14px);
   backdrop-filter: saturate(160%) blur(14px);
-  border-bottom: 1px solid rgba(#fff, .07);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, .25), 0 8px 24px -16px rgba(0, 0, 0, .6);
+  border-bottom: 1px solid $nav-line;
+  box-shadow: none;
 
   // Brand: monogram and the blog's name
   .navbar-brand-container { align-items: center; }
@@ -60,12 +60,12 @@ main.content :is(h2, h3, h4)[id] { scroll-margin-top: 5rem; }
     position: relative;
     font-weight: 500;
     font-size: .98rem;
-    color: rgba(#dfe6f1, .82) !important;
+    color: $nav-fg !important;
     transition: color .15s ease;
-    &:hover, &:focus { color: #fff !important; }
+    &:hover, &:focus { color: $nav-fg-hi !important; }
   }
   .navbar-nav.me-auto .nav-link.active {
-    color: #fff !important;
+    color: $nav-fg-hi !important;
     &::after {
       content: "";
       position: absolute;
@@ -89,14 +89,14 @@ main.content :is(h2, h3, h4)[id] { scroll-margin-top: 5rem; }
     align-items: center;
     gap: .4rem;
     padding: .3rem .85rem !important;
-    border: 1px solid rgba($amber, .7);
+    border: 1px solid $amber;
     border-radius: 999px;
-    color: $amber !important;
+    color: $mark !important;
     font-size: .9rem;
     font-weight: 600;
     transition: background-color .15s ease, color .15s ease;
     .menu-text { margin: 0; }
-    &:hover, &:focus { background: $amber; color: $navy !important; }
+    &:hover, &:focus { background: $amber; color: #000 !important; }
   }
   .quarto-navbar-tools { margin-left: .5rem; }
 }
@@ -125,11 +125,11 @@ footer.footer .nav-footer {
   padding: 1.75rem 1.5rem;
   border-top: 3px solid $amber;
   background: $navy;
-  color: rgba(#dfe6f1, .72);
+  color: rgba(#fff, .62);
   font-size: .88rem;
   letter-spacing: .01em;
   p { margin: 0; }
-  a { color: #dfe6f1; text-decoration-color: rgba($amber, .6); text-underline-offset: .2em; }
+  a { color: #e6e6e6; text-decoration-color: rgba($amber, .6); text-underline-offset: .2em; }
   a:hover, a:focus { color: $amber; }
 }
 
@@ -234,10 +234,10 @@ main.content :where(p, li) a {
   text-decoration-color: rgba($link-color, .35);
   text-underline-offset: .18em;
   transition: text-decoration-color .15s ease, color .15s ease;
-  &:hover, &:focus { text-decoration-color: currentColor; }
+  &:hover, &:focus { text-decoration-color: $amber; text-decoration-thickness: 2px; }
 }
-main.content li::marker { color: $accent-warm; }
-main.content hr { margin: 3rem auto; width: 6rem; border-top: 2px solid $amber; opacity: .6; }
+main.content li::marker { color: $muted; }
+main.content hr { margin: 3rem auto; width: 6rem; border-top: 2px solid $rule; opacity: 1; }
 
 blockquote {
   margin: 2rem 0;
@@ -283,7 +283,7 @@ main.content table:not(.sourceCode) {
     border-bottom: 1px solid $rule;
   }
   td, th { padding: .6rem .75rem; border-color: $rule; }
-  tbody tr:hover { background: rgba($amber, .05); }
+  tbody tr:hover { background: $surface-alt; }
 }
 // Long URLs in references and links must wrap, not widen the page
 main.content a { overflow-wrap: anywhere; }
@@ -349,8 +349,8 @@ main.content div.sourceCode, main.content pre:not(.sourceCode) {
   padding: 1rem 1.25rem;
   border-left: 3px solid $amber;
   border-radius: 0 $border-radius $border-radius 0;
-  background: rgba($amber, .08);
-  box-shadow: 0 1px 2px $shadow;
+  background: $surface-alt;
+  box-shadow: none;
   p { margin: 0; }
   strong { font-family: $font-family-sans-serif; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: $accent-warm; }
   a { font-weight: 600; }
@@ -404,9 +404,9 @@ main.content div.sourceCode, main.content pre:not(.sourceCode) {
 .post-updates {
   margin: 0 0 1.25rem;
   padding: .55rem .9rem;
-  border-left: 3px solid $accent-warm;
+  border-left: 3px solid $amber;
   border-radius: 0 $border-radius $border-radius 0;
-  background: rgba($accent-warm, .06);
+  background: $surface-alt;
   font-family: $font-family-sans-serif;
   font-size: .88rem;
   p { margin: 0; }
@@ -511,14 +511,14 @@ main:has(.hero) > header#title-block-header { display: none; }
   position: relative;
   margin-top: 0;
   margin-bottom: 2.5rem;
-  color: #f4f6fa;
+  color: #fafafa;
   background:
     url("hero-network.svg") center / cover no-repeat,
-    radial-gradient(ellipse at 20% 0%, #1b2f5e 0%, transparent 60%),
-    linear-gradient(160deg, #0f1f45 0%, $navy 55%, #070f24 100%);
+    radial-gradient(ellipse at 20% 0%, #232325 0%, transparent 60%),
+    linear-gradient(160deg, #161617 0%, #0b0b0c 55%, #000 100%);
 
   overflow: hidden;
-  border-bottom: 1px solid rgba($amber, .25);
+  border-bottom: 1px solid #000;
   // A warm glow behind the title and a soft fade at the bottom edge
   &::before, &::after { content: ""; position: absolute; pointer-events: none; }
   &::before {
@@ -527,7 +527,7 @@ main:has(.hero) > header#title-block-header { display: none; }
   }
   &::after {
     left: 0; right: 0; bottom: 0; height: 35%;
-    background: linear-gradient(to bottom, transparent, rgba(#050b1c, .45));
+    background: linear-gradient(to bottom, transparent, rgba(#000, .45));
   }
 
   .hero-inner {
@@ -549,7 +549,7 @@ main:has(.hero) > header#title-block-header { display: none; }
     line-height: 1.02;
     letter-spacing: -.035em;
     text-shadow: 0 2px 24px rgba(0, 0, 0, .35);
-    color: #f4f6fa;
+    color: #fafafa;
     border: none;
     span { color: $amber; }
     &::after {
@@ -568,7 +568,7 @@ main:has(.hero) > header#title-block-header { display: none; }
     font-style: italic;
     font-size: 1.55rem;
     line-height: 1.35;
-    color: #e3e8f2;
+    color: #ededed;
   }
   p.hero-intro {
     margin: 0;
@@ -576,7 +576,7 @@ main:has(.hero) > header#title-block-header { display: none; }
     font-family: $font-family-sans-serif;
     font-size: 1.05rem;
     line-height: 1.65;
-    color: #aeb9ce;
+    color: #b3b3b3;
   }
   // Who writes: name, credentials, what readers can check
   p.hero-byline {
@@ -585,8 +585,8 @@ main:has(.hero) > header#title-block-header { display: none; }
     font-family: $font-family-sans-serif;
     font-size: .92rem;
     line-height: 1.6;
-    color: #c9d2e3;
-    a { color: #f4f6fa; font-weight: 600; text-decoration-color: rgba($amber, .7); text-underline-offset: .2em; }
+    color: #cfcfcf;
+    a { color: #fafafa; font-weight: 600; text-decoration-color: rgba($amber, .7); text-underline-offset: .2em; }
   }
   p.hero-intro a { color: inherit; text-decoration-color: rgba($amber, .6); text-underline-offset: .2em; }
   // Call to action under the intro: the TEDx talk
@@ -605,7 +605,7 @@ main:has(.hero) > header#title-block-header { display: none; }
       font-family: $font-family-sans-serif;
       font-weight: 600;
       font-size: .95rem;
-      color: $navy;
+      color: #000;
       text-decoration: none;
       transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
       &:hover, &:focus { background: lighten($amber, 8%); transform: translateY(-1px); box-shadow: 0 10px 24px -8px rgba($amber, .8); }
@@ -615,7 +615,7 @@ main:has(.hero) > header#title-block-header { display: none; }
       background: transparent;
       box-shadow: none;
       border-color: rgba($amber, .55);
-      color: #f4f6fa;
+      color: #fafafa;
       &:hover, &:focus { background: rgba($amber, .12); box-shadow: none; }
     }
   }
@@ -632,7 +632,7 @@ main:has(.hero) > header#title-block-header { display: none; }
   border-bottom: 1px solid $rule;
   .listing-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.5rem; line-height: 1.25; letter-spacing: -.015em; text-wrap: balance; }
   .listing-title a { text-decoration: none; transition: color .15s ease; }
-  .listing-title a:hover { color: $link-color; }
+  .listing-title a:hover { color: $mark; }
   .listing-subtitle { color: $muted; font-style: italic; font-family: $headings-font-family; }
   .listing-description { font-family: $headings-font-family; font-size: 1.05rem; color: inherit; }
   .listing-date, .listing-reading-time { color: $muted; font-size: .82rem; font-variant-numeric: tabular-nums; }
@@ -645,10 +645,10 @@ main:has(.hero) > header#title-block-header { display: none; }
 }
 .listing-categories .listing-category,
 .quarto-category {
-  border: 1px solid rgba($amber, .35);
+  border: 1px solid $rule;
   border-radius: 999px;
-  background: rgba($amber, .1);
-  color: $accent-warm;
+  background: $surface-alt;
+  color: $muted;
   font-family: $font-family-sans-serif;
   font-size: .72rem;
   font-weight: 500;
@@ -660,10 +660,10 @@ main:has(.hero) > header#title-block-header { display: none; }
 }
 // Quarto's own listing chips (div.quarto-post ...) would otherwise win: match their specificity
 div.quarto-post .listing-categories .listing-category {
-  border: 1px solid rgba($amber, .35); border-radius: 999px; color: $accent-warm;
+  border: 1px solid $rule; border-radius: 999px; color: $muted;
   font-size: .68rem; padding: .1rem .55rem; text-transform: lowercase;
 }
-.listing-categories .listing-category:hover { background: rgba($amber, .2); }
+.listing-categories .listing-category:hover { border-color: rgba($amber, .7); }
 main.content .quarto-listing-default .listing-description p { font-size: 1.02rem; line-height: 1.6; color: mix($body-color, $muted, 60%); }
 // Category filter on the archive page
 #quarto-margin-sidebar .quarto-listing-category-title {
@@ -676,16 +676,16 @@ main.content .quarto-listing-default .listing-description p { font-size: 1.02rem
 
 // ---------- Kind badges: essay | analysis | note | position | overview (set by `kind:` in each post) ----------
 // Same shape everywhere (theme tiles, latest strip, archive); the color tells the kind apart.
-$kind-essay: $accent-warm;
-$kind-analysis: $accent;
-$kind-note: $callout-color-tip;
-// $kind-position (plum) and $kind-overview (teal) are set per theme in light.scss / dark.scss
+// $kind-essay, $kind-analysis, $kind-note, $kind-position, $kind-overview are set per theme
+// in light.scss / dark.scss. Colour marks the kind only: a dot on cards, a left edge on badges.
 .kind-badge {
   display: inline-block;
   padding: .05rem .5rem .05rem .45rem;
-  border: 1px solid currentColor;
-  border-left-width: 3px;
+  border: 1px solid $rule;
+  border-left: 3px solid $muted;   // the kind's colour, below
   border-radius: 3px;
+  background: transparent;
+  color: $body-color;
   font-family: $font-family-sans-serif;
   font-size: .66rem;
   font-weight: 600;
@@ -694,12 +694,12 @@ $kind-note: $callout-color-tip;
   line-height: 1.5;
   text-transform: uppercase;
   white-space: nowrap;
-  &.kind-essay    { color: $kind-essay;    background: rgba($kind-essay, .08); }
-  &.kind-analysis { color: $kind-analysis; background: rgba($kind-analysis, .08); }
-  &.kind-note     { color: $kind-note;     background: rgba($kind-note, .08); }
-  &.kind-position { color: $kind-position; background: rgba($kind-position, .08); }
-  &.kind-overview { color: $kind-overview; background: rgba($kind-overview, .08); }
-  &.kind-series   { color: $muted;         background: rgba($muted, .08); }
+  &.kind-essay    { border-left-color: $kind-essay; }
+  &.kind-analysis { border-left-color: $kind-analysis; }
+  &.kind-note     { border-left-color: $kind-note; }
+  &.kind-position { border-left-color: $kind-position; }
+  &.kind-overview { border-left-color: $kind-overview; }
+  &.kind-series   { border-left-color: $muted; color: $muted; }
 }
 
 // Home page: "Start here", picks for a first visit (index.qmd)
@@ -718,14 +718,13 @@ main.content a.start-card {
   gap: .5rem;
   padding: 1.1rem 1.15rem 1.2rem;
   border: 1px solid $rule;
-  border-top: 3px solid rgba($amber, .7);
   border-radius: $border-radius;
   background: $surface;
   box-shadow: 0 1px 2px $shadow;
   color: inherit;
   text-decoration: none;
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-  &:hover, &:focus { transform: translateY(-2px); box-shadow: 0 1px 2px $shadow, 0 12px 28px -18px $shadow; }
+  &:hover, &:focus { transform: translateY(-2px); border-color: rgba($amber, .7); box-shadow: 0 1px 2px $shadow, 0 12px 28px -18px $shadow; }
   .start-title { font-family: $headings-font-family; font-weight: 600; font-size: 1.2rem; line-height: 1.25; }
   .start-why { font-size: .93rem; line-height: 1.5; color: $muted; }
 }
@@ -734,9 +733,9 @@ main.content a.start-card {
 .follow-box {
   margin: -1.5rem 0 3.5rem;
   padding: .9rem 1.15rem;
-  border-left: 3px solid $accent-warm;
+  border-left: 3px solid $amber;
   border-radius: 0 $border-radius $border-radius 0;
-  background: rgba($accent-warm, .06);
+  background: $surface-alt;
   font-size: .97rem;
   p { margin: 0; }
   strong { color: $accent-warm; }
@@ -763,8 +762,8 @@ p.latest-kind, .quarto-post .listing-kind { margin: 0 0 .35rem; line-height: 1; 
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, $amber, rgba($amber, .25));
+    height: 0;
+    background: none;
   }
   &:hover { transform: translateY(-2px); border-color: rgba($amber, .45); box-shadow: 0 1px 2px $shadow, 0 18px 40px -24px $shadow; }
   h3.topic-title { margin: 0 0 .5rem; font-family: $headings-font-family; font-weight: 600; font-size: 1.4rem; line-height: 1.2; letter-spacing: -.015em; }
@@ -774,7 +773,7 @@ p.latest-kind, .quarto-post .listing-kind { margin: 0 0 .35rem; line-height: 1; 
     padding: .9rem 0 0 1.5rem;
     border-top: 1px solid $rule;
     li { margin: .45rem 0; padding-left: .2rem; line-height: 1.35; font-size: 1.02rem; }
-    li::marker { color: $accent-warm; font-family: $font-family-sans-serif; font-size: .78rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    li::marker { color: $muted; font-family: $font-family-sans-serif; font-size: .78rem; font-weight: 600; font-variant-numeric: tabular-nums; }
     a { text-decoration: none; font-weight: 500; }
     a:hover, a:focus { text-decoration: underline; text-decoration-color: rgba($link-color, .4); text-underline-offset: .18em; }
   }
@@ -788,7 +787,7 @@ p.latest-kind, .quarto-post .listing-kind { margin: 0 0 .35rem; line-height: 1; 
     font-family: $font-family-sans-serif;
     font-size: .88rem;
     font-weight: 600;
-    a { text-decoration: none; color: $accent-warm; }
+    a { text-decoration: none; color: $ink; }
     a:hover, a:focus { text-decoration: underline; text-underline-offset: .2em; }
   }
 }
@@ -914,7 +913,7 @@ main.content h3.post-card-title {
     &::after { content: ""; position: absolute; inset: 0; }   // the whole card is the link
   }
 }
-.post-card:hover h3.post-card-title a, h3.post-card-title a:focus-visible { color: $link-color; }
+.post-card:hover h3.post-card-title a, h3.post-card-title a:focus-visible { color: $mark; }
 main.content p.post-card-summary {
   margin: .45rem 0 0;
   font-family: $headings-font-family;
@@ -972,7 +971,7 @@ main.content p.post-card-foot {
   cursor: pointer;
   transition: border-color .15s ease, background-color .15s ease, color .15s ease;
   &:hover { border-color: rgba($amber, .7); }
-  &.is-active { background: $navy; border-color: $navy; color: #f4f6fa; }
+  &.is-active { background: $ink; border-color: $ink; color: $paper; }
 }
 .post-filter-cat select {
   appearance: none;

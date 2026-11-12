@@ -10,21 +10,34 @@ Spotify R&D were the references in November 2026) while keeping its own identity
 amber, a serif for reading, the network hero. Pictures lead, text is short, every card has the
 same shape.
 
-## 1. Identity (do not change without asking)
+## 1. Identity: black and white, amber as the signature
+
+Since November 2026 the frame is black and white and the colour comes from the figures.
+Amber is the author's mark and is used **sparingly, on purpose**: "Honestly" and the stars in
+the hero, the hero buttons, the "Follow" pill, the active menu line, the rule under post titles,
+the reading-progress line, the left edge of the follow and read-next boxes, and hover states
+(card borders, link underlines, card titles). Nowhere else: no amber section labels, tints or
+top bars. Ask the user before adding amber to a new place.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `$navy` | #0b1733 | same | navbar, hero, active chip |
-| `$amber` | #f5b041 | same | accents, rules, hover borders |
-| `$accent` | #1d4f73 | #8fbbe0 | links, analysis label |
-| `$accent-warm` | #b36b00 | amber | section labels, essay label |
-| `$surface` / `$rule` / `$muted` | see `light.scss` | see `dark.scss` | cards, lines, secondary text |
-| `$kind-*` | essay amber, analysis blue, note green, position plum, overview teal | lighter tints | type of post |
+| `$paper` / `$body-bg` | #ffffff | #0e0e0f | the page |
+| `$ink` | #141414 | #f2f2f2 | titles, links, section labels, active chip |
+| `$body-color` | #262626 | #dedede | running text |
+| `$muted` / `$rule` | #6b6b6b / #e6e6e6 | #9a9a9a / #2a2a2c | secondary text, lines, list markers |
+| `$surface` / `$surface-alt` | #fff / #f4f4f3 | #161617 / #1d1d1f | cards, boxes, code, chips |
+| `$navy` (historical name) | #0d0d0e | #000 | black of the hero and footer |
+| `$amber` | #f5b041 | same | the mark (above) |
+| `$mark` | #a35f00 | amber | amber **text** on white (contrast) |
+| `$nav-*` | white bar, grey links | near-black bar | navbar |
+| `$kind-*` | essay amber, analysis blue, note green, position plum, overview teal | lighter tints | type of post, as a dot on cards or a left edge on badges, never as fills |
 
+- Hero: black gradient, `hero-network.svg` in grey lines with amber nodes.
 - Fonts: **Inter** (sans) for interface, labels and card titles; **Source Serif 4** for headings in
   posts, summaries and body text. Loaded in `_quarto.yml`, never with `@import`.
 - Colours live in `light.scss` and `dark.scss` (same variable names); components in `styles.scss`.
-  Never hard-code a colour in a component except white behind figures (they are drawn on white).
+  Never hard-code a colour in a component except white behind figures (they are drawn on white)
+  and the fixed black and white inside the hero and footer.
 
 ## 2. Ideas taken from the references
 
@@ -71,7 +84,7 @@ components below, and keep the identity in section 1.
 `data-kind` / `data-cats`, and opens filtered on `archive.html#category=<name>`
 (URL-encoded or base64). Quarto's own category sidebar is off (`categories: false`).
 
-**Kind badge vs kind label**: the boxed `.kind-badge` is for text lists (Start here, theme
+**Kind badge vs kind label**: the `.kind-badge` (neutral box, coloured left edge) is for text lists (Start here, theme
 tiles, drafts list); the dot-and-text `.post-card-kind` is for image cards. Do not mix them in
 one component.
 
