@@ -414,6 +414,49 @@ main.content div.sourceCode, main.content pre:not(.sourceCode) {
   strong { color: $accent-warm; }
 }
 
+// "Listen" button under the post's date: the browser reads the post aloud (listen.js)
+.listen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  margin: .9rem 0 0;
+  font-family: $font-family-sans-serif;
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    min-height: 2.25rem;
+    padding: .3rem .85rem;
+    border: 1px solid $rule;
+    border-radius: 999px;
+    background: transparent;
+    color: $body-color;
+    font-size: .88rem;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    &:hover { border-color: $amber; }
+  }
+  svg { width: .95rem; height: .95rem; flex: none; }
+  .listen-play svg { color: $mark; }
+  .listen-time { color: $muted; font-weight: 400; }
+  .listen-speed { font-variant-numeric: tabular-nums; min-width: 3.2rem; justify-content: center; }
+  .listen-speed, .listen-stop { display: none; }
+  &[data-state="playing"], &[data-state="paused"] {
+    .listen-play { border-color: $amber; background: rgba($amber, .14); }
+    .listen-speed, .listen-stop { display: inline-flex; }
+  }
+}
+// The paragraph being read aloud
+.listen-current {
+  background: rgba($amber, .16);
+  box-shadow: 0 0 0 .35rem rgba($amber, .16);
+  border-radius: 2px;
+  transition: background .2s;
+}
+@media print { .listen { display: none; } }
+
 // "Recent changes" list on the archive pages (recent-changes.ejs)
 .recent-changes {
   margin: 1.5rem 0 2.5rem;
