@@ -9,7 +9,7 @@ English is the source language. Each translation lives at the same path under `f
 
 **Drafts.** A new post is translated while it is still a draft: `drafts/<name>/index.qmd` → `fr/drafts/<name>/index.qmd` (see **new-post**, step 2). Everything below applies with `drafts/<name>` in place of `posts/<slug>`: the front matter points at `../../../drafts/<name>/figures/fig01.png` and `../../../drafts/<name>/references.bib`, the post's own files at `../../../drafts/<name>/<file>`, the original at `../../../drafts/<name>/index.qmd`, French posts at `../../posts/<slug>/index.qmd` and English-only posts at `../../../posts/<slug>/index.qmd` (en anglais). `fr/drafts/_metadata.yml` sets the author, license and draft settings. Copy `draft-version` and `draft-revised` from the English draft: both languages always show the same version. `promote-draft.py` rewrites all these paths when the draft is published, so do not fix them by hand.
 
-**Wording.** Follow **write-plainly** in French too: phrases courtes, mots de tous les jours, « je », l'idée en une phrase simple. A plain English original gives a plain French version; do not make it more academic in translation.
+**Wording.** Follow **write-plainly** in French too: phrases courtes, mots de tous les jours, « je », l'idée en une phrase simple. A plain English original gives a plain French version; do not make it more academic in translation. The French version is read aloud too: follow **write-for-listening** (a French voice reads the page; "la figure 1", file names and symbols are as bad as in English) and run its check on `fr/...`.
 
 
 ## 1. Find what is missing or stale

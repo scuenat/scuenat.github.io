@@ -88,6 +88,9 @@ run a little higher; the opening callout, "In short", takeaways and conclusion m
 Then reread the opening and "In short" against `voice-sample.md`: does it start from a moment
 or a thing, and is the idea one sentence anyone could say?
 
+Then make sure it also works aloud: follow **write-for-listening** and run its check
+(`node .claude/skills/write-for-listening/listen-check.js drafts/<name> fr/drafts/<name>`).
+
 When the wording changes in a new draft version, say so in the commit message
 ("Draft v<N>: <Title> (plainer wording: …)").
 

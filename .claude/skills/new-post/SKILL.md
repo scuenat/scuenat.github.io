@@ -91,6 +91,7 @@ resources:
 
 - Plain, short sentences, first person, no hype. Say what is claimed and what is not.
 - **Follow the write-plainly skill** for the wording, on every draft version: Stéphane's own voice (`.claude/skills/write-plainly/voice-sample.md`), everyday words, the plain sentence before any formula, and `python3 .claude/skills/write-plainly/readability.py <file>` before each review PDF.
+- **Follow the write-for-listening skill** too: the post must sound right through the Listen button (no "see Figure 1", no file names, symbols or abbreviations in the read text). Run `node .claude/skills/write-for-listening/listen-check.js drafts/<name> fr/drafts/<name>` after rendering, before each review PDF, and fix every ✗.
 - Open with a `::: {.callout-note appearance="simple"}` that starts with the kind and month in bold (**Essay, November 2026.** / **Analysis, …** / **Note …** / **Position paper, …** / **Overview, …**), says what the post is and where figures come from.
 - Then `**In short.**` — one paragraph a busy reader can stop after.
 - Numbered `##` sections (`## 1. …`) for essays and notes; plain headings are fine for analyses.

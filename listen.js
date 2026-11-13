@@ -7,7 +7,9 @@
 //     never the novelty voices; readers can pick another one, remembered per language;
 //   - the pace: a little slower than the device default (STORY.rate);
 //   - pauses: a breath between paragraphs, a longer one before a new section, a short one in lists;
-//   - the text: dashes and brackets become pauses, "e.g." becomes "for example", headings end with a stop.
+//   - the text: dashes and brackets become pauses, "e.g." becomes "for example", headings end with a stop,
+//     citations are not read, "1–4" is read "1 to 4".
+// Writers: see .claude/skills/write-for-listening (what is heard, what is skipped, and a check).
 // Skipped: code, equations, figures, tables, footnotes, the series note, and everything from the
 // "Questions or objections?" note (discuss.lua) onward (sources, references).
 (function () {
@@ -21,9 +23,9 @@
   var fr = (document.documentElement.lang || "").slice(0, 2) === "fr";
   var T = fr
     ? { listen: "Écouter", pause: "Pause", resume: "Reprendre", stop: "Arrêter", speed: "Vitesse de lecture", min: "min",
-        voice: "Voix", label: "Écouter ce texte, lu par la voix de votre appareil", equation: "une équation" }
+        voice: "Voix", label: "Écouter ce texte, lu par la voix de votre appareil", equation: "une équation", to: "à" }
     : { listen: "Listen", pause: "Pause", resume: "Resume", stop: "Stop", speed: "Reading speed", min: "min",
-        voice: "Voice", label: "Listen to this post, read by your device's voice", equation: "an equation" };
+        voice: "Voice", label: "Listen to this post, read by your device's voice", equation: "an equation", to: "to" };
 
   // ---------- Storyteller settings ----------
   var STORY = {
@@ -42,7 +44,13 @@
     var c = el.cloneNode(true);
     c.querySelectorAll(".katex").forEach(function (k) { k.replaceWith(" " + T.equation + " "); });
     c.querySelectorAll("sup, .footnote-ref, .anchorjs-link, .visually-hidden, .sr-only").forEach(function (n) { n.remove(); });
-    return c.textContent.replace(/\s+/g, " ").trim();
+    // Citations: "(Sagan 1980)" is not read; "Nagel (1971) wrote" is read as "Nagel wrote"
+    c.querySelectorAll(".citation").forEach(function (k) {
+      var t = k.textContent.trim();
+      if (t.charAt(0) === "(" || t.charAt(0) === "[") k.remove();
+      else k.replaceWith(t.replace(/\s*[(\[][^)\]]*[)\]]/g, ""));
+    });
+    return c.textContent.replace(/\s+/g, " ").replace(/\s+([.,;:!?])/g, "$1").trim();
   }
 
   // Shape written text for the ear
@@ -52,7 +60,8 @@
   function narrate(text, heading) {
     var t = text;
     WORDS.forEach(function (w) { t = t.replace(w[0], w[1]); });
-    t = t.replace(/\s*[—–]\s*/g, ", ")          // dashes: a short pause
+    t = t.replace(/(\d)\s*–\s*(?=\d)/g, "$1 " + T.to + " ")   // "1 000–4 000": a range, not a pause
+         .replace(/\s*[—–]\s*/g, ", ")          // dashes: a short pause
          .replace(/\s*\(\s*/g, ", ")            // brackets: said as an aside
          .replace(/\s*\)\s*(?=[.,;:!?])/g, "")
          .replace(/\s*\)\s*/g, ", ")
@@ -142,6 +151,8 @@
 
   var items = collect();
   if (!items.length) return;
+  // What the reader will say, one entry per paragraph (used by the write-for-listening check)
+  window.listenTranscript = function () { return items.map(function (it) { return it.text; }); };
   var words = items.reduce(function (n, it) { return n + it.text.split(" ").length; }, 0);
   var minutes = Math.max(1, Math.round(words / (165 * STORY.rate)));
 

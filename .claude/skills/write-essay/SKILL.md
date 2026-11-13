@@ -18,7 +18,7 @@ An essay lives or dies on its one idea and on the moment it starts from. Both be
 - **Read the request first, then ask only what it leaves open.** Never ask for something the user already said; quote it back instead ("You said: *it matters at least a bit*").
 - **Offer real candidates, not blanks.** Build every option from the user's own words and the site's past essays, mark the one you would pick "(Recommended)" and put it first. The user can always type "Other".
 - **At most two rounds** of up to four questions each. Round 1 is the essay itself; round 2 (only if still open) is the site placement. Then write.
-- **Do not ask about wording, length or structure**: this skill and **write-plainly** settle those.
+- **Do not ask about wording, length or structure**: this skill, **write-plainly** and **write-for-listening** settle those.
 
 ### Round 1 — the essay
 
