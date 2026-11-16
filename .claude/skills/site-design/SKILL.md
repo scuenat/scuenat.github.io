@@ -106,6 +106,10 @@ first, as archive cards without the filter bar (`archive-list.ejs` with `theme:`
 after adding, renaming or re-describing a theme, run
 `python3 .claude/skills/site-design/make-theme-pages.py` and render. Never edit them by hand.
 
+**Light/dark switch** (`.quarto-color-scheme-toggle`, in `styles.scss` under `.navbar`): a grey
+pill with an icon and the mode a click switches to (moon + "Dark" / sun + "Light"; "Sombre" /
+"Clair" on French pages via `:lang(fr)`), amber border on hover, icon alone under 380 px.
+
 **Other parts**: hero (`.hero`, keep it compact: about 3.5rem padding), follow box, section
 labels (`h2.latest-heading`: small uppercase with a rule).
 
