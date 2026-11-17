@@ -1,9 +1,9 @@
 """Figures for "Two Cores and an Idea". Same palette as the other essays.
 Run: python figs.py
 Written twice: a vector SVG (used in the page) and a 400 dpi PNG (card image).
-Figures 1, 3 and 4 are schematics, my own. Figure 2 draws the Gödel notebook numbers as reported
-in the press (rounded; see the essay's references). Figures 5 and 6 plot the numbers of my own
-experiment: figure 5 from results/v2/results_stability.json (3 seeds, mean), figure 6 from
+Figures 1 and 3 are schematics, my own. Figure 2 draws the Gödel notebook numbers as reported
+in the press (rounded; see the essay's references). Figures 4 and 5 plot the numbers of my own
+experiment: figure 4 from results/v2/results_stability.json (3 seeds, mean), figure 5 from
 results/prelim_ablation_summary.md (2 seeds, preliminary), in the experiment's repository."""
 import matplotlib
 matplotlib.use("Agg")
@@ -70,7 +70,7 @@ def fig03():
     plt.close(fig)
 
 
-def fig06():
+def fig05():
     """Accuracy by number of hops: independent wells against competing wells (preliminary)."""
     hops = [1, 2, 3, 4, 5]
     sig = [99.9, 98.8, 94.0, 80.8, 57.8]
@@ -94,7 +94,7 @@ def fig06():
         ax.spines[s].set_visible(False)
     ax.set_title("Same network, one change: do the wells compete?", loc="left", fontsize=11, weight="bold")
     for ext in ("svg", "png"):
-        fig.savefig(f"figures/fig06.{ext}")
+        fig.savefig(f"figures/fig05.{ext}")
     plt.close(fig)
 
 
@@ -123,7 +123,7 @@ def fig01():
     ax.plot([2.35, 2.75], [1.85, 3.15], color=AMBER, lw=5, solid_capstyle="butt")
     ax.plot([2.33, 2.35], [1.78, 1.85], color=INK, lw=2)
     ax.text(1.55, 1.3, "1. The idea", ha="center", fontsize=11.5, weight="bold", color=INK)
-    ax.text(1.55, 0.55, "a mind, a pencil,\nalmost nothing", ha="center", fontsize=9, color=MUTED, linespacing=1.25)
+    ax.text(1.55, 0.55, "a trained mind,\na pencil", ha="center", fontsize=9, color=MUTED, linespacing=1.25)
 
     _arrow(ax, 3.1, 3.5, 2.25)
 
@@ -195,27 +195,6 @@ def fig02():
 
 
 def fig04():
-    """How small is small: the number of values a network learns, on a log scale."""
-    fig, ax = plt.subplots(figsize=(10, 3.4))
-    ax.set_xscale("log"); ax.set_xlim(1e3, 3e12); ax.set_ylim(0, 3)
-    for s in ("top", "right", "left"):
-        ax.spines[s].set_visible(False)
-    ax.set_yticks([])
-    ax.set_xticks([1e3, 1e6, 1e9, 1e12])
-    ax.set_xticklabels(["a thousand", "a million", "a billion", "a thousand billion"])
-    ax.set_xlabel("numbers the network has to learn (each tick is a thousand times more)", color=MUTED)
-    ax.axvspan(5e4, 9e4, ymin=0.55, ymax=0.85, color=AMBER, alpha=0.9)
-    ax.text(5e4, 2.7, "my networks: 50,000 to 90,000", fontsize=10, weight="bold", color=AMBER, ha="left")
-    ax.axvspan(1e11, 1e12, ymin=0.1, ymax=0.4, color=BLUE, alpha=0.85)
-    ax.text(9e10, 0.75, "large language models:\nhundreds of billions", fontsize=10, weight="bold", color=BLUE, ha="right", va="center", linespacing=1.2)
-    ax.text(3e7, 2.0, "a million times more, and more", fontsize=9.2, color=MUTED, style="italic", ha="center")
-    ax.set_title("How small is small", loc="left", fontsize=12, weight="bold")
-    for ext in ("svg", "png"):
-        fig.savefig(f"figures/fig04.{ext}")
-    plt.close(fig)
-
-
-def fig05():
     """The answer passes by: accuracy as the ball keeps rolling, with and without the question kept inside."""
     mult = [1, 2, 4, 16]
     start_only = [100.0, 65.7, 25.4, 20.2]      # 'gated', 3 seeds, mean (results_stability.json)
@@ -235,10 +214,10 @@ def fig05():
         ax.spines[s].set_visible(False)
     ax.set_title("Let the ball keep rolling: does the answer stay?", loc="left", fontsize=11, weight="bold")
     for ext in ("svg", "png"):
-        fig.savefig(f"figures/fig05.{ext}")
+        fig.savefig(f"figures/fig04.{ext}")
     plt.close(fig)
 
 
 if __name__ == "__main__":
-    for f in (fig01, fig02, fig03, fig04, fig05, fig06):
+    for f in (fig01, fig02, fig03, fig04, fig05):
         f()
