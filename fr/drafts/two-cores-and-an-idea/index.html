@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Une IA vient d’aider à lire les carnets perdus de Gödel. Faut-il d’énormes machines pour découvrir ? Mon expérience sur deux cœurs dit : pas pour commencer.">
+
+<title>Deux cœurs et une idée – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-eb95f1980f11023b7ee5c1df20f2b9e2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-939a89d03e69be6566a1dfdd583a5cc4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-eb95f1980f11023b7ee5c1df20f2b9e2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/drafts/two-cores-and-an-idea/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/drafts/two-cores-and-an-idea/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/drafts/two-cores-and-an-idea/">
+<meta name="alt-lang-url" content="/drafts/two-cores-and-an-idea/">
+<link rel="canonical" href="https://scuenat.github.io/fr/drafts/two-cores-and-an-idea/">
+<meta name="robots" content="noindex, nofollow">
+
+
+<meta property="og:title" content="Deux cœurs et une idée – AI, Honestly">
+<meta property="og:description" content="Une IA vient d’aider à lire les carnets perdus de Gödel. Faut-il d’énormes machines pour découvrir ? Mon expérience sur deux cœurs dit : pas pour commencer.">
+<meta property="og:image" content="https://scuenat.github.io/drafts/two-cores-and-an-idea/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="1595">
+<meta property="og:image:width" content="3340">
+<meta name="twitter:title" content="Deux cœurs et une idée – AI, Honestly">
+<meta name="twitter:description" content="Une IA vient d’aider à lire les carnets perdus de Gödel. Faut-il d’énormes machines pour découvrir ? Mon expérience sur deux cœurs dit : pas pour commencer.">
+<meta name="twitter:image" content="https://scuenat.github.io/drafts/two-cores-and-an-idea/figures/fig01.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Aller au contenu principal</a><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site web">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../series.html"> 
+<span class="menu-text">Series</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre" aria-label="Basculer le mode sombre"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#un-carnet-que-personne-ne-savait-lire" id="toc-un-carnet-que-personne-ne-savait-lire" class="nav-link active" data-scroll-target="#un-carnet-que-personne-ne-savait-lire">1. Un carnet que personne ne savait lire</a></li>
+  <li><a href="#ce-quun-esprit-a-fait-avec-presque-rien" id="toc-ce-quun-esprit-a-fait-avec-presque-rien" class="nav-link" data-scroll-target="#ce-quun-esprit-a-fait-avec-presque-rien">2. Ce qu’un esprit a fait avec presque rien</a></li>
+  <li><a href="#mon-propre-petit-test" id="toc-mon-propre-petit-test" class="nav-link" data-scroll-target="#mon-propre-petit-test">3. Mon propre petit test</a></li>
+  <li><a href="#ce-que-la-petite-machine-a-trouvé" id="toc-ce-que-la-petite-machine-a-trouvé" class="nav-link" data-scroll-target="#ce-que-la-petite-machine-a-trouvé">4. Ce que la petite machine a trouvé</a></li>
+  <li><a href="#lobjection-hier-nest-pas-aujourdhui" id="toc-lobjection-hier-nest-pas-aujourdhui" class="nav-link" data-scroll-target="#lobjection-hier-nest-pas-aujourdhui">5. L’objection : hier n’est pas aujourd’hui</a></li>
+  <li><a href="#ce-que-jen-retiens" id="toc-ce-que-jen-retiens" class="nav-link" data-scroll-target="#ce-que-jen-retiens">6. Ce que j’en retiens</a></li>
+  <li><a href="#références" id="toc-références" class="nav-link" data-scroll-target="#références">Références</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Deux cœurs et une idée</h1>
+<p class="subtitle lead">Gödel avait un crayon. J’avais une image et un petit ordinateur. Les grosses machines aident à vérifier ; l’idée vient d’abord, et petit suffit souvent pour commencer</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">science</div>
+    <div class="quarto-category">expérience</div>
+    <div class="quarto-category">personnel</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Une IA vient d’aider à lire les carnets perdus de Gödel. Faut-il d’énormes machines pour découvrir ? Mon expérience sur deux cœurs dit : pas pour commencer.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">17 novembre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="draft-banner">
+<p><strong>Brouillon v1, non publié.</strong> Révisé le 17 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
+</div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, novembre 2026.</strong> Un court essai personnel. Il part d’une nouvelle sur les carnets de Kurt Gödel, lus avec l’aide de l’IA. Et il part d’une petite expérience à moi, faite sur deux cœurs de processeur ordinaires. Il pose une question simple : pour découvrir quelque chose, a-t-on vraiment besoin d’énormes machines ? La première figure est un schéma de moi. La seconde montre les chiffres de mon expérience, qui sont préliminaires. Le code qui les dessine est en lien sous les figures. Les figures sont en anglais. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../drafts/two-cores-and-an-idea/index.html">Version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Cette semaine, j’ai lu qu’une IA avait aidé un logicien à parcourir plus de mille pages des carnets de Gödel. Ensemble, ils ont trouvé des centaines de résultats que personne n’avait étudiés. Cela m’a fait réfléchir. Gödel a trouvé ce qu’il a trouvé avec un crayon. Turing aussi. Aujourd’hui, on parle comme si chaque découverte demandait un centre de données. Je ne le crois pas. J’avais une idée sur la façon dont un réseau pourrait penser : comme une bille qui roule dans un paysage. Je l’ai testée sur deux cœurs de processeur, avec un assistant d’IA qui m’aidait à écrire le code. Ce petit test a déjà montré quelque chose de surprenant. Les grosses machines comptent toujours : pour vérifier un résultat, et pour lire ce qu’aucune personne n’a le temps de lire. Mais elles viennent en second. D’abord vient l’idée, et un petit test suffit souvent pour commencer.</p>
+<section id="un-carnet-que-personne-ne-savait-lire" class="level2">
+<h2 class="anchored" data-anchor-id="un-carnet-que-personne-ne-savait-lire">1. Un carnet que personne ne savait lire</h2>
+<p>Il y a quelques jours, je suis tombé sur un message sur LinkedIn. Il disait qu’une IA, Claude d’Anthropic, avait aidé à déchiffrer les vieux carnets de Kurt Gödel. Des centaines de théorèmes, cachés depuis presque un siècle.</p>
+<p>Je voulais la vraie histoire, alors j’ai cherché. Voici ce qui a été rapporté <span class="citation" data-cites="aitldr2026 archyde2026">(<a href="#ref-aitldr2026" role="doc-biblioref">AI TL;DR 2026</a>; <a href="#ref-archyde2026" role="doc-biblioref">Archyde 2026</a>)</span>. Au début des années 1940, Gödel a rempli seize carnets, environ 1 009 pages, de mathématiques et de logique. Il en a écrit une grande partie en Gabelsberger, une vieille sténographie allemande que presque plus personne ne sait lire. Depuis 2017, le logicien Jan von Plato, à Helsinki, les étudie.</p>
+<p>Le détail que je préfère est celui-ci. Ce n’est pas l’IA qui a lu la sténographie. C’est von Plato. Il a appris la sténographie tout seul, il a transcrit les pages, et il a écrit six livres sur Gödel. Ensuite, il a tout donné à l’IA. Elle a rendu une longue explication des carnets et une liste de 663 résultats que Gödel avait démontrés, esquissés ou ébauchés. Vérifiés avec un assistant de preuve, un programme qui contrôle chaque étape d’une démonstration, environ 400 tenaient tels quels. Environ 200 demandaient une réparation, et environ 50 étaient faux. Gödel avait parfois marqué lui-même ses notes comme fausses, donc cette dernière partie n’est pas une surprise.</p>
+<p>Il y a aussi un résultat qui ressort. D’après ce qui a été rapporté, Gödel est passé tout près de quelque chose que Paul Cohen a démontré en 1963. Cela concerne une des règles de base de la théorie des ensembles, l’axiome du choix : on ne peut ni le démontrer ni le réfuter à partir des autres. Gödel a affirmé plus tard dans sa vie qu’il l’avait trouvé dans les années 1940. Les carnets semblent montrer qu’il était à une définition près.</p>
+<p>Je dois corriger une chose que disait le message, parce qu’elle compte. Gödel n’a pas démontré l’hypothèse du continu. Vers 1940, il a montré qu’on ne peut pas la <em>réfuter</em> avec les règles habituelles des mathématiques <span class="citation" data-cites="godel1940">(<a href="#ref-godel1940" role="doc-biblioref">Gödel 1940</a>)</span>. En 1963, Cohen a montré qu’on ne peut pas non plus la <em>démontrer</em> <span class="citation" data-cites="cohen1963">(<a href="#ref-cohen1963" role="doc-biblioref">Cohen 1963</a>)</span>. Cela lui a valu la médaille Fields. Les deux moitiés ensemble disent : la question est ouverte, par nature.</p>
+</section>
+<section id="ce-quun-esprit-a-fait-avec-presque-rien" class="level2">
+<h2 class="anchored" data-anchor-id="ce-quun-esprit-a-fait-avec-presque-rien">2. Ce qu’un esprit a fait avec presque rien</h2>
+<p>Maintenant, regardez ce que Gödel avait. Du papier, un crayon, et une façon d’écrire si personnelle qu’un homme a mis des années à la réapprendre.</p>
+<p>Avec cela, en 1931, il a montré que les mathématiques ne peuvent jamais être complètes. Dans tout système honnête assez fort pour compter, il existe des énoncés vrais qu’il ne peut pas démontrer <span class="citation" data-cites="godel1931">(<a href="#ref-godel1931" role="doc-biblioref">Gödel 1931</a>)</span>. Cinq ans plus tard, Alan Turing a utilisé le même genre de pensée pour décrire une machine capable de calculer tout ce qui est calculable. Et il a montré que certains problèmes ne pourront jamais être résolus par aucune machine <span class="citation" data-cites="turing1937">(<a href="#ref-turing1937" role="doc-biblioref">Turing 1937</a>)</span>. Toute la théorie de l’ordinateur sur lequel vous lisez ceci en est sortie.</p>
+<p>Pas de centre de données. Pas de cartes graphiques. Même pas d’ordinateur, puisque l’ordinateur n’existait pas encore. C’est eux qui l’ont imaginé.</p>
+<p>C’est la pensée qui m’est restée après cette nouvelle. Aujourd’hui, on parle comme si la découverte demandait une énorme machine et l’électricité d’une petite ville. Il y a quelques décennies, des esprits ont trouvé presque tout ce sur quoi nous construisons, avec presque rien. L’IA nous emmènera sûrement à un niveau supérieur, et nous l’utiliserons. Mais en avons-nous absolument besoin ? J’ai voulu tester cette question sur moi-même.</p>
+</section>
+<section id="mon-propre-petit-test" class="level2">
+<h2 class="anchored" data-anchor-id="mon-propre-petit-test">3. Mon propre petit test</h2>
+<p>Je ne suis pas chercheur en apprentissage automatique. Mais j’avais une idée qui ne me quittait pas.</p>
+<p>Quand un modèle de langage lit un texte, il utilise une étape appelée l’attention. Chaque mot regarde les autres mots et va chercher ce dont il a besoin. Je voyais toujours cette étape comme un paysage. Chaque fait du texte creuse un puits. La question est une bille. Une étape d’attention, c’est la bille qui bouge une fois vers le bon puits. Cette image n’est pas seulement la mienne : des chercheurs ont montré en 2020 qu’une étape d’attention est exactement une étape d’une sorte de réseau de mémoire fait de puits <span class="citation" data-cites="ramsauer2021">(<a href="#ref-ramsauer2021" role="doc-biblioref"><span class="nocase">Ramsauer et al.</span> 2021</a>)</span>.</p>
+<p>Alors je me suis posé une question simple. Pourquoi s’arrêter après une étape ? Laissons la bille rouler jusqu’à ce qu’elle s’arrête. Et laissons le texte lui-même former le paysage, un nouveau pour chaque texte.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/two-cores-and-an-idea/figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. L’image derrière mon expérience. Chaque fait du texte creuse un puits ; la question est une bille qui part d’un puits et roule, saut par saut, de A à B, à C, à D, où elle s’arrête sur la réponse. Le paysage est reconstruit pour chaque nouveau texte. Schéma, de moi ; code dans figs.py."><img src="../../../drafts/two-cores-and-an-idea/figures/fig01.svg" class="img-fluid figure-img" alt="Une ligne noire courbe forme un paysage avec quatre puits marqués A, B, C et D, sur un fond ambre clair. Une bille ambre est posée dans le puits A, avec l'étiquette « the question starts here ». Des flèches ambre en pointillés sautent de A à B, de B à C et de C à D, marquées « hop 1 », « hop 2 » et « hop 3 ». Le puits D porte l'étiquette « it settles: the answer ». Le titre dit : « Each fact in the text digs a well. The question is a ball. Let it roll until it rests. »"></a></p>
+<figcaption><strong>Figure 1.</strong> L’image derrière mon expérience. Chaque fait du texte creuse un puits ; la question est une bille qui part d’un puits et roule, saut par saut, de A à B, à C, à D, où elle s’arrête sur la réponse. Le paysage est reconstruit pour chaque nouveau texte. Schéma, de moi ; code dans <a href="../../../drafts/two-cores-and-an-idea/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Pour la tester, j’ai pris une tâche simple. Le texte est une liste de paires de symboles au hasard : A mène à B, B mène à C, et ainsi de suite. La question donne un point de départ. Le réseau doit suivre la chaîne jusqu’au bout. Chaque maillon est un saut. Les symboles changent à chaque fois, donc le réseau ne peut pas apprendre les réponses par cœur. Il doit apprendre à suivre.</p>
+<p>Maintenant, je dois être honnête sur la façon dont tout cela a été construit. L’idée, le paysage et la bille, est la mienne. Mais un assistant d’IA m’a aidé à écrire le code, à lancer les tests et à rédiger le plan de recherche. Sans lui, cela m’aurait pris des mois de soirées, pas quelques jours. Donc j’ai bien utilisé l’IA. Ce que je n’ai pas utilisé, c’est une grosse machine. Tout a tourné sur deux cœurs de processeur ordinaires. Les réseaux sont minuscules : entre 50 000 et 90 000 nombres à apprendre. Les grands modèles de langage dont on parle en ont des centaines de milliards. Un entraînement prenait quelques minutes.</p>
+</section>
+<section id="ce-que-la-petite-machine-a-trouvé" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-la-petite-machine-a-trouvé">4. Ce que la petite machine a trouvé</h2>
+<p>Le premier résultat a été un échec, et j’en ai appris plus que des réussites.</p>
+<p>Le réseau trouvait la bonne réponse, puis roulait au-delà. À l’étape pour laquelle il était entraîné, la réponse était là. Si je le laissais rouler seize fois plus longtemps, il n’avait raison qu’une fois sur cinq. La réponse n’était pas un endroit où la bille se pose. C’était un endroit par où elle passe. Les chercheurs appellent cela « trop réfléchir », en anglais <em>overthinking</em>, et c’est bien connu dans les réseaux qui répètent la même étape <span class="citation" data-cites="bansal2022">(<a href="#ref-bansal2022" role="doc-biblioref">Bansal et al. 2022</a>)</span>. Le remède est connu aussi : garder la question dans le paysage, pas seulement au départ. Avec ce changement, la bille restait sur la bonne réponse, même après avoir roulé seize fois plus longtemps, et même en partant d’un endroit au hasard.</p>
+<p>Puis est venue la surprise. J’ai entraîné le réseau sur des chaînes de un à trois sauts seulement. Ensuite, je lui ai donné des chaînes plus longues, qu’il n’avait jamais vues. Avec quatre sauts, il avait raison 94 % du temps. Avec cinq sauts, 77 %. Un réseau d’attention classique, avec trois ou cinq couches, n’en a réussi aucune.</p>
+<p>Était-ce le fait de rouler, ou la façon dont les puits sont creusés ? J’ai fait un test plus propre. Même réseau, même code, un seul changement. Dans une version, chaque puits est creusé seul, indépendamment des autres. Dans l’autre, les puits sont en concurrence, comme dans l’attention normale : si l’un devient plus profond, les autres deviennent moins profonds. Les deux versions ont appris les chaînes d’entraînement aussi bien l’une que l’autre. Sur les chaînes plus longues, elles se séparent.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/two-cores-and-an-idea/figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Même réseau, un seul changement. Entraîné sur des chaînes de un à trois sauts, testé sur quatre et cinq. Avec des puits indépendants, 81 % et 58 % de bonnes réponses ; avec des puits en concurrence, 32 % et 3 %. Deux entraînements pour chacun, sur deux cœurs de processeur : un résultat préliminaire, pas encore confirmé. Données de ma propre expérience ; code dans figs.py."><img src="../../../drafts/two-cores-and-an-idea/figures/fig02.svg" class="img-fluid figure-img" alt="Un graphique en lignes du pourcentage de bonnes réponses selon le nombre de sauts dans la chaîne, de 1 à 5. Les sauts 1 à 3 sont grisés, avec l'étiquette « trained on 1 to 3 hops ». Deux lignes partent ensemble près de 100 % et restent proches jusqu'à 3 sauts, vers 94 %. Ensuite, la ligne ambre, « independent wells », descend doucement à 81 % à 4 sauts et 58 % à 5. La ligne bleue, « competing wells », tombe à 32 % à 4 sauts et 3 % à 5."></a></p>
+<figcaption><strong>Figure 2.</strong> Même réseau, un seul changement. Entraîné sur des chaînes de un à trois sauts, testé sur quatre et cinq. Avec des puits indépendants, 81 % et 58 % de bonnes réponses ; avec des puits en concurrence, 32 % et 3 %. Deux entraînements pour chacun, sur deux cœurs de processeur : un résultat préliminaire, pas encore confirmé. Données de ma propre expérience ; code dans <a href="../../../drafts/two-cores-and-an-idea/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Avec des puits indépendants, le réseau avait raison 81 % du temps sur quatre sauts et 58 % sur cinq. Avec des puits en concurrence, 32 % et 3 %. Je crois comprendre pourquoi. Quand les puits sont en concurrence, la bille sent toujours un mélange de tous. Quand ils sont indépendants, elle peut n’écouter que le puits où elle se trouve, puis passer au suivant.</p>
+<p>Je veux être prudent ici. Ce sont deux entraînements, sur une tâche jouet, avec des réseaux minuscules. Cela pourrait ne pas tenir à plus grande échelle. Mais c’est une vraie différence, trouvée avec presque rien.</p>
+</section>
+<section id="lobjection-hier-nest-pas-aujourdhui" class="level2">
+<h2 class="anchored" data-anchor-id="lobjection-hier-nest-pas-aujourdhui">5. L’objection : hier n’est pas aujourd’hui</h2>
+<p>Il y a une réponse forte à tout ce que je viens d’écrire, et je veux lui donner tout son poids.</p>
+<p>Elle dit ceci. Gödel et Turing travaillaient sur un terrain vide. Les grandes découvertes simples étaient encore là, à trouver. Aujourd’hui, le terrain facile est pris. Et dans l’IA elle-même, l’histoire a été dure avec les idées astucieuses. Le chercheur Richard Sutton a appelé cela la leçon amère. En soixante-dix ans, les méthodes qui utilisaient simplement plus de puissance de calcul ont battu, encore et encore, les méthodes fondées sur l’intuition humaine <span class="citation" data-cites="sutton2019">(<a href="#ref-sutton2019" role="doc-biblioref">Sutton 2019</a>)</span>. Les modèles de langage ne sont pas nés d’une belle idée de puits. Ils sont nés de l’échelle. Vu ainsi, mes deux cœurs sont de la nostalgie.</p>
+<p>Je crois que c’est en partie vrai. Mais je crois que cela mélange deux moments : quand une idée naît, et quand on prouve qu’elle gagne.</p>
+<p>La leçon amère parle de qui gagne à la fin, sur les grands bancs d’essai. Elle dit peu de choses sur l’origine des idées. L’attention elle-même a commencé comme une idée dans un article sur la traduction, des années avant que quiconque y dépense des millions <span class="citation" data-cites="bahdanau2015">(<a href="#ref-bahdanau2015" role="doc-biblioref">Bahdanau et al. 2015</a>)</span>. L’échelle rend fortes les bonnes idées. Elle ne dit pas quelle idée mettre à l’échelle.</p>
+<p>Et l’histoire de Gödel, lue de près, dit la même chose. L’étape la plus dure n’a pas été faite par la machine. Un homme a passé des années à apprendre une sténographie morte, à la main, pour que les pages puissent seulement être lues. La machine a ensuite fait ce qu’aucune personne seule n’a le temps de faire : tout lire, tout relier, tout lister. Elle a fait des semaines de ce qui aurait été une vie. C’est une aide énorme. Mais elle est venue en second.</p>
+<p>Ma propre expérience montre aussi l’autre côté, et je dois le dire. Mon petit résultat pourrait disparaître. La prochaine étape de mon plan est un test sur une vraie carte graphique, avec cinq entraînements par modèle au lieu de deux, et des concurrents bien réglés. Si l’écart se referme, mon idée était fausse, et j’aurai eu besoin d’une plus grosse machine pour le savoir. Donc la vraie affirmation n’est pas que nous n’avons jamais besoin de grosses machines. C’est celle-ci : nous n’en avons pas toujours besoin, et nous n’en avons pas besoin en premier.</p>
+<p>C’est pareil pour l’IA elle-même. J’ai utilisé un assistant d’IA, et il m’a fait gagner des mois. Mais je n’en ai pas eu besoin pour avoir l’idée. L’image de la bille dans le paysage est venue toute seule, à l’ancienne, dans ma tête.</p>
+</section>
+<section id="ce-que-jen-retiens" class="level2">
+<h2 class="anchored" data-anchor-id="ce-que-jen-retiens">6. Ce que j’en retiens</h2>
+<p>Alors voici l’ordre auquel je crois maintenant. D’abord l’idée, venue d’un esprit, avec presque rien. Ensuite un petit test qui pourrait la contredire. Puis, seulement si elle survit, une grosse machine pour la vérifier et la faire grandir.</p>
+<p>Avant d’aller chercher un centre de données, une question vaut la peine d’être posée : quel est le plus petit test qui pourrait me dire que j’ai tort ? Très souvent, il tient sur un ordinateur portable. Celui de Gödel tenait dans un carnet.</p>
+<p>L’IA nous emmènera plus loin. J’en suis sûr, et j’en suis content. Elle lit ce que nous n’avons pas le temps de lire, et elle construit ce que nous n’avons pas le temps de construire. Mais elle a toujours besoin de quelqu’un pour lui apporter une question qui vaut la peine.</p>
+<p>Gödel avait un crayon. J’avais deux cœurs et une idée. Le crayon est venu d’abord. Il vient toujours d’abord.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-11-01-not-because-it-is-useful/index.html">Pas parce que c’est utile</a> La méthode scientifique vérifie les idées ; elle ne les trouve pas. Poincaré et McGilchrist sur ce qui fait avancer la découverte, et ce que l’IA change.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-aitldr2026" class="csl-entry" role="listitem">
+AI TL;DR. 2026. <em>G<span>ö</span>del’s notebooks: Claude finds 663 theorems in 1,009 shorthand pages</em>. <a href="https://ai-tldr.dev/releases/helsinki-claude-godel-workbooks-663-theorems/">https://ai-tldr.dev/releases/helsinki-claude-godel-workbooks-663-theorems/</a>.
+</div>
+<div id="ref-archyde2026" class="csl-entry" role="listitem">
+Archyde. 2026. <em>AI Helps Unlock Hundreds of Theorems in G<span>ö</span>del’s Notebooks</em>. <a href="https://www.archyde.com/ai-helps-unlock-hundreds-of-theorems-in-godels-notebooks/">https://www.archyde.com/ai-helps-unlock-hundreds-of-theorems-in-godels-notebooks/</a>.
+</div>
+<div id="ref-bahdanau2015" class="csl-entry" role="listitem">
+Bahdanau, Dzmitry, Kyunghyun Cho, et Yoshua Bengio. 2015. <span>«&nbsp;Neural Machine Translation by Jointly Learning to Align and Translate&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a>.
+</div>
+<div id="ref-bansal2022" class="csl-entry" role="listitem">
+Bansal, Arpit, Avi Schwarzschild, Eitan Borgnia, et al. 2022. <span>«&nbsp;End-to-end Algorithm Synthesis with Recurrent Networks: Extrapolation without Overthinking&nbsp;»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em>. <a href="https://arxiv.org/abs/2202.05826">https://arxiv.org/abs/2202.05826</a>.
+</div>
+<div id="ref-cohen1963" class="csl-entry" role="listitem">
+Cohen, Paul J. 1963. <span>«&nbsp;The Independence of the Continuum Hypothesis&nbsp;»</span>. <em>Proceedings of the National Academy of Sciences</em> 50 (6): 1143‑48. <a href="https://doi.org/10.1073/pnas.50.6.1143">https://doi.org/10.1073/pnas.50.6.1143</a>.
+</div>
+<div id="ref-godel1931" class="csl-entry" role="listitem">
+Gödel, Kurt. 1931. <span>«&nbsp;<span>Ü</span>ber formal unentscheidbare S<span>ä</span>tze der Principia Mathematica und verwandter Systeme <span>I</span>&nbsp;»</span>. <em>Monatshefte f<span class="nocase">ü</span>r Mathematik und Physik</em> 38: 173‑98.
+</div>
+<div id="ref-godel1940" class="csl-entry" role="listitem">
+Gödel, Kurt. 1940. <em>The Consistency of the Axiom of Choice and of the Generalized Continuum-Hypothesis with the Axioms of Set Theory</em>. Annals of Mathematics Studies 3. Princeton University Press.
+</div>
+<div id="ref-ramsauer2021" class="csl-entry" role="listitem">
+<span class="nocase">Ramsauer, Hubert, Bernhard Schäfl, Johannes Lehner, et al.</span> 2021. <span>«&nbsp;Hopfield Networks is All You Need&nbsp;»</span>. <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2008.02217">https://arxiv.org/abs/2008.02217</a>.
+</div>
+<div id="ref-sutton2019" class="csl-entry" role="listitem">
+Sutton, Richard. 2019. <em>The Bitter Lesson</em>. <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">http://www.incompleteideas.net/IncIdeas/BitterLesson.html</a>.
+</div>
+<div id="ref-turing1937" class="csl-entry" role="listitem">
+Turing, Alan M. 1937. <span>«&nbsp;On Computable Numbers, with an Application to the <span>Entscheidungsproblem</span>&nbsp;»</span>. <em>Proceedings of the London Mathematical Society</em> s2-42 (1): 230‑65. <a href="https://doi.org/10.1112/plms/s2-42.1.230">https://doi.org/10.1112/plms/s2-42.1.230</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Deux cœurs et une idée},
+  date = {2026-11-17},
+  url = {https://scuenat.github.io/fr/drafts/two-cores-and-an-idea/},
+  langid = {fr}
+}
+</code></pre><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Deux cœurs et une idée.”</span> November
+17. <a href="https://scuenat.github.io/fr/drafts/two-cores-and-an-idea/">https://scuenat.github.io/fr/drafts/two-cores-and-an-idea/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Basculer le mode sombre");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Basculer le mode sombre");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      const newWindowLabel = "(opens in a new tab)";
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            describeNewWindow(link);
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Code défilable","output":"Sortie défilable"};
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  // A series page (it has the "All series" back link) lights up "Series" in the menu.
+  var inSeries = !!document.querySelector(".series-back");
+  if (inSeries) document.querySelectorAll('.navbar .nav-link[href$="series.html"]').forEach(function (a) { a.classList.add("active"); });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Series": ["Séries", "/fr/series.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1] || (inSeries && m[1] === "/fr/series.html"));
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script src="../../../listen.js" defer=""></script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
