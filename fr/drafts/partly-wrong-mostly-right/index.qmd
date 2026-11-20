@@ -1,0 +1,121 @@
+---
+title: "En partie faux, surtout juste"
+subtitle: "Sept mois après ma conférence TEDx, des machines prouvent des théorèmes et résolvent des problèmes de physique. En quoi je me suis trompé, et pourquoi l'innovation a encore besoin de nous."
+description: "Sept mois après ma conférence TEDx, l'IA prouve des théorèmes et fait de la physique. J'avais en partie tort. Pourquoi la frontière a encore besoin de nous."
+date: 2026-11-20
+draft-version: 1
+draft-revised: 2026-11-20
+citation: true
+bibliography: ../../../drafts/partly-wrong-mostly-right/references.bib
+toc-depth: 2
+categories: [essai, ia, science, mathématiques, physique, personnel]
+kind: essay   # card marker: essay | analysis | note | position | overview
+topics: [human]   # home-page theme tiles (index.qmd)
+image: ../../../drafts/partly-wrong-mostly-right/figures/fig01.png
+---
+
+::: {.callout-note appearance="simple"}
+**Essai, novembre 2026.** Un essai personnel, écrit sept mois après ma conférence TEDx à Delémont, *L'impossible : un tremplin pour l'homme, une frontière pour l'IA*. Je reviens sur ce que j'ai dit, et sur ce que les machines ont fait depuis en mathématiques, en physique et en biologie. Et je dis en quoi je me suis trompé. Plusieurs de ces résultats viennent d'annonces d'entreprises ou de la presse ; quand je m'appuie sur le récit de quelqu'un, je dis de qui. La première figure est un schéma de moi ; la seconde place les résultats sur une ligne du temps, avec les dates telles que rapportées. Le code qui les dessine est en lien sous chacune. Les figures sont en anglais. *Traduit automatiquement de l'anglais ; quelques erreurs sont possibles. [Version originale](../../../drafts/partly-wrong-mostly-right/index.qmd).*
+:::
+
+**En bref.** En avril, sur une scène à Delémont, j'ai dit que l'impossible est un tremplin pour l'homme et une frontière pour l'IA. Sept mois plus tard, des machines ont réfuté une conjecture d'Erdős et trouvé une nouvelle formule en physique des particules. Elles ont calculé un résultat que les physiciens n'arrivaient pas à atteindre. Et elles ont produit une preuve, vérifiée par ordinateur, qu'une théorie centrale de la physique existe. Je me suis trompé sur deux points. Ces systèmes atteignent vraiment des endroits nouveaux, ils ne font pas que recombiner l'ancien. Et pour moi, l'IA n'est plus seulement un outil. Mais le cœur de ce que j'ai dit tient toujours. Dans chacune de ces histoires, une personne a choisi la question, et des personnes ont dû décider ce que la réponse veut dire. Les machines sont devenues très fortes pour trouver des réponses. Choisir ce qui vaut la peine d'être demandé, et savoir quand on est vraiment arrivé, reste à nous. Je crois que cela restera à nous pour longtemps.
+
+![**Figure 1.** Où la frontière s'est déplacée, telle que je la vois en novembre 2026. Une découverte passe par quatre étapes. Dans les deux du milieu, trouver un candidat et le vérifier, les machines sont devenues très fortes depuis avril. La première et la dernière, choisir la question et dire ce que la réponse veut dire, sont encore faites par des personnes. Schéma, de moi ; code dans [figs.py](../../../drafts/partly-wrong-mostly-right/figs.py).](../../../drafts/partly-wrong-mostly-right/figures/fig01.svg){fig-alt="Quatre cadres arrondis en ligne, reliés par des flèches. Le premier, ambre : « 1. Choose the question », avec la note « Erdős, the Clay Institute, a science writer's challenge ». Le deuxième, bleu : « 2. Find a candidate », avec « a formula, a counterexample, a nine-loop result ». Le troisième, bleu : « 3. Check it », avec « proof checkers and tests that people built ». Le quatrième, ambre : « 4. Say what it means », avec « is it the right physics? does it matter? do we understand it? ». Au-dessus des deux cadres bleus, une accolade dit « machines: much stronger since April ». Au-dessus des deux cadres ambre : « still ours ». Le titre dit « Where the frontier moved »."}
+
+## 1. Me revoir
+
+Il y a quelques soirs, j'ai regardé à nouveau ma conférence TEDx. Puis j'ai relu l'essai écrit en même temps, *La réponse qu'on ne peut pas vérifier*. Il faisait trois remarques. D'abord, les grands modèles sont brillants pour recombiner ce qui existe déjà. Au bord de ce que nous savons, ils ne s'arrêtent pas : ils comblent le vide avec quelque chose qui a l'air juste. Ensuite, à la frontière, il n'y a pas d'oracle, rien contre quoi vérifier une réponse nouvelle. Enfin, ce qui guide une personne là-bas est une sorte de boussole : le sens de l'inconnue qui vaut la peine d'être poursuivie, et l'instinct qu'une belle réponse est creuse.
+
+Et puis cette phrase : « Pour moi, l'IA est un outil, et seulement un outil. » Je terminais par : « Gardez l'outil. Et gardez la tête sur les épaules. »
+
+C'était en avril. Nous sommes en novembre. Je veux être honnête sur ce que ces sept mois ont fait à ces mots.
+
+## 2. Sept mois
+
+Même avant la conférence, les signes étaient là. En 2025, des machines ont atteint le niveau de la médaille d'or aux Olympiades internationales de mathématiques [@deepmind2025; @hubert2025]. Et un agent de programmation de Google DeepMind a trouvé de nouveaux algorithmes, meilleurs que les meilleurs connus [@novikov2025alphaevolve]. Mais les problèmes d'olympiade ont des réponses connues. Les problèmes de recherche, non. Ce qui a changé en 2026, c'est que les machines ont commencé à travailler sur des problèmes que personne n'avait résolus.
+
+![**Figure 2.** Sept mois, tels que rapportés. Dates et descriptions tirées des sources citées ; plusieurs sont des annonces d'entreprises. Ma conférence est en avril. Dessin de moi ; code dans [figs.py](../../../drafts/partly-wrong-mostly-right/figs.py).](../../../drafts/partly-wrong-mostly-right/figures/fig02.svg){fig-alt="Une ligne du temps horizontale de février à novembre 2026. Les événements de physique sont en bleu au-dessus de la ligne, ceux de mathématiques en ambre au-dessous, et la conférence en gris. Février, physique : une formule sur les gluons qu'on croyait nulle, proposée d'abord par un modèle. Mars, physique : des formules exactes pour les ondes gravitationnelles des cordes cosmiques. Avril, en gris : ma conférence TEDx à Delémont. Mai, mathématiques : une conjecture d'Erdős de 1946 réfutée. Septembre, physique : une amplitude à neuf boucles calculée, le record humain était de huit. Octobre, mathématiques : plus de 700 articles publiés, dont l'hypothèse de quasi-Riemann. Novembre, physique : l'existence de Yang–Mills, vérifiée en Lean, le saut de masse intact."}
+
+En mathématiques, en mai, un modèle de raisonnement d'OpenAI a réfuté une conjecture que Paul Erdős avait formulée en 1946. Elle porte sur le nombre de paires de points du plan qui peuvent se trouver à la même distance. Selon l'entreprise, des mathématiciens extérieurs ont vérifié la preuve [@openai2026unit]. En octobre, l'entreprise a publié plus de 700 articles de recherche produits avec ses modèles. Parmi eux, une preuve de l'« hypothèse de quasi-Riemann », une cousine plus faible de la célèbre hypothèse de Riemann. Selon Quanta, les experts l'ont étudiée et la prennent au sérieux [@quanta2026]. Le mathématicien Frank Calegari, dans un billet invité sur le blog de Terence Tao, a parlé d'un « tournant dans l'histoire des mathématiques ». Il a écrit que l'IA est « désormais indéniablement capable d'apporter des contributions décisives dans de nombreux domaines des mathématiques » [@calegari2026].
+
+En physique, il en est allé de même. En février, un groupe de physiciens, dont Andrew Strominger, s'est penché sur les gluons, les particules qui collent les quarks ensemble à l'intérieur des protons et des neutrons. Ils ont montré qu'un certain type de collision entre gluons ne donne pas zéro, comme beaucoup le supposaient [@guevara2026]. Selon OpenAI, la formule clé a d'abord été proposée par son modèle, puis prouvée par un autre, et vérifiée par les physiciens [@openai2026gluon]. En mars, des chercheurs de Google ont décrit un système qui a trouvé des formules exactes pour les ondes gravitationnelles émises par les cordes cosmiques. C'était un problème ouvert de physique théorique [@brenner2026].
+
+En septembre, deux physiciens d'Anthropic ont demandé à Claude de calculer une grandeur dans une théorie simplifiée des particules, à neuf « boucles ». Les boucles mesurent la profondeur du calcul. Le record humain était de huit boucles, établi en 2023 par Lance Dixon et Andy Liu. Claude a tourné pendant des jours, comme le dit le billet, « sans autre supervision scientifique que : continue ». Dixon a vérifié le résultat [@vonhippel2026].
+
+Et ce mois-ci, un comité nommé par OpenAI et présidé par le physicien et prix Nobel David Gross a confirmé une preuve faite par une machine. Elle montre que la théorie de Yang–Mills existe, une moitié d'un problème du prix du millénaire. La preuve a été vérifiée en Lean, un programme qui contrôle chaque étape d'une preuve [@sciam2026; @science2026].
+
+Au-delà de la physique et des mathématiques, c'est la même histoire en biologie. Un système à plusieurs agents appelé Robin a proposé que le ripasudil, un collyre déjà utilisé contre le glaucome, pourrait traiter la dégénérescence maculaire sèche. Personne ne l'avait proposé pour cela, et les tests de l'équipe en laboratoire ont soutenu l'idée [@ghareeb2025].
+
+Voilà, sept mois. C'est le monde auquel mes phrases d'avril doivent maintenant faire face.
+
+## 3. Ce sur quoi je me suis trompé
+
+Je veux commencer par ce sur quoi je me suis trompé, parce que c'est l'endroit honnête par où commencer.
+
+**D'abord, « ils ne font que recombiner ».** J'avais pris des précautions en avril. J'avais écrit que ces systèmes peuvent parfois atteindre des points vraiment nouveaux, et que je ne parierais pas contre eux. Mais le cœur de mon argument restait l'image d'une machine qui recombine à l'intérieur du connu et devine à l'extérieur. Cette image est trop petite aujourd'hui. Une formule pour une amplitude que les physiciens croyaient nulle n'est pas une recombinaison du manuel. Elle va contre le manuel. Un contre-exemple à une conjecture de 1946 n'est pas une moyenne de ce qu'on savait. Quoi qu'il se passe à l'intérieur de ces modèles, le résultat arrive quelque part de nouveau. J'ai sous-estimé à quelle fréquence, et à quelle vitesse.
+
+**Ensuite, « seulement un outil ».** Celui-ci est plus personnel. Un outil attend votre main. Un marteau ne fait rien tant qu'on ne le soulève pas. Ce n'est plus comme cela que je travaille. Dans mon travail de tous les jours, des agents d'IA prennent maintenant des tâches entières. Ils les mènent à bout et reviennent vers moi avec un résultat. J'ai écrit sur ce changement dans ma série sur le [codage agentique](../../agentic-coding.qmd). Pour ma dernière expérience, un assistant d'IA m'a aidé à écrire le code, à lancer les tests et à écrire le plan. Sans lui, il m'aurait fallu des mois de soirées, pas quelques jours ([Deux cœurs et une idée](../../posts/2026-11-17-two-cores-and-an-idea/index.qmd)). Quelque chose qui travaille pendant des jours pendant que vous dormez, sur un problème que vous lui avez donné, n'est pas un outil au sens où je l'entendais. C'est plus proche d'un collègue qui ne se fatigue jamais et qui ne sait pas toujours quand il se trompe.
+
+Ma phrase d'avril doit donc être corrigée. L'IA n'est pas seulement un outil. Là-dessus, j'avais tort.
+
+## 4. L'objection dans toute sa force
+
+Voici maintenant la réponse la plus forte au reste de ma conférence. Je veux lui donner tout son poids, parce qu'elle est sérieuse.
+
+Elle dit ceci. Tu as dit que les humains tiennent la frontière. Mais regarde la liste. Une conjecture d'Erdős, ouverte depuis quatre-vingts ans. Un problème du prix du millénaire, à moitié résolu. Un calcul de physique une boucle au-delà du meilleur record humain. Ce ne sont pas de petites tâches faites plus vite. C'est la frontière elle-même. Calegari, un mathématicien en activité, pas une entreprise, dit que l'IA apporte des « contributions décisives ». La frontière t'a donc dépassé.
+
+Et elle va plus loin. Tu as dit que le vrai danger était l'oracle manquant : à la frontière, rien ne peut vérifier une réponse nouvelle. Mais la preuve de Yang–Mills a été vérifiée par une machine, étape par étape, en Lean. L'oracle est en train d'être construit. Bientôt, une machine proposera et une machine vérifiera. Où est l'humain, exactement ?
+
+Je sens la force de cet argument. Dit ainsi, ma conférence ressemble à une ligne tracée dans le sable juste avant la marée.
+
+## 5. Regarder qui a fait quoi
+
+Mais ensuite, j'ai fait ce que j'essaie toujours de faire devant une grande affirmation. J'ai regardé de près qui a fait quoi, histoire par histoire. Et un motif est apparu.
+
+**Chaque question est venue d'une personne.** Erdős s'est interrogé sur les distances entre points en 1946. Le Clay Mathematics Institute a choisi Yang–Mills comme problème du millénaire, parce que des générations de physiciens y avaient travaillé sans succès. Le calcul à neuf boucles est parti d'un défi lancé par un auteur scientifique, Matt von Hippel, sur un record établi par Lance Dixon. L'équipe de Robin a choisi la maladie. Les machines ont répondu, et brillamment. Mais elles ont répondu à des questions que des personnes avaient choisies, souvent après des décennies à s'en soucier. C'est exactement ce que je voulais dire par tremplin. Le problème impossible est l'endroit d'où l'on saute. En 2026, nous avons trouvé un partenaire qui saute plus loin que nous. Il saute encore depuis notre plongeoir.
+
+**Chaque réponse a encore eu besoin de personnes pour dire ce qu'elle veut dire.** Ici, les histoires sont encore plus claires. Après le résultat à neuf boucles, Dixon a écrit : « Nous avons tous les outils pour valider n'importe quelle solution candidate qu'une machine nous fournirait » [@vonhippel2026]. Relisez-le. L'oracle ne manquait pas pour ce problème, parce que des gens avaient passé des décennies à le construire. La machine a pu aller loin parce que des humains avaient déjà construit la route pour la vérifier.
+
+Pour Yang–Mills, la vérification en Lean est un vrai progrès, et je m'en réjouis. Mais un vérificateur de preuves ne répond qu'à une question : chaque étape découle-t-elle de la précédente ? Il ne répond pas à l'autre : avons-nous écrit la bonne chose ? Trois physiciens l'ont dit en octobre, dans un article sur les preuves formelles en physique. Une preuve vérifiée, écrivent-ils, « n'établit pas que ses définitions capturent fidèlement la physique visée » [@krippendorf2026]. Selon ce qui a été rapporté, la preuve écrite de Yang–Mills fait plus de mille pages et n'a pas été publiée. Et la moitié la plus difficile du problème, le « saut de masse », reste intacte [@science2026]. Une preuve que personne ne comprend encore est un résultat. Ce n'est pas encore un savoir, pas pour nous.
+
+Calegari, le mathématicien même qui parlait d'un tournant, a été tout aussi clair sur le reste. Malgré « quelques idées formidables », les articles « sont atrocement écrits et violent les attentes de notre communauté en matière d'attribution. Certains sont même faux » [@calegari2026]. Même en mathématiques, où la vérification est la plus nette, des personnes ont encore dû trier le juste du faux.
+
+Et il y a un résultat plus discret, en physique, auquel je reviens sans cesse. En 2025, des chercheurs ont entraîné des modèles sur les orbites des planètes. Les modèles prédisaient très bien les orbites. Mais quand on leur demandait d'utiliser ce qu'ils avaient appris sur de nouvelles tâches de physique, ils « échouent constamment à appliquer la mécanique newtonienne » [@vafa2025]. Ils savaient prédire où va une planète, sans trouver la loi qui la fait bouger. C'est la vieille histoire de Kepler et de Newton, racontée à nouveau avec une machine. Prédire n'est pas comprendre. Et pour une innovation, c'est la compréhension qu'on emporte vers le problème suivant.
+
+La frontière a donc bougé. Elle a beaucoup bougé, et plus vite que je ne l'avais dit. Mais elle n'a pas disparu. Elle s'est déplacée vers les deux bouts de la chaîne : choisir la question, et dire ce que la réponse veut dire. C'est la première figure de cet essai, et c'est la correction que j'apporterais à ma conférence.
+
+## 6. Pourquoi je pense que cela va durer
+
+Maintenant, je dois faire attention. « On a encore besoin des humains » peut devenir un jeu où l'on déplace la ligne chaque fois qu'une machine la franchit. Je ne veux pas jouer à ce jeu. Alors je vais dire pourquoi je pense que ces deux bouts resteront humains pour longtemps, et ce qui me ferait changer d'avis.
+
+**Les questions viennent de ce qui nous tient à cœur.** Une bonne question n'est pas la plus difficile. C'est celle qui compte pour quelqu'un : parce qu'elle est belle, parce qu'un patient attend, parce qu'un pont ne doit pas tomber. Ce souci vient du fait de vivre dans un monde, avec un corps, avec des enjeux, avec d'autres personnes. Les machines peuvent maintenant aider à trier les questions. Mais choisir quelle inconnue vaut une vie de travail est lié, je crois, au fait d'être quelqu'un pour qui les choses comptent.
+
+**Le sens vit dans une communauté.** Un résultat devient un savoir quand des gens le comprennent, lui font confiance et peuvent construire dessus. Les physiciens qui écrivent sur les preuves formelles avertissent que la vitesse apportée par l'IA « se paie aujourd'hui en confiance, en crédit et en communauté » [@krippendorf2026]. Ce n'est pas un problème technique qu'un plus gros modèle réglera. C'est la manière dont des personnes décident, ensemble, de ce qu'elles savent.
+
+**L'oracle est une chose que nous avons construite.** Dans chaque histoire où une machine est allée loin, des gens avaient construit le moyen de la vérifier. Un vérificateur de preuves, un résultat connu à moins de boucles, un test en laboratoire, un relecteur. Les machines savent maintenant très bien utiliser ces vérifications. Mais construire une nouvelle manière de vérifier, pour un nouveau type de question, est en soi une invention. C'est à nouveau la boussole, à un niveau plus profond.
+
+C'est un pari, pas une preuve. Voici ce qui me le ferait perdre. Imaginez une machine qui, sans qu'on le lui demande, propose une question sur laquelle personne ne travaillait. Des années plus tard, la communauté reconnaît qu'elle a ouvert tout un domaine. Et la machine sait expliquer, avec des mots que les gens comprennent, pourquoi cette question comptait. Si cela arrive, j'écrirai un autre essai, et son titre sera plus court : *Faux.*
+
+## 7. Ce que je dirais aujourd'hui sur cette scène
+
+Si j'avais à nouveau le cercle rouge sous les pieds, je changerais deux phrases.
+
+Je ne dirais plus que l'IA n'est qu'un outil. Elle est plus que cela, et faire semblant du contraire serait une forme d'aveuglement. Sa portée est réelle.
+
+Et je changerais ma dernière phrase. En avril, j'ai dit : « Gardez l'outil. Et gardez la tête sur les épaules. » Aujourd'hui, je dirais : ce n'est plus seulement un outil, alors gardez la tête sur les épaules encore plus. Pas par peur. Parce que la tête est l'endroit d'où viennent les questions, et l'endroit où une réponse devient compréhension.
+
+La machine saute maintenant plus loin que nous. Quelqu'un doit encore choisir où pointe le tremplin, et dire, quand elle atterrit, si elle a atterri quelque part où il vaut la peine d'être.
+
+::: {.read-next}
+**À lire ensuite** · [Les mathématiques à venir](../../posts/2026-11-02-the-mathematics-still-to-come/index.qmd)
+Ce que les mathématiques de l'apprentissage automatique savent construire, ce qu'elles ne savent pas expliquer, et ce qu'il faudra peut-être inventer, à la lumière de l'histoire de la thermodynamique.
+:::
+
+::: {.small}
+*Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.*
+:::
+
+## Références
+
+::: {#refs}
+:::
