@@ -112,6 +112,12 @@ after adding, renaming or re-describing a theme, run
 pill with an icon and the mode a click switches to (moon + "Dark" / sun + "Light"; "Sombre" /
 "Clair" on French pages via `:lang(fr)`), amber border on hover, icon alone under 380 px.
 
+**Figure lightbox** (`lightbox: auto`, GLightbox; styles under "Figure lightbox" in `styles.scss`):
+the caption is small sans text, never a heading. On phones it sits under the figure on a dark
+background (portrait) or in a column beside it (landscape) and scrolls when long; it must never
+cover the figure. Selectors start with `body .glightbox-container.glightbox-clean` to beat
+GLightbox's own mobile rules. Check with an emulated iPhone, portrait and landscape.
+
 **Other parts**: hero (`.hero`, keep it compact: about 3.5rem padding), follow box, section
 labels (`h2.latest-heading`: small uppercase with a rule).
 

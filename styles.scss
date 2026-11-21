@@ -37,6 +37,49 @@ main.content :is(h2, h3, h4)[id] { scroll-margin-top: 5rem; }
   }
 }
 
+// ---------- Figure lightbox (tap a figure to open it full screen) ----------
+// The caption is a small sans caption under the figure, never a big heading over it.
+// `body .glightbox-container.glightbox-clean` outranks GLightbox's own mobile rules.
+body .glightbox-container.glightbox-clean {
+  .gslide-title, .gslide-desc {
+    margin: 0;
+    font-family: $font-family-sans-serif;
+    font-size: .92rem;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0;
+    text-wrap: pretty;
+  }
+  .gdesc-inner { padding: 1rem 1.25rem; }
+}
+@media (max-width: 768.98px) {
+  body .glightbox-container.glightbox-clean {
+    .goverlay { background: #0b0b0c; }
+    .ginner-container { justify-content: center; gap: .9rem; padding-top: 3.5rem; }
+    .gslide-image img { max-height: 60vh; background: #fff; }
+    .gslide-description {
+      position: static;
+      flex: 0 1 auto;
+      max-height: 32vh;
+      overflow-y: auto !important;
+      padding: 0 !important;
+      background: none;
+      opacity: 1;
+    }
+    .gdesc-inner { padding: 0 1.1rem calc(1rem + env(safe-area-inset-bottom)); }
+    .gslide-title, .gslide-desc { font-size: .86rem; color: #d4d4d2; background: none; }
+  }
+}
+// Phone held sideways: figure on the left, caption in a column on the right.
+@media (max-width: 991.98px) and (orientation: landscape) and (max-height: 500px) {
+  body .glightbox-container.glightbox-clean {
+    .ginner-container { flex-direction: row; align-items: center; padding: 0 3.5rem 0 1rem; gap: 1.25rem; }
+    .gslide-image img { max-height: 92vh; max-width: 62vw; }
+    .gslide-description { max-height: 86vh; max-width: 34vw; }
+    .gdesc-inner { padding: 0; }
+  }
+}
+
 // ---------- Navbar & footer ----------
 .navbar {
   padding-top: .5rem;
