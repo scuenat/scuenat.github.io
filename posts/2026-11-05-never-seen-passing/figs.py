@@ -15,6 +15,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
+import handdrawn; handdrawn.apply()
 
 PAPER = "#f3ead7"
 INK = "#3b2a1a"
@@ -102,7 +105,7 @@ def fig01():
         ax.text(0.45, y, name, va="center", fontsize=16)
     ax.annotate("", xy=(-6.3, 11.4), xytext=(-6.3, -0.9),
                 arrowprops=dict(arrowstyle="-|>", color=INK, lw=0.9))
-    ax.text(-6.1, 11.2, "time", fontsize=15)
+    ax.text(-6.1, 10.7, "time", fontsize=15)
     ax.annotate("", xy=(6.3, -0.9), xytext=(-6.3, -0.9),
                 arrowprops=dict(arrowstyle="-|>", color=INK, lw=0.9))
     ax.text(6.2, -0.5, "space", ha="right", fontsize=15)
@@ -146,7 +149,7 @@ def fig02():
         else:
             th = np.linspace(0, 4 * np.pi, 60)
             ax.plot(ex + 0.05 * th * np.cos(th), ey + 0.05 * th * np.sin(th), color=INK, lw=0.9)
-    ax.text(5, 9.35, "made slowly", ha="center", fontsize=18)
+    ax.text(5, 9.05, "made slowly", ha="center", fontsize=18)
     ax.text(5, 0.55, "every path leaves its own mark", ha="center", fontsize=15, color=FADED)
     frame(ax)
 
@@ -162,7 +165,7 @@ def fig02():
         d = 0.12 * (k + 1)
         ax.add_patch(plt.Rectangle((target[0] - 0.4 + d * .25, target[1] - 0.4 - d * .25), 0.8, 0.8,
                                    fc="none", ec=RUST, lw=0.5, alpha=0.6))
-    ax.text(5, 9.35, "made fast", ha="center", fontsize=18)
+    ax.text(5, 9.05, "made fast", ha="center", fontsize=18)
     ax.text(5, 0.55, "every path arrives at the plausible", ha="center", fontsize=15, color=FADED)
     frame(ax)
     fig.suptitle("Plate II. Where the differences are made", fontsize=18, y=0.915)

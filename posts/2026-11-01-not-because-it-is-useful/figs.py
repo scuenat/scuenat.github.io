@@ -4,6 +4,9 @@ Written twice: a vector SVG (used in the page) and a 400 dpi PNG (card image). A
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
+import handdrawn; handdrawn.apply()
 from matplotlib.patches import FancyBboxPatch, Rectangle
 
 # ---------- palette (from light.scss) ----------

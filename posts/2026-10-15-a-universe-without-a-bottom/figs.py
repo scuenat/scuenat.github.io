@@ -3,6 +3,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
+import handdrawn; handdrawn.apply()
 
 NAVY, GREY, RED, LIGHT, PALE, AMBER = "#1f4e79", "#7f8c8d", "#c0392b", "#d5dde5", "#eef1f4", "#d68910"
 INK = "#2c3e50"
@@ -57,5 +60,36 @@ def fig_area_law():
     fig.savefig(OUT + "fig01.png"); plt.close(fig)
 
 
+
+def fig_cover():
+    """Card image: a horizon tiled with information (left) and circles inside circles,
+    a universe without a bottom (right)."""
+    from matplotlib.patches import Circle, Wedge
+    fig, ax = plt.subplots(figsize=(6.46, 3.53))
+    ax.set_xlim(0, 13); ax.set_ylim(0, 7.1); ax.set_aspect("equal"); ax.axis("off")
+    cx, cy, r = 3.7, 3.55, 2.45
+    n = 40
+    for i in range(n):
+        a0 = 360 * i / n
+        ax.add_patch(Wedge((cx, cy), r + 0.27, a0 + 1.2, a0 + 360 / n - 1.2, width=0.27,
+                           fc=AMBER if i % 2 else "#f0b75a", ec="none"))
+    ax.add_patch(Circle((cx, cy), r, fc=NAVY, ec=NAVY, lw=1.4))
+    ax.text(cx, cy, r"$S = \dfrac{A}{4\,\ell_P^{\,2}}$", ha="center", va="center", fontsize=26, color="white")
+
+    def nest(x, y, rr, depth):
+        ax.add_patch(Circle((x, y), rr, fc="none", ec=NAVY, lw=max(2.4 * rr / 2.45, 0.5)))
+        if depth == 0:
+            return
+        k = 0.45
+        for ang in (90, 210, 330):
+            t = np.radians(ang)
+            nest(x + rr * 0.53 * np.cos(t), y + rr * 0.53 * np.sin(t), rr * k, depth - 1)
+
+    nest(9.4, 3.55, 2.45, 4)
+    ax.add_patch(Circle((9.4, 3.55), 0.08, fc=AMBER, ec=AMBER))
+    fig.savefig(OUT + "cover.png", dpi=255, bbox_inches="tight", pad_inches=0.05); plt.close(fig)
+
+
 if __name__ == "__main__":
     fig_area_law()
+    fig_cover()

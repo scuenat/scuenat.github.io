@@ -10,6 +10,10 @@
 //   - the text: dashes and brackets become pauses, "e.g." becomes "for example", headings end with a stop,
 //     citations are not read, "1–4" is read "1 to 4".
 // Writers: see .claude/skills/write-for-listening (what is heard, what is skipped, and a check).
+// Remember my place: the first time someone listens, a small note asks whether the browser may
+// remember where they stopped. If they agree, the paragraph being read is saved in this browser
+// (localStorage, nothing is sent anywhere) and, back on the post, "Continue" picks up there.
+// Their answer is remembered too; "Forget my places" clears everything.
 // Skipped: code, equations, figures, tables, footnotes, the series note, and everything from the
 // "Questions or objections?" note (discuss.lua) onward (sources, references).
 (function () {
@@ -23,9 +27,15 @@
   var fr = (document.documentElement.lang || "").slice(0, 2) === "fr";
   var T = fr
     ? { listen: "Écouter", pause: "Pause", resume: "Reprendre", stop: "Arrêter", speed: "Vitesse de lecture", min: "min",
-        voice: "Voix", label: "Écouter ce texte, lu par la voix de votre appareil", equation: "une équation", to: "à" }
+        voice: "Voix", label: "Écouter ce texte, lu par la voix de votre appareil", equation: "une équation", to: "à",
+        cont: "Continuer", ask: "Retenir où vous vous arrêtez, pour reprendre la lecture la prochaine fois ? Seul votre navigateur le garde (un petit témoin, comme un cookie) : rien n’est envoyé ailleurs.",
+        yes: "Oui, retenir", no: "Non merci", back: "Vous reprenez là où vous vous étiez arrêté", from: "au paragraphe",
+        of: "sur", restart: "Reprendre au début", forget: "Oublier mes passages", forgotten: "C’est oublié : rien n’est plus gardé." }
     : { listen: "Listen", pause: "Pause", resume: "Resume", stop: "Stop", speed: "Reading speed", min: "min",
-        voice: "Voice", label: "Listen to this post, read by your device's voice", equation: "an equation", to: "to" };
+        voice: "Voice", label: "Listen to this post, read by your device's voice", equation: "an equation", to: "to",
+        cont: "Continue", ask: "Remember where you stop, so you can pick up from there next time? Only your browser keeps it (a small cookie-like note): nothing is sent anywhere.",
+        yes: "Yes, remember", no: "No thanks", back: "Picking up where you stopped", from: "paragraph",
+        of: "of", restart: "Start from the beginning", forget: "Forget my places", forgotten: "Forgotten: nothing is kept any more." };
 
   // ---------- Storyteller settings ----------
   var STORY = {
@@ -168,12 +178,69 @@
     '<button type="button" class="listen-play" aria-label="' + T.label + '"></button>' +
     '<button type="button" class="listen-speed" title="' + T.speed + '" aria-label="' + T.speed + '"></button>' +
     '<button type="button" class="listen-stop" title="' + T.stop + '" aria-label="' + T.stop + '">' + ICON_STOP + '</button>' +
-    '<select class="listen-voice" title="' + T.voice + '" aria-label="' + T.voice + '"></select>';
+    '<select class="listen-voice" title="' + T.voice + '" aria-label="' + T.voice + '"></select>' +
+    '<div class="listen-note" role="status" aria-live="polite" hidden></div>';
   meta.insertAdjacentElement("afterend", bar);
   var playBtn = bar.querySelector(".listen-play");
   var speedBtn = bar.querySelector(".listen-speed");
   var stopBtn = bar.querySelector(".listen-stop");
   var voiceSel = bar.querySelector(".listen-voice");
+  var note = bar.querySelector(".listen-note");
+
+  // ---------- Remember my place (only with the reader's consent) ----------
+  var CONSENT_KEY = "listen-remember";            // "yes" | "no"; unset until the reader answers
+  var PLACE_KEY = "listen-place:" + location.pathname;
+  var PLACE_DAYS = 120;                           // a place older than this is forgotten
+  function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function consent() { return read(CONSENT_KEY); }
+  function savePlace(i) {
+    if (consent() !== "yes") return;
+    if (i == null || i <= 0 || i >= items.length) { store(PLACE_KEY, null); return; }
+    store(PLACE_KEY, JSON.stringify({ i: i, n: items.length, t: Date.now(), s: items[i].text.slice(0, 60) }));
+  }
+  // The saved paragraph, found again by its first words if the post has been edited since
+  function loadPlace() {
+    if (consent() !== "yes") return 0;
+    var p = null;
+    try { p = JSON.parse(read(PLACE_KEY) || "null"); } catch (e) {}
+    if (!p || typeof p.i !== "number") return 0;
+    if (Date.now() - (p.t || 0) > PLACE_DAYS * 864e5) { store(PLACE_KEY, null); return 0; }
+    if (items[p.i] && items[p.i].text.slice(0, 60) === p.s) return p.i;
+    for (var i = 0; i < items.length; i++) if (items[i].text.slice(0, 60) === p.s) return i;
+    return p.i < items.length ? p.i : 0;
+  }
+  function forgetAll() {
+    try {
+      Object.keys(localStorage).forEach(function (k) { if (k.indexOf("listen-place:") === 0) localStorage.removeItem(k); });
+    } catch (e) {}
+    store(CONSENT_KEY, "no");
+  }
+  function showNote(html, cls) {
+    note.className = "listen-note" + (cls ? " " + cls : "");
+    note.innerHTML = html;
+    note.hidden = !html;
+  }
+  function askConsent() {
+    showNote('<span>' + T.ask + '</span> <button type="button" class="listen-yes">' + T.yes + '</button>' +
+             '<button type="button" class="listen-no">' + T.no + '</button>', "is-ask");
+  }
+  function showResume(i) {
+    showNote('<span>' + T.back + ' (' + T.from + ' ' + (i + 1) + ' ' + T.of + ' ' + items.length + ').</span> ' +
+             '<button type="button" class="listen-link listen-restart">' + T.restart + '</button>' +
+             '<button type="button" class="listen-link listen-forget">' + T.forget + '</button>');
+  }
+  note.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    if (b.classList.contains("listen-yes")) { store(CONSENT_KEY, "yes"); savePlace(idx); showNote(""); }
+    else if (b.classList.contains("listen-no")) { store(CONSENT_KEY, "no"); showNote(""); }
+    else if (b.classList.contains("listen-restart")) {
+      store(PLACE_KEY, null); showNote("");
+      if (state === "playing") { idx = 0; play(); } else { state = "idle"; idx = 0; mark(null); render(); }
+    }
+    else if (b.classList.contains("listen-forget")) { forgetAll(); showNote(T.forgotten, "is-done"); }
+  });
 
   function fillVoices() {
     voiceSel.innerHTML = "";
@@ -191,12 +258,12 @@
   else synth.onvoiceschanged = loadVoices;
 
   // state: idle | playing | paused
-  var state = "idle", idx = 0, queue = [], qi = 0, run = 0, wait = null;
+  var state = "idle", idx = 0, queue = [], qi = 0, run = 0, wait = null, resumed = false;
 
   function render() {
     bar.dataset.state = state;
     if (state === "playing") playBtn.innerHTML = ICON_PAUSE + "<span>" + T.pause + "</span>";
-    else if (state === "paused") playBtn.innerHTML = ICON_PLAY + "<span>" + T.resume + "</span>";
+    else if (state === "paused") playBtn.innerHTML = ICON_PLAY + "<span>" + (resumed ? T.cont : T.resume) + "</span>";
     else playBtn.innerHTML = ICON_PLAY + "<span>" + T.listen + '</span><span class="listen-time">' + minutes + " " + T.min + "</span>";
     playBtn.setAttribute("aria-pressed", state === "playing" ? "true" : "false");
     speedBtn.textContent = String(RATES[rateIdx]).replace(".", fr ? "," : ".") + "×";
@@ -218,6 +285,7 @@
       var pause = items[idx].pause / RATES[rateIdx];
       idx++;
       if (idx >= items.length) { stop(); return; }
+      savePlace(idx);
       queue = chunks(items[idx].text); qi = 0;
       wait = setTimeout(function () { speakNext(token); }, pause);
       return;
@@ -241,6 +309,10 @@
   // Pause and resume restart the current paragraph: synth.pause() is unreliable on Android.
   function play() {
     halt();
+    if (consent() == null) askConsent();
+    else if (note.classList.contains("is-done")) showNote("");
+    resumed = false;
+    savePlace(idx);
     state = "playing";
     queue = chunks(items[idx].text); qi = 0;
     render();
@@ -248,7 +320,8 @@
     wait = setTimeout(function () { speakNext(token); }, 60);
   }
   function pause() { halt(); state = "paused"; render(); }
-  function stop() { halt(); state = "idle"; idx = 0; mark(null); render(); }
+  // Stop means "back to the start": the saved place is cleared (Pause keeps it)
+  function stop() { halt(); state = "idle"; idx = 0; store(PLACE_KEY, null); mark(null); render(); }
 
   playBtn.addEventListener("click", function () {
     if (state === "playing") pause(); else play();
@@ -274,5 +347,12 @@
   });
   window.addEventListener("pagehide", halt);
 
+  // Back on a post the reader had started: offer to continue from the saved paragraph
+  var start = loadPlace();
+  if (start > 0) {
+    idx = start; state = "paused"; resumed = true;
+    showResume(start);
+    items[start].el.classList.add("listen-current");   // show the place, without scrolling to it
+  }
   render();
 })();
