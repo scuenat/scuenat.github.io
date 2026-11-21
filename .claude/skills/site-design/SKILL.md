@@ -21,17 +21,19 @@ top bars. Ask the user before adding amber to a new place.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `$paper` / `$body-bg` | #ffffff | #0e0e0f | the page |
-| `$ink` | #141414 | #f2f2f2 | titles, links, section labels, active chip |
-| `$body-color` | #262626 | #dedede | running text |
-| `$muted` / `$rule` | #6b6b6b / #e6e6e6 | #9a9a9a / #2a2a2c | secondary text, lines, list markers |
-| `$surface` / `$surface-alt` | #fff / #f4f4f3 | #161617 / #1d1d1f | cards, boxes, code, chips |
+| `$paper` / `$body-bg` | #fcfcfa | #141416 | the page |
+| `$ink` | #111111 | #f0f0ee | titles, links, section labels, active chip |
+| `$body-color` | #1f1f1f | #d6d6d3 | running text |
+| `$muted` / `$rule` | #595959 / #e3e2de | #a5a5a2 / #303033 | secondary text, lines, list markers |
+| `$surface` / `$surface-alt` | #fff / #f2f1ed | #1b1b1e / #222226 | cards, boxes, code, chips |
 | `$navy` (historical name) | #0d0d0e | #000 | black of the hero and footer |
 | `$amber` | #f5b041 | same | the mark (above) |
 | `$mark` | #a35f00 | amber | amber **text** on white (contrast) |
 | `$nav-*` | white bar, grey links | near-black bar | navbar |
 | `$kind-*` | essay amber, analysis blue, note green, position plum, overview teal | lighter tints | type of post, as a dot on cards or a left edge on badges, never as fills |
 
+- Reading (November 2026): body text 18px (`$font-size-base: 1.125rem`), line-height 1.72,
+  paragraphs 1.2em apart; keep `$muted` at 7:1 or better on the page.
 - Hero: black gradient, `hero-network.svg` in grey lines with amber nodes.
 - Fonts: **Inter** (sans) for interface, labels and card titles; **Source Serif 4** for headings in
   posts, summaries and body text. Loaded in `_quarto.yml`, never with `@import`.
