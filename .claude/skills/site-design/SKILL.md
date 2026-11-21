@@ -118,6 +118,10 @@ background (portrait) or in a column beside it (landscape) and scrolls when long
 cover the figure. Selectors start with `body .glightbox-container.glightbox-clean` to beat
 GLightbox's own mobile rules. Check with an emulated iPhone, portrait and landscape.
 
+**Site version** (footer, right): `version-stamp.py` (post-render) replaces the
+`[Version]{.site-version}` placeholder in `page-footer` with `v<commit date> · <short hash>`,
+linked to that commit. Keep the placeholder if you edit the footer.
+
 **Other parts**: hero (`.hero`, keep it compact: about 3.5rem padding), follow box, section
 labels (`h2.latest-heading`: small uppercase with a rule).
 
