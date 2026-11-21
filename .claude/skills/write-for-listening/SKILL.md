@@ -10,11 +10,13 @@ post aloud, in English or French, with a natural voice, a slightly slow pace and
 paragraphs. Some readers will only ever *hear* a post, on a walk or in the car. So a post must
 work with eyes closed, as well as on the page.
 
-The button can also **remember where a reader stopped**. The first time someone listens, a small
-note asks whether their browser may keep their place (nothing is sent anywhere); if they say yes,
-coming back to the post offers "Continue" from that paragraph. The place is found again by the
-paragraph's first words, so small edits to a published post keep it; rewriting a paragraph's
-opening sends returning listeners to the same paragraph number instead.
+The button can also **remember where a reader stopped**, with cookies. On a post, a cookie banner
+asks the reader to accept a small first-party cookie; the About page (`#cookies`) lets them change
+their answer. If they accept, the paragraph reached is saved for that post (on every paragraph, on
+Pause, on Stop and when the page closes), with their voice and speed, and coming back offers
+"Continue". The place is found again by the paragraph's first words, so small edits to a published
+post keep it; rewriting a paragraph's opening sends returning listeners to the same paragraph
+number instead.
 
 This skill comes after **write-plainly**: short sentences and plain words already do most of the
 work. What is left is what a voice does differently from an eye.

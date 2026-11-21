@@ -190,5 +190,7 @@ import handdrawn; handdrawn.apply()
   only in `handdrawn.py`, then rerun every `figs.py`.
 - *Decided in the Bulk*: its research bundle under `code/` is left as published; the post's own
   `figs.py` reruns three of its plotting scripts with the house style.
-- Not covered: `posts/2026-09-29-show-what-changed` (figures taken from the paper, no source)
-  and the French cover of *Les murs sont en marche* (a title card made with `cover.js`).
+- Every figure on the site comes from a `figs.py`, including *Show What Changed* (redrawn
+  from the paper's recipes; its PDF keeps the original figures) and the two cover images
+  (*A Universe Without a Bottom*, French *Les murs sont en marche*). Not figures, so left as
+  they are: the TEDx photo, `social-card.jpg`, the favicon and the hero network.

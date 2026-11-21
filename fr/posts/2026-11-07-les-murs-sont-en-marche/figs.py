@@ -176,7 +176,58 @@ def fig_trois_murs():
     plt.close(fig)
 
 
+
+# ---------- Couverture : la même composition que l'image de l'édition, dessinée à la main ----------
+def fig_cover():
+    """Fond bleu nuit, titre à gauche ; à droite, le travail passe l'ancien mur (cases vides)
+    et s'entasse contre le nouveau mur orange, plus loin. Remplace l'ancienne image de cover.js."""
+    import numpy as np
+    W, H = 19.2, 10.8
+    BGC, INKC, OR, MUT, DIM = "#111a31", "#f2f1ee", "#ec9a3c", "#8f99b5", "#5b6685"
+    rng = np.random.default_rng(1964)
+    fig = plt.figure(figsize=(W / 2, H / 2), facecolor=BGC)
+    ax = fig.add_axes([0, 0, 1, 1]); ax.set_xlim(0, W); ax.set_ylim(H, 0); ax.axis("off")
+    ax.set_facecolor(BGC)
+    top, bot, old, wall = 3.0, 8.4, 12.5, 16.4
+    # texte
+    ax.text(1.5, 3.1, "AI, HONESTLY", color=OR, fontsize=12, weight="bold")
+    ax.plot([1.5, 2.0], [3.45, 3.45], color=OR, lw=2)
+    ax.text(1.5, 4.85, "Les murs, eux,", color=INKC, fontsize=40, weight="bold", va="baseline")
+    ax.text(1.5, 6.15, "sont en marche.", color=OR, fontsize=40, weight="bold", va="baseline")
+    ax.text(1.5, 7.75, "L\u2019IA ne supprime pas la partie lente.\nElle la déplace.", color="#c9cede",
+            fontsize=16, va="top", linespacing=1.5)
+    # flèche pointillée : le mur se déplace
+    ax.add_patch(FancyArrowPatch((old + 0.2, 2.6), (wall - 0.1, 2.6), arrowstyle="-|>", mutation_scale=16,
+                                 color=MUT, lw=1.6, ls=(0, (1, 2.2))))
+    # ancien mur : colonne de cases vides
+    for y in np.arange(top + 0.06, bot, 0.22):
+        ax.add_patch(FancyBboxPatch((old - 0.08, y - 0.06), 0.16, 0.11, boxstyle="round,pad=0,rounding_size=0.03",
+                                    fc="none", ec=DIM, lw=1.0))
+    # le travail qui passait l'ancien mur, avec sa traînée
+    for _ in range(85):
+        x, y, L = rng.uniform(10.9, old + 0.3), rng.uniform(top + 0.1, bot - 0.4), rng.uniform(0.18, 0.4)
+        ax.plot([x - L, x], [y, y], color=MUT, lw=0.8, alpha=0.45)
+        ax.add_patch(plt.Circle((x, y), 0.035, color=MUT, alpha=0.8))
+    for _ in range(80):
+        x, y, L = rng.uniform(old + 0.4, 15.7), rng.uniform(top + 0.1, bot - 0.15), rng.uniform(0.08, 0.22)
+        ax.plot([x - L, x], [y, y], color="#c9cede", lw=0.8, alpha=0.5)
+        ax.add_patch(plt.Circle((x, y), 0.045, color="#c9cede", alpha=0.9))
+    # le travail qui s'entasse contre le nouveau mur
+    for _ in range(260):
+        dd = rng.uniform() * rng.uniform() * 0.6
+        ax.add_patch(plt.Circle((wall - 0.06 - dd, rng.uniform(top + 0.08, bot - 0.08)), rng.uniform(0.03, 0.06),
+                                color=OR, alpha=rng.uniform(0.55, 1)))
+    # nouveau mur
+    ax.add_patch(FancyBboxPatch((wall, top - 0.06), 0.23, bot - top + 0.12, boxstyle="round,pad=0,rounding_size=0.06",
+                                fc=OR, ec=OR, lw=1.2))
+    ax.text(old, 9.0, "LÀ OÙ IL ÉTAIT", color=MUT, fontsize=10, ha="center", weight="bold")
+    ax.text(wall + 0.12, 9.0, "LÀ OÙ IL EST AUJOURD\u2019HUI", color=OR, fontsize=10, ha="center", weight="bold")
+    from matplotlib.transforms import Bbox
+    fig.savefig(OUT + "cover.png", dpi=200, facecolor=BGC, bbox_inches=Bbox([[0, 0], [W / 2, H / 2]]))
+    plt.close(fig)
+
 if __name__ == "__main__":
+    fig_cover()
     fig_test_de_masse()
     fig_paillasse()
     fig_trois_murs()
