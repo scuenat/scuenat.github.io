@@ -10,13 +10,81 @@
 //   - the text: dashes and brackets become pauses, "e.g." becomes "for example", headings end with a stop,
 //     citations are not read, "1–4" is read "1 to 4".
 // Writers: see .claude/skills/write-for-listening (what is heard, what is skipped, and a check).
-// Remember my place: the first time someone listens, a small note asks whether the browser may
-// remember where they stopped. If they agree, the paragraph being read is saved in this browser
-// (localStorage, nothing is sent anywhere) and, back on the post, "Continue" picks up there.
-// Their answer is remembered too; "Forget my places" clears everything.
+// Remember my place, with cookies: on a post, a cookie banner asks the reader to accept a small
+// first-party cookie. If they accept, the paragraph being read is saved in a cookie for that post
+// (on every new paragraph, on Pause, on Stop and when the page is closed), and back on the post
+// "Continue" picks up there. The cookies stay in the reader's browser: the site never reads them
+// on a server and nothing is sent to anyone. Declining sets only the answer cookie. "Forget my
+// places" deletes them all; the About page (#cookies) lets the reader change their answer.
 // Skipped: code, equations, figures, tables, footnotes, the series note, and everything from the
 // "Questions or objections?" note (discuss.lua) onward (sources, references).
 (function () {
+  // ---------- Cookies ----------
+  var CONSENT = "aih_listen_cookies";             // "yes" | "no"; absent until the reader answers
+  var PLACE_PREFIX = "aih_listen_";               // place per post (aih_listen_<path>), voice, speed
+  var CONSENT_DAYS = 365, PLACE_DAYS = 120;
+  function setCookie(name, value, days) {
+    var c = name + "=" + encodeURIComponent(value) + "; path=/; max-age=" + Math.round(days * 86400) + "; SameSite=Lax";
+    if (location.protocol === "https:") c += "; Secure";
+    document.cookie = c;
+  }
+  function getCookie(name) {
+    var all = document.cookie ? document.cookie.split("; ") : [];
+    for (var i = 0; i < all.length; i++) {
+      var eq = all[i].indexOf("=");
+      if (all[i].slice(0, eq) === name) { try { return decodeURIComponent(all[i].slice(eq + 1)); } catch (e) { return null; } }
+    }
+    return null;
+  }
+  function delCookie(name) { document.cookie = name + "=; path=/; max-age=0; SameSite=Lax"; }
+  function consent() { return getCookie(CONSENT); }
+  function forgetAll() {
+    document.cookie.split("; ").forEach(function (c) {
+      var n = c.split("=")[0];
+      if (n.indexOf(PLACE_PREFIX) === 0 && n !== CONSENT) delCookie(n);
+    });
+  }
+  function answer(yes) {
+    if (!yes) forgetAll();
+    setCookie(CONSENT, yes ? "yes" : "no", CONSENT_DAYS);
+    document.dispatchEvent(new CustomEvent("listen-cookies", { detail: yes ? "yes" : "no" }));
+  }
+  // The first version (November 2026) kept the answer in localStorage: carry it over once
+  try {
+    var old = localStorage.getItem("listen-remember");
+    if (old && !consent()) setCookie(CONSENT, old, CONSENT_DAYS);
+    Object.keys(localStorage).forEach(function (k) {
+      if (/^listen-(remember|rate|voice-|place:)/.test(k)) localStorage.removeItem(k);
+    });
+  } catch (e) {}
+
+  var frPage = (document.documentElement.lang || "").slice(0, 2) === "fr";
+  var C = frPage
+    ? { title: "Cookies", text: "Ce site peut déposer un petit cookie pour retenir où vous vous êtes arrêté en écoutant un article, et vous laisser reprendre à cet endroit la prochaine fois. Il reste dans votre navigateur : pas de suivi, rien n’est envoyé à personne.",
+        accept: "Accepter les cookies", decline: "Refuser", more: "En savoir plus", moreUrl: "/fr/about.html#cookies",
+        on: "Cookies acceptés : la lecture reprend là où vous vous êtes arrêté.", off: "Cookies refusés : rien n’est gardé.", none: "Vous n’avez pas encore répondu." }
+    : { title: "Cookies", text: "This site can set a small cookie to remember where you stopped listening to a post, so you can pick up from there next time. It stays in your browser: no tracking, nothing is sent to anyone.",
+        accept: "Accept cookies", decline: "Decline", more: "Learn more", moreUrl: "/about.html#cookies",
+        on: "Cookies accepted: listening picks up where you stopped.", off: "Cookies declined: nothing is kept.", none: "You have not answered yet." };
+
+  // About page: the reader can change their answer at any time
+  var settings = document.querySelector("[data-listen-cookies]");
+  if (settings) {
+    var showSettings = function () {
+      var c = consent();
+      settings.innerHTML = '<p class="cookie-status">' + (c === "yes" ? C.on : c === "no" ? C.off : C.none) + "</p>" +
+        '<button type="button" class="cookie-accept">' + C.accept + '</button> ' +
+        '<button type="button" class="cookie-decline">' + C.decline + "</button>";
+    };
+    settings.addEventListener("click", function (e) {
+      if (e.target.closest(".cookie-accept")) answer(true);
+      else if (e.target.closest(".cookie-decline")) answer(false);
+      else return;
+      showSettings();
+    });
+    showSettings();
+  }
+
   var synth = window.speechSynthesis;
   if (!synth || !window.SpeechSynthesisUtterance) return;
   if (!/^\/(fr\/)?(posts|drafts)\/[^/]+\//.test(location.pathname)) return;
@@ -28,13 +96,11 @@
   var T = fr
     ? { listen: "Écouter", pause: "Pause", resume: "Reprendre", stop: "Arrêter", speed: "Vitesse de lecture", min: "min",
         voice: "Voix", label: "Écouter ce texte, lu par la voix de votre appareil", equation: "une équation", to: "à",
-        cont: "Continuer", ask: "Retenir où vous vous arrêtez, pour reprendre la lecture la prochaine fois ? Seul votre navigateur le garde (un petit témoin, comme un cookie) : rien n’est envoyé ailleurs.",
-        yes: "Oui, retenir", no: "Non merci", back: "Vous reprenez là où vous vous étiez arrêté", from: "au paragraphe",
+        cont: "Continuer", back: "Vous reprenez là où vous vous étiez arrêté", from: "au paragraphe",
         of: "sur", restart: "Reprendre au début", forget: "Oublier mes passages", forgotten: "C’est oublié : rien n’est plus gardé." }
     : { listen: "Listen", pause: "Pause", resume: "Resume", stop: "Stop", speed: "Reading speed", min: "min",
         voice: "Voice", label: "Listen to this post, read by your device's voice", equation: "an equation", to: "to",
-        cont: "Continue", ask: "Remember where you stop, so you can pick up from there next time? Only your browser keeps it (a small cookie-like note): nothing is sent anywhere.",
-        yes: "Yes, remember", no: "No thanks", back: "Picking up where you stopped", from: "paragraph",
+        cont: "Continue", back: "Picking up where you stopped", from: "paragraph",
         of: "of", restart: "Start from the beginning", forget: "Forget my places", forgotten: "Forgotten: nothing is kept any more." };
 
   // ---------- Storyteller settings ----------
@@ -124,7 +190,7 @@
   }
 
   // ---------- Voice ----------
-  var VOICE_KEY = "listen-voice-" + (fr ? "fr" : "en");
+  var VOICE_KEY = PLACE_PREFIX + "voice_" + (fr ? "fr" : "en"), RATE_KEY = PLACE_PREFIX + "rate";
   // Apple's novelty and robotic voices: never chosen by default
   var NOVELTY = /\b(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|grandma|grandpa|rocko|eddy|flo|reed|sandy|shelley|espeak)\b/i;
   var voices = [], voice = null;
@@ -143,7 +209,7 @@
       .filter(function (v) { return (v.lang || "").toLowerCase().indexOf(want) === 0 && !NOVELTY.test(v.name); })
       .sort(function (a, b) { return score(b) - score(a) || a.name.localeCompare(b.name); });
     var saved = null;
-    try { saved = localStorage.getItem(VOICE_KEY); } catch (e) {}
+    saved = consent() === "yes" ? getCookie(VOICE_KEY) : null;
     voice = voices.filter(function (v) { return v.voiceURI === saved; })[0] || voices[0] || null;
     if (typeof fillVoices === "function") fillVoices();
   }
@@ -157,7 +223,7 @@
   // ---------- Controls ----------
   var RATES = [1, 1.25, 1.5, 0.85];   // multiples of STORY.rate
   var rateIdx = 0;
-  try { rateIdx = Math.max(0, RATES.indexOf(parseFloat(localStorage.getItem("listen-rate")))); } catch (e) {}
+  if (consent() === "yes") rateIdx = Math.max(0, RATES.indexOf(parseFloat(getCookie(RATE_KEY))));
 
   var items = collect();
   if (!items.length) return;
@@ -187,43 +253,50 @@
   var voiceSel = bar.querySelector(".listen-voice");
   var note = bar.querySelector(".listen-note");
 
-  // ---------- Remember my place (only with the reader's consent) ----------
-  var CONSENT_KEY = "listen-remember";            // "yes" | "no"; unset until the reader answers
-  var PLACE_KEY = "listen-place:" + location.pathname;
-  var PLACE_DAYS = 120;                           // a place older than this is forgotten
-  function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
-  function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function consent() { return read(CONSENT_KEY); }
+  // ---------- Remember my place (in a cookie, only with the reader's consent) ----------
+  var PLACE = PLACE_PREFIX + location.pathname.replace(/^\/|\/$/g, "").replace(/[^A-Za-z0-9-]+/g, "_");
   function savePlace(i) {
     if (consent() !== "yes") return;
-    if (i == null || i <= 0 || i >= items.length) { store(PLACE_KEY, null); return; }
-    store(PLACE_KEY, JSON.stringify({ i: i, n: items.length, t: Date.now(), s: items[i].text.slice(0, 60) }));
+    if (i == null || i <= 0 || i >= items.length) { delCookie(PLACE); return; }
+    setCookie(PLACE, JSON.stringify({ i: i, s: items[i].text.slice(0, 40) }), PLACE_DAYS);
   }
   // The saved paragraph, found again by its first words if the post has been edited since
   function loadPlace() {
     if (consent() !== "yes") return 0;
     var p = null;
-    try { p = JSON.parse(read(PLACE_KEY) || "null"); } catch (e) {}
+    try { p = JSON.parse(getCookie(PLACE) || "null"); } catch (e) {}
     if (!p || typeof p.i !== "number") return 0;
-    if (Date.now() - (p.t || 0) > PLACE_DAYS * 864e5) { store(PLACE_KEY, null); return 0; }
-    if (items[p.i] && items[p.i].text.slice(0, 60) === p.s) return p.i;
-    for (var i = 0; i < items.length; i++) if (items[i].text.slice(0, 60) === p.s) return i;
+    if (items[p.i] && items[p.i].text.slice(0, 40) === p.s) return p.i;
+    for (var i = 0; i < items.length; i++) if (items[i].text.slice(0, 40) === p.s) return i;
     return p.i < items.length ? p.i : 0;
   }
-  function forgetAll() {
-    try {
-      Object.keys(localStorage).forEach(function (k) { if (k.indexOf("listen-place:") === 0) localStorage.removeItem(k); });
-    } catch (e) {}
-    store(CONSENT_KEY, "no");
+
+  // ---------- Cookie banner (posts) ----------
+  var banner = null;
+  function showBanner() {
+    if (banner || consent()) return;
+    banner = document.createElement("div");
+    banner.className = "cookie-banner";
+    banner.setAttribute("role", "dialog");
+    banner.setAttribute("aria-label", C.title);
+    banner.innerHTML = '<p><strong>' + C.title + '.</strong> ' + C.text + ' <a href="' + C.moreUrl + '">' + C.more + '</a></p>' +
+      '<div class="cookie-actions"><button type="button" class="cookie-accept">' + C.accept + '</button>' +
+      '<button type="button" class="cookie-decline">' + C.decline + '</button></div>';
+    banner.addEventListener("click", function (e) {
+      if (e.target.closest(".cookie-accept")) answer(true);
+      else if (e.target.closest(".cookie-decline")) answer(false);
+    });
+    document.body.appendChild(banner);
   }
+  document.addEventListener("listen-cookies", function (e) {
+    if (banner) { banner.remove(); banner = null; }
+    if (e.detail === "yes") savePlace(idx);
+  });
+
   function showNote(html, cls) {
     note.className = "listen-note" + (cls ? " " + cls : "");
     note.innerHTML = html;
     note.hidden = !html;
-  }
-  function askConsent() {
-    showNote('<span>' + T.ask + '</span> <button type="button" class="listen-yes">' + T.yes + '</button>' +
-             '<button type="button" class="listen-no">' + T.no + '</button>', "is-ask");
   }
   function showResume(i) {
     showNote('<span>' + T.back + ' (' + T.from + ' ' + (i + 1) + ' ' + T.of + ' ' + items.length + ').</span> ' +
@@ -233,13 +306,11 @@
   note.addEventListener("click", function (e) {
     var b = e.target.closest("button");
     if (!b) return;
-    if (b.classList.contains("listen-yes")) { store(CONSENT_KEY, "yes"); savePlace(idx); showNote(""); }
-    else if (b.classList.contains("listen-no")) { store(CONSENT_KEY, "no"); showNote(""); }
-    else if (b.classList.contains("listen-restart")) {
-      store(PLACE_KEY, null); showNote("");
-      if (state === "playing") { idx = 0; play(); } else { state = "idle"; idx = 0; mark(null); render(); }
+    if (b.classList.contains("listen-restart")) {
+      delCookie(PLACE); showNote("");
+      if (state === "playing") { idx = 0; play(); } else { state = "idle"; idx = 0; resumed = false; mark(null); render(); }
     }
-    else if (b.classList.contains("listen-forget")) { forgetAll(); showNote(T.forgotten, "is-done"); }
+    else if (b.classList.contains("listen-forget")) { answer(false); showNote(T.forgotten, "is-done"); }
   });
 
   function fillVoices() {
@@ -284,7 +355,7 @@
       // End of a paragraph: take a breath (shorter when reading faster), then go on
       var pause = items[idx].pause / RATES[rateIdx];
       idx++;
-      if (idx >= items.length) { stop(); return; }
+      if (idx >= items.length) { finish(); return; }
       savePlace(idx);
       queue = chunks(items[idx].text); qi = 0;
       wait = setTimeout(function () { speakNext(token); }, pause);
@@ -309,8 +380,7 @@
   // Pause and resume restart the current paragraph: synth.pause() is unreliable on Android.
   function play() {
     halt();
-    if (consent() == null) askConsent();
-    else if (note.classList.contains("is-done")) showNote("");
+    if (note.classList.contains("is-done") || state !== "paused") showNote("");
     resumed = false;
     savePlace(idx);
     state = "playing";
@@ -319,9 +389,16 @@
     var token = run;
     wait = setTimeout(function () { speakNext(token); }, 60);
   }
-  function pause() { halt(); state = "paused"; render(); }
-  // Stop means "back to the start": the saved place is cleared (Pause keeps it)
-  function stop() { halt(); state = "idle"; idx = 0; store(PLACE_KEY, null); mark(null); render(); }
+  function pause() { halt(); state = "paused"; savePlace(idx); render(); }
+  // Stop keeps the place (in the cookie, when accepted): Listen or Continue picks up there,
+  // "Start from the beginning" goes back to the top. Without the cookie, Stop goes back to the top.
+  function stop() {
+    halt();
+    if (consent() === "yes" && idx > 0) { savePlace(idx); state = "paused"; resumed = true; showResume(idx); render(); return; }
+    state = "idle"; idx = 0; mark(null); render();
+  }
+  // At the end of the post the place is cleared: next time starts from the top
+  function finish() { halt(); state = "idle"; idx = 0; delCookie(PLACE); resumed = false; showNote(""); mark(null); render(); }
 
   playBtn.addEventListener("click", function () {
     if (state === "playing") pause(); else play();
@@ -329,13 +406,13 @@
   stopBtn.addEventListener("click", stop);
   speedBtn.addEventListener("click", function () {
     rateIdx = (rateIdx + 1) % RATES.length;
-    try { localStorage.setItem("listen-rate", String(RATES[rateIdx])); } catch (e) {}
+    if (consent() === "yes") setCookie(RATE_KEY, String(RATES[rateIdx]), CONSENT_DAYS);
     render();
     if (state === "playing") play();   // apply the new speed from the current paragraph
   });
   voiceSel.addEventListener("change", function () {
     voice = voices[+voiceSel.value] || voice;
-    try { localStorage.setItem(VOICE_KEY, voice.voiceURI); } catch (e) {}
+    if (consent() === "yes") setCookie(VOICE_KEY, voice.voiceURI, CONSENT_DAYS);
     if (state === "playing") play();   // hear the new voice straight away
   });
   // Tap a paragraph while listening to jump there
@@ -345,7 +422,7 @@
       if (items[i].el.contains(e.target)) { idx = i; play(); return; }
     }
   });
-  window.addEventListener("pagehide", halt);
+  window.addEventListener("pagehide", function () { if (state !== "idle") savePlace(idx); halt(); });
 
   // Back on a post the reader had started: offer to continue from the saved paragraph
   var start = loadPlace();
@@ -355,4 +432,5 @@
     items[start].el.classList.add("listen-current");   // show the place, without scrolling to it
   }
   render();
+  showBanner();
 })();
