@@ -162,3 +162,33 @@ without horizontal scroll. In this container the web fonts do not load, so Inter
 to a lighter local copy: check `font-weight` with `getComputedStyle` rather than by eye.
 Send the user the desktop and phone screenshots of what changed before publishing a large
 redesign, and publish (push to `main`, see **new-post** §7) once they agree.
+
+## 7. Figures: the hand-drawn house style
+
+Since November 2026 every figure is drawn in one hand-made style, so the pictures look like
+the author's own sketches rather than default charts. It lives in `_figstyle/handdrawn.py`
+(with the Kalam font, SIL OFL, in `_figstyle/fonts/`) and is added when a figure is saved, so a
+`figs.py` only needs these lines right after `import matplotlib.pyplot as plt`:
+
+```python
+import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
+import handdrawn; handdrawn.apply()
+```
+
+- **Handwriting**: all text except code is set in Kalam (DejaVu Sans fills in symbols Kalam
+  lacks; Greek letters in `$...$` come from STIX). Monospace text (code, tool names) stays mono.
+- **Pen strokes**: boxes, arrows, frames and axes wobble a little and get a lighter second
+  pass, like a pen going over the line. Coloured areas are laid slightly off their outline,
+  like a felt-tip.
+- **Data stays exact**: curves with many points, scatter dots, error bars and markers get only
+  a faint tremor and no second pass, so no value moves.
+- Same look in the SVG (page) and the 400 dpi PNG (card): the wobble is scaled to the resolution
+  and is the same on every run.
+- Kalam is taller than Inter: after changing a figure, look for labels that touch each other or
+  a frame and move them in that `figs.py`. Tune the whole look (wobble, offset, line spacing)
+  only in `handdrawn.py`, then rerun every `figs.py`.
+- *Decided in the Bulk*: its research bundle under `code/` is left as published; the post's own
+  `figs.py` reruns three of its plotting scripts with the house style.
+- Not covered: `posts/2026-09-29-show-what-changed` (figures taken from the paper, no source)
+  and the French cover of *Les murs sont en marche* (a title card made with `cover.js`).

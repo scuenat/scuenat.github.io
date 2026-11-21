@@ -7,6 +7,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
+import handdrawn; handdrawn.apply()
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 NAVY, GREY, RED, LIGHT, PALE, AMBER = "#1f4e79", "#7f8c8d", "#c0392b", "#d5dde5", "#eef1f4", "#d68910"
@@ -166,7 +169,7 @@ def fig_fast_ai_loop():
     box(ax, 12.6, 5.5, 2.2, 1.2, "Action", None, fc=PALE)
     arrow(ax, (11.85, 6.95), (12.55, 6.3)); arrow(ax, (11.85, 5.15), (12.55, 5.9))
     # learning loop
-    box(ax, 9.0, 1.8, 2.6, 1.3, "Logs", "states, deferrals,\nmistakes", fc=PALE, subfs=7.5)
+    box(ax, 9.0, 1.65, 2.6, 1.6, "Logs", "states, deferrals,\nmistakes", fc=PALE, subfs=7.5)
     box(ax, 3.7, 1.8, 3.8, 1.3, "Retrain + refit", "on the agent's own states", fc=AMBER)
     box(ax, 0.0, 1.8, 3.0, 1.3, "Shadow mode", "test before trusting", fc=LIGHT, fs=9, subfs=7.5)
     arrow(ax, (10.3, 4.55), (10.3, 3.15), color=GREY, ls="--")

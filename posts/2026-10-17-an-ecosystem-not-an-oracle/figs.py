@@ -3,6 +3,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
+import handdrawn; handdrawn.apply()
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 NAVY, GREY, RED, LIGHT, PALE, AMBER = "#1f4e79", "#7f8c8d", "#c0392b", "#d5dde5", "#eef1f4", "#d68910"
@@ -358,7 +361,7 @@ def fig_harness():
     ax.axvspan(8.3, 10, color=PALE, lw=0)
     ax.text(9.15, 7.6, "frontier\nmodels", ha="center", fontsize=8, color=INK)
     ax.text(9.15, 5.4, "scaffolding\nadds little", ha="center", fontsize=7.5, color=RED)
-    ax.text(1.5, 7.2, "scaffolding\nstill helps", ha="center", fontsize=7.5, color=NAVY)
+    ax.text(1.5, 6.7, "scaffolding\nstill helps", ha="center", fontsize=7.5, color=NAVY)
     ax.axvspan(0, 3.0, color=PALE, lw=0)
     ax.text(1.5, 9.4, "small local\nspecialists", ha="center", fontsize=8, color=INK, va="top")
     ax.set_xlim(0, 10); ax.set_ylim(0, 10)

@@ -504,6 +504,36 @@ main.content div.sourceCode, main.content pre:not(.sourceCode) {
     .listen-speed, .listen-stop { display: inline-flex; }
   }
   &.has-voices[data-state="playing"], &.has-voices[data-state="paused"] { .listen-voice { display: inline-block; } }
+  // "Remember where you stopped?" and "Picking up where you stopped" (listen.js)
+  .listen-note {
+    flex: 1 0 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem .5rem;
+    margin-top: .2rem;
+    color: $muted;
+    font-size: .85rem;
+    line-height: 1.4;
+    &[hidden] { display: none; }
+    > span { flex: 0 1 auto; }
+    button { min-height: 1.9rem; padding: .2rem .75rem; font-size: .82rem; }
+    .listen-yes { border-color: $amber; color: $ink; }
+    .listen-link {
+      min-height: 0; padding: 0; border: 0; border-radius: 0;
+      color: $ink; text-decoration: underline; text-decoration-color: $rule; text-underline-offset: 3px;
+      &:hover { text-decoration-color: $amber; }
+    }
+  }
+  .listen-note.is-ask {
+    padding: .55rem .75rem;
+    border: 1px solid $rule;
+    border-left: 3px solid $amber;
+    border-radius: 6px;
+    background: $surface-alt;
+    color: $body-color;
+    > span { flex: 1 1 18rem; }
+  }
 }
 // The paragraph being read aloud
 .listen-current {

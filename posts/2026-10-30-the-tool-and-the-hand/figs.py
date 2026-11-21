@@ -5,6 +5,9 @@ Both figures are schematics: they show a shape, not measured data."""
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
+import handdrawn; handdrawn.apply()
 import numpy as np
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
 
