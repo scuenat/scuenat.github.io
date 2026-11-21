@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Deux preuves annoncées de l’hypothèse de Riemann en un jour, l’une avec Claude, l’autre à la main. Toutes deux longues. Pourquoi la preuve courte aura besoin de nous.">
+
+<title>Long d’abord, court ensuite – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-5b73399db189883f045d9d29722cbe25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-2d11c3422d5895acbbf2416c08eedf02.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-5b73399db189883f045d9d29722cbe25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/drafts/long-first-short-later/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/drafts/long-first-short-later/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/drafts/long-first-short-later/">
+<meta name="alt-lang-url" content="/drafts/long-first-short-later/">
+<link rel="canonical" href="https://scuenat.github.io/fr/drafts/long-first-short-later/">
+<meta name="robots" content="noindex, nofollow">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Long d’abord, court ensuite – AI, Honestly">
+<meta property="og:description" content="Deux preuves annoncées de l’hypothèse de Riemann en un jour, l’une avec Claude, l’autre à la main. Toutes deux longues. Pourquoi la preuve courte aura besoin de nous.">
+<meta property="og:image" content="https://scuenat.github.io/drafts/long-first-short-later/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="2004">
+<meta property="og:image:width" content="3535">
+<meta name="twitter:title" content="Long d’abord, court ensuite – AI, Honestly">
+<meta name="twitter:description" content="Deux preuves annoncées de l’hypothèse de Riemann en un jour, l’une avec Claude, l’autre à la main. Toutes deux longues. Pourquoi la preuve courte aura besoin de nous.">
+<meta name="twitter:image" content="https://scuenat.github.io/drafts/long-first-short-later/figures/fig01.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Aller au contenu principal</a><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site web">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../series.html"> 
+<span class="menu-text">Series</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre" aria-label="Basculer le mode sombre"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#deux-preuves-avant-le-petit-déjeuner" id="toc-deux-preuves-avant-le-petit-déjeuner" class="nav-link active" data-scroll-target="#deux-preuves-avant-le-petit-déjeuner">1. Deux preuves avant le petit-déjeuner</a></li>
+  <li><a href="#de-quoi-parlent-les-deux-preuves" id="toc-de-quoi-parlent-les-deux-preuves" class="nav-link" data-scroll-target="#de-quoi-parlent-les-deux-preuves">2. De quoi parlent les deux preuves</a></li>
+  <li><a href="#les-deux-sont-longues-et-cest-normal" id="toc-les-deux-sont-longues-et-cest-normal" class="nav-link" data-scroll-target="#les-deux-sont-longues-et-cest-normal">3. Les deux sont longues, et c’est normal</a></li>
+  <li><a href="#alors-cest-fini-pour-nous" id="toc-alors-cest-fini-pour-nous" class="nav-link" data-scroll-target="#alors-cest-fini-pour-nous">4. « Alors c’est fini pour nous »</a></li>
+  <li><a href="#les-deux-routes-ont-besoin-lune-de-lautre" id="toc-les-deux-routes-ont-besoin-lune-de-lautre" class="nav-link" data-scroll-target="#les-deux-routes-ont-besoin-lune-de-lautre">5. Les deux routes ont besoin l’une de l’autre</a></li>
+  <li><a href="#mon-pari-ce-doit-être-plus-simple" id="toc-mon-pari-ce-doit-être-plus-simple" class="nav-link" data-scroll-target="#mon-pari-ce-doit-être-plus-simple">6. Mon pari : ce doit être plus simple</a></li>
+  <li><a href="#là-où-les-données-sarrêtent" id="toc-là-où-les-données-sarrêtent" class="nav-link" data-scroll-target="#là-où-les-données-sarrêtent">7. Là où les données s’arrêtent</a></li>
+  <li><a href="#à-quoi-sert-une-preuve" id="toc-à-quoi-sert-une-preuve" class="nav-link" data-scroll-target="#à-quoi-sert-une-preuve">8. À quoi sert une preuve</a></li>
+  <li><a href="#références" id="toc-références" class="nav-link" data-scroll-target="#références">Références</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Long d’abord, court ensuite</h1>
+<p class="subtitle lead">Deux preuves de l’hypothèse de Riemann en un jour, l’une avec une machine, l’autre à la main. Pourquoi je crois que c’est une bonne nouvelle, et pourquoi on aura encore besoin de nous pour les rendre courtes.</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">mathématiques</div>
+    <div class="quarto-category">philosophie</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Deux preuves annoncées de l’hypothèse de Riemann en un jour, l’une avec Claude, l’autre à la main. Toutes deux longues. Pourquoi la preuve courte aura besoin de nous.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">21 novembre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="draft-banner">
+<p><strong>Brouillon v2, non publié.</strong> Révisé le 21 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
+</div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, novembre 2026.</strong> Un essai court et personnel, écrit le matin qui a suivi l’annonce de deux preuves de l’hypothèse de Riemann, le même jour. Aucune n’est encore confirmée, et cet essai ne juge ni l’une ni l’autre. Je n’en suis pas capable. Il parle de ce que cette journée peut changer dans notre façon de faire des mathématiques. Les faits sur les deux annonces viennent d’articles de presse du 20 novembre 2026, et je dis lesquels. La deuxième figure est calculée ; les autres sont des dessins de moi. Le code qui les dessine est lié sous chacune. Les figures sont en anglais. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../drafts/long-first-short-later/index.html">Version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Le même jour, deux preuves du problème ouvert le plus célèbre des mathématiques ont été annoncées. L’une a été faite en 41 jours avec une IA, Claude, et pour l’instant seul un ordinateur l’a vérifiée. L’autre a été écrite à la main en douze ans, et elle fait 940 pages. Je trouve cela extraordinaire, et je crois que cela va changer la façon de faire des mathématiques. Mais je ne crois pas que cela supprime les mathématiques, ni nous. Ce qui m’a frappé, c’est que les deux preuves sont longues. C’est normal : la première preuve d’un théorème difficile est presque toujours longue, et la courte vient plus tard. Alors voici mon pari. Les machines vont nous donner plus de preuves longues, plus vite que jamais. Notre part sera de trouver les courtes qui s’y cachent. Je ne peux pas prouver qu’une preuve courte existe toujours. Mais je crois que nous vivons dans un univers qui peut être décrit simplement, et ce pari a déjà payé. Un doute honnête demeure. Les machines sont peut-être plus fortes là où il y a déjà beaucoup à apprendre, et certaines conjectures demanderont des mathématiques qui n’existent pas encore. Les inventer, je crois, c’est le même travail que trouver la preuve courte.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/long-first-short-later/figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Les deux annonces, côte à côte, telles que rapportées le 20 novembre 2026. Chacune a ce qui manque à l’autre. La preuve de la machine est vérifiée par un ordinateur, mais personne ne la comprend encore ; la preuve humaine est lue par des personnes, mais pas encore vérifiée par une machine, et elle est en révision. Aucune n’est confirmée. Sources dans le texte ; dessin de moi ; code dans figs.py."><img src="../../../drafts/long-first-short-later/figures/fig01.svg" class="img-fluid figure-img" alt="Deux panneaux arrondis côte à côte sous le titre « Two proofs of the Riemann hypothesis, one day » et le sous-titre « 20 November 2026, as reported. Neither is confirmed yet. ». Le panneau de gauche, bleu, s'intitule « With a machine », Levent Alpöge et Claude. Il indique 41 jours de travail ; 175 187 fichiers de code Lean, un langage qu'un ordinateur vérifie ; plus de 250 000 pages une fois écrit en prose, non publié. Sous un trait : vérifié par une machine, il compile. Pas encore : compris par une personne. Le panneau de droite, ambre, s'intitule « By hand », Alessandro Masullo. Il indique 12 ans de travail, sans IA ; 940 pages de manuscrit ; des mois de lecture attentive par Brian Conrad. Sous un trait : lu par des personnes, un esprit peut le suivre. Pas encore : vérifié par une machine. En révision."></a></p>
+<figcaption><strong>Figure 1.</strong> Les deux annonces, côte à côte, telles que rapportées le 20 novembre 2026. Chacune a ce qui manque à l’autre. La preuve de la machine est vérifiée par un ordinateur, mais personne ne la comprend encore ; la preuve humaine est lue par des personnes, mais pas encore vérifiée par une machine, et elle est en révision. Aucune n’est confirmée. Sources dans le texte ; dessin de moi ; code dans <a href="../../../drafts/long-first-short-later/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<section id="deux-preuves-avant-le-petit-déjeuner" class="level2">
+<h2 class="anchored" data-anchor-id="deux-preuves-avant-le-petit-déjeuner">1. Deux preuves avant le petit-déjeuner</h2>
+<p>Ce matin, un peu avant huit heures, je lisais LinkedIn sur mon téléphone. Une personne qui enseigne les mathématiques à l’université avait publié un résumé de la veille. Son titre : <em>Deux preuves de Riemann, un seul jour.</em> Je l’ai lu deux fois.</p>
+<p>Voici ce qui s’est passé, selon la presse. Levent Alpöge, mathématicien chez Anthropic, a annoncé que lui et Claude avaient prouvé l’hypothèse de Riemann, et aussi une version plus large. Cela a pris 41 jours. Il n’y a pas d’article. Il y a une note courte, et une archive de 175 187 fichiers écrits en Lean. Lean est un langage de programmation dans lequel un ordinateur vérifie chaque étape d’une preuve. Dans une note de bas de page, il dit qu’une version complète écrite en prose dépassait 250 000 pages, et qu’il a choisi de ne pas la publier. Andrew Sutherland, mathématicien au Massachusetts Institute of Technology, a compilé l’archive sur ses propres ordinateurs. Elle compile : la machine accepte chaque étape. La vérification suivante, que l’énoncé final dit bien ce que dit l’hypothèse de Riemann, était encore en cours <span class="citation" data-cites="sciam2026alpoge officechai2026">(<a href="#ref-sciam2026alpoge" role="doc-biblioref">Scientific American 2026</a>; <a href="#ref-officechai2026" role="doc-biblioref">OfficeChai 2026</a>)</span>.</p>
+<p>Quelques heures plus tard, Ravi Vakil, président de l’American Mathematical Society, a publié une deuxième annonce. C’est un manuscrit de 940 pages intitulé <em>The Music of the Primes</em>, « la musique des nombres premiers », d’un jeune mathématicien, Alessandro Masullo. Douze ans de travail, entièrement humain, sans IA. Brian Conrad, à Stanford, le lit attentivement depuis des mois. Le plan était de le peaufiner tranquillement pendant un an. La première annonce a changé cela, et le brouillon est sorti tel quel <span class="citation" data-cites="techcrunch2026 nacionale2026">(<a href="#ref-techcrunch2026" role="doc-biblioref">TechCrunch 2026</a>; <a href="#ref-nacionale2026" role="doc-biblioref">Nacionale 2026</a>)</span>. Conrad est resté prudent. Pour juger la méthode, a-t-il dit, l’article doit atteindre une version plus aboutie. Il est « en cours de révision majeure » <span class="citation" data-cites="sciam2026alpoge">(<a href="#ref-sciam2026alpoge" role="doc-biblioref">Scientific American 2026</a>)</span>. Un premier audit publié en ligne y affirme déjà de sérieux problèmes ; ce n’est pas confirmé non plus <span class="citation" data-cites="refine2026">(<a href="#ref-refine2026" role="doc-biblioref">Refine 2026</a>)</span>.</p>
+<p>Donc deux preuves, et aucune n’est confirmée. Le message se terminait par une question : à quoi sert une preuve ? J’ai écrit un court commentaire en dessous. Cet essai, c’est ce commentaire, avec un peu plus de place.</p>
+</section>
+<section id="de-quoi-parlent-les-deux-preuves" class="level2">
+<h2 class="anchored" data-anchor-id="de-quoi-parlent-les-deux-preuves">2. De quoi parlent les deux preuves</h2>
+<p>L’hypothèse de Riemann a 167 ans. Bernhard Riemann l’a énoncée en 1859, dans un article d’une dizaine de pages <span class="citation" data-cites="riemann1859">(<a href="#ref-riemann1859" role="doc-biblioref">Riemann 1859</a>)</span>. Elle parle des nombres premiers : 2, 3, 5, 7, 11, les nombres qu’on ne peut diviser que par un et par eux-mêmes.</p>
+<p>Si on compte les nombres premiers en montant, le compte grimpe comme un escalier. Chaque nombre premier est une marche. Les marches ont l’air irrégulières. Mais de loin, l’escalier suit une courbe lisse, que Gauss avait devinée adolescent. Riemann a découvert que l’écart entre l’escalier et la courbe est réglé par une fonction spéciale, la fonction zêta. Plus exactement, par les endroits où elle vaut zéro. Chaque zéro ajoute une petite vague, comme une note dans un accord. Ensemble, les notes jouent les nombres premiers. C’est pour cela que Masullo a appelé son manuscrit <em>La musique des nombres premiers</em>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/long-first-short-later/figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. De quoi parlent les deux preuves. En haut : le nombre de nombres premiers jusqu’à x grimpe comme un escalier, près d’une courbe lisse (le logarithme intégral décalé, la conjecture de Gauss). En bas : la taille de la fonction zêta de Riemann le long de la droite où la partie réelle vaut un demi. Chaque endroit où elle touche zéro, marqué d’un point, est une des « notes » qui façonnent l’escalier. L’hypothèse dit que tous les zéros intéressants sont sur cette droite. Calculé avec mpmath ; code dans figs.py."><img src="../../../drafts/long-first-short-later/figures/fig02.svg" class="img-fluid figure-img" alt="Deux graphiques, l'un au-dessus de l'autre, sous le titre « What both proofs are about ». Le graphique du haut, intitulé « The primes climb like a staircase, close to a smooth curve », montre un escalier bleu qui compte les nombres premiers de 2 à 200 et atteint 46, et une courbe lisse ambre, « Gauss's smooth guess », juste au-dessus. Le graphique du bas, intitulé « The zeros of the zeta function, the notes that tune the staircase », montre une courbe bleue, la taille de la fonction zêta le long de la droite critique, pour des hauteurs de 0 à 50. Elle monte et descend en arches et touche zéro dix fois, chaque zéro marqué d'un point ambre, le premier à 14,13."></a></p>
+<figcaption><strong>Figure 2.</strong> De quoi parlent les deux preuves. En haut : le nombre de nombres premiers jusqu’à x grimpe comme un escalier, près d’une courbe lisse (le logarithme intégral décalé, la conjecture de Gauss). En bas : la taille de la fonction zêta de Riemann le long de la droite où la partie réelle vaut un demi. Chaque endroit où elle touche zéro, marqué d’un point, est une des « notes » qui façonnent l’escalier. L’hypothèse dit que tous les zéros intéressants sont sur cette droite. Calculé avec mpmath ; code dans <a href="../../../drafts/long-first-short-later/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>L’hypothèse dit que toutes ces notes sont sur une seule droite. Les ordinateurs en ont vérifié des milliers de milliards, et chacune est sur la droite <span class="citation" data-cites="platt2021">(<a href="#ref-platt2021" role="doc-biblioref">Platt et Trudgian 2021</a>)</span>. Mais vérifier n’est pas prouver. Personne n’a montré qu’il doit en être ainsi pour toutes. Si elle est vraie, beaucoup de choses que nous croyons sur les nombres premiers deviennent certaines. Des centaines de résultats mathématiques commencent par les mots « en supposant l’hypothèse de Riemann ».</p>
+<p>Ce n’est donc pas une énigme de plus. C’est le problème que beaucoup de mathématiciens choisiraient s’ils ne pouvaient en résoudre qu’un seul.</p>
+</section>
+<section id="les-deux-sont-longues-et-cest-normal" class="level2">
+<h2 class="anchored" data-anchor-id="les-deux-sont-longues-et-cest-normal">3. Les deux sont longues, et c’est normal</h2>
+<p>Ce qui m’a frappé d’abord, ce n’est pas la machine. C’est la longueur. Une preuve fait 940 pages, écrites à la main. L’autre dépassait 250 000 pages quand la machine a essayé de l’écrire en prose. La longueur n’est donc pas seulement une habitude de machine. Les humains le font aussi.</p>
+<p>Et il y a une raison. La première preuve d’un théorème difficile est presque toujours longue. Le premier qui traverse une forêt ne marche pas en ligne droite. Il contourne, il revient sur ses pas, il coupe à travers les ronces. Le chemin droit est trouvé plus tard, par ceux qui savent déjà où est l’autre côté.</p>
+<p>Le théorème des nombres premiers est mon exemple préféré, parce qu’il parle du même escalier. Il dit que l’escalier suit la courbe de Gauss. Jacques Hadamard et Charles de la Vallée Poussin l’ont prouvé en 1896, chacun de son côté, avec des outils lourds. L’article d’Hadamard faisait 22 pages <span class="citation" data-cites="hadamard1896">(<a href="#ref-hadamard1896" role="doc-biblioref">Hadamard 1896</a>)</span>. En 1980, Donald Newman a trouvé une preuve qui tient en quatre pages d’une revue pour étudiants et enseignants <span class="citation" data-cites="newman1980">(<a href="#ref-newman1980" role="doc-biblioref">Newman 1980</a>)</span>. Don Zagier a montré plus tard qu’on pouvait la raconter encore plus brièvement <span class="citation" data-cites="zagier1997">(<a href="#ref-zagier1997" role="doc-biblioref">Zagier 1997</a>)</span>. Quatre-vingt-quatre ans, d’une forêt à un sentier.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/long-first-short-later/figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Long d’abord, court ensuite. La longueur de quelques preuves, telle que publiée ou rapportée, sur une échelle où chaque cran vers le haut veut dire dix fois plus long. Le théorème des nombres premiers est passé de 22 pages à 4 en 84 ans. Les deux annonces sur l’hypothèse de Riemann sont tout en haut. Le point d’interrogation est mon pari, pas un fait. Les pages d’un article de revue, d’un manuscrit et de la prose d’une machine ne se comparent pas vraiment ; le dessin montre une forme, pas une mesure. Code dans figs.py."><img src="../../../drafts/long-first-short-later/figures/fig03.svg" class="img-fluid figure-img" alt="Un graphique intitulé « Long first, short later », avec les années de 1880 à 2060 en abscisse et les pages sur une échelle logarithmique en ordonnée, de 1 à un million. Un point bleu en 1896 indique « Prime number theorem, Hadamard, 1896: 22 pages ». Une flèche bleue courbe marquée « 84 years » descend vers un point bleu en 1980 : « Newman, 1980: 4 pages ». En 2026, sous l'étiquette « Riemann hypothesis, the two 2026 claims », un point ambre indique « Masullo, by hand: 940 pages », et un losange bleu beaucoup plus haut indique « Alpöge with Claude, in prose: more than 250,000 pages (not posted) ». Deux flèches ambre en pointillé descendent de ces points vers un cercle ambre avec un point d'interrogation vers 2050, marqué « a proof one mind can hold »."></a></p>
+<figcaption><strong>Figure 3.</strong> Long d’abord, court ensuite. La longueur de quelques preuves, telle que publiée ou rapportée, sur une échelle où chaque cran vers le haut veut dire dix fois plus long. Le théorème des nombres premiers est passé de 22 pages à 4 en 84 ans. Les deux annonces sur l’hypothèse de Riemann sont tout en haut. Le point d’interrogation est mon pari, pas un fait. Les pages d’un article de revue, d’un manuscrit et de la prose d’une machine ne se comparent pas vraiment ; le dessin montre une forme, pas une mesure. Code dans <a href="../../../drafts/long-first-short-later/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Il y a d’autres histoires semblables. En 1976, Kenneth Appel et Wolfgang Haken ont prouvé le théorème des quatre couleurs avec un ordinateur qui vérifiait plus de mille cas, un par un <span class="citation" data-cites="appel1977">(<a href="#ref-appel1977" role="doc-biblioref">Appel et Haken 1977</a>)</span>. Beaucoup de mathématiciens étaient mal à l’aise : ils ne pouvaient pas le vérifier à la main. Presque trente ans plus tard, Georges Gonthier a vérifié toute la preuve dans un assistant de preuve, un programme qui contrôle chaque étape <span class="citation" data-cites="gonthier2008">(<a href="#ref-gonthier2008" role="doc-biblioref">Gonthier 2008</a>)</span>. La preuve de la conjecture de Kepler, sur la meilleure façon d’empiler des oranges, a suivi le même chemin. Les relecteurs ne pouvaient pas tout vérifier, alors Thomas Hales et ses collègues l’ont fait vérifier par une machine <span class="citation" data-cites="hales2017">(<a href="#ref-hales2017" role="doc-biblioref"><span class="nocase">Hales et al.</span> 2017</a>)</span>.</p>
+<p>La preuve longue n’est donc pas nouvelle. Ce qui est nouveau, c’est la vitesse. Une machine peut maintenant traverser la forêt en 41 jours au lieu de douze ans.</p>
+</section>
+<section id="alors-cest-fini-pour-nous" class="level2">
+<h2 class="anchored" data-anchor-id="alors-cest-fini-pour-nous">4. « Alors c’est fini pour nous »</h2>
+<p>Voici maintenant l’objection la plus forte, et je veux lui donner tout son poids.</p>
+<p>Elle dit ceci. Si une machine peut prouver l’hypothèse de Riemann en 41 jours, que reste-t-il aux mathématiciens ? Douze ans d’une vie contre six semaines d’un ordinateur. La machine ne s’arrêtera pas à un problème. Elle prendra le suivant, et encore le suivant. Bientôt, la preuve humaine sera un passe-temps, comme tricoter ses propres chaussettes. Beau, mais plus nécessaire.</p>
+<p>Je sens la force de cet argument. Et je comprends pourquoi Masullo, dans son introduction, s’adresse au mathématicien « que découragent le rythme et le ton du climat actuel ». Sa réponse, dans ma traduction : « Nous sommes toujours là. Nous sommes bien vivants. Nous ne partons nulle part » <span class="citation" data-cites="techcrunch2026">(<a href="#ref-techcrunch2026" role="doc-biblioref">TechCrunch 2026</a>)</span>.</p>
+<p>Je suis d’accord avec lui, mais pour une raison qui tient moins du défi. Elle tient à ce à quoi sert une preuve.</p>
+<p>Une preuve a deux tâches. La première est de nous convaincre qu’un énoncé est vrai. Une machine peut maintenant faire cette tâche, et mieux que nous : elle ne se fatigue pas à la page 600. La seconde est de nous faire comprendre <em>pourquoi</em> c’est vrai. C’est cette seconde tâche qui fait avancer les mathématiques. La compréhension, c’est ce qu’on emporte vers le problème suivant.</p>
+<p>William Thurston, l’un des grands géomètres du siècle dernier, l’a dit plus clairement que moi. Il a écrit, je traduis : « Nous n’essayons pas d’atteindre un quota abstrait de production de définitions, de théorèmes et de preuves. La mesure de notre succès, c’est de savoir si ce que nous faisons permet aux gens de comprendre les mathématiques et d’y penser de façon plus claire et plus efficace » <span class="citation" data-cites="thurston1994">(<a href="#ref-thurston1994" role="doc-biblioref">Thurston 1994</a>)</span>.</p>
+<p>Une preuve de 175 187 fichiers que personne ne peut lire remplit la première tâche. Elle ne remplit pas encore la seconde. Alpöge lui-même, selon la presse, ne maîtrise pas encore toutes les mathématiques qui l’entourent <span class="citation" data-cites="officechai2026">(<a href="#ref-officechai2026" role="doc-biblioref">OfficeChai 2026</a>)</span>. Ce n’est pas une critique. C’est l’état honnête d’une première preuve. La forêt a été traversée. Personne n’a encore dessiné la carte.</p>
+<p>Alors je ne crois pas que ce soit fini pour nous. Je crois que notre travail change. Moins de temps à couper les ronces. Plus de temps à regarder le chemin que la machine a pris, et à se demander : quelle était l’idée ? Où a-t-elle vraiment tourné ? Que pourrait-on jeter ?</p>
+</section>
+<section id="les-deux-routes-ont-besoin-lune-de-lautre" class="level2">
+<h2 class="anchored" data-anchor-id="les-deux-routes-ont-besoin-lune-de-lautre">5. Les deux routes ont besoin l’une de l’autre</h2>
+<p>Voici l’image que j’avais en tête en écrivant mon commentaire. Les deux preuves parues le même jour ne sont pas rivales. Chacune a besoin exactement de ce que l’autre possède.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/long-first-short-later/figures/fig04.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Les deux routes ont besoin l’une de l’autre. La preuve d’une machine est vérifiée, mais trop longue à lire ; des personnes peuvent la distiller, en cherchant l’idée qui s’y cache. Une preuve humaine est pleine d’idées, mais pas encore vérifiée ; des machines peuvent la vérifier, chaque ligne, en Lean. Les deux routes mènent au même endroit : une preuve courte, vérifiée, qu’un seul esprit peut tenir. Schéma, de moi ; code dans figs.py."><img src="../../../drafts/long-first-short-later/figures/fig04.svg" class="img-fluid figure-img" alt="Un schéma intitulé « The two routes need each other ». À gauche, deux boîtes. Celle du haut, bleue : « The machine's proof », « checked by a computer, too long to read ». Celle du bas, ambre : « The human proof », « readable, full of ideas, not yet checked ». À droite, une boîte foncée : « A short proof », « checked, and one mind can hold it ». Une flèche ambre va de la preuve de la machine à la preuve courte, marquée « people distil it: find the idea inside ». Une flèche bleue va de la preuve humaine à la preuve courte, marquée « machines check it: every line, in Lean »."></a></p>
+<figcaption><strong>Figure 4.</strong> Les deux routes ont besoin l’une de l’autre. La preuve d’une machine est vérifiée, mais trop longue à lire ; des personnes peuvent la distiller, en cherchant l’idée qui s’y cache. Une preuve humaine est pleine d’idées, mais pas encore vérifiée ; des machines peuvent la vérifier, chaque ligne, en Lean. Les deux routes mènent au même endroit : une preuve courte, vérifiée, qu’un seul esprit peut tenir. Schéma, de moi ; code dans <a href="../../../drafts/long-first-short-later/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Les 940 pages de Masullo ont besoin d’être vérifiées. Conrad y a passé des mois, et l’article est encore en révision majeure. Les machines pourraient aider : traduire les 940 pages en Lean, étape par étape, et laisser l’ordinateur trouver les trous. C’est exactement ce qui s’est passé pour les quatre couleurs et pour Kepler, mais cela avait pris des années. Cela pourrait maintenant prendre des semaines.</p>
+<p>Les 175 187 fichiers d’Alpöge ont besoin du contraire. Ils ont besoin que des personnes les lisent, pas ligne par ligne, mais comme un randonneur lit une carte. Où le chemin monte-t-il ? Où tourne-t-il ? Quelle boucle était un détour ? Les machines peuvent aider là aussi. Mais décider quelle idée est la <em>vraie</em>, celle qui vaut la peine d’être enseignée, c’est un jugement sur ce qui compte. Je crois que ce jugement nous reste pour longtemps.</p>
+<p>Le changement n’est donc pas mauvais. C’est un nouveau partage du travail. La machine est une exploratrice infatigable. Nous devenons les cartographes.</p>
+</section>
+<section id="mon-pari-ce-doit-être-plus-simple" class="level2">
+<h2 class="anchored" data-anchor-id="mon-pari-ce-doit-être-plus-simple">6. Mon pari : ce doit être plus simple</h2>
+<p>Maintenant, je dois être honnête. Tout ce qui précède suppose qu’une preuve courte de l’hypothèse de Riemann existe. Je ne le sais pas. Personne ne le sait.</p>
+<p>La logique nous prévient même. En 1936, Kurt Gödel a remarqué que certains énoncés vrais n’ont que des preuves très longues dans un système donné, bien plus longues que ce que quiconque pourrait écrire. Si l’on passe à un système plus fort, à un point de vue plus large, les mêmes énoncés peuvent avoir des preuves courtes <span class="citation" data-cites="godel1936">(<a href="#ref-godel1936" role="doc-biblioref">Gödel 1936</a>)</span>. Rien ne garantit donc que chaque théorème a une preuve courte. Et l’hypothèse de Riemann pourrait être une des longues.</p>
+<p>Mais regardez ce que dit le résultat de Gödel lui-même. La preuve est devenue courte quand le point de vue a changé. Pas quand quelqu’un a travaillé plus dur au même endroit. Je trouve cela plein d’espoir.</p>
+<p>Et c’est ici que je suis provocateur, je le sais. Je n’ai pas la réponse. Je ne suis pas mathématicien. Mais je crois que nous vivons dans un univers qui peut être décrit simplement. Non pas parce que la simplicité est garantie, mais parce qu’elle a si souvent marché qu’il serait étrange qu’elle s’arrête maintenant. Quelques équations décrivent la lumière. Quelques autres décrivent la gravité. Le physicien Eugene Wigner a appelé cela « la déraisonnable efficacité des mathématiques dans les sciences de la nature » <span class="citation" data-cites="wigner1960">(<a href="#ref-wigner1960" role="doc-biblioref">Wigner 1960</a>)</span>. G. H. Hardy a écrit qu’il n’y a « pas de place permanente dans le monde pour des mathématiques laides » <span class="citation" data-cites="hardy1940">(<a href="#ref-hardy1940" role="doc-biblioref">Hardy 1940</a>)</span>. Paul Erdős aimait plaisanter en disant que Dieu tient un livre avec la preuve la plus élégante de chaque théorème. Deux mathématiciens, Martin Aigner et Günter Ziegler, ont même essayé d’en écrire quelques pages <span class="citation" data-cites="aigner2018">(<a href="#ref-aigner2018" role="doc-biblioref">Aigner et Ziegler 2018</a>)</span>.</p>
+<p>Les nombres premiers sont les objets les plus simples de l’arithmétique. Comptez-les, et vous obtenez un escalier qu’une courbe lisse suit presque parfaitement. Une chose aussi ordonnée, je le crois, doit avoir une raison qu’on peut dire en quelques pages. Peut-être pas aujourd’hui. Peut-être pas par moi. Mais les preuves longues sont, je crois, le premier pas vers elle, pas le dernier.</p>
+<p>J’ai déjà écrit sur ce sentiment, dans un autre cadre. Un soir, j’ai lu un article de physique que je n’arrivais pas à suivre. Une voix dans ma tête a dit : <em>ce doit être plus simple que ça</em> (<a href="../../../posts/2026-11-08-it-must-be-simpler-than-this/index.html">It Must Be Simpler Than This</a>, en anglais). Une preuve de 250 000 pages me donne exactement le même sentiment. Pas qu’elle est fausse. Qu’elle n’est pas finie.</p>
+</section>
+<section id="là-où-les-données-sarrêtent" class="level2">
+<h2 class="anchored" data-anchor-id="là-où-les-données-sarrêtent">7. Là où les données s’arrêtent</h2>
+<p>Il y a une deuxième objection, et celle-ci, je me la fais à moi-même. Les machines sont peut-être très fortes pour trouver des solutions là où il existe déjà beaucoup de matière autour du problème. Ce pourrait être différent pour une conjecture dont la preuve demande des mathématiques qui n’existent pas encore.</p>
+<p>L’hypothèse de Riemann n’est pas une terre vierge. C’est un des problèmes les plus étudiés des mathématiques. Il y a autour d’elle une littérature immense, des milliers de milliards de zéros calculés, des décennies de résultats partiels, et une grande bibliothèque de mathématiques déjà écrites en Lean. Une machine qui y travaille travaille à l’intérieur d’une carte que des humains ont dessinée. Elle a des exemples pour apprendre, des outils à réutiliser, et un vérificateur qui lui dit quand elle se trompe.</p>
+<p>Certaines conjectures demandent quelque chose qui n’est encore sur aucune carte. L’histoire est pleine de ces moments. Pour comprendre pourquoi certaines équations n’ont pas de formule pour leurs solutions, Évariste Galois a dû inventer une idée nouvelle, ce qu’on appelle aujourd’hui un groupe. Pour prouver le dernier théorème de Fermat, Andrew Wiles a dû prouver une grande partie d’un pont entre deux régions éloignées des mathématiques. D’autres avaient seulement deviné que ce pont existait. Dans ces cas-là, le plus dur n’était pas de chercher plus longtemps. C’était de voir le problème dans une langue qui n’existait pas encore.</p>
+<p>Je ne sais pas si les machines peuvent faire cela. Peut-être le font-elles déjà, quelque part dans ces 175 187 fichiers, et personne ne l’a encore vu. Si c’est le cas, ceux qui distilleront la preuve seront les premiers à le découvrir, et ce serait la plus grande nouvelle de toutes. Mais il se peut aussi que les machines soient à leur meilleur là où il y a beaucoup à apprendre, et plus faibles là où rien de semblable n’existe. J’ai dit quelque chose de proche en avril, et j’avais en partie tort (<a href="../../../fr/posts/2026-11-20-partly-wrong-mostly-right/index.html">En partie faux, surtout juste</a>). Alors je tiens cette idée sans la serrer.</p>
+<p>Voici pourtant ce qui me frappe. Souvenez-vous de Gödel : la preuve est devenue courte quand le point de vue a changé. Très souvent, une nouvelle mathématique, c’est exactement cela : un nouveau point de vue qui fait disparaître une vieille difficulté. Si c’est vrai, le travail sur lequel je parie, c’est trouver la preuve courte. Le travail le plus dur pour les machines sera peut-être d’inventer des mathématiques nouvelles. Et ce pourrait être un seul et même travail. Ce n’est pas une raison de se reposer. C’est une raison de continuer à faire des mathématiques nous-mêmes.</p>
+</section>
+<section id="à-quoi-sert-une-preuve" class="level2">
+<h2 class="anchored" data-anchor-id="à-quoi-sert-une-preuve">8. À quoi sert une preuve</h2>
+<p>Alors voici où j’arrive, le lendemain matin.</p>
+<p>Je trouve ce qui s’est passé hier formidable. Une machine a peut-être traversé une forêt que les humains contournent depuis 167 ans. Et le même jour, une personne l’a traversée aussi, à la main, après douze ans. Quels que soient les verdicts, je trouve les deux extraordinaires. Cela va changer la façon de faire des mathématiques demain. Davantage de preuves seront trouvées par des machines, et davantage seront vérifiées par des machines.</p>
+<p>Mais je ne crois pas que cela supprime les mathématiques, ni nous. Cela change notre travail. La première preuve nous dit <em>que</em> quelque chose est vrai. La preuve courte nous dit <em>pourquoi</em>. Trouver la courte a toujours été un travail humain, et je crois que les longues preuves des machines vont nous donner plus de ce travail, pas moins.</p>
+<p>Le message demandait à quoi sert une preuve. Ma réponse est celle que j’ai écrite sous son message, un peu avant huit heures ce matin. Une preuve sert à transformer une vérité en une idée qu’un seul esprit peut tenir.</p>
+<p>La machine a écrit le premier jet. Vient maintenant le moment où nous le rendons court.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-11-20-partly-wrong-mostly-right/index.html">En partie faux, surtout juste</a> Sept mois après ma conférence TEDx, des machines prouvent des théorèmes et résolvent des problèmes de physique. En quoi je me suis trompé, et pourquoi l’innovation a encore besoin de nous.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-aigner2018" class="csl-entry" role="listitem">
+Aigner, Martin, et Günter M. Ziegler. 2018. <em>Proofs from <span>THE BOOK</span></em>. 6ᵉ éd. Springer. <a href="https://doi.org/10.1007/978-3-662-57265-8">https://doi.org/10.1007/978-3-662-57265-8</a>.
+</div>
+<div id="ref-appel1977" class="csl-entry" role="listitem">
+Appel, Kenneth, et Wolfgang Haken. 1977. <span>«&nbsp;Every Planar Map Is Four Colorable. Part <span>I</span>: Discharging&nbsp;»</span>. <em>Illinois Journal of Mathematics</em> 21 (3): 429‑90. <a href="https://doi.org/10.1215/ijm/1256049011">https://doi.org/10.1215/ijm/1256049011</a>.
+</div>
+<div id="ref-godel1936" class="csl-entry" role="listitem">
+Gödel, Kurt. 1936. <span>«&nbsp;<span>Über die Länge von Beweisen</span>&nbsp;»</span>. <em><span class="nocase">Ergebnisse eines mathematischen Kolloquiums</span></em> 7: 23‑24.
+</div>
+<div id="ref-gonthier2008" class="csl-entry" role="listitem">
+Gonthier, Georges. 2008. <span>«&nbsp;Formal Proof: The Four-Color Theorem&nbsp;»</span>. <em>Notices of the American Mathematical Society</em> 55 (11): 1382‑93.
+</div>
+<div id="ref-hadamard1896" class="csl-entry" role="listitem">
+Hadamard, Jacques. 1896. <span>«&nbsp;<span>Sur la distribution des zéros de la fonction <span class="math inline">\zeta(s)</span> et ses conséquences arithmétiques</span>&nbsp;»</span>. <em><span class="nocase">Bulletin de la Société Mathématique de France</span></em> 24: 199‑220.
+</div>
+<div id="ref-hales2017" class="csl-entry" role="listitem">
+<span class="nocase">Hales, Thomas et al.</span> 2017. <span>«&nbsp;A Formal Proof of the <span>Kepler</span> Conjecture&nbsp;»</span>. <em>Forum of Mathematics, Pi</em> 5: e2. <a href="https://doi.org/10.1017/fmp.2017.1">https://doi.org/10.1017/fmp.2017.1</a>.
+</div>
+<div id="ref-hardy1940" class="csl-entry" role="listitem">
+Hardy, G. H. 1940. <em>A Mathematician’s Apology</em>. Cambridge University Press.
+</div>
+<div id="ref-nacionale2026" class="csl-entry" role="listitem">
+Nacionale. 2026. <em>Who Is <span>Alessandro Masullo</span>? The Mathematician behind the ’All Human’ <span>Riemann</span> Hypothesis Proof Draft</em>. Nacionale. <a href="https://www.nacionale.com/en/articles/who-is-alessandro-masullo-all-human-riemann-hypothesis-proof-grh-ravi-vakil-stanford">https://www.nacionale.com/en/articles/who-is-alessandro-masullo-all-human-riemann-hypothesis-proof-grh-ravi-vakil-stanford</a>.
+</div>
+<div id="ref-newman1980" class="csl-entry" role="listitem">
+Newman, Donald J. 1980. <span>«&nbsp;Simple Analytic Proof of the Prime Number Theorem&nbsp;»</span>. <em>The American Mathematical Monthly</em> 87 (9): 693‑96. <a href="https://doi.org/10.2307/2321853">https://doi.org/10.2307/2321853</a>.
+</div>
+<div id="ref-officechai2026" class="csl-entry" role="listitem">
+OfficeChai. 2026. <em>Claimed <span>Riemann</span> Hypothesis Proof Made With <span>Claude</span> Appears On <span>Anthropic</span> Mathematician <span>Levent Alpöge</span>’s Website</em>. OfficeChai. <a href="https://officechai.com/ai/claimed-riemann-hypothesis-proof-made-with-claude-appears-on-anthropic-mathematician-levent-alpoges-website/">https://officechai.com/ai/claimed-riemann-hypothesis-proof-made-with-claude-appears-on-anthropic-mathematician-levent-alpoges-website/</a>.
+</div>
+<div id="ref-platt2021" class="csl-entry" role="listitem">
+Platt, Dave, et Tim Trudgian. 2021. <span>«&nbsp;The <span>Riemann</span> Hypothesis Is True up to <span class="math inline">3\cdot 10^{12}</span>&nbsp;»</span>. <em>Bulletin of the London Mathematical Society</em> 53 (3): 792‑97. <a href="https://doi.org/10.1112/blms.12460">https://doi.org/10.1112/blms.12460</a>.
+</div>
+<div id="ref-refine2026" class="csl-entry" role="listitem">
+Refine. 2026. <em>Audit of <span>Masullo</span>’s Manuscript <em>The Music of the Primes</em></em>. Thread on X. <a href="https://x.com/RefineDotInk/status/2123885285666705594">https://x.com/RefineDotInk/status/2123885285666705594</a>.
+</div>
+<div id="ref-riemann1859" class="csl-entry" role="listitem">
+Riemann, Bernhard. 1859. <span>«&nbsp;<span>Ueber die Anzahl der Primzahlen unter einer gegebenen Grösse</span>&nbsp;»</span>. <em><span class="nocase">Monatsberichte der Königlichen Preussischen Akademie der Wissenschaften zu Berlin</span></em>, 671‑80.
+</div>
+<div id="ref-sciam2026alpoge" class="csl-entry" role="listitem">
+Scientific American. 2026. <em>Anthropic Mathematician Claims to Prove <span>Riemann</span> Hypothesis, Most Famous Problem in All of Math</em>. Scientific American. <a href="https://www.scientificamerican.com/article/anthropic-mathematician-claims-to-prove-riemann-hypothesis-most-famous-problem-in-all-of-math/">https://www.scientificamerican.com/article/anthropic-mathematician-claims-to-prove-riemann-hypothesis-most-famous-problem-in-all-of-math/</a>.
+</div>
+<div id="ref-techcrunch2026" class="csl-entry" role="listitem">
+TechCrunch. 2026. <em><span>AI</span> Claimed a Solution to the 167-Year-Old <span>Riemann</span> Hypothesis, and a Human Did, Too</em>. TechCrunch. <a href="https://techcrunch.com/2026/11/20/ai-claimed-a-solution-to-the-167-year-old-riemann-hypothesis-and-a-human-did-too/">https://techcrunch.com/2026/11/20/ai-claimed-a-solution-to-the-167-year-old-riemann-hypothesis-and-a-human-did-too/</a>.
+</div>
+<div id="ref-thurston1994" class="csl-entry" role="listitem">
+Thurston, William P. 1994. <span>«&nbsp;On Proof and Progress in Mathematics&nbsp;»</span>. <em>Bulletin of the American Mathematical Society</em> 30 (2): 161‑77. <a href="https://arxiv.org/abs/math/9404236">https://arxiv.org/abs/math/9404236</a>.
+</div>
+<div id="ref-wigner1960" class="csl-entry" role="listitem">
+Wigner, Eugene P. 1960. <span>«&nbsp;The Unreasonable Effectiveness of Mathematics in the Natural Sciences&nbsp;»</span>. <em>Communications on Pure and Applied Mathematics</em> 13 (1): 1‑14. <a href="https://doi.org/10.1002/cpa.3160130102">https://doi.org/10.1002/cpa.3160130102</a>.
+</div>
+<div id="ref-zagier1997" class="csl-entry" role="listitem">
+Zagier, Don. 1997. <span>«&nbsp;Newman’s Short Proof of the Prime Number Theorem&nbsp;»</span>. <em>The American Mathematical Monthly</em> 104 (8): 705‑8. <a href="https://doi.org/10.2307/2975232">https://doi.org/10.2307/2975232</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {Long d’abord, court ensuite},
+  date = {2026-11-21},
+  url = {https://scuenat.github.io/fr/drafts/long-first-short-later/},
+  langid = {fr}
+}
+</code></pre><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“Long d’abord, court ensuite.”</span>
+November 21. <a href="https://scuenat.github.io/fr/drafts/long-first-short-later/">https://scuenat.github.io/fr/drafts/long-first-short-later/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Basculer le mode sombre");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Basculer le mode sombre");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      const newWindowLabel = "(opens in a new tab)";
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            describeNewWindow(link);
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Code défilable","output":"Sortie défilable"};
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  // A series page (it has the "All series" back link) lights up "Series" in the menu.
+  var inSeries = !!document.querySelector(".series-back");
+  if (inSeries) document.querySelectorAll('.navbar .nav-link[href$="series.html"]').forEach(function (a) { a.classList.add("active"); });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Series": ["Séries", "/fr/series.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1] || (inSeries && m[1] === "/fr/series.html"));
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script src="../../../listen.js" defer=""></script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
