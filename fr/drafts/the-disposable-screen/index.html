@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Stéphane Cuenat">
+<meta name="description" content="Nous passons des mois à concevoir le meilleur écran. Un agent d’IA pourra bientôt en dessiner un par tâche, presque gratuitement, puis le jeter.">
+
+<title>L’écran jetable – AI, Honestly</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../favicon.png" rel="icon" type="image/png">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-ceb4a0624b465add167b8c62b4a8be78.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-35ed24c7de5104454cce44e5b2119fae.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-ceb4a0624b465add167b8c62b4a8be78.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="../../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script>
+// Search only the current language: French pages see fr/ results, English pages the rest.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0, f = window.fetch;
+  window.fetch = function (input) {
+    var url = typeof input === "string" ? input : input.url;
+    if (!/(^|\/)search\.json$/.test(url)) return f.apply(this, arguments);
+    return f.apply(this, arguments).then(function (r) {
+      return r.json().then(function (items) {
+        var keep = items.filter(function (it) { return (it.href.indexOf("fr/") === 0) === fr; });
+        return new Response(JSON.stringify(keep), { headers: { "Content-Type": "application/json" } });
+      });
+    });
+  };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&amp;display=swap">
+<script data-goatcounter="https://scuenat.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
+<link rel="alternate" hreflang="en" href="https://scuenat.github.io/drafts/the-disposable-screen/">
+<link rel="alternate" hreflang="fr" href="https://scuenat.github.io/fr/drafts/the-disposable-screen/">
+<link rel="alternate" hreflang="x-default" href="https://scuenat.github.io/drafts/the-disposable-screen/">
+<meta name="alt-lang-url" content="/drafts/the-disposable-screen/">
+<link rel="canonical" href="https://scuenat.github.io/fr/drafts/the-disposable-screen/">
+<meta name="robots" content="noindex, nofollow">
+
+
+<meta property="og:title" content="L’écran jetable – AI, Honestly">
+<meta property="og:description" content="Nous passons des mois à concevoir le meilleur écran. Un agent d’IA pourra bientôt en dessiner un par tâche, presque gratuitement, puis le jeter.">
+<meta property="og:image" content="https://scuenat.github.io/drafts/the-disposable-screen/figures/fig01.png">
+<meta property="og:site_name" content="AI, Honestly">
+<meta property="og:image:height" content="2128">
+<meta property="og:image:width" content="3535">
+<meta name="twitter:title" content="L’écran jetable – AI, Honestly">
+<meta name="twitter:description" content="Nous passons des mois à concevoir le meilleur écran. Un agent d’IA pourra bientôt en dessiner un par tâche, presque gratuitement, puis le jeter.">
+<meta name="twitter:image" content="https://scuenat.github.io/drafts/the-disposable-screen/figures/fig01.png">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Aller au contenu principal</a><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site web">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../../favicon.png" alt="" class="navbar-logo light-content">
+    <img src="../../../favicon.png" alt="" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">AI, Honestly</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Essays</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../series.html"> 
+<span class="menu-text">Series</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../talks.html"> 
+<span class="menu-text">TEDx</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544"> 
+<span class="menu-text">Newsletter</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../fr/index.html"> 
+<span class="menu-text">FR</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/"> <i class="bi bi-linkedin" role="img" aria-label="Follow on LinkedIn">
+</i> 
+<span class="menu-text">Follow</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Basculer le mode sombre" aria-label="Basculer le mode sombre"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul class="collapse">
+  <li><a href="#le-meilleur-écran-dont-personne-navait-besoin" id="toc-le-meilleur-écran-dont-personne-navait-besoin" class="nav-link active" data-scroll-target="#le-meilleur-écran-dont-personne-navait-besoin">1. Le meilleur écran dont personne n’avait besoin</a></li>
+  <li><a href="#les-écrans-fixes-étaient-une-question-de-coût" id="toc-les-écrans-fixes-étaient-une-question-de-coût" class="nav-link" data-scroll-target="#les-écrans-fixes-étaient-une-question-de-coût">2. Les écrans fixes étaient une question de coût</a></li>
+  <li><a href="#ce-qui-pourrait-disparaître" id="toc-ce-qui-pourrait-disparaître" class="nav-link" data-scroll-target="#ce-qui-pourrait-disparaître">3. Ce qui pourrait disparaître</a></li>
+  <li><a href="#quatre-bonnes-raisons-pour-lesquelles-je-pourrais-me-tromper" id="toc-quatre-bonnes-raisons-pour-lesquelles-je-pourrais-me-tromper" class="nav-link" data-scroll-target="#quatre-bonnes-raisons-pour-lesquelles-je-pourrais-me-tromper">4. Quatre bonnes raisons pour lesquelles je pourrais me tromper</a></li>
+  <li><a href="#ce-qui-reste-et-qui-le-construit" id="toc-ce-qui-reste-et-qui-le-construit" class="nav-link" data-scroll-target="#ce-qui-reste-et-qui-le-construit">5. Ce qui reste, et qui le construit</a></li>
+  <li><a href="#comment-je-saurais-que-je-me-suis-trompé" id="toc-comment-je-saurais-que-je-me-suis-trompé" class="nav-link" data-scroll-target="#comment-je-saurais-que-je-me-suis-trompé">6. Comment je saurais que je me suis trompé</a></li>
+  <li><a href="#un-plan-sur-une-serviette-en-papier" id="toc-un-plan-sur-une-serviette-en-papier" class="nav-link" data-scroll-target="#un-plan-sur-une-serviette-en-papier">7. Un plan sur une serviette en papier</a></li>
+  <li><a href="#références" id="toc-références" class="nav-link" data-scroll-target="#références">Références</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">L’écran jetable</h1>
+<p class="subtitle lead">Nous passons des mois à concevoir la meilleure interface. Un agent d’IA pourra bientôt en dessiner une assez bonne pour chaque tâche, presque gratuitement, puis la jeter.</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">essai</div>
+    <div class="quarto-category">ia</div>
+    <div class="quarto-category">agents</div>
+    <div class="quarto-category">automatisation</div>
+    <div class="quarto-category">architecture</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Nous passons des mois à concevoir le meilleur écran. Un agent d’IA pourra bientôt en dessiner un par tâche, presque gratuitement, puis le jeter.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Auteur·rice</div>
+    <div class="quarto-title-meta-contents">
+             <p>Stéphane Cuenat </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">22 novembre 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="draft-banner">
+<p><strong>Brouillon v1, non publié.</strong> Révisé le 22 novembre 2026. Ce texte est en cours de relecture. Il n’est listé nulle part ailleurs sur le site et peut encore changer. <a href="../../../fr/drafts/">Tous les brouillons</a>.</p>
+</div>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, novembre 2026.</strong> Un essai court et volontairement provocateur sur les écrans que nous construisons pour les logiciels. Que peut-il leur arriver, maintenant qu’un agent d’IA peut en dessiner un nouveau pour chaque tâche ? C’est un pari, pas une prévision chiffrée. Quand j’énonce un fait, je donne la source ; quand je devine, je le dis. Les deux figures sont des dessins de moi, et le code qui les dessine est lié sous chacune. Les figures sont en anglais. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../drafts/the-disposable-screen/index.html">Version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Nous passons beaucoup de temps et d’argent à concevoir le meilleur écran pour un logiciel. Nous organisons des ateliers, dessinons des maquettes, testons avec des utilisateurs et discutons de la place d’un bouton. Ensuite, chaque personne en utilise une petite partie, pour une tâche, et ne voit jamais le reste. Je crois que cela va changer. Un agent d’IA peut maintenant dessiner un écran pour une personne et une tâche, en une minute environ, presque gratuitement, puis le jeter. Si cela se confirme, l’écran fixe que tout le monde doit apprendre pourrait disparaître peu à peu. Avec lui pourrait partir une grande partie de ce que nous savons aujourd’hui sur les interfaces et sur l’automatisation des logiciels. Les menus, la navigation, l’application comme un lieu où l’on va, les robots qui cliquent sur des écrans faits pour des humains. Les objections sont sérieuses. Les gens ont besoin d’habitudes. Les régulateurs veulent le même parcours à chaque fois. Taper est plus lent que cliquer. Certains écrans servent à regarder, pas à faire. Je crois qu’on peut répondre à chacune, mais pas entièrement. Ce qui survit, ce n’est pas l’écran. Ce sont les pièces dont il est fait, et les règles sur ce qui doit toujours être montré. C’est cela qui devient le vrai produit.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/the-disposable-screen/figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Un écran pour tout le monde, ou un écran par tâche. À gauche, aujourd’hui : un écran dessiné une fois pour tous ses utilisateurs, dont une tâche n’utilise que quelques champs. À droite, demain : une personne dit ce qu’elle veut, un agent dessine un petit écran pour cette tâche, et on le jette après usage. Ce qui reste, ce sont les pièces et les règles à partir desquelles l’écran est construit. Schéma, de moi ; code dans figs.py."><img src="../../../drafts/the-disposable-screen/figures/fig01.svg" class="img-fluid figure-img" alt="Un dessin intitulé « One screen for everyone, or one screen per task ». À gauche, sous le titre « Today: drawn once, for everyone », une grande fenêtre avec une barre de menus « File, Edit, View, Tools, Help », une colonne de boutons et une grille de vingt-quatre champs vides. Seuls trois champs sont surlignés en ambre, avec la note « one task uses a few of these ». À droite, sous le titre « Tomorrow: drawn per task, then thrown away », une bulle dit « Pay this invoice, like last month. ». Une flèche marquée « the agent draws » mène à une petite carte ambre qui montre un montant de 1 240,00, le destinataire « the usual supplier » et un bouton « Confirm », avec la note « used once, then gone ». En dessous, un cadre bleu dit « What stays: the parts and the rules », avec les boutons, les champs, les graphiques et ce qui doit toujours être montré."></a></p>
+<figcaption><strong>Figure 1.</strong> Un écran pour tout le monde, ou un écran par tâche. À gauche, aujourd’hui : un écran dessiné une fois pour tous ses utilisateurs, dont une tâche n’utilise que quelques champs. À droite, demain : une personne dit ce qu’elle veut, un agent dessine un petit écran pour cette tâche, et on le jette après usage. Ce qui reste, ce sont les pièces et les règles à partir desquelles l’écran est construit. Schéma, de moi ; code dans <a href="../../../drafts/the-disposable-screen/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<section id="le-meilleur-écran-dont-personne-navait-besoin" class="level2">
+<h2 class="anchored" data-anchor-id="le-meilleur-écran-dont-personne-navait-besoin">1. Le meilleur écran dont personne n’avait besoin</h2>
+<p>Aujourd’hui, construire un logiciel, c’est en grande partie construire des écrans. Une équipe se met d’accord sur ce dont les utilisateurs ont besoin. Un designer dessine les écrans. On les teste, on en discute. La meilleure mise en page l’emporte. Elle est codée page par page, puis maintenue pendant des années.</p>
+<p>Nous faisons cela bien, et je ne veux pas m’en moquer. Un bon écran est une vraie réussite. Mais regardez ce qui se passe une fois qu’il est livré. Une personne l’ouvre pour changer une adresse. Une autre pour approuver une facture. Une troisième exporte un rapport une fois par trimestre. Chacune touche quelques champs et un bouton. Le reste de l’écran est là pour quelqu’un d’autre.</p>
+<p>L’écran est donc un compromis. C’est un seul dessin qui doit servir tout le monde, pour toutes les tâches possibles. Nous l’appelons la meilleure interface, et souvent c’est vrai, pour la moyenne de toutes ces personnes. Mais pour une personne donnée, un jour donné, la plus grande partie ne sert à rien.</p>
+<p>Or voici ce qui a changé. Un agent d’IA peut dessiner un écran. Pas une maquette qu’un designer doit approuver, mais un écran qui marche : les trois champs dont cette personne a besoin, déjà remplis, et le seul bouton qui termine le travail. Il le fait en une minute ou deux aujourd’hui, et plus vite chaque année, pour une personne et une tâche. Un nouvel écran coûtait des semaines de travail. Ce coût tombe presque à zéro.</p>
+<p>Quand une chose chère devient presque gratuite, on cesse de la garder. On s’en sert une fois et on la jette, comme un gobelet en carton. Voilà ma thèse. <strong>L’écran devient jetable.</strong></p>
+</section>
+<section id="les-écrans-fixes-étaient-une-question-de-coût" class="level2">
+<h2 class="anchored" data-anchor-id="les-écrans-fixes-étaient-une-question-de-coût">2. Les écrans fixes étaient une question de coût</h2>
+<p>Les écrans fixes n’ont jamais été une loi de la nature. C’était une question de coût.</p>
+<p>Dessiner et coder un écran coûtait cher, alors on en dessinait un par type de tâche, et on demandait à chacun de s’y adapter. Un menu est une supposition figée sur ce que les gens voudront. Un formulaire est une supposition figée sur l’ordre dans lequel ils le donneront. Un assistant, la boîte de dialogue pas à pas, est une supposition figée sur le chemin. Ces suppositions ont été faites une fois, des mois avant que quiconque s’en serve, parce qu’il n’y avait pas d’autre moyen.</p>
+<p>Chaque vague de l’informatique a changé qui fait le travail de traduction. Avec les cartes perforées, les gens traduisaient leur souhait dans les termes de la machine, le remettaient et attendaient. Avec la ligne de commande, ils tapaient une commande à la fois. Avec l’écran graphique, la machine montrait ses options et les gens pointaient du doigt. Jakob Nielsen, qui étudie l’utilisabilité depuis des décennies, a soutenu en 2023 que l’IA est la première nouvelle façon d’utiliser un ordinateur depuis soixante ans <span class="citation" data-cites="nielsen2023">(<a href="#ref-nielsen2023" role="doc-biblioref">Nielsen 2023</a>)</span>. Il l’appelle la spécification du résultat par l’intention. En mots simples : vous dites <em>ce que</em> vous voulez, et la machine trouve <em>comment</em>.</p>
+<p>Nielsen parlait surtout du chat. Ce qui reste à moitié ouvert, je crois, c’est l’écran lui-même. Si la machine trouve le comment, elle peut aussi trouver l’écran. Et ce n’est plus une supposition. En 2025, des chercheurs de Google l’ont montré. Avec de bonnes instructions et de bons outils, un grand modèle de langage peut construire une interface interactive sur mesure pour presque n’importe quelle demande <span class="citation" data-cites="google2025genui">(<a href="#ref-google2025genui" role="doc-biblioref">Google Research 2025</a>)</span>. Dans leurs tests, les gens ont préféré ces écrans générés à la réponse texte habituelle plus de huit fois sur dix. Les écrans faits par des experts humains restaient meilleurs, mais les écrans générés les égalaient dans environ la moitié des cas. Les chercheurs sont honnêtes sur les limites : leurs tests ne tenaient pas compte de la vitesse, et dessiner un écran pouvait prendre une minute ou deux <span class="citation" data-cites="leviathan2026genui">(<a href="#ref-leviathan2026genui" role="doc-biblioref"><span class="nocase">Leviathan et al.</span> 2026</a>)</span>. Le même mois, une proposition a été faite pour le Model Context Protocol, la façon commune dont les agents d’IA parlent aux outils. Elle permet à un outil d’envoyer une petite interface avec sa réponse. Elle est devenue une partie officielle du protocole en janvier 2026 <span class="citation" data-cites="mcpapps2025">(<a href="#ref-mcpapps2025" role="doc-biblioref">Model Context Protocol 2025</a>)</span>.</p>
+<p>Les pièces sont donc là. Un service peut décrire ce qu’il sait faire, sous forme de données que n’importe quel programme peut lire. J’en ai parlé dans <a href="../../../fr/posts/2026-10-20-the-interface-is-data/index.html">L’interface est une donnée</a>. Un agent peut lire cette description, comprendre ce que cette personne essaie de faire, et dessiner l’écran pour ce moment-là.</p>
+</section>
+<section id="ce-qui-pourrait-disparaître" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-pourrait-disparaître">3. Ce qui pourrait disparaître</h2>
+<p>Je vais être provocateur et faire la liste de ce qui pourrait partir, à mon avis. Pas en un an, mais sur une dizaine d’années.</p>
+<ul>
+<li><strong>La navigation.</strong> Les menus, les onglets, les barres latérales, le champ de recherche qui trouve la bonne page. Ils existent parce que l’écran est grand et qu’il faut y trouver son coin. Un écran dessiné pour votre tâche n’a pas de coin à trouver.</li>
+<li><strong>L’application comme un lieu.</strong> Aujourd’hui, on va dans une application. On l’ouvre, on se connecte, on cherche la page. Demain, l’application viendra peut-être à vous, sous la forme d’un petit écran dans ce que vous faites déjà, et repartira quand vous aurez fini.</li>
+<li><strong>Le formulaire général.</strong> Le formulaire de quarante champs, dont vous en remplissez quatre. L’agent connaît déjà les trente-six autres, ou sait qu’ils ne comptent pas pour vous.</li>
+<li><strong>L’automatisation qui clique.</strong> Une grande partie de l’automatisation en entreprise, aujourd’hui, ce sont des robots qui cliquent sur des écrans faits pour des humains. Le métier appelle cela l’automatisation robotisée des processus. Ces robots copient une valeur dans une fenêtre et la collent dans une autre, parce que les deux systèmes n’ont pas d’autre moyen de se parler. C’est une automatisation qui passe par l’écran, et elle est fragile : déplacez un bouton et le robot casse. Quand les services se décrivent eux-mêmes sous forme de données, l’agent appelle directement le service. Un écran n’apparaît que pour la partie qu’une personne doit voir.</li>
+<li><strong>Une page par fonctionnalité.</strong> Une grande partie du travail d’une équipe logicielle consiste à construire une nouvelle page pour chaque nouvelle fonctionnalité. Si la page est dessinée à la demande, l’équipe construit la capacité et la décrit bien. La page suit.</li>
+</ul>
+<p>Rien de tout cela ne veut dire que le logiciel disparaît. Cela veut dire que l’écran cesse d’être l’endroit où vit le logiciel. La capacité vit derrière, décrite sous forme de données. L’écran en devient une vue éphémère, dessinée pour une personne et une tâche.</p>
+<p>Dans <a href="../../../fr/posts/2026-10-21-intent-is-the-source/index.html">L’intention est la source</a>, j’ai soutenu que pour les programmeurs, l’intention et les vérifications deviennent la source, et le code devient un résultat. C’est le même mouvement, un étage plus haut. Pour les personnes qui utilisent les logiciels, l’intention devient l’entrée, et l’écran devient un résultat.</p>
+</section>
+<section id="quatre-bonnes-raisons-pour-lesquelles-je-pourrais-me-tromper" class="level2">
+<h2 class="anchored" data-anchor-id="quatre-bonnes-raisons-pour-lesquelles-je-pourrais-me-tromper">4. Quatre bonnes raisons pour lesquelles je pourrais me tromper</h2>
+<p>Maintenant, je dois être juste. Quand je raconte cela à des gens qui construisent des logiciels, je m’attends à quatre objections. Chacune est forte. Je vais donner à chacune tout son poids, puis dire pourquoi je crois qu’on peut y répondre, et jusqu’où.</p>
+<section id="un-écran-qui-change-ne-sapprend-pas" class="level3">
+<h3 class="anchored" data-anchor-id="un-écran-qui-change-ne-sapprend-pas">Un écran qui change ne s’apprend pas</h3>
+<p>Cette objection s’appuie sur des données. En 2004, Leah Findlater et Joanna McGrenere ont comparé trois sortes de menus <span class="citation" data-cites="findlater2004">(<a href="#ref-findlater2004" role="doc-biblioref">Findlater et McGrenere 2004</a>)</span>. L’un ne changeait jamais. L’un remontait tout seul vos éléments les plus utilisés. L’un vous laissait l’arranger vous-même. Le menu qui ne changeait jamais était plus rapide que celui qui changeait tout seul. La plupart des gens préféraient celui qu’ils arrangeaient eux-mêmes. À la même époque, certains logiciels de bureautique cachaient les éléments de menu que vous n’aviez pas utilisés récemment. L’idée n’a pas survécu à la refonte suivante. La leçon semble claire. Les gens veulent savoir où sont les choses, et la mémoire du geste est une qualité, pas une faiblesse.</p>
+<p>Voici ma réponse. L’habitude compte surtout quand on refait la même tâche encore et encore. Pour ces tâches-là, l’agent doit simplement cesser de changer l’écran : le dessiner une fois, laisser la personne l’ajuster, puis le garder. Un écran jetable peut être gardé, comme on garde une note qui s’est révélée utile. Remarquez aussi à quoi servent la plupart de nos habitudes : trouver notre chemin dans la navigation. S’il n’y a pas de menu à fouiller, il y a moins à retenir. Et le gagnant de cette étude, le menu que les gens arrangeaient eux-mêmes, va dans le même sens. Les gens ne voulaient pas d’un écran qui change dans leur dos. Ils voulaient un écran fait pour eux, sous leur contrôle. Un agent qui demande « on le garde comme ça ? » peut le leur donner.</p>
+</section>
+<section id="un-écran-qui-nexiste-pas-ne-se-teste-pas" class="level3">
+<h3 class="anchored" data-anchor-id="un-écran-qui-nexiste-pas-ne-se-teste-pas">Un écran qui n’existe pas ne se teste pas</h3>
+<p>Une banque, un hôpital ou un régulateur a besoin du même parcours à chaque fois. Ils le testent, le certifient, y forment les gens, et s’en servent comme preuve quand quelque chose tourne mal. Comment tester un million d’écrans qui n’ont existé chacun qu’une fois ?</p>
+<p>C’est la plus difficile des quatre, et je crois que les parcours réglementés garderont des écrans fixes le plus longtemps. Mais je crois que la réponse est de tester les règles, pas les images. L’écran est dessiné à partir d’un ensemble fixe de pièces : des boutons, des champs et des graphiques, chacun testé une fois. Il suit des règles fixes. Avant tout paiement, montrer le montant, le destinataire et la date, et demander une confirmation claire. Un programme, pas l’agent, peut vérifier ces règles sur chaque écran avant qu’il soit montré. J’ai proposé quelque chose de proche pour les outils dans <a href="../../../fr/posts/2026-10-30-a-grammar-for-tools/index.html">Une grammaire pour les outils</a> : des règles fixées par une politique, qu’aucun agent ne peut contourner. Et l’écran exact qu’une personne a vu peut être enregistré. Comme preuve, c’est mieux que « c’était la version 4.2 du formulaire ».</p>
+<p>Il y a un second point, honnête. Les écrans fixes ne sont pas aussi sûrs qu’on aime le croire. Les gens les lisent mal. Ils sautent des avertissements qu’ils ont vus cent fois. Ils cliquent sur la mauvaise ligne d’un long tableau. Un écran qui ne montre que ce qui compte pour cette décision-là pourrait mener à moins d’erreurs, pas plus. C’est une intuition, et il faudrait la mesurer.</p>
+</section>
+<section id="taper-cest-un-retour-en-arrière" class="level3">
+<h3 class="anchored" data-anchor-id="taper-cest-un-retour-en-arrière">Taper, c’est un retour en arrière</h3>
+<p>Nous avons quitté la ligne de commande pour les écrans graphiques pour de bonnes raisons. Sur un écran, on voit ses options. Devant une invite, il faut s’en souvenir. Taper un souhait dans une boîte est plus lent et plus vague que cliquer sur un bouton qu’on voit. Nielsen lui-même nomme ce problème : beaucoup de gens ont du mal à mettre en mots ce qu’ils veulent <span class="citation" data-cites="nielsen2023">(<a href="#ref-nielsen2023" role="doc-biblioref">Nielsen 2023</a>)</span>. En 1997, Ben Shneiderman et Pattie Maes ont tenu un débat célèbre sur cette question <span class="citation" data-cites="shneiderman1997">(<a href="#ref-shneiderman1997" role="doc-biblioref">Shneiderman et Maes 1997</a>)</span>. Lui défendait la manipulation directe : les gens doivent voir ce sur quoi ils agissent, et garder le contrôle. Elle soutenait qu’une partie du travail doit être confiée à des agents logiciels.</p>
+<p>Ma réponse : l’écran jetable n’est pas un chat. Le chat, la voix, ou un clic sur quelque chose qu’on regarde déjà, ce n’est que le début de la demande. Ce qui revient est un vrai écran, avec des boutons et des curseurs qu’on voit et qu’on contrôle. C’est de la manipulation directe, comme le voulait Shneiderman. Mais c’est un agent qui la dessine, comme le voulait Maes. Souvent, la demande n’a même pas besoin d’être tapée. L’agent voit ce que vous faites, la facture que vous venez d’ouvrir, et propose l’écran avant que vous demandiez. D’une certaine façon, le débat de 1997 se termine avec les deux camps qui ont raison.</p>
+</section>
+<section id="beaucoup-décrans-servent-à-regarder-pas-à-faire" class="level3">
+<h3 class="anchored" data-anchor-id="beaucoup-décrans-servent-à-regarder-pas-à-faire">Beaucoup d’écrans servent à regarder, pas à faire</h3>
+<p>Tous les écrans ne sont pas une tâche à finir. Une carte, une toile de dessin, un éditeur de code, un tableau de bord : on s’en sert pour regarder autour, explorer et réfléchir. Un agent qui vous tend trois champs et un bouton n’a pas compris pourquoi vous êtes venu.</p>
+<p>Là, je suis en partie d’accord. Les instruments restent. On ne refait pas un violon pour chaque morceau. Les outils d’un métier, ceux qu’on façonne à la main pendant des années, resteront fixes parce que nous voulons qu’ils le soient. Mais même ici, regardez les tableaux de bord. Dans deux textes précédents, <a href="../../../fr/posts/2026-09-29-show-what-changed/index.html">Montrer ce qui a changé, pas les données</a> et <a href="../../../fr/posts/2026-10-11-what-a-quiet-screen-cannot-see/index.html">Ce qu’un écran silencieux ne peut pas voir</a>, j’ai défendu une idée. Un tableau de bord ne devrait pas montrer toutes les données. Il devrait montrer seulement ce qui a changé dans notre compréhension, si bien que la plupart des semaines il est presque vide. C’est aussi un écran jetable : différent chaque semaine, dessiné pour ce qui s’est passé.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../drafts/the-disposable-screen/figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Où l’écran fixe survit. En largeur, à quelle fréquence je fais la tâche ; en hauteur, si j’ai besoin de l’écran pour faire quelque chose ou pour voir et décider. Les tâches rares sont dessinées, utilisées et jetées. Les tâches quotidiennes sont dessinées une fois, puis gardées. Les décisions qui comptent sont dessinées à partir de règles fixes, de la même façon à chaque fois. Les instruments, utilisés chaque jour pour explorer, restent tels quels. Schéma, de moi ; code dans figs.py."><img src="../../../drafts/the-disposable-screen/figures/fig02.svg" class="img-fluid figure-img" alt="Un dessin en deux par deux intitulé « Where a fixed screen survives ». L'axe horizontal dit « how often I do it », de « rare » à « every day ». L'axe vertical dit « what I need the screen for », de « to get it done » en bas à « to see, decide » en haut. En bas à gauche, en ambre, « Disposable » : dessiné, utilisé, jeté ; un remboursement, un formulaire qu'on remplit une fois par an. En bas à droite, en bleu, « Drawn once, then kept » : une habitude se forme, donc l'écran cesse de changer ; la feuille de temps quotidienne. En haut à gauche, en foncé, « Drawn from fixed rules » : les mêmes faits, montrés de la même façon, avant tout ce qui compte ; un paiement, une signature. En haut à droite, en gris, « Instruments » : une carte, une toile, un éditeur ; gardés, et façonnés à la main pendant des années."></a></p>
+<figcaption><strong>Figure 2.</strong> Où l’écran fixe survit. En largeur, à quelle fréquence je fais la tâche ; en hauteur, si j’ai besoin de l’écran pour faire quelque chose ou pour voir et décider. Les tâches rares sont dessinées, utilisées et jetées. Les tâches quotidiennes sont dessinées une fois, puis gardées. Les décisions qui comptent sont dessinées à partir de règles fixes, de la même façon à chaque fois. Les instruments, utilisés chaque jour pour explorer, restent tels quels. Schéma, de moi ; code dans <a href="../../../drafts/the-disposable-screen/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Je ne crois donc pas que les quatre objections sauvent l’écran fixe partout. Je crois qu’elles tracent ses nouvelles frontières. L’écran fixe survit là où l’on fait quelque chose tous les jours. Il survit là où une décision doit être montrée de la même façon à chaque fois, et là où l’écran est un instrument dont on joue. Partout ailleurs, l’écran peut être dessiné, utilisé et jeté. Je crois que c’est la plus grande partie des logiciels que nous utilisons au travail, mais je ne l’ai pas mesuré.</p>
+</section>
+</section>
+<section id="ce-qui-reste-et-qui-le-construit" class="level2">
+<h2 class="anchored" data-anchor-id="ce-qui-reste-et-qui-le-construit">5. Ce qui reste, et qui le construit</h2>
+<p>Si l’écran est jetable, que reste-t-il à concevoir ? Beaucoup de choses, mais à un autre endroit.</p>
+<p>Ce qui reste, ce sont les pièces et les règles. Les pièces, ce sont les boutons, les champs, les tableaux et les graphiques. Chacune est construite et testée une fois, et rendue utilisable par tous, y compris par les personnes qui voient mal l’écran. Les règles disent comment les pièces peuvent se combiner. Surtout, elles disent ce qui doit toujours être montré : le montant avant un paiement, la dose avant une prescription, l’avertissement avant une suppression. Les équipes appellent déjà ces pièces un système de design. Je crois que le système de design cesse d’être une boîte à outils pour les designers et devient le produit. C’est la langue que parle l’agent quand il dessine.</p>
+<p>Les designers ne disparaissent donc pas. Leur travail passe du dessin des écrans à l’écriture de cette langue : quelles pièces existent, comment elles se comportent, et quelles règles ne peuvent jamais être enfreintes. C’est un peu comme l’imprimerie. Presque plus personne ne compose les caractères à la main. Mais quelqu’un dessine encore chaque police que nous lisons, et les règles d’une belle page.</p>
+<p>Il y a là une chance qui me touche. Un écran dessiné pour une personne peut l’être pour ses yeux, ses mains et sa langue. Du texte plus grand, moins de choix, des mots simples, une autre langue. Un écran fixe ne propose cela que sous forme de réglages, souvent ajoutés tard. Un écran jetable pourrait partir de là. C’est un espoir, pas un fait. Cela n’arrivera que si les règles le demandent.</p>
+<p>Pour les équipes logicielles aussi, le travail se déplace. Moins de temps à construire des pages. Plus de temps à décrire ce que le logiciel sait faire, clairement, sous forme de données qu’un agent peut comprendre. Plus de temps à écrire les règles. Et plus de temps à regarder quels écrans l’agent dessine vraiment, comme on regarde les journaux d’exécution aujourd’hui.</p>
+</section>
+<section id="comment-je-saurais-que-je-me-suis-trompé" class="level2">
+<h2 class="anchored" data-anchor-id="comment-je-saurais-que-je-me-suis-trompé">6. Comment je saurais que je me suis trompé</h2>
+<p>Un essai comme celui-ci doit dire ce qui prouverait qu’il a tort. Voici mon test.</p>
+<p>Regardez les logiciels que les gens utilisent au travail dans cinq ans. Si la plupart des tâches commencent encore par ouvrir une application, chercher un menu et remplir un formulaire fixe, je me suis trompé. De même si les écrans générés sont encore surtout des démonstrations. Si les gens qui ont essayé les écrans jetables sont revenus aux écrans fixes, comme ils se sont détournés des menus qui bougeaient tout seuls, je me suis trompé. Si les régulateurs refusent les écrans vérifiés par des règles même pour des tâches simples et sans grand risque, j’étais au moins trop en avance.</p>
+<p>Supposons au contraire que l’application cesse doucement d’être un lieu où l’on va, et que les écrans qu’on voit soient petits, éphémères et taillés pour la tâche. Alors le changement aura eu lieu, sans doute sans beaucoup de bruit. Mark Weiser était informaticien au centre de recherche de Xerox à Palo Alto. En 1991, il a ouvert un article célèbre par cette phrase : « Les technologies les plus profondes sont celles qui disparaissent » <span class="citation" data-cites="weiser1991">(<a href="#ref-weiser1991" role="doc-biblioref">Weiser 1991</a>)</span>. Il parlait des ordinateurs eux-mêmes. Je crois que l’écran pourrait être le prochain.</p>
+<p>Voici une question pour quiconque conçoit un nouvel écran aujourd’hui. Cet écran vaudrait-il encore la peine d’être construit si un agent pouvait en dessiner un bon, pour chaque personne, en un instant ? Si la réponse est non, construisez les pièces, les règles et une description claire de ce que le logiciel sait faire. Laissez l’écran suivre.</p>
+</section>
+<section id="un-plan-sur-une-serviette-en-papier" class="level2">
+<h2 class="anchored" data-anchor-id="un-plan-sur-une-serviette-en-papier">7. Un plan sur une serviette en papier</h2>
+<p>Tous ceux qui ont demandé leur chemin dans un café connaissent le plan sur la serviette. La personne derrière le comptoir prend un stylo et dessine trois rues, une église et une flèche. Ce n’est pas joli, et ce n’est pas à l’échelle. Cela ne montre que votre chemin, et c’est exactement ce qu’il vous faut. Quand vous êtes arrivé, vous la jetez.</p>
+<p>Depuis des décennies, nous imprimons des plans de ville de plus en plus beaux, les mêmes pour tout le monde, et nous demandons à chacun d’y trouver son chemin. Je crois que la prochaine interface ressemblera plutôt à la serviette : dessinée pour vous, tout de suite, et jetée quand vous êtes arrivé.</p>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-20-the-interface-is-data/index.html">L’interface est une donnée</a> Comment MCP et la boucle agentique changent ce que nous appelons une API : la description à partir de laquelle un écran jetable serait dessiné.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-findlater2004" class="csl-entry" role="listitem">
+Findlater, Leah, et Joanna McGrenere. 2004. <span>«&nbsp;A Comparison of Static, Adaptive, and Adaptable Menus&nbsp;»</span>. <em>Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (CHI ’04)</em>, 89‑96. <a href="https://doi.org/10.1145/985692.985704">https://doi.org/10.1145/985692.985704</a>.
+</div>
+<div id="ref-google2025genui" class="csl-entry" role="listitem">
+Google Research. 2025. <em>Generative <span>UI</span>: A Rich, Custom, Visual Interactive User Experience for Any Prompt</em>. Google Research blog. <a href="https://research.google/blog/generative-ui-a-rich-custom-visual-interactive-user-experience-for-any-prompt/">https://research.google/blog/generative-ui-a-rich-custom-visual-interactive-user-experience-for-any-prompt/</a>.
+</div>
+<div id="ref-leviathan2026genui" class="csl-entry" role="listitem">
+<span class="nocase">Leviathan, Yaniv, Dani Valevski, Matan Kalman, et al.</span> 2026. <em>Generative <span>UI</span>: <span>LLMs</span> Are Effective <span>UI</span> Generators</em>. arXiv:2604.09577. <a href="https://arxiv.org/abs/2604.09577">https://arxiv.org/abs/2604.09577</a>.
+</div>
+<div id="ref-mcpapps2025" class="csl-entry" role="listitem">
+Model Context Protocol. 2025. <em><span>SEP-1865</span>: <span>MCP</span> Apps, Interactive User Interfaces for <span>MCP</span></em>. Model Context Protocol. <a href="https://modelcontextprotocol.io/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp">https://modelcontextprotocol.io/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp</a>.
+</div>
+<div id="ref-nielsen2023" class="csl-entry" role="listitem">
+Nielsen, Jakob. 2023. <em><span>AI</span> Is First New <span>UI</span> Paradigm in 60 Years</em>. Jakob Nielsen on UX. <a href="https://jakobnielsenphd.substack.com/p/ai-is-first-new-ui-paradigm-in-60">https://jakobnielsenphd.substack.com/p/ai-is-first-new-ui-paradigm-in-60</a>.
+</div>
+<div id="ref-shneiderman1997" class="csl-entry" role="listitem">
+Shneiderman, Ben, et Pattie Maes. 1997. <span>«&nbsp;Direct Manipulation vs. Interface Agents&nbsp;»</span>. <em>interactions</em> 4 (6): 42‑61. <a href="https://doi.org/10.1145/267505.267514">https://doi.org/10.1145/267505.267514</a>.
+</div>
+<div id="ref-weiser1991" class="csl-entry" role="listitem">
+Weiser, Mark. 1991. <span>«&nbsp;The Computer for the 21st Century&nbsp;»</span>. <em>Scientific American</em> 265 (3): 94‑104.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {L’écran jetable},
+  date = {2026-11-22},
+  url = {https://scuenat.github.io/fr/drafts/the-disposable-screen/},
+  langid = {fr}
+}
+</code></pre><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></div><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Cuenat, Stéphane. 2026. <span>“L’écran jetable.”</span> November 22. <a href="https://scuenat.github.io/fr/drafts/the-disposable-screen/">https://scuenat.github.io/fr/drafts/the-disposable-screen/</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Basculer le mode sombre");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Basculer le mode sombre");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/scuenat\.github\.io");
+      const newWindowLabel = "(opens in a new tab)";
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            describeNewWindow(link);
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Code défilable","output":"Sortie défilable"};
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2026 AI, Honestly · Porrentruy, Swiss Jura · <a href="../../../about.html#reuse">CC BY 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><span class="site-version"><a href="https://github.com/scuenat/scuenat.github.io/commit/c969a077556628b422c983cd4c41a2024e52b1bc" title="Version of this site: the commit it was built from">v2026.11.22 · c969a07</a></span></p>
+</div>
+  </div>
+</footer>
+<script>
+// Language switch: point FR/EN at this page's translation (see lang-links.lua),
+// and on French pages translate the shared navbar labels.
+(function () {
+  var fr = location.pathname.indexOf("/fr/") === 0;
+  var alt = document.querySelector('meta[name="alt-lang-url"]');
+  document.querySelectorAll(".navbar .nav-link").forEach(function (sw) {
+    var t = sw.querySelector(".menu-text");
+    if (!t || t.textContent.trim() !== "FR") return;
+    sw.href = alt ? alt.content : (fr ? "/" : "/fr/");
+    t.textContent = fr ? "EN" : "FR";
+    sw.setAttribute("lang", fr ? "en" : "fr");
+    sw.setAttribute("aria-label", fr ? "Read in English" : "Lire en français");
+  });
+  // A series page (it has the "All series" back link) lights up "Series" in the menu.
+  var inSeries = !!document.querySelector(".series-back");
+  if (inSeries) document.querySelectorAll('.navbar .nav-link[href$="series.html"]').forEach(function (a) { a.classList.add("active"); });
+  if (!fr) return;
+  var labels = { "Essays": ["Essais", "/fr/"], "Series": ["Séries", "/fr/series.html"], "About": ["À propos", "/fr/about.html"], "TEDx": ["TEDx", "/fr/talks.html"], "Follow": ["Suivre"] };
+  document.querySelectorAll(".navbar .nav-link").forEach(function (a) {
+    var t = a.querySelector(".menu-text"), m = t && labels[t.textContent.trim()];
+    if (!m) return;
+    t.textContent = m[0];
+    if (m[1]) {
+      a.href = m[1];
+      var here = location.pathname.replace(/index\.html$/, "");
+      a.classList.toggle("active", here === m[1] || (inSeries && m[1] === "/fr/series.html"));
+    }
+  });
+  document.querySelectorAll(".navbar-brand").forEach(function (a) { a.href = "/fr/"; });
+  document.querySelectorAll('.nav-footer a[href$="about.html#reuse"]').forEach(function (a) { a.href = "/fr/about.html#reuse"; });
+})();
+</script>
+<script src="../../../listen.js" defer=""></script>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
+
+
+
+
+<script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>
