@@ -17,7 +17,180 @@
 <width>144</width>
 </image>
 <generator>quarto-1.11.9</generator>
-<lastBuildDate>Sat, 21 Nov 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 22 Nov 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>L’écran jetable</title>
+  <dc:creator>Stéphane Cuenat</dc:creator>
+  <link>https://scuenat.github.io/fr/posts/2026-11-22-the-disposable-screen/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Essai, novembre 2026.</strong> Un essai court et volontairement provocateur sur les écrans que nous construisons pour les logiciels, et sur la raison pour laquelle ils compteront beaucoup moins qu’aujourd’hui. C’est un pari, pas une prévision chiffrée. Quand j’énonce un fait, je donne la source. Les trois figures sont des dessins de moi, et le code qui les dessine est lié sous chacune. Les figures sont en anglais. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../posts/2026-11-22-the-disposable-screen/index.html">Version originale</a>.</em></p>
+</div>
+</div>
+</div>
+<p><strong>En bref.</strong> Nous passons des mois à concevoir les écrans de nos logiciels, et chaque personne n’en utilise ensuite qu’une petite partie. Cet effort va perdre l’essentiel de sa raison d’être. Un écran existe pour qu’une personne pilote le backend à la main : les fonctions qui font le travail, et les données qu’elles utilisent. Un agent d’IA pilote ces fonctions directement. Pour la plupart des tâches, aucun écran n’est nécessaire. Quand une personne doit voir quelque chose ou décider, l’agent dessine un écran pour ce moment-là. Il montre les faits et le seul bouton dont la décision a besoin, puis on le jette. L’écran générique, défini à l’avance et le même pour tous, cesse d’être le centre du logiciel. L’habitude, la confiance et le besoin d’explorer garderont quelques écrans fixes en vie, mais ce seront des exceptions. Ce qui compte désormais, c’est le backend, bien décrit, et les règles sur ce qu’une personne doit toujours voir.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-22-the-disposable-screen/figures/fig01.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. L’écran était la porte d’entrée du backend. Aujourd’hui, une personne pilote les fonctions du backend à travers des écrans définis à l’avance, les mêmes pour tous. Demain, une personne dit ce qu’elle veut, un agent appelle directement les fonctions, et un écran n’apparaît que lorsque la personne est nécessaire, dessiné pour ce moment-là. Schéma, de moi ; code dans figs.py."><img src="https://scuenat.github.io/posts/2026-11-22-the-disposable-screen/figures/fig01.svg" class="img-fluid figure-img" alt="Un dessin intitulé « The screen was the way in to the backend ». À gauche, sous « Today: a person drives the backend through screens defined in advance », trois cadres sont empilés avec des flèches vers le bas : « a person », puis un grand cadre bleu, « The screen », avec des menus, des pages, des formulaires de quarante champs, les mêmes pour tous, puis « The backend », des fonctions et des données. À droite, sous « Tomorrow: an agent drives the backend and draws a screen only when a person is needed », une personne dit ce qu'elle veut à un cadre ambre, « an agent ». Une flèche épaisse marquée « calls the functions directly » va de l'agent au backend, avec des fonctions et des données décrites pour l'agent. Une flèche ambre en pointillés va de l'agent à un petit croquis d'écran avec un bouton, marqué « a screen for this moment, if needed », puis de là revient vers la personne. Une note en bas dit que le backend reste, et que ce qui change, c'est qui l'atteint, et combien de fois un écran est nécessaire."></a></p>
+<figcaption><strong>Figure 1.</strong> L’écran était la porte d’entrée du backend. Aujourd’hui, une personne pilote les fonctions du backend à travers des écrans définis à l’avance, les mêmes pour tous. Demain, une personne dit ce qu’elle veut, un agent appelle directement les fonctions, et un écran n’apparaît que lorsque la personne est nécessaire, dessiné pour ce moment-là. Schéma, de moi ; code dans <a href="../../../posts/2026-11-22-the-disposable-screen/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<section id="lécran-dont-personne-navait-besoin" class="level2">
+<h2 class="anchored" data-anchor-id="lécran-dont-personne-navait-besoin">1. L’écran dont personne n’avait besoin</h2>
+<p>Aujourd’hui, construire un logiciel, c’est en grande partie construire des écrans. Les équipes organisent des ateliers, dessinent des maquettes, testent avec des utilisateurs et discutent de la place d’un bouton. Le résultat est codé page par page et maintenu pendant des années.</p>
+<p>Puis regardez ce qui se passe. Une personne ouvre l’écran pour changer une adresse. Une autre approuve une facture. Une troisième exporte un rapport une fois par trimestre. Chacune touche quelques champs et un bouton. Le reste est là pour quelqu’un d’autre.</p>
+<p>L’écran est donc un compromis : un seul dessin, défini à l’avance, pour tout le monde et pour toutes les tâches. Pour l’utilisateur moyen, c’est peut-être la meilleure interface. Pour une personne donnée, un jour donné, la plus grande partie ne sert à rien.</p>
+</section>
+<section id="lécran-nétait-que-la-porte-dentrée" class="level2">
+<h2 class="anchored" data-anchor-id="lécran-nétait-que-la-porte-dentrée">2. L’écran n’était que la porte d’entrée</h2>
+<p>Un écran n’est pas le logiciel. C’est une porte d’entrée. Derrière chaque bouton se trouve une fonction du backend : trouver cette facture, vérifier ce fournisseur, envoyer ce paiement. L’écran existe parce que, jusqu’ici, une personne devait piloter ces fonctions à la main, un clic après l’autre.</p>
+<p>C’est en train de finir. En novembre 2024, Anthropic a publié le Model Context Protocol, un standard ouvert qui permet à un agent d’IA de trouver et d’appeler les fonctions d’autres systèmes <span class="citation" data-cites="anthropic2024mcp">(Anthropic 2024b)</span>. Un service décrit ses fonctions sous forme de données : ce que fait chacune, ce dont elle a besoin, ce qu’elle renvoie. J’en ai parlé dans <a href="../../../fr/posts/2026-10-20-the-interface-is-data/index.html">L’interface est une donnée</a>. L’agent lit la description et appelle lui-même les fonctions. Pas de menu, pas de page, pas de formulaire.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-22-the-disposable-screen/figures/fig02.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Une tâche, deux façons. Aujourd’hui, payer la facture d’un fournisseur fait passer une personne par six écrans, chacun défini à l’avance. Demain, l’agent trouve la facture, vérifie le fournisseur et prépare le paiement à travers le backend, sans aucun écran, et ne montre un écran qu’au moment de la décision. Schéma, de moi ; code dans figs.py."><img src="https://scuenat.github.io/posts/2026-11-22-the-disposable-screen/figures/fig02.svg" class="img-fluid figure-img" alt="Un dessin intitulé « One task, two ways: pay a supplier's invoice ». La rangée du haut, en bleu, s'intitule « Today: six screens, each defined in advance, each driven by a person ». Six cadres en forme d'écran sont reliés par des flèches : ouvrir l'application, trouver le menu, chercher la facture, vérifier le fournisseur, remplir le paiement, confirmer. La rangée du bas, en ambre, s'intitule « Tomorrow: the agent does the steps through the backend; one screen, at the decision ». Un cadre avec la demande « Pay this invoice, like last month. » mène à trois points noirs marqués « find invoice », « check supplier », « prepare payment », soulignés par la note « backend calls, no screen ». Une flèche mène ensuite à une seule carte ambre qui montre 1 240,00 pour le fournisseur habituel, avec un bouton « Confirm »."></a></p>
+<figcaption><strong>Figure 2.</strong> Une tâche, deux façons. Aujourd’hui, payer la facture d’un fournisseur fait passer une personne par six écrans, chacun défini à l’avance. Demain, l’agent trouve la facture, vérifie le fournisseur et prépare le paiement à travers le backend, sans aucun écran, et ne montre un écran qu’au moment de la décision. Schéma, de moi ; code dans <a href="../../../posts/2026-11-22-the-disposable-screen/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Jakob Nielsen, qui étudie l’utilisabilité depuis des décennies, a vu venir ce changement en 2023. Il a appelé l’IA la première nouvelle façon d’utiliser un ordinateur depuis soixante ans : vous dites <em>ce que</em> vous voulez, et la machine trouve <em>comment</em> <span class="citation" data-cites="nielsen2023">(Nielsen 2023)</span>. Satya Nadella, le patron de Microsoft, est allé plus loin fin 2024. Pour lui, la plupart des applications de gestion sont des bases de données avec des règles métier par-dessus, et ces règles passent aux agents <span class="citation" data-cites="windowscentral2024nadella">(Windows Central 2024)</span>. Si c’est vrai, ce qui reste d’une application, c’est son backend. Les pages devant lui ont été construites pour des personnes qui pilotaient à la main.</p>
+<p>Même le détour le prouve. En 2024, Anthropic a aussi appris à son modèle à utiliser un ordinateur comme une personne : regarder l’écran, déplacer le curseur, cliquer <span class="citation" data-cites="anthropic2024computeruse">(Anthropic 2024a)</span>. C’est utile quand un système n’a pas d’autre porte d’entrée. Mais c’est un pont, pas une destination. Une fois le backend ouvert, l’agent n’a plus aucune raison de regarder des écrans faits pour des humains.</p>
+</section>
+<section id="un-écran-pour-le-moment" class="level2">
+<h2 class="anchored" data-anchor-id="un-écran-pour-le-moment">3. Un écran pour le moment</h2>
+<p>Une personne a encore besoin de voir un résultat, de choisir entre des options ou de confirmer un paiement. Pour cela, l’agent dessine l’écran lui-même. En 2025, des chercheurs de Google ont montré qu’un modèle de langage peut construire une interface interactive sur mesure pour presque n’importe quelle demande <span class="citation" data-cites="google2025genui">(Google Research 2025)</span>. Les gens ont préféré ces écrans aux réponses texte plus de huit fois sur dix. Ils égalaient les écrans faits par des experts humains dans environ la moitié des cas, même si chacun prenait une minute ou deux à dessiner <span class="citation" data-cites="leviathan2026genui">(<span class="nocase">Leviathan et al.</span> 2026)</span>. La même année, OpenAI a permis à des services de montrer de petites applications interactives dans son assistant de conversation <span class="citation" data-cites="openai2025apps">(OpenAI 2025)</span>. Et le Model Context Protocol a reçu une façon standard, pour un outil, d’envoyer une interface avec sa réponse <span class="citation" data-cites="mcpapps2025">(Model Context Protocol 2025)</span>.</p>
+<p>Voici donc ma thèse, sans précaution. <strong>Pour la plupart des tâches, il n’y aura pas d’écran. Quand il en faut un, il est dessiné pour ce moment-là, puis jeté. L’écran devient jetable.</strong> Et l’écran générique que nous définissons à l’avance cesse d’être une chose qu’il faut construire.</p>
+<p>Beaucoup de choses partent avec lui :</p>
+<ul>
+<li><strong>La navigation.</strong> Les menus, les onglets et les barres latérales existent pour trouver son coin dans un grand écran. Quand l’agent trouve la fonction, il n’y a plus de coin à trouver.</li>
+<li><strong>L’application comme un lieu.</strong> Vous n’irez plus au logiciel. Il viendra à vous, sous la forme d’un petit écran dans ce que vous faites déjà, et repartira quand vous aurez fini.</li>
+<li><strong>Le formulaire général.</strong> Quarante champs, dont vous en remplissez quatre. L’agent connaît les trente-six autres.</li>
+<li><strong>L’automatisation qui clique.</strong> Les robots qui copient des valeurs d’une fenêtre à une autre, parce que deux systèmes ne savent pas se parler, cassent dès qu’un bouton bouge. Un agent qui appelle le backend n’a rien à casser.</li>
+<li><strong>Une page par fonctionnalité.</strong> L’équipe construit la fonction, la décrit bien, et s’arrête là.</li>
+</ul>
+<p>Dans <a href="../../../fr/posts/2026-10-21-intent-is-the-source/index.html">L’intention est la source</a>, j’ai soutenu que pour les programmeurs, l’intention devient la source et le code devient un résultat. C’est le même mouvement pour tous les autres. L’intention est l’entrée, et l’écran est un résultat, quand il y en a un.</p>
+</section>
+<section id="quatre-objections-qui-ne-sauvent-pas-lécran" class="level2">
+<h2 class="anchored" data-anchor-id="quatre-objections-qui-ne-sauvent-pas-lécran">4. Quatre objections qui ne sauvent pas l’écran</h2>
+<p><strong>L’habitude.</strong> Les gens veulent savoir où sont les choses. En 2004, Leah Findlater et Joanna McGrenere ont montré qu’un menu qui ne changeait jamais était plus rapide qu’un menu qui se réorganisait tout seul. La plupart des gens préféraient un menu qu’ils arrangeaient eux-mêmes <span class="citation" data-cites="findlater2004">(Findlater et McGrenere 2004)</span>. C’est vrai, pour ce qu’on fait tous les jours. Là, l’agent dessine l’écran une fois et le garde. Mais la plupart de nos habitudes servent à trouver notre chemin dans la navigation, et c’est justement la navigation qui disparaît. La vraie leçon de l’étude, c’est que les gens veulent un écran fait pour eux et sous leur contrôle. Un écran dessiné pour le moment, c’est exactement cela.</p>
+<p><strong>La confiance.</strong> Une banque ou un hôpital a besoin du même parcours à chaque fois, testé et certifié. C’est l’objection la plus forte, et les parcours réglementés garderont des écrans fixes le plus longtemps. Mais on teste les règles, pas les images. Avant tout paiement, montrer le montant, le destinataire et la date, et demander une confirmation claire. Un programme, pas l’agent, vérifie cette règle sur chaque écran avant qu’il soit montré, comme je l’ai proposé pour les outils dans <a href="../../../fr/posts/2026-10-30-a-grammar-for-tools/index.html">Une grammaire pour les outils</a>. Et l’écran exact qu’une personne a vu peut être enregistré. C’est une meilleure preuve que « c’était la version 4.2 du formulaire ».</p>
+<p><strong>La saisie.</strong> Nous avons quitté la ligne de commande pour de bonnes raisons, et beaucoup de gens ont du mal à mettre en mots ce qu’ils veulent <span class="citation" data-cites="nielsen2023">(Nielsen 2023)</span>. En 1997, Ben Shneiderman défendait la manipulation directe face à Pattie Maes, qui défendait les agents <span class="citation" data-cites="shneiderman1997">(Shneiderman et Maes 1997)</span>. En 2025, Andrej Karpathy a dit que les interfaces graphiques comptent encore, parce qu’elles permettent à une personne de vérifier vite le travail d’une IA <span class="citation" data-cites="karpathy2025">(Karpathy 2025)</span>. D’accord, et ce n’est pas un chat. La demande peut être une phrase ou un clic. Ce qui revient est un vrai écran, fait pour vérifier ce seul résultat. C’est de la manipulation directe, dessinée par un agent : les deux camps de 1997 gagnent.</p>
+<p><strong>Le regard.</strong> Une carte, une toile ou un éditeur de code servent à explorer, pas à finir une tâche. Ces instruments restent ; on ne refait pas un violon pour chaque morceau. Mais même un tableau de bord, comme je l’ai soutenu dans <a href="../../../fr/posts/2026-09-29-show-what-changed/index.html">Montrer ce qui a changé, pas les données</a>, ne devrait montrer que ce qui a changé. Il est différent chaque semaine : c’est un écran jetable.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="../../../posts/2026-11-22-the-disposable-screen/figures/fig03.svg" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Où l’écran fixe survit. En largeur, à quelle fréquence je fais la tâche ; en hauteur, si j’ai besoin de l’écran pour faire quelque chose, ou pour voir et décider. Les tâches rares n’ont besoin d’aucun écran, ou d’un écran bref pour confirmer. Les tâches quotidiennes reçoivent un écran dessiné une fois, puis gardé. Les décisions qui comptent sont dessinées à partir de règles fixes, de la même façon à chaque fois. Les instruments, utilisés chaque jour pour explorer, restent tels quels. Schéma, de moi ; code dans figs.py."><img src="https://scuenat.github.io/posts/2026-11-22-the-disposable-screen/figures/fig03.svg" class="img-fluid figure-img" alt="Un dessin en deux par deux intitulé « Where a fixed screen survives ». L'axe horizontal dit « how often I do it », de « rare » à « every day ». L'axe vertical dit « what I need the screen for », de « to get it done » en bas à « to see, decide » en haut. En bas à gauche, en ambre, « No screen, or a brief one » : l'agent le fait à travers le backend, avec au plus un écran pour confirmer ; un remboursement, un formulaire qu'on remplit une fois par an. En bas à droite, en bleu, « Drawn once, then kept » : une habitude se forme, donc l'écran cesse de changer ; la feuille de temps quotidienne. En haut à gauche, en foncé, « Drawn from fixed rules » : les mêmes faits, montrés de la même façon, avant tout ce qui compte ; un paiement, une signature. En haut à droite, en gris, « Instruments » : une carte, une toile, un éditeur ; gardés, et façonnés à la main pendant des années."></a></p>
+<figcaption><strong>Figure 3.</strong> Où l’écran fixe survit. En largeur, à quelle fréquence je fais la tâche ; en hauteur, si j’ai besoin de l’écran pour faire quelque chose, ou pour voir et décider. Les tâches rares n’ont besoin d’aucun écran, ou d’un écran bref pour confirmer. Les tâches quotidiennes reçoivent un écran dessiné une fois, puis gardé. Les décisions qui comptent sont dessinées à partir de règles fixes, de la même façon à chaque fois. Les instruments, utilisés chaque jour pour explorer, restent tels quels. Schéma, de moi ; code dans <a href="../../../posts/2026-11-22-the-disposable-screen/figs.py">figs.py</a>.</figcaption>
+</figure>
+</div>
+<p>Les objections ne sauvent donc pas l’écran d’aujourd’hui. Elles délimitent un petit territoire où les écrans fixes restent : les routines quotidiennes, les décisions réglementées et les instruments. Partout ailleurs, l’agent travaille à travers le backend.</p>
+</section>
+<section id="où-va-le-travail" class="level2">
+<h2 class="anchored" data-anchor-id="où-va-le-travail">5. Où va le travail</h2>
+<p><strong>Le backend d’abord.</strong> Ses fonctions sont désormais le produit. Elles doivent être assez bien décrites pour qu’un agent les utilise sans danger. Que fait chacune ? De quoi a-t-elle besoin ? Que change-t-elle ? Peut-on la relancer sans risque ?</p>
+<p><strong>Ensuite, les pièces et les règles.</strong> Les pièces sont des boutons, des champs et des graphiques testés, utilisables par tous. Les règles disent ce qui doit toujours être montré : le montant avant un paiement, la dose avant une prescription. Le projet A2UI de Google, ouvert en décembre 2025, fonctionne ainsi <span class="citation" data-cites="google2025a2ui">(Google for Developers 2025)</span>. L’agent envoie une description de l’interface sous forme de données, et l’application la dessine uniquement à partir d’un catalogue de pièces auxquelles elle fait confiance.</p>
+<p><strong>Les designers ne disparaissent pas.</strong> Kate Moran et Sarah Gibbons, du Nielsen Norman Group, appellent cela la conception orientée résultat <span class="citation" data-cites="moran2024genui">(Moran et Gibbons 2024)</span>. Les designers fixent les buts et les limites, et le système compose l’écran. Presque plus personne ne compose les caractères à la main, mais quelqu’un dessine encore chaque police que nous lisons.</p>
+<p>Et il y a là un cadeau. Un écran dessiné pour une personne peut l’être dès le départ pour ses yeux et sa langue, avec du texte plus grand, moins de choix et des mots simples. Cela n’arrivera que si les règles le demandent.</p>
+</section>
+<section id="le-test" class="level2">
+<h2 class="anchored" data-anchor-id="le-test">6. Le test</h2>
+<p>Les prévisions vont dans les deux sens. En 2024, le cabinet d’études Gartner a prédit qu’en 2028 un tiers des logiciels d’entreprise intégreraient des agents d’IA. Un an plus tard, il a prédit que plus de quarante pour cent des projets d’IA agentique seraient abandonnés d’ici fin 2027 <span class="citation" data-cites="gartner2025cancel">(Gartner 2025)</span>. Voici donc mon propre test. Si, dans cinq ans, la plupart du travail commence encore par ouvrir une application, chercher un menu et remplir un formulaire fixe, je me suis trompé. Sinon, le changement aura eu lieu sans bruit. En 1991, l’informaticien Mark Weiser écrivait : « Les technologies les plus profondes sont celles qui disparaissent » <span class="citation" data-cites="weiser1991">(Weiser 1991)</span>. L’écran est le prochain.</p>
+<p>Pour quiconque s’apprête à concevoir un nouvel écran, une seule question. Un agent pourrait-il faire cette tâche à travers le backend, et ne montrer à la personne que ce qu’elle doit voir, au moment où elle doit le voir ? Si oui, ne construisez pas l’écran. Construisez le backend, les pièces et les règles.</p>
+</section>
+<section id="un-plan-sur-une-serviette-en-papier" class="level2">
+<h2 class="anchored" data-anchor-id="un-plan-sur-une-serviette-en-papier">7. Un plan sur une serviette en papier</h2>
+<p>Demandez votre chemin dans un café, et quelqu’un vous dessine un plan sur une serviette : trois rues, une église, une flèche. Ce n’est pas joli, et ce n’est pas à l’échelle. Cela ne montre que votre chemin, et c’est exactement ce qu’il vous faut. Quand vous êtes arrivé, vous la jetez.</p>
+<p>Depuis des décennies, nous imprimons des plans de ville de plus en plus beaux, les mêmes pour tout le monde, et nous demandons à chacun d’y trouver son chemin. La prochaine interface, c’est la serviette. La plupart du temps, quelqu’un vous emmène simplement à destination. Quand vous avez besoin de voir le chemin, on vous le dessine, tout de suite, et on le jette quand vous êtes arrivé.</p>
+<div class="discuss">
+<p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
+<p><strong>Suivre les nouveaux textes.</strong> Abonnez-vous à la <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> sur LinkedIn (en anglais) ou au <a href="../../../fr/index.xml">flux RSS</a>. La page <a href="../../../fr/archive.html">Tous les textes</a> liste les derniers changements.</p>
+</div>
+<div class="read-next">
+<p><strong>À lire ensuite</strong> · <a href="../../../fr/posts/2026-10-20-the-interface-is-data/index.html">L’interface est une donnée</a> Comment MCP et la boucle agentique changent ce que nous appelons une API : la description qu’un agent lit avant d’appeler le backend.</p>
+</div>
+<div class="small">
+<p><em>Les opinions exprimées dans cet essai sont les miennes et ne décrivent aucun produit ni aucun projet de mon employeur.</em></p>
+</div>
+</section>
+<section id="références" class="level2">
+<h2 class="anchored" data-anchor-id="références">Références</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-anthropic2024computeruse" class="csl-entry">
+Anthropic. 2024a. <em>Introducing Computer Use, a New <span>Claude 3.5 Sonnet</span>, and <span>Claude 3.5 Haiku</span></em>. Anthropic. <a href="https://www.anthropic.com/news/3-5-models-and-computer-use">https://www.anthropic.com/news/3-5-models-and-computer-use</a>.
+</div>
+<div id="ref-anthropic2024mcp" class="csl-entry">
+Anthropic. 2024b. <em>Introducing the Model Context Protocol</em>. Anthropic. <a href="https://www.anthropic.com/news/model-context-protocol">https://www.anthropic.com/news/model-context-protocol</a>.
+</div>
+<div id="ref-findlater2004" class="csl-entry">
+Findlater, Leah, et Joanna McGrenere. 2004. <span>«&nbsp;A Comparison of Static, Adaptive, and Adaptable Menus&nbsp;»</span>. <em>Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (CHI ’04)</em>, 89‑96. <a href="https://doi.org/10.1145/985692.985704">https://doi.org/10.1145/985692.985704</a>.
+</div>
+<div id="ref-gartner2025cancel" class="csl-entry">
+Gartner. 2025. <em>Gartner Predicts Over 40% of Agentic <span>AI</span> Projects Will Be Canceled by End of 2027</em>. Gartner press release. <a href="https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027">https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027</a>.
+</div>
+<div id="ref-google2025a2ui" class="csl-entry">
+Google for Developers. 2025. <em>Introducing <span>A2UI</span>: An Open Project for Agent-Driven Interfaces</em>. Google Developers Blog. <a href="https://developers.googleblog.com/introducing-a2ui-an-open-project-for-agent-driven-interfaces/">https://developers.googleblog.com/introducing-a2ui-an-open-project-for-agent-driven-interfaces/</a>.
+</div>
+<div id="ref-google2025genui" class="csl-entry">
+Google Research. 2025. <em>Generative <span>UI</span>: A Rich, Custom, Visual Interactive User Experience for Any Prompt</em>. Google Research blog. <a href="https://research.google/blog/generative-ui-a-rich-custom-visual-interactive-user-experience-for-any-prompt/">https://research.google/blog/generative-ui-a-rich-custom-visual-interactive-user-experience-for-any-prompt/</a>.
+</div>
+<div id="ref-karpathy2025" class="csl-entry">
+Karpathy, Andrej. 2025. <em>Software Is Changing (Again)</em>. Keynote, Y Combinator AI Startup School, San Francisco. <a href="https://www.latent.space/p/s3">https://www.latent.space/p/s3</a>.
+</div>
+<div id="ref-leviathan2026genui" class="csl-entry">
+<span class="nocase">Leviathan, Yaniv, Dani Valevski, Matan Kalman, et al.</span> 2026. <em>Generative <span>UI</span>: <span>LLMs</span> Are Effective <span>UI</span> Generators</em>. arXiv:2604.09577. <a href="https://arxiv.org/abs/2604.09577">https://arxiv.org/abs/2604.09577</a>.
+</div>
+<div id="ref-mcpapps2025" class="csl-entry">
+Model Context Protocol. 2025. <em><span>SEP-1865</span>: <span>MCP</span> Apps, Interactive User Interfaces for <span>MCP</span></em>. Model Context Protocol. <a href="https://modelcontextprotocol.io/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp">https://modelcontextprotocol.io/seps/1865-mcp-apps-interactive-user-interfaces-for-mcp</a>.
+</div>
+<div id="ref-moran2024genui" class="csl-entry">
+Moran, Kate, et Sarah Gibbons. 2024. <em>Generative <span>UI</span> and Outcome-Oriented Design</em>. Nielsen Norman Group. <a href="https://www.nngroup.com/articles/generative-ui/">https://www.nngroup.com/articles/generative-ui/</a>.
+</div>
+<div id="ref-nielsen2023" class="csl-entry">
+Nielsen, Jakob. 2023. <em><span>AI</span> Is First New <span>UI</span> Paradigm in 60 Years</em>. Jakob Nielsen on UX. <a href="https://jakobnielsenphd.substack.com/p/ai-is-first-new-ui-paradigm-in-60">https://jakobnielsenphd.substack.com/p/ai-is-first-new-ui-paradigm-in-60</a>.
+</div>
+<div id="ref-openai2025apps" class="csl-entry">
+OpenAI. 2025. <em>Introducing Apps in <span>ChatGPT</span> and the New <span>Apps SDK</span></em>. OpenAI. <a href="https://openai.com/index/introducing-apps-in-chatgpt/">https://openai.com/index/introducing-apps-in-chatgpt/</a>.
+</div>
+<div id="ref-shneiderman1997" class="csl-entry">
+Shneiderman, Ben, et Pattie Maes. 1997. <span>«&nbsp;Direct Manipulation vs. Interface Agents&nbsp;»</span>. <em>interactions</em> 4 (6): 42‑61. <a href="https://doi.org/10.1145/267505.267514">https://doi.org/10.1145/267505.267514</a>.
+</div>
+<div id="ref-weiser1991" class="csl-entry">
+Weiser, Mark. 1991. <span>«&nbsp;The Computer for the 21st Century&nbsp;»</span>. <em>Scientific American</em> 265 (3): 94‑104.
+</div>
+<div id="ref-windowscentral2024nadella" class="csl-entry">
+Windows Central. 2024. <em>Microsoft <span>CEO</span> <span>Satya Nadella</span> Foresees a Disruptive Agentic <span>AI</span> Era That Could Aggressively Collapse <span>SaaS</span> Apps</em>. Windows Central. <a href="https://www.windowscentral.com/microsoft/hey-why-do-i-need-excel-microsoft-ceo-satya-nadella-foresees-a-disruptive-agentic-ai-era-that-could-aggressively-collapse-saas-apps">https://www.windowscentral.com/microsoft/hey-why-do-i-need-excel-microsoft-ceo-satya-nadella-foresees-a-disruptive-agentic-ai-era-that-could-aggressively-collapse-saas-apps</a>.
+</div>
+</div>
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
+  author = {Cuenat, Stéphane},
+  title = {L’écran jetable},
+  date = {2026-11-22},
+  url = {https://scuenat.github.io/fr/posts/2026-11-22-the-disposable-screen/},
+  langid = {fr}
+}
+</code></pre></div><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
+Cuenat, Stéphane. 2026. <span>“L’écran jetable.”</span> November 22. <a href="https://scuenat.github.io/fr/posts/2026-11-22-the-disposable-screen/">https://scuenat.github.io/fr/posts/2026-11-22-the-disposable-screen/</a>.
+</div></div></section></div> ]]></description>
+  <category>essai</category>
+  <category>ia</category>
+  <category>agents</category>
+  <category>automatisation</category>
+  <category>architecture</category>
+  <guid>https://scuenat.github.io/fr/posts/2026-11-22-the-disposable-screen/</guid>
+  <pubDate>Sun, 22 Nov 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://scuenat.github.io/posts/2026-11-22-the-disposable-screen/figures/fig01.png" medium="image" type="image/png" height="94" width="144"/>
+</item>
 <item>
   <title>Long d’abord, court ensuite</title>
   <dc:creator>Stéphane Cuenat</dc:creator>
@@ -5500,307 +5673,6 @@ Cuenat, Stéphane. 2026. <span>“Là où vit la mémoire.”</span> October 26.
   <guid>https://scuenat.github.io/fr/posts/2026-10-26-where-memory-lives/</guid>
   <pubDate>Mon, 26 Oct 2026 00:00:00 GMT</pubDate>
   <media:content url="https://scuenat.github.io/posts/2026-10-26-where-memory-lives/figures/fig01.png" medium="image" type="image/png" height="65" width="144"/>
-</item>
-<item>
-  <title>Le travail a une masse</title>
-  <dc:creator>Stéphane Cuenat</dc:creator>
-  <link>https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/</link>
-  <description><![CDATA[ 
-
-
-
-
-
-<div class="callout callout-style-simple callout-note">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><strong>Un regard extérieur.</strong> Je connais Scrum par des années de pratique ; SAFe, je ne le connais que par son cadre public, et les praticiens sauront où les vrais trains diffèrent. La physique est une métaphore, utilisée à dessein ; les chiffres viennent d’un modèle jouet décrit en entier. Les figures sont de moi, faites avec le code de <a href="../../../posts/2026-10-24-work-has-mass/figs.py">figs.py</a>, et leurs libellés sont en anglais. Cet essai fait suite à la série <a href="../../../fr/agentic-coding.html">Le codage agentique</a>, qui regardait le code ; ici, je regarde l’organisation autour. <em>Traduit automatiquement de l’anglais ; quelques erreurs sont possibles. <a href="../../../posts/2026-10-24-work-has-mass/index.html">Version originale</a>.</em></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Astuce</span>Trois lois de la masse du travail
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ol type="1">
-<li><strong>Tout ce que vous fabriquez, vous le portez.</strong></li>
-<li><strong>L’IA baisse le coût de fabriquer, pas celui de porter.</strong></li>
-<li><strong>Un processus aussi a une masse.</strong> Dans un univers plus lourd, les cadres doivent s’alléger.</li>
-</ol>
-</div>
-</div>
-<section id="le-mauvais-débat" class="level2">
-<h2 class="anchored" data-anchor-id="le-mauvais-débat">Le mauvais débat</h2>
-<p>Les discussions sur l’IA et les cadres agiles se rangent en deux camps. Le premier dit que l’IA rend Scrum et SAFe obsolètes : si un agent construit une fonctionnalité en un après-midi, pourquoi planifier en sprints de deux semaines, ou en incréments de dix semaines avec cent personnes dans une salle ? Le second dit que rien ne change : l’IA n’est qu’un outil plus rapide dans un bon processus.</p>
-<p>Les deux camps regardent la <em>production</em> : la vitesse à laquelle le travail est fait. Mais les cadres n’ont jamais porté seulement sur la production. Ils portent sur la manière dont un groupe de personnes porte, dans la durée, un ensemble de travail qui grandit, sans en perdre le contrôle. Ce qui devrait les changer n’est pas ce que l’IA fabrique, mais ce qu’elle <em>laisse derrière elle</em>. Et la réponse, je vais le soutenir, n’est pas plus de cadre. C’est moins.</p>
-</section>
-<section id="chaque-élément-a-une-masse" class="level2">
-<h2 class="anchored" data-anchor-id="chaque-élément-a-une-masse">Chaque élément a une masse</h2>
-<p>Chaque élément qui entre dans le système y reste un moment, et certains y restent pour de bon : une story, une pull request, une fonctionnalité, un test, un document, une dépendance, une décision ouverte, un élément de backlog que quelqu’un « traitera plus tard ». Chacun demande de l’attention pour être gardé : quelqu’un doit le comprendre, le maintenir, répondre aux questions qu’il soulève, ou au moins se souvenir qu’il existe.</p>
-<p>J’appelle ce coût permanent la <strong>masse</strong> de l’élément. La masse n’est pas la valeur. Une petite fonctionnalité utilisée par des milliers de personnes peut être légère ; un module généré que personne ne comprend vraiment peut être lourd.</p>
-<p>En relativité générale, la masse courbe l’espace-temps : les objets proches d’une grande masse suivent des trajectoires courbes, et le temps s’écoule plus lentement pour eux. C’est une bonne image de ce que le travail accumulé fait à une équipe :</p>
-<ul>
-<li><strong>Les trajectoires se courbent.</strong> Une nouvelle demande est attirée vers les parties lourdes du système : le module historique, l’intégration dont tout le monde dépend, la décision que personne n’a prise.</li>
-<li><strong>Le temps ralentit près de la masse.</strong> Le même changement prend plus de temps dans un système lourd, parce que chaque étape doit tenir compte de davantage de choses qui existent déjà.</li>
-<li><strong>Il y a un horizon.</strong> Si la masse continue de croître, toute l’attention de l’équipe finit par porter ce qui existe. Les demandes entrent toujours. Rien ne sort.</li>
-</ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig01.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Figure 1. Schéma. Les éléments enfoncent la surface sur laquelle le travail se déplace. À gauche, le système léger pour lequel les cadres ont été calibrés : un léger creux, et une demande (en ambre, un point par sprint) qui le traverse presque en ligne droite. À droite, le même système après que l’IA a multiplié ce que l’équipe produit : un puits profond, et dans les mêmes neuf sprints la demande parcourt moins de chemin et s’enfonce vers le centre."><img src="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig01.png" class="img-fluid figure-img" alt="Deux surfaces en fil de fer vues en perspective. À gauche, un système léger, un léger creux : une grille presque plate avec une masse sombre qui forme un petit creux et deux petits cercles ; un chemin ambre en pointillés de neuf points régulièrement espacés la traverse presque en ligne droite. À droite, un système lourd, un puits profond : la grille s'enfonce en un entonnoir profond autour d'une grande masse sombre au fond, avec une trentaine de cercles sur ses pentes ; le chemin ambre de neuf points part du bord gauche, les points se rapprochent et le chemin descend dans le puits."></a></p>
-<figcaption><strong>Figure 1.</strong> Schéma. Les éléments enfoncent la surface sur laquelle le travail se déplace. À gauche, le système léger pour lequel les cadres ont été calibrés : un léger creux, et une demande (en ambre, un point par sprint) qui le traverse presque en ligne droite. À droite, le même système après que l’IA a multiplié ce que l’équipe produit : un puits profond, et dans les mêmes neuf sprints la demande parcourt moins de chemin et s’enfonce vers le centre.</figcaption>
-</figure>
-</div>
-<p>Rien de tout cela n’est nouveau. Lehman l’a énoncé comme une loi de l’évolution du logiciel : la complexité augmente, sauf si l’on travaille à la réduire <span class="citation" data-cites="lehman1980">(Lehman 1980)</span>. Le Lean appelle le travail inachevé un stock <span class="citation" data-cites="reinertsen2009">(Reinertsen 2009)</span>. Brooks a montré que les chemins de communication croissent plus vite que l’effectif <span class="citation" data-cites="brooks1975">(Brooks 1975)</span>. Ce qui est nouveau, c’est le rythme.</p>
-</section>
-<section id="ce-que-lia-change-le-coût-de-créer-de-la-masse" class="level2">
-<h2 class="anchored" data-anchor-id="ce-que-lia-change-le-coût-de-créer-de-la-masse">Ce que l’IA change : le coût de créer de la masse</h2>
-<p>L’IA rend <em>produire</em> un élément beaucoup moins cher. Elle ne rend pas, ou pas encore, le <em>porter</em> beaucoup moins cher. Quelqu’un doit toujours décider si une fonctionnalité doit exister, comprendre comment elle s’insère, en répondre quand elle casse, et se souvenir pourquoi elle a été construite. Sous forme de bilan :</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cfrac%7BdM%7D%7Bdt%7D%20=%20%5Ctext%7Bproduction%7D%20-%20%5Ctext%7Bretrait%7D,%20%5Cqquad%20%5Ctext%7Bcapacit%C3%A9%20pour%20du%20travail%20nouveau%7D%20=%20H%20-%20k%20%5Ccdot%20M,%0A"></p>
-<p>où <img src="https://latex.codecogs.com/png.latex?M"> est la masse du système, <img src="https://latex.codecogs.com/png.latex?H"> l’attention totale de l’équipe et <img src="https://latex.codecogs.com/png.latex?k"> l’attention qu’une unité de masse demande. La production est devenue bon marché ; le retrait n’a presque jamais été planifié. Donc <img src="https://latex.codecogs.com/png.latex?M"> croît plus vite, et <img src="https://latex.codecogs.com/png.latex?H%20-%20kM"> diminue plus vite.</p>
-<p>Le plus petit modèle que j’ai pu construire : une équipe dispose de 100 heures d’attention par sprint. Le système commence avec 250 éléments qui demandent chacun 0,1 heure, si bien qu’un quart de l’équipe porte déjà le passé. Un nouvel élément demande 6 heures pour être produit à la main ou 1,5 heure avec l’IA, plus 3 heures pour être absorbé (relire, décider, intégrer). Ce qui reste après le portage va à de nouveaux éléments, et chaque nouvel élément reste. Ces hypothèses font l’essentiel du travail ; j’y reviens dans les objections.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig02.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Figure 2. Modèle jouet, une année de sprints de deux semaines. À gauche : les éléments dans le système. À droite : les nouveaux éléments livrés par sprint. Avec l’IA, l’équipe commence au double du rythme manuel, mais la masse qu’elle ajoute mange sa capacité. Avec un budget de masse (le portage plafonné à 35 % de l’attention), le rythme tient. Les paramètres sont dans le texte et dans figs.py."><img src="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig02.png" class="img-fluid figure-img" alt="Deux graphiques en lignes sur 26 sprints. À gauche, la masse : à la main, elle passe de 250 à environ 440 éléments ; avec l'IA, à environ 580 ; avec l'IA et un budget de masse, à environ 350 au sprint 6, puis reste stable. Une ligne rouge pointillée à 1000 marque l'horizon. À droite, le flux : à la main, il baisse de 8,3 à 6,3 éléments par sprint ; avec l'IA, de 16,7 à 9,5, avec la mention moins 43 % après un an ; avec l'IA et un budget de masse, de 16,7 à environ 13 au sprint 8, puis reste stable."></a></p>
-<figcaption><strong>Figure 2.</strong> Modèle jouet, une année de sprints de deux semaines. À gauche : les éléments dans le système. À droite : les nouveaux éléments livrés par sprint. Avec l’IA, l’équipe commence au double du rythme manuel, mais la masse qu’elle ajoute mange sa capacité. Avec un budget de masse (le portage plafonné à 35 % de l’attention), le rythme tient. Les paramètres sont dans le texte et dans figs.py.</figcaption>
-</figure>
-</div>
-<ul>
-<li><strong>À la main</strong>, l’équipe livre 8,3 éléments au premier sprint et 6,3 au dernier ; le portage passe de 25 % à 44 % de son attention.</li>
-<li><strong>Avec l’IA</strong>, elle livre 16,7 éléments au premier sprint, et tous les tableaux de bord sont superbes. À la fin de l’année, elle en livre 9,5, avec 58 % de son attention consacrée au portage. La deuxième année, le gain a presque disparu : 5,3 éléments par sprint contre 4,7 à la main.</li>
-<li><strong>Avec l’IA et un budget de masse</strong>, dès que le portage dépasserait 35 % de l’attention, l’équipe retire des éléments (supprime du code, retire des fonctionnalités, ferme des éléments de backlog) avant d’en ajouter. Elle livre 13 éléments par sprint, la première année comme la deuxième.</li>
-</ul>
-<p>Sur la première année, le budget rapporte peu : 356 éléments contre 332, environ 7 % de plus. Ce qui diffère, c’est la situation de chaque équipe à la fin : l’une livre 13 éléments par sprint avec un tiers de son attention sur le passé, l’autre 9,5 et en baisse, avec près de 60 % sur le passé. L’IA ne change pas la <em>forme</em> du problème, seulement sa <em>vitesse</em>. Un système qui mettait dix ans à devenir lourd peut maintenant le devenir en un an, et nos cadres ont été réglés, implicitement, pour la décennie.</p>
-</section>
-<section id="la-dilatation-du-temps" class="level2">
-<h2 class="anchored" data-anchor-id="la-dilatation-du-temps">La dilatation du temps</h2>
-<p>Le délai de livraison dépend de la capacité disponible. La théorie des files d’attente sait depuis soixante ans que, lorsque la charge approche de la capacité, l’attente ne croît pas régulièrement : elle explose <span class="citation" data-cites="kingman1961 little1961">(Kingman 1961; Little 1961)</span>. La masse mange la capacité disponible. La figure 3 ajoute une hypothèse au modèle : les demandes arrivent à un rythme régulier qui mobilise 35 % de l’équipe.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig03.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Figure 3. Modèle jouet. Délai de livraison d’une nouvelle demande selon la part de l’attention consacrée à porter la masse existante. À la main, après un an, les délais doublent presque ; avec l’IA et sans budget, ils sont presque six fois plus longs."><img src="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig03.png" class="img-fluid figure-img" alt="Une courbe qui monte lentement, puis fortement. Abscisse : part de l'attention consacrée à porter la masse existante, de 0 à 80 %. Ordonnée : délai comparé à aujourd'hui, de 0 à 6 fois. Points : aujourd'hui à 25 %, 1 fois ; avec un budget de masse à 35 %, environ 1,3 fois ; à la main après un an à 44 %, environ 1,9 fois ; avec l'IA après un an à 58 %, environ 5,9 fois. Une ligne rouge pointillée à 65 % marque l'horizon."></a></p>
-<figcaption><strong>Figure 3.</strong> Modèle jouet. Délai de livraison d’une nouvelle demande selon la part de l’attention consacrée à porter la masse existante. À la main, après un an, les délais doublent presque ; avec l’IA et sans budget, ils sont presque six fois plus longs.</figcaption>
-</figure>
-</div>
-<p>Cela concorde avec ce que rapportent les équipes : <em>nous produisons plus que jamais, et tout prend plus de temps</em>. En 2024, DORA a associé une adoption plus forte de l’IA à un débit de livraison légèrement plus faible (environ 1,5 %) et à une stabilité plus faible (environ 7,2 %) <span class="citation" data-cites="dora2024">(DORA, Google Cloud 2024)</span>. En 2025, le débit est devenu positif mais la stabilité est restée négative, et l’explication des auteurs est proche de celle de cet essai : le volume de changements dépasse les contrôles en aval, et les équipes dans des systèmes fortement couplés en tirent peu ou pas de bénéfice <span class="citation" data-cites="dora2025">(DORA, Google Cloud 2025)</span>. Des développeurs expérimentés se sont même révélés plus lents avec les outils du début de 2025, dans leurs propres dépôts, grands et matures <span class="citation" data-cites="becker2025">(Becker et al. 2025)</span>. Aucune de ces études n’a mesuré la masse, mais toutes vont dans le même sens : le gain d’une fabrication plus rapide est le plus faible là où il y a le plus à porter.</p>
-</section>
-<section id="mesurer-la-masse" class="level2">
-<h2 class="anchored" data-anchor-id="mesurer-la-masse">Mesurer la masse</h2>
-<p>La masse n’a pas besoin d’être précise pour être vue. Deux chiffres suffisent pour commencer.</p>
-<ul>
-<li><strong>La part de portage.</strong> Étiquetez chaque ticket, ou chaque heure, comme <em>nouveau</em> ou <em>portage</em>. Le portage, c’est tout ce qui est consacré à ce qui existe déjà : support, incidents, mises à jour, questions, relectures de changements qui y touchent. C’est l’abscisse de la figure 3.</li>
-<li><strong>Les éléments les plus lourds.</strong> Une fois par trimestre, attribuez les heures de portage aux éléments qui les ont causées et dressez la liste des dix premiers. La masse est très inégale ; quelques services, intégrations ou décisions ouvertes en portent généralement l’essentiel. C’est par cette liste que commence le retrait.</li>
-</ul>
-</section>
-<section id="un-cadre-aussi-a-une-masse" class="level2">
-<h2 class="anchored" data-anchor-id="un-cadre-aussi-a-une-masse">Un cadre aussi a une masse</h2>
-<p>La troisième loi est celle que je trouve la plus importante. Chaque événement, rôle, artefact, indicateur et outil d’un cadre est un élément du système, et coûte de l’attention à chaque sprint, qu’il aide ou non. Les cadres grandissent par ajout, et presque rien n’est jamais retiré. Quand l’IA alourdit le travail, un processus plus lourd est la dernière chose dont le système a besoin. J’appliquerais donc un seul test à chaque élément de Scrum et de SAFe :</p>
-<blockquote class="blockquote">
-<p><strong>Le test de masse.</strong> Cet élément retire-t-il ou évite-t-il plus de masse qu’il n’en ajoute ?</p>
-</blockquote>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig04.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Figure 4. Le test de masse : mon jugement, à discuter. Chaque élément de Scrum (cercles) et de SAFe (carrés) est placé selon l’attention qu’il coûte à chaque sprint et la masse qu’il retire ou évite. Au-dessus de la ligne, on le garde ; en dessous, on l’allège ou on le coupe. La flèche montre le passage, décidé par SAFe lui-même, d’un PI Planning de deux jours à un PI Outcome Planning d’une journée. Les positions dépendent de l’équipe ; le test, non."><img src="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig04.png" class="img-fluid figure-img" alt="Un nuage de points coupé par une diagonale. Abscisse : la masse ajoutée, l'attention coûtée à chaque sprint. Ordonnée : la masse retirée ou évitée. Zone en haut à gauche, en vert : garder, retire plus de masse qu'il n'en ajoute. On y trouve l'itération IP utilisée pour le retrait, la Definition of Done, le Sprint Goal, la Sprint Review, la System Demo et la rétrospective. Le Daily Scrum est sur la ligne. Zone en bas à droite : alléger ou couper, ajoute plus qu'il ne retire. On y trouve le WSJF sur chaque fonctionnalité, les réunions de synchronisation d'un grand train, les couches au-dessus du train, le PI Planning avec tout le train pendant deux jours, avec une flèche pointillée marquée slim it qui monte vers le PI Outcome Planning d'une journée, la version AI-Native de SAFe, dans la zone à garder ; l'affinage d'un long backlog, et les story points et la vélocité comme ajouts."></a></p>
-<figcaption><strong>Figure 4.</strong> Le test de masse : mon jugement, à discuter. Chaque élément de Scrum (cercles) et de SAFe (carrés) est placé selon l’attention qu’il coûte à chaque sprint et la masse qu’il retire ou évite. Au-dessus de la ligne, on le garde ; en dessous, on l’allège ou on le coupe. La flèche montre le passage, décidé par SAFe lui-même, d’un PI Planning de deux jours à un PI Outcome Planning d’une journée. Les positions dépendent de l’équipe ; le test, non.</figcaption>
-</figure>
-</div>
-<p>Mes placements comptent moins que le motif. <strong>Les parties qui disent non passent. Les parties qui comptent échouent.</strong> Un Sprint Goal, une Definition of Done, une revue, une itération réservée au retrait : chacun décide de ce qu’il ne faut <em>pas</em> porter, et coûte peu. Estimer chaque élément, affiner un long backlog, synchroniser un grand train : chacun gère une quantité de travail, et la quantité est exactement ce que l’IA a rendu bon marché. Certains éléments sont entre les deux et peuvent être allégés plutôt que coupés. Le PI Planning est le cas le plus clair, et SAFe le fait déjà évoluer : ses recommandations AI-Native remplacent l’événement de deux jours par un PI Outcome Planning d’une journée, et fondent la System Demo et l’Inspect and Adapt dans un événement de deux heures à chaque itération <span class="citation" data-cites="safeai2026">(Scaled Agile, Inc. 2026)</span>. Appliqué honnêtement, le test ne rejette aucun des deux cadres. Il les réduit tous deux à leur noyau.</p>
-</section>
-<section id="scrum-plus-léger-pas-plus-lâche" class="level2">
-<h2 class="anchored" data-anchor-id="scrum-plus-léger-pas-plus-lâche">Scrum : plus léger, pas plus lâche</h2>
-<p>Le Scrum Guide est déjà court : empirisme et pensée lean, une équipe de dix personnes au plus, une durée fixe d’un mois au plus, cinq événements et trois engagements, le Product Goal, le Sprint Goal et la Definition of Done <span class="citation" data-cites="scrumguide2020">(Schwaber et Sutherland 2020)</span>. Il ne dit rien des story points ni de la vélocité ; ce sont des ajouts courants, et l’essentiel de ce qui alourdit Scrum en pratique se trouve dans les ajouts.</p>
-<table class="caption-top table">
-<caption><strong>Tableau 1.</strong> Scrum, relu avec la masse en tête. La colonne du milieu est ma lecture du Scrum Guide et de la pratique courante ; la colonne de droite est ma proposition.</caption>
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Élément</th>
-<th>Calibré pour</th>
-<th>Dans un univers plus lourd</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Sprint</strong></td>
-<td>Un rythme pour produire un incrément utilisable</td>
-<td>Un rythme pour l’<em>absorber</em> : décider, intégrer, comprendre.</td>
-</tr>
-<tr class="even">
-<td><strong>Sprint Goal</strong></td>
-<td>La concentration pendant le sprint</td>
-<td>À garder. La façon la moins chère de dire non.</td>
-</tr>
-<tr class="odd">
-<td><strong>Definition of Done</strong></td>
-<td>La qualité qu’un incrément doit atteindre</td>
-<td>À garder, en ajoutant : ce qu’il coûte à porter, ce qui a été retiré pour lui faire de la place.</td>
-</tr>
-<tr class="even">
-<td><strong>Product Backlog</strong></td>
-<td>Une liste ordonnée, affinée au besoin</td>
-<td>Courte, avec des éléments qui <em>expirent</em>. L’IA peut la remplir sans limite.</td>
-</tr>
-<tr class="odd">
-<td><strong>Sprint Review</strong></td>
-<td>Inspecter l’incrément</td>
-<td>Inspecter l’incrément <em>et le registre de masse</em> (figure 6).</td>
-</tr>
-<tr class="even">
-<td><strong>Daily Scrum</strong></td>
-<td>Une inspection quotidienne vers l’objectif</td>
-<td>Le garder court, ou asynchrone pour une petite équipe.</td>
-</tr>
-<tr class="odd">
-<td><strong>Story points, vélocité</strong> <em>(ajouts, absents du Guide)</em></td>
-<td>Ce que l’équipe peut fabriquer</td>
-<td>À abandonner. Avec l’IA, ils mesurent la masse ajoutée. Utiliser le délai et la part de portage.</td>
-</tr>
-<tr class="even">
-<td><strong>Taille de l’équipe</strong></td>
-<td>Dix au plus, pour garder une communication gérable</td>
-<td>La limite est la masse que chaque personne porte. Cinq personnes avec l’IA peuvent porter la masse de vingt.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Le backlog a besoin d’évaporation.</strong> Quand écrire un élément de backlog demandait de l’effort, l’effort servait de filtre. Aujourd’hui, une IA peut transformer chaque réunion en dix stories bien écrites, et chaque story est une promesse qui a une masse. Sans activité pendant trois sprints, un élément expire, sauf si quelqu’un le renouvelle. Les trous noirs s’évaporent lentement. Les backlogs devraient en faire autant.</p>
-<p>Ce qui reste, c’est Scrum dans son noyau : un objectif, un standard, une liste courte, un rythme d’inspection et un registre de ce que l’équipe porte. Moins de cadre que ce que la plupart des équipes font tourner aujourd’hui, pas plus.</p>
-</section>
-<section id="safe-des-trains-plus-petits-moins-de-couches" class="level2">
-<h2 class="anchored" data-anchor-id="safe-des-trains-plus-petits-moins-de-couches">SAFe : des trains plus petits, moins de couches</h2>
-<p>La structure centrale de SAFe est l’Agile Release Train (ART), une équipe d’équipes agiles durable, généralement de 50 à 125 personnes <span class="citation" data-cites="safe6">(Scaled Agile, Inc. 2023)</span>, qui planifie ensemble toutes les 8 à 12 semaines <span class="citation" data-cites="safepi">(Scaled Agile, Inc., s.&nbsp;d.-b)</span>. Le travail est classé par Weighted Shortest Job First (WSJF) : le coût du retard divisé par la taille du travail, une idée issue du flux de développement produit <span class="citation" data-cites="reinertsen2009">(Reinertsen 2009)</span>.</p>
-<p>SAFe sait déjà que le travail existant pèse. À chaque fin d’intervalle, les trains conviennent d’une <em>allocation de capacité</em> : la part de capacité consacrée aux nouvelles fonctionnalités face aux enablers, à la dette technique et à la maintenance <span class="citation" data-cites="safebacklog">(Scaled Agile, Inc., s.&nbsp;d.-a)</span>. C’est proche d’un budget de masse, et les trains qui l’utilisent bien ont de l’avance. La différence tient à ce qui est limité. Une allocation de capacité plafonne l’effort consacré à l’existant ; un budget de masse plafonne l’existant lui-même, et oblige à retirer quand il grossit.</p>
-<section id="le-wsjf-ne-départage-plus" class="level3">
-<h3 class="anchored" data-anchor-id="le-wsjf-ne-départage-plus">Le WSJF ne départage plus</h3>
-<p>Avec l’IA, les tailles de travail diminuent, mais de façon inégale : les petites fonctionnalités atteignent un plancher, les complexes diminuent moins. Le dénominateur perd son étendue, et le classement se réduit au seul coût du retard. Et la taille du travail n’a jamais mesuré ce qu’une fonctionnalité coûte à <em>porter</em>, qui en est maintenant la plus grande part.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig05.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Figure 5. Illustratif, huit fonctionnalités inventées, classées par WSJF classique à la main, WSJF classique avec l’IA, et WSJF avec coût de portage. Avec l’IA, l’écart entre le meilleur et le moins bon score passe de 3,8× à 2,2×, et deux fonctionnalités sont ex æquo en tête. Le coût de portage rétablit un écart de 6,8× et fait descendre les fonctionnalités dont le coût vient après la livraison, comme un assistant conversationnel."><img src="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig05.png" class="img-fluid figure-img" alt="Un graphique de pente avec trois colonnes de huit fonctionnalités. WSJF classique à la main, de haut en bas : Export to PDF 3,0, Checkout redesign 2,2, Faster search 1,6, New partner API 1,6, Admin dashboard 1,6, Chat assistant 1,2, Fraud rules v2 1,0, Second mobile app 0,8 ; écart 3,8 fois. WSJF classique avec l'IA : Checkout redesign 9,0, Export to PDF 9,0, Admin dashboard 8,0, Chat assistant 7,5, New partner API 7,0, Faster search 6,5, Second mobile app 5,3, Fraud rules v2 4,0 ; écart 2,2 fois. WSJF avec coût de portage : Export to PDF 4,5, Checkout redesign 3,6, Faster search 3,2, Fraud rules v2 1,5, Admin dashboard 1,3, New partner API 1,3, Chat assistant 1,0, Second mobile app 0,7 ; écart 6,8 fois. Faster search, Fraud rules v2 et Chat assistant sont mis en évidence parce que leur rang bouge d'au moins trois places entre les deux dernières colonnes."></a></p>
-<figcaption><strong>Figure 5.</strong> Illustratif, huit fonctionnalités inventées, classées par WSJF classique à la main, WSJF classique avec l’IA, et WSJF avec coût de portage. Avec l’IA, l’écart entre le meilleur et le moins bon score passe de 3,8× à 2,2×, et deux fonctionnalités sont ex æquo en tête. Le coût de portage rétablit un écart de 6,8× et fait descendre les fonctionnalités dont le coût vient après la livraison, comme un assistant conversationnel.</figcaption>
-</figure>
-</div>
-<p>La correction est petite : ajouter le coût de portage au dénominateur,</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7BWSJF%7D_%7B%5Ctext%7Bmasse%7D%7D%20=%20%5Cfrac%7B%5Ctext%7Bco%C3%BBt%20du%20retard%7D%7D%7B%5Ctext%7Btaille%20du%20travail%7D%20+%20%5Ctext%7Bco%C3%BBt%20de%20portage%7D%7D,%0A"></p>
-<p>où le coût de portage est une estimation relative de l’attention que la fonctionnalité demandera pendant sa première année. Un assistant conversationnel est rapide à construire et lent à porter : il descend. Une recherche plus rapide n’ajoute presque rien à porter : elle monte. Et il suffit de noter le haut du backlog : classer des fonctionnalités qui ne seront jamais construites est en soi de la masse.</p>
-</section>
-<section id="des-trains-plus-petits-moins-de-couches" class="level3">
-<h3 class="anchored" data-anchor-id="des-trains-plus-petits-moins-de-couches">Des trains plus petits, moins de couches</h3>
-<p>De 50 à 125 personnes, c’est une limite de coordination, apprise d’équipes qui produisaient à vitesse humaine. Mais un train ne coordonne pas des personnes ; il coordonne ce qu’elles produisent et doivent garder cohérent : interfaces, dépendances, données partagées, décisions partagées. Si chaque personne ajoute trois fois plus de masse, un train atteint cette limite à environ un tiers de sa taille.</p>
-<p>La réponse tentante est plus de structure. Le test de masse indique l’inverse. Découpez les trains selon la masse, bien avant 125 personnes, pour que chacun porte moins. Des trains plus petits ont besoin de moins de réunions de synchronisation et de moins de rôles de coordination, et peut-être de moins de la structure au-dessus d’eux. La planification rétrécit avec eux : chaque équipe apporte un <strong>budget de masse</strong> à côté de sa capacité, le tableau ne montre que les dépendances qui traversent les équipes, et l’itération Innovation and Planning devient le lieu du retrait. SAFe avec l’IA devrait ressembler moins à un SAFe plus gros qu’à quelques trains petits et légers, chacun avec un budget clair de ce qu’il a le droit de porter.</p>
-</section>
-</section>
-<section id="ce-que-je-ferais-concrètement" class="level2">
-<h2 class="anchored" data-anchor-id="ce-que-je-ferais-concrètement">Ce que je ferais concrètement</h2>
-<ol type="1">
-<li><strong>Mesurer la part de portage</strong> et dresser la liste des dix éléments les plus lourds.</li>
-<li><strong>Fixer un budget de masse,</strong> et traiter son dépassement comme un build rouge : arrêter d’ajouter, commencer à retirer.</li>
-<li><strong>Faire du retrait un livrable,</strong> montré à la Sprint Review et à la System Demo à côté de ce qui a été ajouté.</li>
-<li><strong>Laisser les éléments expirer :</strong> éléments de backlog, questions ouvertes, documents générés.</li>
-<li><strong>Intégrer la masse dans la priorité :</strong> WSJF avec coût de portage, pour le haut du backlog seulement.</li>
-<li><strong>Dimensionner les équipes et les trains selon la masse,</strong> pas selon l’effectif.</li>
-<li><strong>Soumettre le cadre au test de masse,</strong> ces sept propositions comprises.</li>
-</ol>
-<p>Ce dernier point compte, car ce sont de nouvelles pratiques, et un essai contre la masse des cadres ne devrait pas en ajouter en douce. Chacune remplace quelque chose de plus lourd. La part de portage et le délai remplacent les story points et la vélocité. L’expiration remplace l’affinage d’un long backlog. Le registre remplace un rapport d’avancement, et n’est qu’un graphique dans une revue qui existe déjà. Le budget de masse est un chiffre dans un événement de planification qui existe déjà, pas un nouvel événement. Si l’une d’elles ne retire pas plus qu’elle n’ajoute dans votre équipe, abandonnez-la.</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><a href="../../../posts/2026-10-24-work-has-mass/figures/fig06.png" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Figure 6. Illustratif. Un registre de masse pour un sprint, en heures de portage par sprint : 51 ajoutées, 44 retirées, solde +7. C’est le graphique que je montrerais à chaque Sprint Review, à côté de l’incrément."><img src="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig06.png" class="img-fluid figure-img" alt="Un graphique en cascade. Début de sprint 312. Ajouts, en ambre : stories terminées +14, code et tests générés +22, nouveaux documents et spécifications +6, décisions ouvertes +9. Retraits, en vert : code supprimé -18, fonctionnalités retirées -11, éléments de backlog expirés -15. Fin de sprint 319, solde +7."></a></p>
-<figcaption><strong>Figure 6.</strong> Illustratif. Un registre de masse pour un sprint, en heures de portage par sprint : 51 ajoutées, 44 retirées, solde +7. C’est le graphique que je montrerais à chaque Sprint Review, à côté de l’incrément.</figcaption>
-</figure>
-</div>
-</section>
-<section id="objections" class="level2">
-<h2 class="anchored" data-anchor-id="objections">Objections</h2>
-<p><strong>« C’est de la dette technique, ou du stock au sens du Lean, sous un nouveau nom. »</strong> En partie. Mais une fonctionnalité bien construite et utilisée n’est ni une dette ni un stock, et elle doit pourtant être portée. Le stock du Lean, c’est surtout du travail inachevé ; la masse qui croît le plus vite avec l’IA, c’est du travail <em>achevé</em>. Le Lean dit aussi de piloter un système à sa contrainte <span class="citation" data-cites="goldratt1984">(Goldratt et Cox 1984)</span>, et la contrainte s’est déplacée de la fabrication vers le portage.</p>
-<p><strong>« L’IA portera aussi la masse. »</strong> En partie, oui : les agents lisent déjà le code et résument les documents, ce qui fait baisser <img src="https://latex.codecogs.com/png.latex?k">. Si <img src="https://latex.codecogs.com/png.latex?k"> baisse aussi vite que les coûts de production, cet essai a tort. J’en doute, parce que la masse qui compte le plus a besoin d’une personne : répondre d’une fonctionnalité, décider de la garder ou de la supprimer, le client qui en dépend.</p>
-<p><strong>« Personne n’est promu pour avoir supprimé quelque chose. »</strong> C’est vrai, et c’est la raison la plus sérieuse pour laquelle un budget de masse pourrait échouer. Les organisations récompensent ce qui est ajouté. C’est pourquoi le retrait doit être montré et compté lors des mêmes événements que la livraison, et pourquoi le registre a deux colonnes. Ce qui n’est pas vu n’est pas récompensé.</p>
-<p><strong>« Le modèle est trop simple. »</strong> Il l’est : une équipe, des paramètres constants, des éléments qui ne s’allègent jamais, et une IA qui baisse le coût de fabriquer mais pas celui de porter. Le modèle montre la conséquence de ces hypothèses, pas leur vérité. Si un meilleur modèle montre que la masse se stabilise d’elle-même, j’aimerais le voir.</p>
-<p><strong>« La physique n’est que décorative. »</strong> Peut-être. Mais les métaphores choisissent ce que nous regardons. La <em>vélocité</em> a fait regarder la vitesse aux équipes. La <em>masse</em> leur ferait regarder ce que la vitesse laisse derrière elle.</p>
-</section>
-<section id="conclusion" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>Scrum et SAFe n’ont pas tort. L’empirisme, les boucles de retour courtes, les petites équipes, la cadence partagée et la priorisation économique sont aussi utiles avec l’IA que sans elle. Mais les deux ont été calibrés dans un univers où produire le travail était la partie difficile, et où la masse croissait assez lentement pour devenir plus tard le problème de quelqu’un d’autre.</p>
-<p>L’IA a changé le rythme auquel nous créons de la masse, pas encore celui auquel nous la portons. Le réflexe sera d’ajouter : plus de cérémonies pour contrôler plus de production, plus de rôles pour coordonner plus d’équipes, plus de couches pour planifier plus de travail. Cela ajoute de la masse à un système qui tombe déjà dans son propre puits. La meilleure réponse est l’inverse : mesurer la masse, la budgéter, lui donner un prix, la retirer aussi délibérément que nous ajoutons, puis mettre les cadres eux-mêmes sur la balance.</p>
-<p><strong>Tout ce que vous fabriquez, vous le portez. Dans un univers plus lourd, commencez par porter moins de cadre.</strong></p>
-
-
-<div class="discuss">
-<p><strong>Des questions ou des objections ?</strong> Répondez sous l’<a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">édition de la newsletter</a> sur LinkedIn (en anglais), ou <a href="https://www.linkedin.com/in/st%C3%A9phane-cuenat-87116b5/">envoyez-moi un message</a>. Les bonnes questions deviennent souvent l’essai suivant.</p>
-<p><strong>Suivre les nouveaux textes.</strong> Abonnez-vous à la <a href="https://www.linkedin.com/newsletters/ai-honestly-7484605558868844544">newsletter</a> sur LinkedIn (en anglais) ou au <a href="../../../fr/index.xml">flux RSS</a>. La page <a href="../../../fr/archive.html">Tous les textes</a> liste les derniers changements.</p>
-</div>
-
-</section>
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">Les références</h2><div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-becker2025" class="csl-entry">
-Becker, Joel, Nate Rush, Elizabeth Barnes, et David Rein. 2025. <span>«&nbsp;Measuring the Impact of Early-2025 <span>AI</span> on Experienced Open-Source Developer Productivity&nbsp;»</span>. <em>arXiv preprint arXiv:2507.09089</em>. <a href="https://arxiv.org/abs/2507.09089">https://arxiv.org/abs/2507.09089</a>.
-</div>
-<div id="ref-brooks1975" class="csl-entry">
-Brooks, Frederick P. 1975. <em>The Mythical Man-Month: Essays on Software Engineering</em>. Addison-Wesley.
-</div>
-<div id="ref-dora2024" class="csl-entry">
-DORA, Google Cloud. 2024. <em>Accelerate State of <span>DevOps</span> Report 2024</em>. <a href="https://dora.dev/research/2024/dora-report/">https://dora.dev/research/2024/dora-report/</a>.
-</div>
-<div id="ref-dora2025" class="csl-entry">
-DORA, Google Cloud. 2025. <em>State of <span>AI</span>-assisted Software Development 2025</em>. <a href="https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report">https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report</a>.
-</div>
-<div id="ref-goldratt1984" class="csl-entry">
-Goldratt, Eliyahu M., et Jeff Cox. 1984. <em>The Goal: A Process of Ongoing Improvement</em>. North River Press.
-</div>
-<div id="ref-kingman1961" class="csl-entry">
-Kingman, J. F. C. 1961. <span>«&nbsp;The Single Server Queue in Heavy Traffic&nbsp;»</span>. <em>Mathematical Proceedings of the Cambridge Philosophical Society</em> 57 (4): 902‑4. <a href="https://doi.org/10.1017/S0305004100036094">https://doi.org/10.1017/S0305004100036094</a>.
-</div>
-<div id="ref-lehman1980" class="csl-entry">
-Lehman, Meir M. 1980. <span>«&nbsp;Programs, Life Cycles, and Laws of Software Evolution&nbsp;»</span>. <em>Proceedings of the IEEE</em> 68 (9): 1060‑76. <a href="https://doi.org/10.1109/PROC.1980.11805">https://doi.org/10.1109/PROC.1980.11805</a>.
-</div>
-<div id="ref-little1961" class="csl-entry">
-Little, John D. C. 1961. <span>«&nbsp;A Proof for the Queuing Formula: <span><img src="https://latex.codecogs.com/png.latex?L%20=%20%5Clambda%20W"></span>&nbsp;»</span>. <em>Operations Research</em> 9 (3): 383‑87. <a href="https://doi.org/10.1287/opre.9.3.383">https://doi.org/10.1287/opre.9.3.383</a>.
-</div>
-<div id="ref-reinertsen2009" class="csl-entry">
-Reinertsen, Donald G. 2009. <em>The Principles of Product Development Flow: Second Generation Lean Product Development</em>. Celeritas Publishing.
-</div>
-<div id="ref-safe6" class="csl-entry">
-Scaled Agile, Inc. 2023. <em><span>SAFe</span> 6.0 Framework: Agile Release Train</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/agile-release-train">https://framework.scaledagile.com/agile-release-train</a>.
-</div>
-<div id="ref-safeai2026" class="csl-entry">
-Scaled Agile, Inc. 2026. <em><span>AI</span>-Native <span>SAFe</span>: <span>PI</span> Outcome Planning</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/ain-safe-pi-outcome-planning/">https://framework.scaledagile.com/ain-safe-pi-outcome-planning/</a>.
-</div>
-<div id="ref-safebacklog" class="csl-entry">
-Scaled Agile, Inc. s.&nbsp;d.-a. <em><span>ART</span> and Solution Train Backlogs</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/art-and-solution-train-backlogs">https://framework.scaledagile.com/art-and-solution-train-backlogs</a>.
-</div>
-<div id="ref-safepi" class="csl-entry">
-Scaled Agile, Inc. s.&nbsp;d.-b. <em>Planning Interval (<span>PI</span>)</em>. Framework.scaledagile.com. <a href="https://framework.scaledagile.com/planning-interval">https://framework.scaledagile.com/planning-interval</a>.
-</div>
-<div id="ref-scrumguide2020" class="csl-entry">
-Schwaber, Ken, et Jeff Sutherland. 2020. <em>The <span>Scrum</span> Guide: The Definitive Guide to <span>Scrum</span>: The Rules of the Game</em>. Scrumguides.org. <a href="https://scrumguides.org/scrum-guide.html">https://scrumguides.org/scrum-guide.html</a>.
-</div>
-</div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Réutilisation</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.fr">CC BY 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{cuenat2026,
-  author = {Cuenat, Stéphane},
-  title = {Le travail a une masse},
-  date = {2026-10-24},
-  url = {https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/},
-  langid = {fr}
-}
-</code></pre></div><div class="quarto-appendix-secondary-label">Veuillez citer ce travail comme suit&nbsp;:</div><div id="ref-cuenat2026" class="csl-entry quarto-appendix-citeas">
-Cuenat, Stéphane. 2026. <span>“Le travail a une masse.”</span> October
-24. <a href="https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/">https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/</a>.
-</div></div></section></div> ]]></description>
-  <category>essai</category>
-  <category>ia</category>
-  <category>agilité</category>
-  <category>organisation</category>
-  <guid>https://scuenat.github.io/fr/posts/2026-10-24-work-has-mass/</guid>
-  <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://scuenat.github.io/posts/2026-10-24-work-has-mass/figures/fig01.png" medium="image" type="image/png" height="65" width="144"/>
 </item>
 </channel>
 </rss>
