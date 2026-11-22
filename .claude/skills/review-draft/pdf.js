@@ -26,6 +26,8 @@ const server = http.createServer((req, res) => {
     if (!fs.existsSync(f)) return route.fulfill({ status: 404 });
     route.fulfill({ status: 200, body: fs.readFileSync(f), contentType: types[path.extname(f)] || 'font/ttf' });
   });
+  // Answer listen.js's cookie question in advance, so its banner does not cover every PDF page.
+  await page.context().addCookies([{ name: 'aih_listen_cookies', value: 'no', url: `http://localhost:${port}/` }]);
   await page.goto(`http://localhost:${port}/${urlPath}`, { waitUntil: 'networkidle' });
   await page.emulateMedia({ media: 'screen' });    // the on-screen look, not the print stylesheet
   await page.addStyleTag({ content: `
