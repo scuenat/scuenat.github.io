@@ -5,9 +5,9 @@ Both figures are schematics: they show a shape, not measured data."""
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
-import handdrawn; handdrawn.apply()
+import house; house.apply()
 import numpy as np
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
 
@@ -113,8 +113,8 @@ def fig02():
     pos = [(cx, cy + R), (cx + R, cy), (cx, cy - R), (cx - R, cy)]
     for (x, y), (t, s) in zip(pos, steps):
         box(ax, x - 1.95, y - 0.8, 3.9, 1.6, t, s, accent=GREEN, fs=9.8, subfs=7.9)
-    ax.text(cx, cy + 0.3, "shaped by people", ha="center", va="center", fontsize=11, weight="bold", color=GREEN)
-    ax.text(cx, cy - 0.3, "each turn, initiative\nfeels more natural", ha="center", va="center",
+    ax.text(cx, cy + 0.42, "shaped by people", ha="center", va="center", fontsize=11, weight="bold", color=GREEN)
+    ax.text(cx, cy - 0.36, "each turn, initiative\nfeels more natural", ha="center", va="center",
             fontsize=8.6, color=MUTED, style="italic", linespacing=1.25)
     # the tool, outside the loop
     box(ax, 14.0, 4.3, 5.6, 2.6, "", fill=AMBER_T, edge=AMBER)

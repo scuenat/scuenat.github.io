@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
-import handdrawn; handdrawn.apply()
+import house; house.apply()
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
 
 # ---------- palette (from light.scss) ----------
@@ -351,7 +351,7 @@ def fig_wsjf():
         ax.text(2.08, y[2], f[0], ha="left", va="center", fontsize=8.8, color=col if moved else INK,
                 weight="semibold" if moved else "normal")
     for c, (t, sub, _) in enumerate(cols):
-        ax.text(xs[c], 0.35, t, ha="center", fontsize=9.6, weight="semibold", color=INK)
+        ax.text(xs[c], 0.5, t, ha="center", fontsize=9.6, weight="semibold", color=INK)
         ax.text(xs[c], 0.05, sub, ha="center", fontsize=8.4, color=MUTED)
         sc = scores[c]
         ax.text(xs[c], -9.0, f"spread {max(sc) / min(sc):.1f}×", ha="center", fontsize=8.2, color=MUTED)

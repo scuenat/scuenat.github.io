@@ -11,9 +11,9 @@ the shape, not the numbers, of an endoreversible engine."""
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
-import handdrawn; handdrawn.apply()
+import house; house.apply()
 from matplotlib.patches import FancyBboxPatch
 import numpy as np
 
@@ -74,7 +74,7 @@ def fig01():
                                         fc="none", ec=LINE, lw=1.1))
             ax.add_patch(FancyBboxPatch((bx, y - 0.17), max(bw * v, 0.1), 0.34,
                                         boxstyle="round,pad=0,rounding_size=0.08", fc=ec, ec=ec, lw=1.1))
-            ax.text(bx + bw + 0.15, y, n, fontsize=9.8, color=MUTED, va="center", linespacing=1.15)
+            ax.text(bx + bw + 0.15, y, n, fontsize=9.2, color=MUTED, va="center", linespacing=1.15)
         ax.plot([x + 0.3, x + w - 0.3], [0.95, 0.95], color=LINE, lw=1)
         ax.text(x + 0.3, 0.55, verdict, fontsize=12.5, weight="bold", color=ec, va="center")
     _save(fig, 1)

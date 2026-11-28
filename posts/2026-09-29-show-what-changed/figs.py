@@ -1,4 +1,4 @@
-"""Figures for "Show What Changed, Not the Data", in the site's hand-drawn style.
+"""Figures for "Show What Changed, Not the Data", in the site's house figure style.
 Run: python figs.py   (needs matplotlib, numpy)
 All data is simulated, as in the paper. Figures 1-9 redraw the paper's figures from the same
 recipes. Figures 10 and 11 come from a small re-run of the copilot simulation (section 11): the same
@@ -11,9 +11,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
-import handdrawn; handdrawn.apply()
+import house; house.apply()
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Ellipse
 
 NAVY, RED, GREY, INK, MUTED, LINE = "#1f4e79", "#c0392b", "#7f8c8d", "#1f2328", "#6b7680", "#d0d7de"
