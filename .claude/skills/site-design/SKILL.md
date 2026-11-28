@@ -175,34 +175,46 @@ to a lighter local copy: check `font-weight` with `getComputedStyle` rather than
 Send the user the desktop and phone screenshots of what changed before publishing a large
 redesign, and publish (push to `main`, see **new-post** §7) once they agree.
 
-## 7. Figures: the hand-drawn house style
+## 7. Figures: the house style ("printed chart, annotated by hand")
 
-Since November 2026 every figure is drawn in one hand-made style, so the pictures look like
-the author's own sketches rather than default charts. It lives in `_figstyle/handdrawn.py`
-(with the Kalam font, SIL OFL, in `_figstyle/fonts/`) and is added when a figure is saved, so a
-`figs.py` only needs these lines right after `import matplotlib.pyplot as plt`:
+Since late November 2026 every figure shares one identity, so a reader recognises the author's
+figures anywhere, even shared out of context: a clean, exact chart in the site's own typefaces and
+palette, the author's notes written over it by hand, and a small signature. It replaced the
+all-over hand-drawn look (wobbly axes and grids read as amateur in data charts). The style lives in
+`_figstyle/house.py`, with its fonts in `_figstyle/fonts/` (Inter, Source Serif 4, Kalam; all SIL
+OFL), and is applied when a figure is saved, so a `figs.py` only needs these lines right after
+`import matplotlib.pyplot as plt`:
 
 ```python
-import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
-import handdrawn; handdrawn.apply()
+import house; house.apply()
 ```
 
-- **Handwriting**: all text except code is set in Kalam (DejaVu Sans fills in symbols Kalam
-  lacks; Greek letters in `$...$` come from STIX). Monospace text (code, tool names) stays mono.
-- **Pen strokes**: boxes, arrows, frames and axes wobble a little and get a lighter second
-  pass, like a pen going over the line. Coloured areas are laid slightly off their outline,
-  like a felt-tip.
-- **Data stays exact**: curves with many points, scatter dots, error bars and markers get only
-  a faint tremor and no second pass, so no value moves.
-- Same look in the SVG (page) and the 400 dpi PNG (card): the wobble is scaled to the resolution
-  and is the same on every run.
-- Kalam is taller than Inter: after changing a figure, look for labels that touch each other or
-  a frame and move them in that `figs.py`. Tune the whole look (wobble, offset, line spacing)
-  only in `handdrawn.py`, then rerun every `figs.py`.
+What a reader sees, and the rule behind each part:
+
+| Part | Rule |
+|---|---|
+| **Signature** | A short amber bar above the top-left corner (the amber of the rule under post titles), and a hairline closing the figure with **AI, Honestly** at the bottom right ("Honestly" in amber, as in the hero). Scaled to the figure's width so it looks the same in every post. Covers and dark posters (file name `cover*`, or a dark background) are left unsigned; `fig._house_sign = False` turns it off for one figure; `fig._house_source = "Source: …"` adds a source line at the bottom left. |
+| **Palette** | Six hue families in a fixed order (navy, amber, green, plum, red, teal; checked for colour-blind separation on white) plus a neutral ramp. Every colour a script uses is snapped to the nearest step of its family, so light/dark pairs stay pairs; cream backgrounds become white; text that would be too pale on white steps down its ramp; colormaps (heat maps, images, shaded 3D surfaces) are left alone. New figures should use the names in `house.py` (`NAVY`, `AMBER`, `GREEN`, `PLUM`, `RED`, `TEAL`, their `_T` tints, `INK`, `MUTED`, `RULE`, `PANEL`). |
+| **Type** | Inter for labels, ticks, legends and box text. **Source Serif 4 Semibold** for titles: bold words that title a figure, a panel or a chart (axes titles, or bold text of 9.5 pt or more that is not inside a small box and is not a number), as in post headings. Small upper-case kickers ("EXPERIMENT 2") are Inter Semibold in amber-brown (`MARK`) unless they sit on a dark box. Code stays monospace. |
+| **The author's notes** | A callout, i.e. `ax.annotate(text, xy, xytext, arrowprops=...)` with some text, is the author speaking: its text is handwritten (Kalam) and its arrow drawn with a light pen. Use `annotate` with an arrow for the one or two remarks per figure that carry the point; everything else stays a plain label. Nothing else is hand-drawn, so no value moves. |
+| **Axes** | Hairline axes in soft grey, no top/right frame on plots, quiet grid, legends without boxes. |
+| **Fit** | A label inside a box is shrunk (never below 75 %) when the house font is wider than the box allows. |
+
+Checking a figure:
+
+- `HOUSE_CHECK=1 python3 figs.py` lists labels that overlap after the house fonts are applied
+  (tick labels meeting at a corner and multi-line labels with blank lines are false alarms).
+  Fix real overlaps by moving the label in that `figs.py`, never by changing `house.py` for one figure.
+- Look at every PNG after a change: a contact sheet of thumbnails is the quickest way to see
+  that the set still reads as one family.
+- Tune the look (palette, sizes, the signature) only in `house.py`, then rerun every `figs.py`
+  (`for f in $(find posts fr/posts -name figs.py); do (cd $(dirname $f) && python3 figs.py); done`).
 - *Decided in the Bulk*: its research bundle under `code/` is left as published; the post's own
   `figs.py` reruns three of its plotting scripts with the house style.
 - Every figure on the site comes from a `figs.py`, including *Show What Changed* (redrawn
   from the paper's recipes; its PDF keeps the original figures) and the two cover images
   (*A Universe Without a Bottom*, French *Les murs sont en marche*). Not figures, so left as
   they are: the TEDx photo, `social-card.jpg`, the favicon and the hero network.
+- Alt text describes what is drawn, not the style: do not write "hand-drawn".

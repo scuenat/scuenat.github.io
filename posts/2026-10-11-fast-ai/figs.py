@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import sys, pathlib  # hand-drawn house style: _figstyle/handdrawn.py at the site root
+import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
-import handdrawn; handdrawn.apply()
+import house; house.apply()
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 NAVY, GREY, RED, LIGHT, PALE, AMBER = "#1f4e79", "#7f8c8d", "#c0392b", "#d5dde5", "#eef1f4", "#d68910"
@@ -194,8 +194,8 @@ def fig_invoice():
             arrow(ax, (x - 0.3, 5.57), (x - 0.02, 5.57))
     ax.text(0, 4.45, "about half a minute · noticeable cost · may differ next time · "
             "explained by pages of reasoning", fontsize=7.8, color=RED, style="italic")
-    ax.text(0, 3.75, "The Fast AI way", weight="bold", fontsize=9.5, color=INK, va="top")
-    ax.text(0, 3.15, "once, months earlier:", fontsize=7.8, color=GREY, style="italic")
+    ax.text(0, 3.85, "The Fast AI way", weight="bold", fontsize=9.5, color=INK, va="top")
+    ax.text(0, 3.05, "once, months earlier:", fontsize=7.8, color=GREY, style="italic")
     box(ax, 0.0, 1.5, 3.1, 1.35, "Language model", "reads contracts,\npolicies, cases", fc=NAVY,
         fs=8.5, subfs=7.3)
     box(ax, 3.6, 1.5, 2.5, 1.35, "Graph", "reviewed by the\nfinance team", fc=LIGHT, fs=8.5, subfs=7.3)
