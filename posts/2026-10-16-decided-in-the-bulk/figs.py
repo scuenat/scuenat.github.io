@@ -10,6 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
 import house; house.apply()
+house.NOTES = ['noisy phase', 'finished digits', 'dashed line']  # the author's notes, written by hand
 
 HERE = pathlib.Path(__file__).resolve().parent
 BUNDLE = HERE / "code" / "noise-to-boundaries"

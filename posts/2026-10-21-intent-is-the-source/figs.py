@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
 import house; house.apply()
+house.NOTES = ['becomes what the step above generates', 'refine the intent', 'fails: try again']  # the author's notes, written by hand
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
 
 # ---------- palette (from light.scss) ----------

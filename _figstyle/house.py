@@ -319,15 +319,18 @@ def _style_text(t, fig):
     size = t.get_fontsize()
     is_callout = isinstance(t, Annotation) and t.arrow_patch is not None and txt.strip()
     letters = [ch for ch in txt if ch.isalpha()]
-    if is_callout:
+    if (is_callout or _is_note(t, txt)) and not getattr(t, "_house_plain", False):
         t.set_fontfamily([HAND] + FALLBACK)
         t.set_fontweight("normal")
-        t.set_fontsize(size * 1.12)
+        t.set_fontstyle("normal")
+        t.set_fontsize(max(size * 1.12, 7.6))
         ls = getattr(t, "_linespacing", 1.2)
         t.set_linespacing((ls if isinstance(ls, (int, float)) else 1.2) * 0.8)
-        t.arrow_patch.set_path_effects([Pen(fig._house_dpi)])
+        if isinstance(t, Annotation) and t.arrow_patch is not None:
+            t.arrow_patch.set_path_effects([Pen(fig._house_dpi)])
         if "$" in txt:
             t.set_text(_hand_math(txt))
+        fig._house_notes = getattr(fig, "_house_notes", 0) + 1
     elif _is_title(t, txt, size):
         t.set_fontfamily([SERIF] + FALLBACK)
         t.set_fontweight("semibold")
@@ -341,6 +344,47 @@ def _style_text(t, fig):
             t.set_color(MARK)
     else:
         t.set_fontfamily([SANS] + FALLBACK)
+
+
+NOTES = []   # a figs.py lists here (substrings of) the labels that are the author's notes
+
+
+def _is_note(t, txt):
+    """The author's voice: a label named in NOTES, one made with house.note(), or a remark set in
+    italics outside any box (coloured: two words or more; grey: three or more). Never a legend entry."""
+    if getattr(t, "_house_note", False):
+        return True
+    if t.axes is not None and isinstance(t.axes.get_legend(), Legend) and t in t.axes.get_legend().get_texts():
+        return False
+    if NOTES and any(n in txt for n in NOTES):
+        return True
+    if t.get_fontstyle() not in ("italic", "oblique") or _weight(t) >= 600:
+        return False
+    plain = txt.replace("$", " ").strip()
+    words = len(plain.split())
+    if words < 2 or sum(ch.isalpha() for ch in plain) < 6:
+        return False
+    if t.axes is None or _in_small_box(t) or getattr(t, "_house_on_dark", False):
+        return False
+    if isinstance(t.axes.get_legend(), Legend) and t in t.axes.get_legend().get_texts():
+        return False
+    coloured = _lch(to_rgba(t.get_color()))[1] >= 0.04
+    return words >= (2 if coloured else 3)
+
+
+def note(ax, x, y, text, xy=None, color=None, **kw):
+    """Write one of the author's notes by hand. With `xy`, an arrow points from the note to it.
+    Coordinates are data coordinates unless `transform`/`textcoords` say otherwise."""
+    color = color or MARK
+    kw.setdefault("fontsize", 9)
+    if xy is not None:
+        arrow = kw.pop("arrowprops", dict(arrowstyle="-|>", color=color, lw=1.0, shrinkA=3, shrinkB=4,
+                                          mutation_scale=9, connectionstyle="arc3,rad=0.2"))
+        t = ax.annotate(text, xy=xy, xytext=(x, y), color=color, arrowprops=arrow, **kw)
+    else:
+        t = ax.text(x, y, text, color=color, **kw)
+    t._house_note = True
+    return t
 
 
 def _is_title(t, txt, size):
@@ -624,6 +668,14 @@ def _wrap_savefig():
                 a.arrow_patch.set_path_effects([Pen(self._house_dpi)])
         if os.environ.get("HOUSE_CHECK"):
             _report_collisions(self, fname)
+            import sys
+            print(f"house-notes {Path(str(fname)).name}: {getattr(self, '_house_notes', 0)}", file=sys.stderr)
+            if os.environ.get("HOUSE_CHECK") == "candidates" and not getattr(self, "_house_notes", 0):
+                for ax in self.axes:
+                    for t in ax.texts:
+                        tx = t.get_text().strip().replace("\n", " / ")
+                        if len(tx.split()) >= 3 and not _in_small_box(t) and t.get_fontfamily()[0] != HAND:
+                            print(f"house-cand {Path(str(fname)).name}: {tx[:90]!r}", file=sys.stderr)
         made = []
         if _wants_sign(self, fname, kwargs):
             if kwargs.get("bbox_inches", matplotlib.rcParams["savefig.bbox"]) != "tight":
