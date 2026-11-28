@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
 import house; house.apply()
+house.NOTES = ['measuring is worthless', 'drift starts']  # the author's notes, written by hand
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Ellipse
 
 NAVY, RED, GREY, INK, MUTED, LINE = "#1f4e79", "#c0392b", "#7f8c8d", "#1f2328", "#6b7680", "#d0d7de"

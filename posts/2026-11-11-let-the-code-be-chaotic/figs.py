@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
 import house; house.apply()
+house.NOTES = ['paths part', 'as far apart as two', 'held within a narrow band', 'grows like', 'Machines move zone 3', 'only what cannot be undone', 'sets the attractor']  # the author's notes, written by hand
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 import sim
 # ---------- palette (from light.scss) ----------

@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
 import house; house.apply()
+house.NOTES = ['paid on every token', 'paid rarely', 'every bit offered is kept', 'about 2 bits per parameter', 'one table write per edit', 'exact: read every key', 'measured crossover', 'same number of bytes', 'each 10× more facts', 'checked first: milliseconds']  # the author's notes, written by hand
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 # ---------- palette (from light.scss) ----------

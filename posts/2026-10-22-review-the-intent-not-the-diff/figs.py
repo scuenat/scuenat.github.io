@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import sys, pathlib  # house figure style: _figstyle/house.py at the site root
 sys.path.insert(0, str(next(p / "_figstyle" for p in pathlib.Path(__file__).resolve().parents if (p / "_figstyle").is_dir())))
 import house; house.apply()
+house.NOTES = ['waiting for a reader', 'a change falls through every layer', 'a change to the intent', 'incident: someone goes deep']  # the author's notes, written by hand
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Circle
 
 # ---------- palette (from light.scss) ----------
